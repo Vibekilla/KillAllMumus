@@ -379,6 +379,11 @@ func ellipse(x, y, rx, ry, rot, a0, a1, ccw: bool = false) -> void:
 			"rx": c_world.distance_to(ex),
 			"ry": c_world.distance_to(ey),
 			"rot": rotf + _xform.get_rotation(),
+			# local (pre-xform) for gradient sampling (Bobina iris, etc.)
+			"c_local": c_local,
+			"rx_local": rxf,
+			"ry_local": ryf,
+			"rot_local": rotf,
 		}
 	var steps := 28
 	for i in range(steps + 1):
@@ -437,18 +442,22 @@ func fill() -> void:
 			_draw_shadow_circle(c, r, col_c)
 			node.draw_circle(c, r, col_c)
 			return
-	# Full ellipse (portal / honey badger body) — scaled circle, solid fill like HTML
-	if not _last_full_ellipse.is_empty() and _fill_grad == null and pts.size() >= 16:
+	# Full ellipse (portal / honey badger body / Bobina eyes) — solid or gradient
+	if not _last_full_ellipse.is_empty() and pts.size() >= 16:
 		var ec: Vector2 = _last_full_ellipse.get("c", Vector2.ZERO)
 		var erx: float = float(_last_full_ellipse.get("rx", 0.0))
 		var ery: float = float(_last_full_ellipse.get("ry", 0.0))
 		var erot: float = float(_last_full_ellipse.get("rot", 0.0))
 		if erx > 0.05 and ery > 0.05 and _point_in_clip(ec):
-			var col_e := _c(_fill)
-			# CanvasItem local xform: position, rotation, scale (ellipse = scaled unit circle)
-			node.draw_set_transform(ec, erot, Vector2(erx, ery))
-			node.draw_circle(Vector2.ZERO, 1.0, col_e)
-			node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			if _fill_grad == null:
+				var col_e := _c(_fill)
+				# CanvasItem local xform: position, rotation, scale (ellipse = scaled unit circle)
+				node.draw_set_transform(ec, erot, Vector2(erx, ery))
+				node.draw_circle(Vector2.ZERO, 1.0, col_e)
+				node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				return
+			# Gradient ellipse (HTML smile-eye amber iris) — banded local sampling
+			_fill_ellipse_gradient(_last_full_ellipse)
 			return
 	pts = _clip_poly(pts)
 	if pts.size() < 3:
@@ -459,9 +468,109 @@ func fill() -> void:
 		poly = poly.slice(0, poly.size() - 1)
 	if poly.size() < 3:
 		return
-	var col := _c(_fill_grad.mid_color() if _fill_grad != null else _fill)
+	if _fill_grad != null:
+		# Gradient on arbitrary path: sample per-triangle centroid (better than solid mid)
+		_fill_triangulated_gradient(poly)
+		return
+	var col := _c(_fill)
 	_draw_shadow_poly(poly, col)
 	_fill_triangulated(poly, col)
+
+func _fill_ellipse_gradient(info: Dictionary) -> void:
+	## Banded fill for ellipse with CanvasGradient (Bobina iris, auras).
+	## Builds bands in local (pre-xform) ellipse space, samples gradient there, draws world polys.
+	if node == null or _fill_grad == null:
+		return
+	var c_local: Vector2 = info.get("c_local", Vector2.ZERO)
+	var rxf: float = float(info.get("rx_local", info.get("rx", 0.0)))
+	var ryf: float = float(info.get("ry_local", info.get("ry", 0.0)))
+	var rotf: float = float(info.get("rot_local", 0.0))
+	if rxf < 0.05 or ryf < 0.05:
+		return
+	var g: CanvasGradient = _fill_grad
+	var bands := 14
+	var cs := cos(rotf)
+	var sn := sin(rotf)
+	# Prefer vertical slice when gradient is mostly vertical (eye iris dark→gold)
+	var axis := Vector2(g.x1 - g.x0, g.y1 - g.y0)
+	var vertical := absf(axis.x) < absf(axis.y) * 0.5 or absf(axis.x) < 0.001
+	if vertical:
+		for i in range(bands):
+			var t0 := float(i) / float(bands)
+			var t1 := float(i + 1) / float(bands)
+			var y0 := -1.0 + 2.0 * t0
+			var y1 := -1.0 + 2.0 * t1
+			var ym := (y0 + y1) * 0.5
+			var hw := sqrt(maxf(0.0, 1.0 - ym * ym))
+			if hw < 0.02:
+				continue
+			# local band centre for gradient sample
+			var lx_mid := 0.0
+			var ly_mid := ym * ryf
+			var local := c_local + Vector2(lx_mid * cs - ly_mid * sn, lx_mid * sn + ly_mid * cs)
+			var col := _c(_sample_grad_at_local(local))
+			var corners_u := [
+				Vector2(-hw, y0), Vector2(hw, y0), Vector2(hw, y1), Vector2(-hw, y1)
+			]
+			var wpts := PackedVector2Array()
+			for p in corners_u:
+				var lx: float = float(p.x) * rxf
+				var ly: float = float(p.y) * ryf
+				var rx: float = lx * cs - ly * sn
+				var ry: float = lx * sn + ly * cs
+				wpts.append(_xform * (c_local + Vector2(rx, ry)))
+			# Fan triangles only — draw_colored_polygon(n>3) fails under non-uniform xform
+			if wpts.size() >= 3:
+				node.draw_colored_polygon(PackedVector2Array([wpts[0], wpts[1], wpts[2]]), col)
+				if wpts.size() >= 4:
+					node.draw_colored_polygon(PackedVector2Array([wpts[0], wpts[2], wpts[3]]), col)
+	else:
+		for i in range(bands):
+			var t0 := float(i) / float(bands)
+			var t1 := float(i + 1) / float(bands)
+			var x0 := -1.0 + 2.0 * t0
+			var x1 := -1.0 + 2.0 * t1
+			var xm := (x0 + x1) * 0.5
+			var hh := sqrt(maxf(0.0, 1.0 - xm * xm))
+			if hh < 0.02:
+				continue
+			var lx_mid := xm * rxf
+			var ly_mid := 0.0
+			var local := c_local + Vector2(lx_mid * cs - ly_mid * sn, lx_mid * sn + ly_mid * cs)
+			var col := _c(_sample_grad_at_local(local))
+			var corners_u := [
+				Vector2(x0, -hh), Vector2(x1, -hh), Vector2(x1, hh), Vector2(x0, hh)
+			]
+			var wpts := PackedVector2Array()
+			for p in corners_u:
+				var lx: float = float(p.x) * rxf
+				var ly: float = float(p.y) * ryf
+				var rx: float = lx * cs - ly * sn
+				var ry: float = lx * sn + ly * cs
+				wpts.append(_xform * (c_local + Vector2(rx, ry)))
+			if wpts.size() >= 3:
+				node.draw_colored_polygon(PackedVector2Array([wpts[0], wpts[1], wpts[2]]), col)
+				if wpts.size() >= 4:
+					node.draw_colored_polygon(PackedVector2Array([wpts[0], wpts[2], wpts[3]]), col)
+
+func _fill_triangulated_gradient(poly: PackedVector2Array) -> void:
+	## Fan triangles, each colored by gradient at centroid (local space).
+	if node == null or poly.size() < 3:
+		return
+	var inv := _xform.affine_inverse()
+	var c0: Vector2 = poly[0]
+	for si in range(1, poly.size() - 1):
+		var a: Vector2 = c0
+		var b: Vector2 = poly[si]
+		var c: Vector2 = poly[si + 1]
+		# Skip degenerate / collinear fans (Godot triangulation errors)
+		var area2 := absf((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y))
+		if area2 < 0.05:
+			continue
+		var centroid := (a + b + c) / 3.0
+		var local := inv * centroid
+		var col := _c(_sample_grad_at_local(local))
+		node.draw_colored_polygon(PackedVector2Array([a, b, c]), col)
 
 func _is_path_full_circle(pts: PackedVector2Array) -> bool:
 	## True when path is a closed disc (many points near constant radius from center).

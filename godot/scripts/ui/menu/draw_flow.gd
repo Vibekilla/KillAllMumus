@@ -64,7 +64,7 @@ func draw_intro() -> void:
 	ctx.text_align("left")
 
 func draw_stage_clear(info: Dictionary) -> void:
-	## HTML drawStageClear
+	## HTML drawStageClear — 1:1 layout (clear art, leek, stats, arsenal, menu+next)
 	ctx.fill_style("rgba(6,4,10,0.92)")
 	ctx.fill_rect(0, 0, W, H)
 	ctx.text_align("center")
@@ -75,7 +75,14 @@ func draw_stage_clear(info: Dictionary) -> void:
 	var bx := W / 2.0 - bw / 2.0
 	var byy := 18.0
 	if img:
+		ctx.save()
+		ctx.shadow_color("rgba(255,120,190,0.5)")
+		ctx.shadow_blur(24)
+		ctx.begin_path()
+		ctx.round_rect(bx, byy, bw, bh, 14)
+		ctx.clip()
 		ctx.draw_image(img, bx, byy, bw, bh)
+		ctx.restore()
 		ctx.stroke_style("rgba(255,210,120,0.7)")
 		ctx.line_width(3)
 		ctx.begin_path()
@@ -87,7 +94,7 @@ func draw_stage_clear(info: Dictionary) -> void:
 		ctx.shadow_blur(22)
 		ctx.fill_style("#ffe08a")
 		ctx.font("900 42px Trebuchet MS")
-		ctx.fill_text("★ STAGE CLEAR ★", W / 2.0, 110)
+		ctx.fill_text("STAGE CLEAR", W / 2.0, 110)
 		ctx.restore()
 	var yb := byy + bh + 16.0
 	# HTML leek-spin celebration GIF (native #leek overlay → canvas frames)
@@ -111,33 +118,40 @@ func draw_stage_clear(info: Dictionary) -> void:
 		yb += lh + 36.0
 	else:
 		yb += 8.0
+	var kills_stage := int(info.get("killsThisStage", info.get("kills", 0)))
 	ctx.fill_style("#ff9ecb")
 	ctx.font("bold 22px Trebuchet MS")
-	ctx.fill_text("%d MUMUS ELIMINATED" % int(info.get("killsThisStage", 0)), W / 2.0, yb)
+	ctx.fill_text("%d MUMUS ELIMINATED" % kills_stage, W / 2.0, yb)
 	yb += 24
 	ctx.fill_style("#e8d6f0")
 	ctx.font("13px monospace")
-	ctx.fill_text("Total %d  ·  Rank %s  ·  Score %s" % [
+	# HTML: Total · Rank · Power Lv · Score
+	var power_lv := clampi(int(floor(GameState.power)), 1, 6)
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/CombatHelpers"):
+		power_lv = int(CombatHelpers.shot_level())
+	ctx.fill_text("Total %d  ·  Rank %s  ·  Power Lv%d  ·  Score %s" % [
 		int(info.get("total", GameState.total_kills)),
 		GameState.rank_letter(),
+		power_lv,
 		MenuHelpers.fmt_score(GameState.session_score),
 	], W / 2.0, yb)
-	yb += 28
+	yb += 20
+	# HTML: only real newly-earned emblems (slice 0,3) — not a fake list
 	var ems: Array = info.get("emblems", [])
-	if ems.size():
-		ctx.fill_style("#ffd27a")
-		ctx.font("bold 14px monospace")
-		ctx.fill_text("🏅 NEW EMBLEMS", W / 2.0, yb)
-		yb += 18
+	if ems is Array and ems.size():
+		ctx.font("bold 12px monospace")
+		var shown := 0
 		for em in ems:
+			if shown >= 3:
+				break
 			if em is Dictionary:
+				var outfit_note := " (skin unlocked!)" if em.get("outfit") else ""
 				ctx.fill_style("#8fd0ff")
-				ctx.font("12px monospace")
-				ctx.fill_text("%s %s" % [em.get("icon", "★"), em.get("name", "")], W / 2.0, yb)
+				ctx.fill_text("🏅 %s %s Emblem earned!%s" % [
+					str(em.get("icon", "◆")), str(em.get("name", "")), outfit_note
+				], W / 2.0, yb)
 				yb += 16
-	ctx.fill_style("#8fd0a0")
-	ctx.font("bold 13px monospace")
-	ctx.fill_text("💀 +15 heads for the boss bounty", W / 2.0, yb + 8)
+				shown += 1
 	# HTML 🎒 EDIT ARSENAL button
 	var aw := 224.0
 	var ah := 30.0
@@ -153,10 +167,40 @@ func draw_stage_clear(info: Dictionary) -> void:
 	ctx.fill_style("#bff0ff")
 	ctx.font("bold 13px Trebuchet MS")
 	ctx.fill_text("🎒 EDIT ARSENAL", W / 2.0, ay + 20)
-	ctx.fill_style("#fff" if (int(floorf(float(tick) / 26.0)) % 2) != 0 else "#9a7c96")
-	ctx.font("bold 16px monospace")
-	ctx.fill_text("PRESS " + MenuHelpers.kb("shoot") + " / TAP TO CONTINUE", W / 2.0, H - 28)
+	# HTML action buttons: MAIN MENU (left) + NEXT STAGE (right)
+	_draw_sc_menu_btn(W / 2.0 - 90.0, H - 50.0)
+	var nw := 150.0
+	var nh := 28.0
+	var nx := W / 2.0 + 90.0 - nw / 2.0
+	var ny := H - 50.0
+	ctx.fill_style("rgba(40,20,16,0.85)")
+	ctx.begin_path()
+	ctx.round_rect(nx, ny, nw, nh, 8)
+	ctx.fill()
+	ctx.stroke_style("#ffd27a")
+	ctx.line_width(1.5)
+	ctx.stroke()
+	ctx.fill_style("#fff" if (int(floorf(float(tick) / 26.0)) % 2) != 0 else "#ffd27a")
+	ctx.font("bold 13px Trebuchet MS")
+	ctx.fill_text("NEXT STAGE ▶  [" + MenuHelpers.kb("shoot") + "]", W / 2.0 + 90.0, ny + 19)
 	ctx.text_align("left")
+
+func _draw_sc_menu_btn(cx: float, y: float) -> void:
+	## HTML drawMenuBtn used on stage-clear
+	var w := 150.0
+	var h := 28.0
+	var x := cx - w / 2.0
+	ctx.fill_style("rgba(30,16,40,0.85)")
+	ctx.begin_path()
+	ctx.round_rect(x, y, w, h, 8)
+	ctx.fill()
+	ctx.stroke_style("#8fd0ff")
+	ctx.line_width(1.5)
+	ctx.stroke()
+	ctx.fill_style("#8fd0ff")
+	ctx.font("bold 13px Trebuchet MS")
+	ctx.text_align("center")
+	ctx.fill_text("⌂ MAIN MENU  [M]", cx, y + 19)
 
 func draw_clear_gate(portal, shop, msg_t: float) -> void:
 	## HTML drawClearGate — field portal + shop marker

@@ -149,10 +149,33 @@ func _run() -> void:
 					await process_frame
 		await _save(str(st_name[1]))
 
-	# Play
+	# Settings + NG select (title meta screens HTML dual also captures)
+	GameState.set_state(GameState.State.SETTINGS)
+	_force_ui_size(_main)
+	for _i in range(6 if fast else 10):
+		await process_frame
+	await _save("godot_menu_settings")
+
+	GameState.set_state(GameState.State.NG_SELECT)
+	_force_ui_size(_main)
+	if title and title.has_method("queue_redraw"):
+		title.queue_redraw()
+	for _i in range(6 if fast else 10):
+		await process_frame
+	await _save("godot_menu_ngselect")
+
+	# Clean run: intro first (HTML order), then play with invuln so dual never hits gameover
 	GameState.difficulty = 0
 	GameState.ng_plus = 0
-	GameState.start_run()
+	GameState.start_run()  # → INTRO
+	_force_ui_size(_main)
+	var flow = _main.get_node_or_null("UI/FlowUI")
+	if flow and flow.has_method("queue_redraw"):
+		flow.queue_redraw()
+	for _i in range(6 if fast else 10):
+		await process_frame
+	await _save("godot_flow_intro")
+
 	GameState.set_state(GameState.State.PLAY)
 	if StageFlow and StageFlow.has_method("on_stage_start"):
 		StageFlow.on_stage_start()
@@ -162,26 +185,40 @@ func _run() -> void:
 	if player:
 		player.global_position = Vector2(304, 400)
 		player.z_index = 20
+		# Dual playtest: stay alive so godot_play is real combat, not gameover
+		if "invuln" in player:
+			player.invuln = 99999.0
+		GameState.lives = 99
 		var spr = player.get_node_or_null("Sprite")
 		if spr:
 			spr.z_index = 20
 	for i in range(play_frames):
 		await process_frame
+		if player and "invuln" in player:
+			player.invuln = 99999.0
 		if player and player.get("fire_sys") and player.get("bullet_pool"):
 			player.fire_sys.try_fire(player, player.bullet_pool, false)
 	print("[SHOT] enemies=", root.get_tree().get_nodes_in_group("enemies").size(),
-		" player=", player != null, " pos=", player.global_position if player else Vector2.ZERO)
+		" player=", player != null, " pos=", player.global_position if player else Vector2.ZERO,
+		" state=", GameState.State.keys()[GameState.state])
+	# Ensure still PLAY (player_hit must not have ended the run)
+	if GameState.state != GameState.State.PLAY:
+		GameState.set_state(GameState.State.PLAY)
+		if player:
+			player.global_position = Vector2(304, 400)
+			if "invuln" in player:
+				player.invuln = 99999.0
+		for _i in range(4):
+			await process_frame
 	await _save("godot_play")
 
-	# Stage flow: intro → clear gate → shop → stage clear
-	var flow = _main.get_node_or_null("UI/FlowUI")
-	GameState.set_state(GameState.State.INTRO)
+	# Pause overlay (HTML #pausescreen during play)
+	GameState.set_state(GameState.State.PAUSED)
 	_force_ui_size(_main)
-	if flow and flow.has_method("queue_redraw"):
-		flow.queue_redraw()
 	for _i in range(6 if fast else 10):
 		await process_frame
-	await _save("godot_flow_intro")
+	await _save("godot_flow_pause")
+	GameState.set_state(GameState.State.PLAY)
 
 	if StageFlow and StageFlow.has_method("spawn_clear_gate"):
 		StageFlow.spawn_clear_gate()
@@ -204,15 +241,17 @@ func _run() -> void:
 		await process_frame
 	await _save("godot_flow_shop")
 
+	# clear_info keys match StageFlow.on_boss_defeated / HTML clearInfo
+	GameState.session_score = 13300
+	GameState.total_kills = 39
 	if StageFlow:
 		StageFlow.clear_info = {
 			"stage": 0,
-			"kills": 42,
-			"score": 12000,
-			"heads": 15,
-			"no_death": true,
-			"no_bomb": true,
+			"killsThisStage": 39,
+			"total": 39,
+			"emblems": [],
 		}
+		StageFlow.kills_this_stage = 39
 	GameState.set_state(GameState.State.STAGE_CLEAR)
 	_force_ui_size(_main)
 	if flow and flow.has_method("queue_redraw"):
@@ -221,13 +260,25 @@ func _run() -> void:
 		await process_frame
 	await _save("godot_flow_stageclear")
 
-	# End screens (HTML drawWin / drawGameOver)
+	# End screens — mirror HTML dual: no name-entry chrome (canvas-only compare)
+	var end_ui = _main.get_node_or_null("UI/EndScreen")
+	var p2 = _A("P2Meta")
+	if p2:
+		p2.name_entry_open = false
+		p2.just_saved_score = false
+		p2.end_won = false
+	if end_ui and end_ui.get("handle_edit"):
+		end_ui.handle_edit.visible = false
 	GameState.session_score = 125000
 	GameState.total_kills = 420
 	GameState.lives = 0
 	GameState.set_state(GameState.State.GAMEOVER)
+	if p2:
+		p2.name_entry_open = false
+		p2.end_won = false
+	if end_ui and end_ui.get("handle_edit"):
+		end_ui.handle_edit.visible = false
 	_force_ui_size(_main)
-	var end_ui = _main.get_node_or_null("UI/EndScreen")
 	if end_ui and end_ui.has_method("queue_redraw"):
 		end_ui.queue_redraw()
 	for _i in range(8 if fast else 12):
@@ -236,15 +287,24 @@ func _run() -> void:
 
 	GameState.session_score = 2500000
 	GameState.total_kills = 9001
+	if p2:
+		p2.name_entry_open = false
+		p2.end_won = true
+	if end_ui and end_ui.get("handle_edit"):
+		end_ui.handle_edit.visible = false
 	GameState.set_state(GameState.State.WIN)
+	if p2:
+		p2.name_entry_open = false
+	if end_ui and end_ui.get("handle_edit"):
+		end_ui.handle_edit.visible = false
 	_force_ui_size(_main)
 	if end_ui and end_ui.has_method("queue_redraw"):
 		end_ui.queue_redraw()
 	for _i in range(8 if fast else 12):
 		await process_frame
 	await _save("godot_end_win")
-
 	if not fast:
+		# Outfit previews on title (mini Bobina) + force outfits menu for model parity
 		for outfit in ["og", "maid", "honeypot", "cabal"]:
 			GameState.selected_outfit = outfit
 			GameState.set_state(GameState.State.TITLE)
@@ -256,11 +316,20 @@ func _run() -> void:
 				await process_frame
 			await _save("godot_outfit_" + outfit)
 
+		# Fresh play at power 6 for combat dual
+		GameState.start_run()
 		GameState.set_state(GameState.State.PLAY)
 		GameState.power = 6.0
+		GameState.lives = 99
 		player = root.get_tree().get_first_node_in_group("player")
+		if player:
+			player.global_position = Vector2(304, 400)
+			if "invuln" in player:
+				player.invuln = 99999.0
 		for i in range(fire_frames):
 			await process_frame
+			if player and "invuln" in player:
+				player.invuln = 99999.0
 			if player and player.get("fire_sys") and player.get("bullet_pool"):
 				player.fire_sys.try_fire(player, player.bullet_pool, false)
 		await _save("godot_play_power6")

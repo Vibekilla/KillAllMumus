@@ -69,7 +69,7 @@ function servePublic() {
         if (!html.includes("window.__kamDual")) {
           html = html.replace(
             /function showNameEntry\(\)\{/,
-            `window.__kamDual={setState:function(s){state=s;},setScore:function(k,sc){totalKills=k;sessionScore=sc;},setEnd:function(w){endWon=!!w;endHandled=false;justSavedScore=false;nameEntryOpen=false;try{var n=document.getElementById("nameEntry");if(n)n.classList.remove("on");}catch(e){}}};function showNameEntry(){`
+            `window.__kamDual={setState:function(s){state=s;},setScore:function(k,sc){totalKills=k;sessionScore=sc;},setClear:function(info){clearInfo=info||{stage:0,killsThisStage:0,total:totalKills||0,emblems:[]};},setPaused:function(p){paused=!!p;},setPower:function(v){power=v;},setEnd:function(w){endWon=!!w;endHandled=false;justSavedScore=false;nameEntryOpen=false;try{var n=document.getElementById("nameEntry");if(n)n.classList.remove("on");}catch(e){}}};function showNameEntry(){`
           );
         }
         res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
@@ -142,6 +142,44 @@ async function captureHtml() {
   await page.keyboard.press("KeyZ");
   await page.waitForTimeout(fast ? 300 : 500);
 
+  // SETTINGS — HTML is a DOM overlay (#settings), not a canvas state
+  try {
+    await page.evaluate(() => {
+      if (typeof openSettings === "function") openSettings();
+      else {
+        const el = document.getElementById("settings");
+        if (el) el.classList.add("on");
+      }
+    });
+    await page.waitForTimeout(fast ? 300 : 500);
+    await page.screenshot({ path: path.join(htmlDir, "html_menu_settings.png") });
+    console.log("[HTML] menu_settings");
+    await page.evaluate(() => {
+      const el = document.getElementById("settings");
+      if (el) el.classList.remove("on");
+      if (typeof closeSettings === "function") closeSettings();
+    });
+  } catch (e) {
+    console.log("[HTML] settings skip", e.message || e);
+  }
+
+  // NG+ select via canvas state
+  try {
+    await page.evaluate(() => {
+      if (window.__kamDual) window.__kamDual.setState("ngselect");
+      if (typeof draw === "function") draw();
+    });
+    await page.waitForTimeout(fast ? 350 : 600);
+    await page.screenshot({ path: path.join(htmlDir, "html_menu_ngselect.png") });
+    console.log("[HTML] menu_ngselect");
+    await page.evaluate(() => {
+      if (window.__kamDual) window.__kamDual.setState("title");
+      if (typeof draw === "function") draw();
+    });
+  } catch (e) {
+    console.log("[HTML] ngselect skip", e.message || e);
+  }
+
   // Start pill center ~ y=444 → intro then play
   await clickCanvas(480, 444);
   await page.waitForTimeout(fast ? 250 : 400);
@@ -155,11 +193,35 @@ async function captureHtml() {
   await page.screenshot({ path: path.join(htmlDir, "html_play.png") });
   console.log("[HTML] play");
 
+  // Pause overlay (HTML #pausescreen when state=play && paused)
+  try {
+    await page.evaluate(() => {
+      if (window.__kamDual && window.__kamDual.setPaused) window.__kamDual.setPaused(true);
+      const ps = document.getElementById("pausescreen");
+      if (ps) {
+        ps.classList.add("on");
+        if (typeof syncPauseUI === "function") syncPauseUI();
+      }
+      if (typeof draw === "function") draw();
+    });
+    await page.waitForTimeout(fast ? 300 : 500);
+    await page.screenshot({ path: path.join(htmlDir, "html_flow_pause.png") });
+    console.log("[HTML] flow_pause");
+    await page.evaluate(() => {
+      if (window.__kamDual && window.__kamDual.setPaused) window.__kamDual.setPaused(false);
+      const ps = document.getElementById("pausescreen");
+      if (ps) ps.classList.remove("on");
+    });
+  } catch (e) {
+    console.log("[HTML] pause skip", e.message || e);
+  }
+
   // Force shop / stageclear / ends via __kamDual (closes over let state)
   try {
     await page.evaluate(() => {
       if (typeof enterShop === "function") enterShop();
       else if (window.__kamDual) window.__kamDual.setState("shop");
+      if (typeof draw === "function") draw();
     });
     await page.waitForTimeout(fast ? 400 : 700);
     await page.screenshot({ path: path.join(htmlDir, "html_flow_shop.png") });
@@ -167,16 +229,31 @@ async function captureHtml() {
     await page.evaluate(() => {
       if (typeof leaveShop === "function") leaveShop();
       else if (window.__kamDual) window.__kamDual.setState("play");
+      if (typeof draw === "function") draw();
     });
     await page.waitForTimeout(200);
   } catch (e) {
     console.log("[HTML] shop eval skip", e.message || e);
   }
+  // Stage clear needs clearInfo populated — bare setState throws on clearInfo.stage
   try {
-    await page.evaluate(() => {
-      if (window.__kamDual) window.__kamDual.setState("stageclear");
+    const stSc = await page.evaluate(() => {
+      if (!window.__kamDual) return "no-dual";
+      window.__kamDual.setScore(39, 13300);
+      window.__kamDual.setClear({
+        stage: 0,
+        killsThisStage: 39,
+        total: 39,
+        emblems: [],
+      });
+      window.__kamDual.setState("stageclear");
+      // leek gif overlay positions via manageGifOverlays in draw()
+      if (typeof draw === "function") draw();
+      if (typeof manageGifOverlays === "function") manageGifOverlays();
+      return typeof state !== "undefined" ? state : "?";
     });
-    await page.waitForTimeout(fast ? 400 : 700);
+    console.log("[HTML] flow_stageclear state=", stSc);
+    await page.waitForTimeout(fast ? 500 : 800);
     await page.screenshot({ path: path.join(htmlDir, "html_flow_stageclear.png") });
     console.log("[HTML] flow_stageclear");
   } catch (e) {
@@ -214,23 +291,34 @@ async function captureHtml() {
     console.log("[HTML] end_win state=", st2);
     await page.screenshot({ path: path.join(htmlDir, "html_end_win.png") });
     console.log("[HTML] end_win");
-    await page.evaluate(() => {
-      if (window.__kamDual) window.__kamDual.setState("title");
-      if (typeof draw === "function") draw();
-    });
   } catch (e) {
     console.log("[HTML] end screens eval skip", e.message || e);
   }
 
+  // Combat firing — re-enter play (ends leave us on win/gameover)
   if (!fast) {
-    if (box) {
-      await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.55);
-      await page.keyboard.down("KeyZ");
-      await page.waitForTimeout(800);
-      await page.keyboard.up("KeyZ");
+    try {
+      await page.evaluate(() => {
+        if (typeof newRun === "function") newRun();
+        else if (typeof startRun === "function") startRun();
+        if (window.__kamDual) {
+          window.__kamDual.setState("play");
+          if (window.__kamDual.setPower) window.__kamDual.setPower(6);
+        }
+        if (typeof draw === "function") draw();
+      });
+      await page.waitForTimeout(700);
+      if (box) {
+        await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.55);
+        await page.keyboard.down("KeyZ");
+        await page.waitForTimeout(800);
+        await page.keyboard.up("KeyZ");
+      }
+      await page.screenshot({ path: path.join(htmlDir, "html_play_firing.png") });
+      console.log("[HTML] play_firing");
+    } catch (e) {
+      console.log("[HTML] play_firing skip", e.message || e);
     }
-    await page.screenshot({ path: path.join(htmlDir, "html_play_firing.png") });
-    console.log("[HTML] play_firing");
   }
 
   await browser.close();
@@ -295,10 +383,13 @@ function writeIndex() {
     ["html_menu_arsenal.png", "godot_menu_arsenal.png", "Arsenal"],
     ["html_menu_emblems.png", "godot_menu_emblems.png", "Emblems"],
     ["html_menu_leaderboard.png", "godot_menu_leaderboard.png", "Leaderboard"],
+    ["html_menu_settings.png", "godot_menu_settings.png", "Settings"],
+    ["html_menu_ngselect.png", "godot_menu_ngselect.png", "New Game+"],
+    ["html_flow_intro.png", "godot_flow_intro.png", "Intro"],
     ["html_play.png", "godot_play.png", "Play"],
+    ["html_flow_pause.png", "godot_flow_pause.png", "Pause"],
     ["html_flow_shop.png", "godot_flow_shop.png", "Shop"],
     ["html_flow_stageclear.png", "godot_flow_stageclear.png", "Stage clear"],
-    ["html_flow_intro.png", "godot_flow_intro.png", "Intro"],
     ["html_end_gameover.png", "godot_end_gameover.png", "Game over"],
     ["html_end_win.png", "godot_end_win.png", "Win"],
   ];

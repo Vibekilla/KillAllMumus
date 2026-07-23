@@ -70,12 +70,23 @@ Structure smoke (`npm run port:gates`) ≠ visual parity. Dual QA is the real pr
 
 ## Dual QA sign-off
 
-- [ ] Title
-- [ ] Play (full Bobina / mumus / bullets)
-- [ ] Outfits / arsenal / shop
-- [ ] Boss / stage clear / win / game over
-- [ ] Settings / pause overlays
-- [ ] FPS acceptable on Web without art cuts
+Report: `tools/port/playtest_out/index.html` (re-run `npm run port:dual -- --full` after every port pass).
+
+| Screen | Status (2026-07-23 dual) | Notes |
+| --- | --- | --- |
+| Title | close | PRESS Z, social row, peephole portrait |
+| Outfits / arsenal / emblems / LB | close | Bobina preview + grid; unlock counts follow local progress |
+| Play | close | Full Bobina / mumus / bullets / HUD (dual invuln only for capture) |
+| Intro / shop / stage clear | close | Stage clear: clear art + leek + EDIT ARSENAL + MAIN MENU + NEXT STAGE |
+| Win / game over | close | Maid/win art; dual forces name-entry closed for canvas compare |
+| Settings / pause / NG+ | dual frames present | Layout polish residual (Control vs HTML CSS card) |
+| FPS web | pending | re-check after export |
+
+**Still open (not cutover blockers if dual review accepts):**
+
+- Settings / pause Control chrome not 1:1 pink HTML card styling
+- Outfits tile emoji / unlock state depends on ProgressStore (not dual-forced)
+- Ellipse fill gradients improved (Bobina iris); keep re-checking outfit preview
 
 ```bash
 npm run port:inventory
