@@ -73,14 +73,22 @@ func _ready() -> void:
 	_refresh_auth()
 	ApiClient.auth_changed.connect(func(_a): _refresh_auth())
 	ApiClient.scores_received.connect(_on_scores)
+	if ApiClient.has_signal("scores_failed"):
+		ApiClient.scores_failed.connect(_on_scores_failed)
 	GameState.state_changed.connect(_on_state)
 	_sync_visible(GameState.state)
 	queue_redraw()
 
 func _on_scores(scores: Array) -> void:
-	model.lb_cache = scores
-	model.lb_state = "ok" if scores != null else "error"
+	model.lb_cache = scores if scores != null else []
+	# Empty array after a real response is "ok" (no scores yet); null/failed → error
+	model.lb_state = "ok"
 	model.lb_page = 0
+	queue_redraw()
+
+func _on_scores_failed() -> void:
+	model.lb_state = "error"
+	model.lb_cache = []
 	queue_redraw()
 
 func _on_state(s: StringName) -> void:

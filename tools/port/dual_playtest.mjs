@@ -92,7 +92,45 @@ async function captureHtml() {
   await page.screenshot({ path: path.join(htmlDir, "html_title.png") });
   console.log("[HTML] title");
 
-  await page.keyboard.press("Enter");
+  // Canvas menu states via title buttons — HTML drawTitle layout (desktop):
+  // outfit oy=304 bh=28; mode ry=344; row3 ny=384 (ARSENAL/EMBLEMS/SETTINGS bw=150 gap=10)
+  const canvas = page.locator("canvas#c, canvas").first();
+  const box = await canvas.boundingBox();
+  async function clickCanvas(nx, ny) {
+    if (!box) return;
+    await page.mouse.click(box.x + nx, box.y + ny);
+    await page.waitForTimeout(fast ? 400 : 700);
+  }
+  // OUTFIT button center
+  await clickCanvas(480, 318);
+  await page.screenshot({ path: path.join(htmlDir, "html_menu_outfits.png") });
+  console.log("[HTML] menu_outfits");
+  await page.keyboard.press("KeyZ"); // back
+  await page.waitForTimeout(fast ? 300 : 500);
+
+  // ARSENAL — row3 sx0≈245, first tab center x≈320, y≈398
+  await clickCanvas(320, 398);
+  await page.screenshot({ path: path.join(htmlDir, "html_menu_arsenal.png") });
+  console.log("[HTML] menu_arsenal");
+  await page.keyboard.press("KeyZ");
+  await page.waitForTimeout(fast ? 300 : 500);
+
+  // EMBLEMS — second tab center x≈480
+  await clickCanvas(480, 398);
+  await page.screenshot({ path: path.join(htmlDir, "html_menu_emblems.png") });
+  console.log("[HTML] menu_emblems");
+  await page.keyboard.press("KeyZ");
+  await page.waitForTimeout(fast ? 300 : 500);
+
+  // LEADERBOARD — mode row right button ~ x=601 y=358
+  await clickCanvas(601, 358);
+  await page.screenshot({ path: path.join(htmlDir, "html_menu_leaderboard.png") });
+  console.log("[HTML] menu_leaderboard");
+  await page.keyboard.press("KeyZ");
+  await page.waitForTimeout(fast ? 300 : 500);
+
+  // Start pill center ~ y=444
+  await clickCanvas(480, 444);
   await page.waitForTimeout(fast ? 200 : 400);
   await page.keyboard.press("KeyZ");
   await page.waitForTimeout(fast ? 600 : 1200);
@@ -102,8 +140,6 @@ async function captureHtml() {
   console.log("[HTML] play");
 
   if (!fast) {
-    const canvas = page.locator("canvas#c, canvas").first();
-    const box = await canvas.boundingBox();
     if (box) {
       await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.55);
       await page.keyboard.down("KeyZ");
@@ -172,16 +208,22 @@ function writeIndex() {
   const godotShots = fs.existsSync(godotDir) ? fs.readdirSync(godotDir).filter((f) => f.endsWith(".png")) : [];
   const pairs = [
     ["html_title.png", "godot_title.png", "Title"],
+    ["html_menu_outfits.png", "godot_menu_outfits.png", "Outfits"],
+    ["html_menu_arsenal.png", "godot_menu_arsenal.png", "Arsenal"],
+    ["html_menu_emblems.png", "godot_menu_emblems.png", "Emblems"],
+    ["html_menu_leaderboard.png", "godot_menu_leaderboard.png", "Leaderboard"],
     ["html_play.png", "godot_play.png", "Play"],
   ];
   if (!fast) pairs.push(["html_play_firing.png", "godot_play_power6.png", "Combat"]);
   let rows = "";
   for (const [h, g, label] of pairs) {
+    const hasH = htmlShots.includes(h);
+    const hasG = godotShots.includes(g);
     rows += `<tr><th colspan="2">${label}</th></tr><tr>
-      <td><div class="cap">HTML (source of truth)</div><img src="html/${h}" width="480"/></td>
-      <td><div class="cap">Godot port</div><img src="godot/${g}" width="480"/></td></tr>`;
+      <td><div class="cap">HTML (source of truth)</div>${hasH ? `<img src="html/${h}" width="480"/>` : "<em>missing</em>"}</td>
+      <td><div class="cap">Godot port</div>${hasG ? `<img src="godot/${g}" width="480"/>` : "<em>missing</em>"}</td></tr>`;
   }
-  for (const g of godotShots.filter((f) => f.includes("outfit"))) {
+  for (const g of godotShots.filter((f) => f.includes("outfit_") && !f.includes("menu"))) {
     rows += `<tr><th colspan="2">${g}</th></tr><tr><td colspan="2"><img src="godot/${g}" width="480"/></td></tr>`;
   }
   fs.writeFileSync(

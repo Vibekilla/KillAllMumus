@@ -6,6 +6,7 @@ const MenuModelScript = preload("res://scripts/ui/menu/MenuModel.gd")
 var ctx
 var model
 var bobina
+var combat_fx  # drawCombatFx for pose_params / pose props
 var tick: int = 0
 var W: float = 960.0
 var H: float = 540.0
@@ -16,9 +17,13 @@ func setup(c, m, bob = null) -> void:
 	bobina = bob
 	W = Config.W
 	H = Config.H
+	combat_fx = load("res://scripts/render/drawers/drawCombatFx.gd").new()
+	combat_fx.setup(ctx)
 
 func set_tick(t: int) -> void:
 	tick = t
+	if combat_fx and combat_fx.has_method("set_tick"):
+		combat_fx.set_tick(t)
 
 func _bg(c0: String, c1: String) -> void:
 	MenuHelpers.fill_bg(ctx, c0, c1, W, H)
@@ -52,18 +57,54 @@ func _draw_bobina_at(x: float, y: float, scale: float, outfit: String, extras: D
 	ctx.scale(scale, scale)
 	var st = {
 		"x": 0, "y": 0, "iframe": 0, "focus": false, "walk": 0, "bombFx": 0,
-		"face": -PI / 2.0, "vx": float(extras.get("vx", 0)), "vy": float(extras.get("vy", 0)),
+		"face": float(extras.get("face", -PI / 2.0)),
+		"vx": float(extras.get("vx", 0)), "vy": float(extras.get("vy", 0)),
 		"outfit": outfit, "tick": tick,
 	}
 	if extras.has("expr"):
 		st["expr"] = extras["expr"]
 	if extras.has("lean"):
 		st["lean"] = extras["lean"]
+	if extras.has("hold"):
+		st["hold"] = extras["hold"]
 	if bobina.has_method("set_outfit"):
 		bobina.set_outfit(outfit)
 	if bobina.has_method("set_tick"):
 		bobina.set_tick(tick)
 	bobina.drawBobina(st)
+	ctx.restore()
+
+func _draw_posed_figure(cx: float, cy: float, scale: float, pose: int, outfit: String, expr_override = null) -> void:
+	## HTML drawPosedFigure / drawOutfitFigure — full poseParams + drawBobina + pose prop
+	var t := float(tick)
+	var P := {"vx": 0.0, "vy": 0.0, "lean": 0.0, "expr": "smile", "rot": 0.0, "bounce": 0.0, "sway": 0.0, "sq": 1.0}
+	if combat_fx and combat_fx.has_method("pose_params"):
+		P = combat_fx.pose_params(pose, t)
+	var expr = expr_override if expr_override != null else P.get("expr", "smile")
+	var face := -PI / 2.0
+	# Spin about body centre (HTML: 16px up along facing)
+	var rr := face + PI / 2.0
+	var pcx := -sin(rr) * 16.0
+	var pcy := -16.0 + cos(rr) * 16.0
+	var ms := 1.0
+	ctx.save()
+	ctx.translate(cx + float(P.get("sway", 0)) * ms, cy - float(P.get("bounce", 0)) * ms)
+	ctx.scale(scale, scale * float(P.get("sq", 1.0)))
+	ctx.translate(pcx, pcy)
+	ctx.rotate(float(P.get("rot", 0)))
+	ctx.translate(-pcx, -pcy)
+	var extras := {
+		"vx": float(P.get("vx", 0)),
+		"vy": float(P.get("vy", 0)),
+		"lean": float(P.get("lean", 0)),
+		"expr": expr,
+		"face": face,
+	}
+	if pose == 5 and combat_fx and combat_fx.has_method("coffee_hold"):
+		extras["hold"] = combat_fx.coffee_hold(t)
+	_draw_bobina_at(0, 0, 1.0, outfit, extras)
+	if combat_fx and combat_fx.has_method("draw_pose_prop"):
+		combat_fx.draw_pose_prop(pose, t)
 	ctx.restore()
 
 # ───────────────────────── OUTFITS ─────────────────────────
@@ -131,26 +172,11 @@ func draw_outfits() -> void:
 		ctx.text_align("center")
 		ctx.fill_text(notes[i % 5], nx, ny)
 	ctx.global_alpha(1.0)
-	# posed preview (idle bob + lean for dance poses)
+	# posed preview — HTML drawOutfitFigure (full poseParams)
 	var pose_i = clampi(model.outfit_pose, 0, MenuHelpers.OUTFIT_POSES.size() - 1)
 	var face_i = clampi(model.victory_face, 0, MenuHelpers.VICTORY_FACES.size() - 1)
-	var extras = {}
-	match pose_i:
-		1:  # dance
-			extras["vx"] = sin(t * 0.25) * 2.5
-			extras["vy"] = cos(t * 0.3) * 1.2
-			extras["lean"] = sin(t * 0.12) * 0.4
-		2:  # twirl
-			extras["vx"] = cos(t * 0.4) * 3.0
-		3:  # bounce
-			extras["vy"] = absf(sin(t * 0.2)) * 2.0
-		4, 5:
-			extras["vx"] = sin(t * 0.2) * 1.5
-			extras["lean"] = sin(t * 0.15) * 0.3
 	var expr = MenuHelpers.VICTORY_FACES[face_i].get("expr")
-	if expr != null:
-		extras["expr"] = expr
-	_draw_bobina_at(pcx, fig_cy, fig_scale, model.outfit_preview, extras)
+	_draw_posed_figure(pcx, fig_cy, fig_scale, pose_i, model.outfit_preview, expr)
 	# labels
 	var po_name = model.outfit_preview
 	for o in DataRegistry.outfits:
@@ -728,7 +754,7 @@ func draw_leaderboard() -> void:
 			_draw_bobina_at(x0 + oIcon, y - 3.5, 0.42 if P else 0.46, fit)
 			var _fontw2 = ("bold " if hot else "") + str(rf) + "px monospace"
 			ctx.font(_fontw2)
-			var linked = bool(e.get("bcId")) or bool(e.get("linked"))
+			var linked = (e.get("bcId") != null and str(e.get("bcId")) != "") or e.get("linked") == true
 			var disp = ""
 			if linked:
 				disp = str(e.get("name", ""))

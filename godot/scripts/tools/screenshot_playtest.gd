@@ -121,6 +121,34 @@ func _run() -> void:
 		await process_frame
 	await _save("godot_title")
 
+	# Meta menus (always — dual compares these to HTML)
+	for st_name in [
+		[GameState.State.OUTFITS, "godot_menu_outfits"],
+		[GameState.State.ARSENAL, "godot_menu_arsenal"],
+		[GameState.State.EMBLEMS, "godot_menu_emblems"],
+		[GameState.State.LEADERBOARD, "godot_menu_leaderboard"],
+	]:
+		GameState.set_state(st_name[0])
+		_force_ui_size(_main)
+		if title and title.has_method("queue_redraw"):
+			title.queue_redraw()
+		var wait_n := 6 if fast else 10
+		# Leaderboard needs HTTP settle (or fail → error copy)
+		if st_name[0] == GameState.State.LEADERBOARD:
+			wait_n = 45 if fast else 90
+		for _i in range(wait_n):
+			await process_frame
+		# If still loading under playtest, force error empty state for stable dual
+		if st_name[0] == GameState.State.LEADERBOARD and title and "model" in title:
+			var m = title.model
+			if m and str(m.lb_state) == "loading":
+				m.lb_state = "error"
+				m.lb_cache = []
+				title.queue_redraw()
+				for _i in range(3):
+					await process_frame
+		await _save(str(st_name[1]))
+
 	# Play
 	GameState.difficulty = 0
 	GameState.ng_plus = 0

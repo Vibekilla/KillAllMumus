@@ -3,6 +3,7 @@ extends Node
 
 signal auth_changed(authenticated: bool)
 signal scores_received(scores: Array)
+signal scores_failed()
 signal progress_received(progress: Dictionary)
 
 var authenticated: bool = false
@@ -87,8 +88,9 @@ func fetch_scores() -> void:
 	add_child(req)
 	req.request_completed.connect(func(result, code, _h, body):
 		req.queue_free()
-		if code != 200:
-			scores_received.emit([])
+		# RESULT_SUCCESS == 0; non-zero or non-200 → same as HTML fetch catch
+		if result != HTTPRequest.RESULT_SUCCESS or code != 200:
+			scores_failed.emit()
 			return
 		var data = JSON.parse_string(body.get_string_from_utf8())
 		# HTML accepts Array or {scores:[]}
@@ -99,7 +101,10 @@ func fetch_scores() -> void:
 		else:
 			scores_received.emit([])
 	)
-	req.request(_url("/api/scores"))
+	var err := req.request(_url("/api/scores"))
+	if err != OK:
+		req.queue_free()
+		scores_failed.emit()
 
 func submit_score(payload: Dictionary) -> void:
 	var req := HTTPRequest.new()
