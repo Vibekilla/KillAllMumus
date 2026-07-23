@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const { createPool, migrate, claimScoresForPlayer } = require('./lib/db');
 const { mountBobinaAuth, sessionPlayer, configured: bobinaConfigured } = require('./lib/bobina-auth');
 const { resolveLinkedDisplay, fetchMini } = require('./lib/bobina-profile');
+const { getProgress, putProgress, ensureProgressColumn } = require('./lib/progress');
 
 let sharp = null;
 try {
@@ -31,7 +32,7 @@ if (!process.env.DATABASE_URL && !process.env.PGPASSWORD) {
 
 const pool = createPool();
 
-app.use(express.json({ limit: '32kb' }));
+app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
 app.set('trust proxy', 1);
 
@@ -155,6 +156,51 @@ async function topScores(limit) {
 
 // Bobina.moe OIDC routes (/auth/bobina, /api/me, …)
 mountBobinaAuth(app, pool);
+
+// ---- Full game progress (emblems, arsenal, stats, shop, …) for linked accounts ----
+app.get('/api/progress', async (req, res) => {
+  try {
+    const player = await sessionPlayer(pool, req);
+    if (!player) {
+      return res.status(401).json({ ok: false, authenticated: false });
+    }
+    const data = await getProgress(pool, player.bc_id);
+    res.json({
+      ok: true,
+      authenticated: true,
+      bcId: player.bc_id,
+      progress: data.progress,
+      updatedAt: data.updatedAt,
+    });
+  } catch (e) {
+    console.error('GET /api/progress', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.put('/api/progress', async (req, res) => {
+  try {
+    const player = await sessionPlayer(pool, req);
+    if (!player) {
+      return res.status(401).json({ ok: false, authenticated: false });
+    }
+    const body = req.body?.progress ?? req.body;
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({ ok: false, error: 'missing progress' });
+    }
+    const data = await putProgress(pool, player.bc_id, body);
+    res.json({
+      ok: true,
+      authenticated: true,
+      bcId: player.bc_id,
+      progress: data.progress,
+      updatedAt: data.updatedAt,
+    });
+  } catch (e) {
+    console.error('PUT /api/progress', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
 
 app.get('/api/scores', async (req, res) => {
   try {
@@ -405,6 +451,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 async function main() {
   await migrate(pool);
+  await ensureProgressColumn(pool);
   const server = app.listen(PORT, HOST, () => {
     console.log(`bobina-blaster listening on http://${HOST}:${PORT}`);
     console.log(`bobina OAuth configured: ${bobinaConfigured()}`);

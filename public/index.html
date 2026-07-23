@@ -1262,6 +1262,193 @@ try{ const a=JSON.parse(localStorage.getItem('bobina_arsenal')||'null'); if(a&&A
 if(arsenalI.length>ARS_CAP.i) arsenalI=arsenalI.slice(0,ARS_CAP.i);
 let selConsum=0, shopTab='w';
 function saveConsum(){ try{ localStorage.setItem('bobina_consum', JSON.stringify(consumInv)); }catch(e){} }
+
+// ======== CLOUD PROGRESS (Bobina-linked accounts) ========
+// Mirrors all game mechanics into Postgres for signed-in bc_id users.
+let _cloudTimer=null, _cloudBusy=false, _cloudReady=false, _cloudPullDone=false;
+function cloudLinked(){
+  const me = window.bobinaMe || (typeof bobinaMe!=='undefined' ? bobinaMe : null);
+  return !!(me && me.authenticated && me.bcId);
+}
+function buildProgressSnapshot(){
+  let handle=''; try{ handle=(localStorage.getItem('bobina_handle')||''); }catch(e){}
+  let bindsSnap=null; try{ bindsSnap = (typeof binds!=='undefined') ? binds : JSON.parse(localStorage.getItem('bobina_binds')||'null'); }catch(e){}
+  return {
+    v:1,
+    emblems: (typeof emblemsGot!=='undefined' && emblemsGot) ? emblemsGot : {},
+    estats: (typeof estats!=='undefined' && estats) ? estats : {},
+    arsenal: {
+      w: (typeof arsenalW!=='undefined') ? arsenalW.slice() : [],
+      s: (typeof arsenalS!=='undefined') ? arsenalS.slice() : [],
+      m: (typeof arsenalM!=='undefined') ? arsenalM.slice() : [],
+      i: (typeof arsenalI!=='undefined') ? arsenalI.slice() : []
+    },
+    heads: (typeof mumuHeads!=='undefined') ? mumuHeads : 0,
+    shopUnlocks: (typeof shopUnlocks!=='undefined' && shopUnlocks) ? shopUnlocks : {},
+    consum: (typeof consumInv!=='undefined' && consumInv) ? consumInv : {},
+    ngUnlocked: (typeof ngUnlocked!=='undefined') ? ngUnlocked : 0,
+    hellCleared: !!(typeof hellCleared!=='undefined' && hellCleared),
+    difficulty: (typeof difficulty!=='undefined') ? difficulty : 0,
+    ngPlus: (typeof ngPlus!=='undefined') ? ngPlus : 0,
+    outfit: (typeof selectedOutfit!=='undefined') ? selectedOutfit : 'og',
+    pose: (typeof outfitPose!=='undefined') ? outfitPose : 0,
+    face: (typeof victoryFace!=='undefined') ? victoryFace : 0,
+    handle: handle,
+    binds: bindsSnap,
+    settings: {
+      musicVol: (typeof musicVol!=='undefined') ? musicVol : null,
+      sfxVol: (typeof sfxVol!=='undefined') ? sfxVol : null,
+      follow: (typeof MOUSE!=='undefined') ? MOUSE.follow : null,
+      mspeed: (typeof MOUSE!=='undefined') ? MOUSE.speed : null,
+      speedrun: !!(typeof speedrun!=='undefined' && speedrun),
+      autofire: (typeof autoFire==='undefined') ? true : !!autoFire,
+      ui: (function(){ try{ return localStorage.getItem('bobina_ui'); }catch(e){ return null; } })()
+    }
+  };
+}
+function applyProgressSnapshot(p){
+  if(!p || typeof p!=='object') return;
+  // emblems / stats
+  if(p.emblems && typeof p.emblems==='object'){
+    emblemsGot = Object.assign({}, emblemsGot||{}, p.emblems);
+    try{ localStorage.setItem('bobina_emblems', JSON.stringify(emblemsGot)); }catch(e){}
+  }
+  if(p.estats && typeof p.estats==='object'){
+    const e0 = estats||{};
+    for(const k of Object.keys(p.estats)){ e0[k] = Math.max(Number(e0[k])||0, Number(p.estats[k])||0); }
+    estats = e0;
+    try{ localStorage.setItem('bobina_estats', JSON.stringify(estats)); }catch(e){}
+  }
+  if(p.arsenal && typeof p.arsenal==='object'){
+    if(Array.isArray(p.arsenal.w) && p.arsenal.w.length) arsenalW = p.arsenal.w.filter(k=>WEAPONS[k]);
+    if(Array.isArray(p.arsenal.s)) arsenalS = p.arsenal.s.filter(k=>SPECIALS.some(s=>s.key===k));
+    if(Array.isArray(p.arsenal.m) && typeof MELEE!=='undefined') arsenalM = p.arsenal.m.filter(k=>MELEE.some(m=>m.key===k));
+    if(Array.isArray(p.arsenal.i) && typeof CONSUMABLES!=='undefined') arsenalI = p.arsenal.i.filter(k=>CONSUMABLES.some(c=>c.key===k));
+    if(!arsenalW.length) arsenalW=['laser'];
+    try{ localStorage.setItem('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){}
+  }
+  if(p.heads!=null){ mumuHeads = Math.max(mumuHeads|0, Number(p.heads)||0); try{ localStorage.setItem('bobina_heads', String(mumuHeads)); }catch(e){} }
+  if(p.shopUnlocks && typeof p.shopUnlocks==='object'){
+    shopUnlocks = Object.assign({}, shopUnlocks||{}, p.shopUnlocks);
+    try{ localStorage.setItem('bobina_shopunlocks', JSON.stringify(shopUnlocks)); }catch(e){}
+  }
+  if(p.consum && typeof p.consum==='object'){
+    const c0 = consumInv||{};
+    for(const k of Object.keys(p.consum)){ c0[k] = Math.max(Number(c0[k])||0, Number(p.consum[k])||0); }
+    consumInv = c0;
+    try{ localStorage.setItem('bobina_consum', JSON.stringify(consumInv)); }catch(e){}
+  }
+  if(p.ngUnlocked!=null){ ngUnlocked = Math.min(100, Math.max(ngUnlocked|0, Number(p.ngUnlocked)||0)); try{ localStorage.setItem('bobina_ngunlocked', String(ngUnlocked)); }catch(e){} }
+  if(p.hellCleared){ hellCleared = true; try{ localStorage.setItem('bobina_hellclear','1'); }catch(e){} }
+  if(p.difficulty!=null){ difficulty = Math.max(0, Math.min(2, Number(p.difficulty)||0)); }
+  if(p.ngPlus!=null){ ngPlus = Math.max(0, Math.min(ngUnlocked, Number(p.ngPlus)||0)); }
+  try{ localStorage.setItem('bobina_difficulty', String(difficulty)); localStorage.setItem('bobina_nglevel', String(ngPlus)); }catch(e){}
+  if(typeof applyDiff==='function') applyDiff();
+  if(p.outfit){ selectedOutfit = p.outfit; try{ localStorage.setItem('bobina_outfit', selectedOutfit); }catch(e){} }
+  if(p.pose!=null && typeof outfitPose!=='undefined'){ outfitPose = Number(p.pose)||0; try{ localStorage.setItem('bobina_pose', String(outfitPose)); }catch(e){} }
+  if(p.face!=null && typeof victoryFace!=='undefined'){ victoryFace = Number(p.face)||0; try{ localStorage.setItem('bobina_face', String(victoryFace)); }catch(e){} }
+  if(p.handle){ try{ localStorage.setItem('bobina_handle', String(p.handle).replace(/^@+/,'')); }catch(e){} }
+  if(p.binds && typeof p.binds==='object' && typeof binds!=='undefined'){
+    binds = Object.assign({}, binds, p.binds);
+    try{ localStorage.setItem('bobina_binds', JSON.stringify(binds)); }catch(e){}
+    if(typeof rebuildKMAP==='function') try{ rebuildKMAP(); }catch(e){}
+  }
+  if(p.settings && typeof p.settings==='object'){
+    const st=p.settings;
+    if(st.musicVol!=null && typeof musicVol!=='undefined'){ musicVol=Number(st.musicVol); try{ localStorage.setItem('bobina_musicvol',String(musicVol)); }catch(e){} if(typeof applyMusicVol==='function') applyMusicVol(); }
+    if(st.sfxVol!=null && typeof sfxVol!=='undefined'){ sfxVol=Number(st.sfxVol); try{ localStorage.setItem('bobina_sfxvol',String(sfxVol)); }catch(e){} if(typeof applySfxVol==='function') applySfxVol(); }
+    if(st.follow!=null && typeof MOUSE!=='undefined'){ MOUSE.follow=Number(st.follow); try{ localStorage.setItem('bobina_follow',String(MOUSE.follow)); }catch(e){} }
+    if(st.mspeed!=null && typeof MOUSE!=='undefined'){ MOUSE.speed=Number(st.mspeed); try{ localStorage.setItem('bobina_mspeed',String(MOUSE.speed)); }catch(e){} }
+    if(st.speedrun!=null && typeof speedrun!=='undefined'){ speedrun=!!st.speedrun; try{ localStorage.setItem('bobina_speedrun', speedrun?'1':'0'); }catch(e){} }
+    if(st.autofire!=null && typeof autoFire!=='undefined'){ autoFire=!!st.autofire; try{ localStorage.setItem('bobina_autofire', autoFire?'1':'0'); }catch(e){} }
+    if(st.ui){ try{ localStorage.setItem('bobina_ui', st.ui); }catch(e){} }
+  }
+  emblemsGot['start']=true;
+  if(typeof saveEmblems==='function'){ /* already written */ }
+}
+function scheduleCloudSave(immediate){
+  if(!cloudLinked()) return;
+  if(_cloudTimer) clearTimeout(_cloudTimer);
+  const run=function(){
+    if(!cloudLinked() || _cloudBusy) return;
+    _cloudBusy=true;
+    const snap=buildProgressSnapshot();
+    fetch('/api/progress',{
+      method:'PUT', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ progress: snap })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(d && d.ok && d.progress){
+        // keep server-merged truth locally (union of all devices)
+        applyProgressSnapshot(d.progress);
+      }
+    }).catch(function(e){ console.warn('cloud save failed', e); })
+     .finally(function(){ _cloudBusy=false; });
+  };
+  if(immediate) run(); else _cloudTimer=setTimeout(run, 1200);
+}
+function cloudPullAndMerge(){
+  if(!cloudLinked()) return Promise.resolve(null);
+  return fetch('/api/progress',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(!d || !d.ok) return null;
+      const local = buildProgressSnapshot();
+      // Server already merges on PUT; first apply remote, then push local merge
+      if(d.progress && d.progress.emblems){
+        // merge local onto remote by applying remote first then local-over-max via apply+put
+        applyProgressSnapshot(d.progress);
+      }
+      // Push combined (local had been in memory; apply remote already unioned via server on next put)
+      // Local vars may still hold local-only unlocks — push full snapshot so server merges max/union
+      return fetch('/api/progress',{
+        method:'PUT', credentials:'same-origin',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ progress: buildProgressSnapshot() })
+      }).then(function(r){ return r.json(); }).then(function(d2){
+        if(d2 && d2.ok && d2.progress) applyProgressSnapshot(d2.progress);
+        _cloudPullDone=true;
+        return d2;
+      });
+    })
+    .catch(function(e){ console.warn('cloud pull failed', e); return null; });
+}
+// Hook all local save paths so linked accounts always persist server-side
+(function hookCloudSaves(){
+  function wrap(name, fn){
+    if(typeof fn!=='function') return fn;
+    return function(){
+      const r = fn.apply(this, arguments);
+      try{ scheduleCloudSave(false); }catch(e){}
+      return r;
+    };
+  }
+  if(typeof saveEmblems==='function') saveEmblems = wrap('saveEmblems', saveEmblems);
+  if(typeof saveEstats==='function') saveEstats = wrap('saveEstats', saveEstats);
+  if(typeof saveArsenal==='function') saveArsenal = wrap('saveArsenal', saveArsenal);
+  if(typeof saveHeads==='function') saveHeads = wrap('saveHeads', saveHeads);
+  if(typeof saveShopUnlocks==='function') saveShopUnlocks = wrap('saveShopUnlocks', saveShopUnlocks);
+  if(typeof saveConsum==='function') saveConsum = wrap('saveConsum', saveConsum);
+  if(typeof saveNgPrefs==='function') saveNgPrefs = wrap('saveNgPrefs', saveNgPrefs);
+  if(typeof saveBinds==='function') saveBinds = wrap('saveBinds', saveBinds);
+  // Patch outfit / pose / face / hell / ng unlock inline stores via proxy on localStorage for bobina_* keys
+  try{
+    const _set = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(k,v){
+      const r = _set(k,v);
+      if(typeof k==='string' && k.indexOf('bobina_')===0){
+        // skip pure cloud bookkeeping
+        if(k!=='bobina_invmigrated') try{ scheduleCloudSave(false); }catch(e){}
+      }
+      return r;
+    };
+  }catch(e){}
+  _cloudReady=true;
+})();
+window.cloudPullAndMerge = cloudPullAndMerge;
+window.scheduleCloudSave = scheduleCloudSave;
+window.buildProgressSnapshot = buildProgressSnapshot;
+
 function consumQty(k){ return consumInv[k]||0; }
 function resetInventory(){   // wipe bought gear + carried items + skulls back to the starter kit; KEEP emblems, outfits & NG+
   for(const k in shopUnlocks) delete shopUnlocks[k]; saveShopUnlocks();
@@ -5066,13 +5253,16 @@ addEventListener('keydown', e=>{ if((e.key==='f'||e.key==='F') && !nameEntryOpen
     return fetch('/api/sync',{method:'POST',credentials:'same-origin'})
       .then(function(r){ return r.json(); })
       .then(function(d){
-        if(d && d.ok){
-          return loadMe().then(function(){
+        return loadMe().then(function(){
+          // Pull emblems/arsenal/stats/shop into this device, then push merged snapshot
+          const pull = (typeof window.cloudPullAndMerge==='function')
+            ? window.cloudPullAndMerge()
+            : Promise.resolve(null);
+          return pull.then(function(){
             if(typeof fetchLB === 'function'){ try{ fetchLB(); }catch(e){} }
             return d;
           });
-        }
-        return loadMe();
+        });
       })
       .catch(function(e){ console.warn('sync failed', e); return loadMe(); });
   }
@@ -5087,7 +5277,7 @@ addEventListener('keydown', e=>{ if((e.key==='f'||e.key==='F') && !nameEntryOpen
     } else {
       loadMe().then(function(){
         if(window.bobinaMe && window.bobinaMe.authenticated){
-          syncAccount();
+          syncAccount(); // includes full game-progress merge
         }
       });
     }
