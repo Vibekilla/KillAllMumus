@@ -204,7 +204,7 @@ func drawBogdanoff(b, flash) -> void:
 	ctx.stroke()
 	# initial floating above (I / G)
 	ctx.fill_style(accent)
-	ctx.font("bold " + R * 0.32 + "px \"Trebuchet MS\"")
+	ctx.font("bold " + str(R * 0.32) + "px \"Trebuchet MS\"")
 	ctx.text_align("center")
 	ctx.save()
 	ctx.shadow_color(accent)

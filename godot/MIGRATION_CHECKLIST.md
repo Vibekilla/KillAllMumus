@@ -33,10 +33,12 @@ Source of truth: `public/index.html` (~5430 lines, 298 functions).
 - [x] PortedDraw.draw_bobina (outfit-tinted Bobina)
 - [x] drawPShot weapon shapes on bullets
 - [x] boss/enemy procedural sprites
-- [ ] Full 259-line drawBobina outfit branch detail
+- [x] drawBobina outfit branches ported (visual QA ongoing via dual playtest)
+- [ ] drawBobina pixel-diff polish vs HTML screenshots
 - [ ] Themed elite sprites (drawElite)
 - [ ] Full boss portraits (drawApe/Mumina/Lily/…)
-- [ ] Stage backgrounds + boss ambience mandala
+- [x] Stage backgrounds on WorldCanvas under entities (not over them)
+- [ ] Boss ambience mandala pixel polish
 - [ ] Dialog / portrait GIFs / maid dance
 
 ## Meta / UI
@@ -56,3 +58,8 @@ godot --headless --path godot --export-release Web ../public_godot/index.html
 ```
 
 Live: `USE_GODOT=1` (default) serves `public_godot/`. Rollback: `USE_GODOT=0`.
+
+## Steam
+
+- [ ] Desktop export after web parity
+- [ ] Remove dual-client HTML only after cutover sign-off

@@ -8,6 +8,8 @@ var ported: RefCounted
 var combat_fx: RefCounted
 
 func _ready() -> void:
+	z_index = 25
+	z_as_relative = false
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
 	ctx.bind(self)
 	ported = load("res://scripts/render/PortedDraw.gd").new()
@@ -16,6 +18,7 @@ func _ready() -> void:
 	combat_fx.setup(ctx)
 	var parent := get_parent()
 	if parent:
+		parent.z_index = 25
 		for c in parent.get_children():
 			if c != self and (c is Polygon2D or c is Sprite2D):
 				c.visible = false
