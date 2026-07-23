@@ -173,6 +173,54 @@ func _run() -> void:
 		" player=", player != null, " pos=", player.global_position if player else Vector2.ZERO)
 	await _save("godot_play")
 
+	# Stage flow: intro → clear gate → shop → stage clear
+	var flow = _main.get_node_or_null("UI/FlowUI")
+	GameState.set_state(GameState.State.INTRO)
+	_force_ui_size(_main)
+	if flow and flow.has_method("queue_redraw"):
+		flow.queue_redraw()
+	for _i in range(6 if fast else 10):
+		await process_frame
+	await _save("godot_flow_intro")
+
+	if StageFlow and StageFlow.has_method("spawn_clear_gate"):
+		StageFlow.spawn_clear_gate()
+	GameState.set_state(GameState.State.PLAY)
+	_force_ui_size(_main)
+	if flow and flow.has_method("queue_redraw"):
+		flow.queue_redraw()
+	for _i in range(6 if fast else 10):
+		await process_frame
+	await _save("godot_flow_cleargate")
+
+	if StageFlow and StageFlow.has_method("enter_shop"):
+		StageFlow.enter_shop()
+	else:
+		GameState.set_state(GameState.State.SHOP)
+	_force_ui_size(_main)
+	if flow and flow.has_method("queue_redraw"):
+		flow.queue_redraw()
+	for _i in range(6 if fast else 10):
+		await process_frame
+	await _save("godot_flow_shop")
+
+	if StageFlow:
+		StageFlow.clear_info = {
+			"stage": 0,
+			"kills": 42,
+			"score": 12000,
+			"heads": 15,
+			"no_death": true,
+			"no_bomb": true,
+		}
+	GameState.set_state(GameState.State.STAGE_CLEAR)
+	_force_ui_size(_main)
+	if flow and flow.has_method("queue_redraw"):
+		flow.queue_redraw()
+	for _i in range(6 if fast else 10):
+		await process_frame
+	await _save("godot_flow_stageclear")
+
 	if not fast:
 		for outfit in ["og", "maid", "honeypot", "cabal"]:
 			GameState.selected_outfit = outfit

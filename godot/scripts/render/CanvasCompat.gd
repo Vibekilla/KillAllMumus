@@ -191,10 +191,11 @@ func get_alpha() -> float:
 	return _alpha
 
 func shadow_color(c) -> void:
+	## HTML shadowColor — #hex or rgba()/rgb() via ColorUtil
 	if c is Color:
 		_shadow_col = c
-	elif c is String:
-		_shadow_col = Color.html(str(c))
+	else:
+		_shadow_col = _parse_color(c)
 
 func shadow_blur(b: float) -> void:
 	_shadow_blur = b

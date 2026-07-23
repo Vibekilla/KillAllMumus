@@ -213,6 +213,9 @@ function writeIndex() {
     ["html_menu_emblems.png", "godot_menu_emblems.png", "Emblems"],
     ["html_menu_leaderboard.png", "godot_menu_leaderboard.png", "Leaderboard"],
     ["html_play.png", "godot_play.png", "Play"],
+    ["html_flow_shop.png", "godot_flow_shop.png", "Shop"],
+    ["html_flow_stageclear.png", "godot_flow_stageclear.png", "Stage clear"],
+    ["html_flow_intro.png", "godot_flow_intro.png", "Intro"],
   ];
   if (!fast) pairs.push(["html_play_firing.png", "godot_play_power6.png", "Combat"]);
   let rows = "";
