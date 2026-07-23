@@ -139,6 +139,9 @@ func _process(delta: float) -> void:
 	# Title still needs idle animation, but only when tick advances
 	if t == _last_draw_tick:
 		return
+	# Title drawBobina is very expensive — 30 Hz is enough for particles + idle bob
+	if GameState.state == GameState.State.TITLE and title_idle_t <= 1800.0 and (t % 2) != 0:
+		return
 	_last_draw_tick = t
 	if title_drawer.has_method("set_tick"):
 		title_drawer.set_tick(t)

@@ -19,14 +19,28 @@ func _ready() -> void:
 	ported.setup(ctx)
 	set_process(true)
 
+var _last_tick: int = -1
+
 func _process(delta: float) -> void:
 	if CombatHelpers:
 		CombatHelpers.tick_fx(delta)
 	if ItemSystem:
 		ItemSystem.tick(delta)
-	if SimClock:
-		tick = SimClock.tick
-	queue_redraw()
+	var nt := int(SimClock.tick) if SimClock else _last_tick + 1
+	if nt == _last_tick:
+		return
+	_last_tick = nt
+	tick = nt
+	# Skip empty frames
+	var has := false
+	if CombatHelpers:
+		has = CombatHelpers.particles.size() > 0 or CombatHelpers.score_texts.size() > 0 \
+			or float(CombatHelpers.flash_msg.get("t", 0)) > 0.0
+	if ItemSystem and not has:
+		has = ItemSystem.items.size() > 0 or ItemSystem.floaters.size() > 0 or ItemSystem.burns.size() > 0
+	if has or (get_tree() and get_tree().get_nodes_in_group("player").size() > 0):
+		# still need specials aura occasionally — redraw at sim rate when anything FX-related
+		queue_redraw()
 
 func _draw() -> void:
 	if ctx == null:

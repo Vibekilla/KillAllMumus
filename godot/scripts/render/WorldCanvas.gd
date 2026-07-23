@@ -22,6 +22,8 @@ func _process(_d: float) -> void:
 	var nt := SimClock.tick if SimClock else tick + 1
 	if nt == _last_tick:
 		return
+	if (nt % 2) != 0:
+		return
 	_last_tick = nt
 	tick = nt
 	var playish := GameState.state in [

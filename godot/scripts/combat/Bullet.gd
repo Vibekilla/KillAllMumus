@@ -208,9 +208,7 @@ func _physics_process(delta: float) -> void:
 	# HTML graze ring: near player, not hit yet
 	if team == Team.ENEMY and grazeable and not grazed:
 		_try_graze()
-	# Only re-draw when motion changes look (home/wave/curl); static shots keep last draw
-	if home or wv > 0.0 or absf(curl) > 0.0001:
-		queue_redraw()
+	# Visual is local-centered and orientation-independent for fast path — no per-frame redraw
 
 func _try_graze() -> void:
 	var tree := get_tree()
@@ -274,30 +272,30 @@ func _nearest_target() -> Vector2:
 func _draw() -> void:
 	if not active:
 		return
-	_ensure_draw()
-	if ctx == null:
-		return
-	ctx.begin_frame()
-	if SimClock and ported and ported.has_method("set_tick"):
-		ported.set_tick(SimClock.tick)
-	var col_hex := "#%02x%02x%02x" % [int(color.r * 255), int(color.g * 255), int(color.b * 255)]
-	# Player shots → drawPShot (weapon flavours); enemy → drawBullet
+	# Fast path: native CanvasItem draws (CanvasCompat/PortedDraw was ~4fps with 50+ bullets)
+	var r := radius
 	if team == Team.PLAYER and pshot:
-		var st := {
-			"x": 0.0, "y": 0.0, "r": radius,
-			"vx": velocity.x, "vy": velocity.y,
-			"gat": gat, "nade": nade, "vrip": vrip, "petal": petal,
-			"zap": zap, "laser": laser, "shell": shell, "home": home,
-			"foc": foc, "voidbolt": voidbolt, "wv": wv,
-			"col": col_hex,
-			"life": life_frames if life_frames >= 0.0 else null,
-		}
-		ported.draw_pshot(st)
+		if laser or foc:
+			draw_line(Vector2(0, r * 2.0), Vector2(0, -r * 4.0), color, maxf(2.0, r), true)
+			draw_circle(Vector2.ZERO, r * 0.7, color.lightened(0.3))
+		elif gat:
+			draw_circle(Vector2.ZERO, r * 0.85, color)
+			draw_circle(Vector2(-r * 0.3, -r * 0.2), r * 0.35, color.lightened(0.4))
+		elif nade:
+			draw_circle(Vector2.ZERO, r * 1.15, color.darkened(0.15))
+			draw_circle(Vector2(-r * 0.25, -r * 0.25), r * 0.35, Color(1, 1, 0.7, 0.9))
+		elif home:
+			draw_circle(Vector2.ZERO, r, color)
+			draw_circle(Vector2.ZERO, r * 0.45, color.lightened(0.5))
+		else:
+			draw_circle(Vector2.ZERO, r, color)
+			draw_circle(Vector2(-r * 0.25, -r * 0.25), r * 0.3, Color(1, 1, 1, 0.55))
 		return
-	var st2 := {
-		"x": 0.0, "y": 0.0, "r": radius, "col": col_hex, "hp": hp,
-	}
-	ported.draw_bullet(st2)
+	# Enemy bullets
+	draw_circle(Vector2.ZERO, r, color)
+	draw_circle(Vector2.ZERO, r * 0.55, color.lightened(0.35))
+	if hp > 0.0:
+		draw_arc(Vector2.ZERO, r + 1.5, 0.0, TAU, 12, color.darkened(0.2), 1.0, true)
 
 func _ready() -> void:
 	area_entered.connect(_on_area)

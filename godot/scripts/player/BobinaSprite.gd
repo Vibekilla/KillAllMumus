@@ -36,10 +36,14 @@ func set_state(st: Dictionary) -> void:
 	queue_redraw()
 
 var _last_tick: int = -1
+## Full drawBobina is thousands of CanvasCompat ops — ~15–20 Hz keeps playable FPS
+const REDRAW_EVERY := 3
 
 func _process(_delta: float) -> void:
 	var nt := int(SimClock.tick) if SimClock else _last_tick + 1
 	if nt == _last_tick:
+		return
+	if nt % REDRAW_EVERY != 0:
 		return
 	_last_tick = nt
 	player_state["tick"] = nt

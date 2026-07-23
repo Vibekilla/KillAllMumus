@@ -79,7 +79,14 @@ func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 	mty = pf.position.y + 100
 	add_to_group("enemies")
 	add_to_group("bosses")
-	queue_redraw()
+	_want_redraw()
+
+var _draw_age: int = 0
+
+func _want_redraw() -> void:
+	_draw_age += 1
+	if _draw_age % 2 == 0:
+		_want_redraw()
 
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
@@ -90,12 +97,12 @@ func _physics_process(delta: float) -> void:
 	if intro > 0.0:
 		intro -= delta * FRAME
 		position.y += (mty - position.y) * 0.06
-		queue_redraw()
+		_want_redraw()
 		return
 
 	if hell:
 		_update_wynn_hell(delta)
-		queue_redraw()
+		_want_redraw()
 		return
 
 	if dead:
@@ -106,12 +113,12 @@ func _physics_process(delta: float) -> void:
 		# Final boss (Wynn): HTML startWynnHell instead of instant clear
 		if portrait == "wynn" and not hell and dead_t > 30.0:
 			start_wynn_hell()
-			queue_redraw()
+			_want_redraw()
 			return
 		if dead_t > 90.0:
 			defeated.emit(boss_id)
 			queue_free()
-		queue_redraw()
+		_want_redraw()
 		return
 
 	t += 1
@@ -184,7 +191,7 @@ func _physics_process(delta: float) -> void:
 			bullet_pool.clear_enemy()
 		flash = 8.0
 
-	queue_redraw()
+	_want_redraw()
 
 func _patterns(s: int, ph: int, hm: float, cx: float, cy: float, p: Node2D) -> void:
 	if p == null:
