@@ -1,34 +1,29 @@
 # Branch model
-#   feature/*  — work branches cut from `dev`
-#   dev        — integration + rollback mirror (updated after successful main deploys)
-#   main       — always LIVE production
+#   dev   — day-to-day work (commit + push freely)
+#   main  — LIVE production (promote when ready)
 #
 # Flow
-#   1. Open feature/* from dev → push → CI verifies → opens/updates PR into dev
-#   2. Merge feature → dev (after review)
-#   3. Promote dev → main (PR or promote job) → deploy live
-#   4. After successful main deploy, refresh `dev` to match main (rollback baseline)
-name: Deploy, feature branches & PR notes
+#   1. Commit and push to `dev`
+#   2. ./scripts/promote-to-live.sh  (or merge/push main) when ready
+#   3. Push to `main` → verify + deploy live
+#
+# IMPORTANT: do not force-reset `dev` from `main` after deploy.
+# That wiped in-progress integration work under the old PR workflow.
+name: Deploy & verify
 
 on:
   push:
-    branches: [main, dev, "feature/**"]
+    branches: [main, dev]
   pull_request:
     branches: [dev, main]
   workflow_dispatch:
-    inputs:
-      feature_name:
-        description: "Optional: open a feature branch from current dev (feature/<name>)"
-        required: false
-        default: ""
 
 concurrency:
   group: killallmumus-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   verify:
@@ -49,7 +44,6 @@ jobs:
           test -f godot/project.godot
           test -f godot/data/stages.json
           test -d godot/scripts
-          # Prefer Godot web export when present
           if [ -d public_godot ]; then
             test -f public_godot/index.html
             test -f public_godot/index.wasm || test -f public_godot/index.pck
@@ -57,146 +51,10 @@ jobs:
             test -f public/index.html
           fi
 
-  # Summarize PRs concisely for reviewers
-  pr-overview:
-    name: PR overview summary
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Build concise overview
-        id: overview
-        run: |
-          set -euo pipefail
-          BASE="${{ github.event.pull_request.base.ref }}"
-          HEAD="${{ github.event.pull_request.head.ref }}"
-          echo "### Overview" > /tmp/pr.md
-          echo >> /tmp/pr.md
-          echo "**${HEAD}** → **${BASE}** · live remains \`main\`." >> /tmp/pr.md
-          echo >> /tmp/pr.md
-          echo "#### Changes" >> /tmp/pr.md
-          git log --pretty=format:'- %s' --no-merges "origin/${BASE}...HEAD" | head -40 >> /tmp/pr.md || true
-          echo >> /tmp/pr.md
-          echo "#### Files" >> /tmp/pr.md
-          git diff --stat "origin/${BASE}...HEAD" | tail -20 >> /tmp/pr.md || true
-          echo >> /tmp/pr.md
-          echo "#### Notes" >> /tmp/pr.md
-          echo "- Feature notes live in commit subjects (\`feat:\` / \`fix:\` / \`chore:\`)." >> /tmp/pr.md
-          echo "- \`dev\` is the rollback baseline after production deploys." >> /tmp/pr.md
-          echo "- Prefer one feature branch per change-set cut from \`dev\`." >> /tmp/pr.md
-          cat /tmp/pr.md
-      - name: Comment overview on PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const body = fs.readFileSync('/tmp/pr.md', 'utf8');
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const marker = '### Overview';
-            const existing = comments.find(c => c.user.type === 'Bot' && c.body.includes(marker));
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
-
-  # feature/* pushes: ensure branch was based on dev intent + optional auto-PR into dev
-  feature-pr:
-    name: Ensure feature PR into dev
-    needs: verify
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/feature/')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Open or refresh PR feature → dev
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          BRANCH="${GITHUB_REF#refs/heads/}"
-          # Collect feature notes from commits not in dev
-          git fetch origin dev || true
-          NOTES=$(git log --pretty=format:'- %s' --no-merges origin/dev..HEAD | head -30 || true)
-          TITLE=$(git log -1 --pretty=format:'%s')
-          BODY=$(cat <<EOF
-          ## Feature branch
-
-          Source: \`${BRANCH}\` (cut from \`dev\`)
-          Target: \`dev\` (integration)
-
-          ### Feature notes
-          ${NOTES:-"- (no commits ahead of dev yet)"}
-
-          ### Ship lifecycle
-          Prefer `./scripts/ship-feature.sh` (push → PR → merge → delete feature branch).
-          Promote to live: `./scripts/ship-feature.sh --promote` when ready.
-
-          After main deploy, CI refreshes dev as rollback mirror.
-          EOF
-          )
-          if gh pr list --head "$BRANCH" --base dev --json number --jq 'length' | grep -q '^0$'; then
-            gh pr create --base dev --head "$BRANCH" --title "$TITLE" --body "$BODY" || true
-          else
-            PR=$(gh pr list --head "$BRANCH" --base dev --json number --jq '.[0].number')
-            gh pr edit "$PR" --body "$BODY" || true
-          fi
-
-  # Promote verified dev → main (live)
-  promote-dev-to-main:
-    name: Promote dev → main
-    needs: verify
-    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Open promote PR if needed (does not auto-merge live)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          git fetch origin main dev
-          # Create a promote PR rather than silent force — production stays intentional
-          if ! gh pr list --base main --head dev --state open --json number --jq 'length' | grep -q '^[1-9]'; then
-            NOTES=$(git log --pretty=format:'- %s' --no-merges origin/main..origin/dev | head -40 || true)
-            gh pr create --base main --head dev \
-              --title "promote: dev → main (live)" \
-              --body "$(cat <<EOF
-          ## Promote to production
-
-          ### Feature notes (since main)
-          ${NOTES:-"- (none)"}
-
-          Merging this PR deploys **live** (\`main\`).
-          After deploy succeeds, CI refreshes \`dev\` to match \`main\` for rollbacks.
-          EOF
-          )" || true
-          fi
-
   deploy-live:
     name: Restart live services (self-hosted)
     needs: verify
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: self-hosted
     continue-on-error: true
     steps:
@@ -223,48 +81,3 @@ jobs:
             sleep 1
           done
           exit 1
-
-  # After main is live, update dev second as rollback mirror
-  backup-dev-from-main:
-    name: Refresh dev from main (rollback baseline)
-    needs: [verify, deploy-live]
-    if: |
-      always() &&
-      needs.verify.result == 'success' &&
-      github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Point dev at live main
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          LIVE_SHA="$(git rev-parse HEAD)"
-          git branch -f dev "$LIVE_SHA"
-          git push -u origin dev --force-with-lease
-          echo "dev mirrors main @ $LIVE_SHA (rollback baseline). Live serves main only."
-
-  # Manual: cut a feature branch from latest dev
-  cut-feature:
-    name: Cut feature branch from dev
-    if: github.event_name == 'workflow_dispatch' && inputs.feature_name != ''
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create feature/${{ inputs.feature_name }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin dev
-          NAME=$(echo "${{ inputs.feature_name }}" | tr ' ' '-' | tr -cd '[:alnum:]._-' | tr '[:upper:]' '[:lower:]')
-          git checkout -B "feature/${NAME}" origin/dev
-          git push -u origin "feature/${NAME}"
-          echo "Created feature/${NAME} from dev"

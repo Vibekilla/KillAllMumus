@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# Promote integration → production via PR only.
-# Never commits on main or dev — only merges an existing PR.
+# Promote dev → main (live) by merge + push. No GitHub PR required.
 #
-#   ./scripts/promote-to-live.sh           # open + merge PR  dev → main
-#   ./scripts/promote-to-live.sh --draft   # open PR only
+#   ./scripts/promote-to-live.sh
+#   ./scripts/promote-to-live.sh --ff-only   # refuse non-fast-forward
+#   ./scripts/promote-to-live.sh --no-push   # merge locally only
 set -euo pipefail
 
-DRAFT=0
-MERGE=1
+FF_ONLY=0
+DO_PUSH=1
 for arg in "$@"; do
   case "$arg" in
-    --draft) DRAFT=1; MERGE=0 ;;
-    --help|-h)
+    --ff-only) FF_ONLY=1 ;;
+    --no-push) DO_PUSH=0 ;;
+    -h|--help)
       sed -n '2,10p' "$0" | sed 's/^# \?//'
       exit 0
       ;;
@@ -24,14 +25,9 @@ done
 
 cd "$(git rev-parse --show-toplevel)"
 
-if ! command -v gh >/dev/null 2>&1; then
-  echo "gh required" >&2
-  exit 1
-fi
-
-# Refuse if dirty work would be ambiguous
 if [[ -n "$(git status --porcelain)" ]]; then
-  echo "Working tree dirty — stash/commit on a feature/* branch first." >&2
+  echo "Working tree dirty — commit or stash first." >&2
+  git status -sb
   exit 1
 fi
 
@@ -40,47 +36,30 @@ git fetch origin dev main --prune
 AHEAD=$(git rev-list --count "origin/main..origin/dev" 2>/dev/null || echo 0)
 if [[ "${AHEAD}" -eq 0 ]]; then
   echo "origin/dev has nothing new vs origin/main — nothing to promote."
+  git checkout -B main origin/main
   exit 0
 fi
 
-NOTES=$(git log --pretty=format:'- %s' --no-merges "origin/main..origin/dev" | head -40 || true)
-TITLE="promote: dev → main (live)"
-BODY=$(cat <<EOF
-## Promote to production
+echo "==> Promote origin/dev → main (${AHEAD} commit(s) ahead)"
+git log --oneline --no-merges "origin/main..origin/dev" | head -30 || true
 
-### Notes since main
-${NOTES}
-
-Merging deploys **live** (\`main\`).
-CI refreshes \`dev\` to match \`main\` after deploy (rollback mirror).
-
-No direct commits on \`main\` — this PR only.
-EOF
-)
-
-PEXIST=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number // empty')
-if [[ -z "$PEXIST" ]]; then
-  ARGS=(pr create --base main --head dev --title "$TITLE" --body "$BODY")
-  [[ "$DRAFT" -eq 1 ]] && ARGS+=(--draft)
-  gh "${ARGS[@]}"
-  PEXIST=$(gh pr list --base main --head dev --state open --json number --jq '.[0].number')
-else
-  gh pr edit "$PEXIST" --title "$TITLE" --body "$BODY" >/dev/null || true
-fi
-
-echo "Promote PR #${PEXIST}"
-gh pr view "$PEXIST" --json url --jq .url
-
-if [[ "$MERGE" -eq 0 ]]; then
-  echo "Draft/open only — not merged."
-  exit 0
-fi
-
-gh pr merge "$PEXIST" --merge 2>/dev/null || gh pr merge "$PEXIST" --squash
-
-git fetch origin main
-# Local tip only — never invent commits on main
 git checkout -B main origin/main
 
+if [[ "$FF_ONLY" -eq 1 ]]; then
+  git merge --ff-only origin/dev
+else
+  # Prefer fast-forward; otherwise create a merge commit
+  if git merge-base --is-ancestor origin/main origin/dev 2>/dev/null; then
+    git merge --ff-only origin/dev
+  else
+    git merge --no-ff origin/dev -m "promote: merge dev into main (live)"
+  fi
+fi
+
+if [[ "$DO_PUSH" -eq 1 ]]; then
+  echo "==> Push origin main"
+  git push origin main
+fi
+
 echo "✓ Live main @ $(git rev-parse --short HEAD)"
-echo "  After CI deploy, dev is force-refreshed to main by Actions."
+echo "  CI deploy runs on main. dev is left as-is (not force-reset)."
