@@ -28,6 +28,8 @@ var ported: RefCounted
 
 func _ready() -> void:
 	add_to_group("enemies")
+	z_index = 15
+	z_as_relative = false
 	hp = max_hp
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
 	ctx.bind(self)
