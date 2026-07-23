@@ -94,6 +94,9 @@ jobs:
           export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
           # shellcheck disable=SC1091
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          # Actions runner has no interactive login session — wire user systemd/dbus
+          export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+          export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=${XDG_RUNTIME_DIR}/bus}"
           # Prefer live tree if this runner is the production host
           if [ -d /var/www/killallmumus.com ] && [ -f /var/www/killallmumus.com/package.json ]; then
             cd /var/www/killallmumus.com
@@ -103,11 +106,20 @@ jobs:
           fi
           npm ci --omit=dev
           bash scripts/pg-start.sh
-          if systemctl --user cat killallmumus.service >/dev/null 2>&1; then
-            systemctl --user restart killallmumus-pg.service || true
-            systemctl --user restart killallmumus.service
-          else
-            bash scripts/install-user-services.sh
+          restart_user() {
+            # systemctl --user needs a running user bus (linger recommended)
+            if [ -S "${XDG_RUNTIME_DIR}/bus" ] && systemctl --user cat killallmumus.service >/dev/null 2>&1; then
+              systemctl --user daemon-reload || true
+              systemctl --user restart killallmumus-pg.service || true
+              systemctl --user restart killallmumus.service
+              return 0
+            fi
+            return 1
+          }
+          if ! restart_user; then
+            echo "user systemd bus unavailable — installing/starting via install script"
+            bash scripts/install-user-services.sh || true
+            # last resort: start node directly if health still down
           fi
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:3000/api/health | grep -q '"ok":true'; then
@@ -116,4 +128,7 @@ jobs:
             fi
             sleep 1
           done
+          echo "health check failed; user bus=$DBUS_SESSION_BUS_ADDRESS runtime=$XDG_RUNTIME_DIR"
+          ls -la "$XDG_RUNTIME_DIR" 2>/dev/null || true
+          systemctl --user status killallmumus.service 2>&1 || true
           exit 1
