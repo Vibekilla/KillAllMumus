@@ -1296,19 +1296,9 @@ func draw_hell_portal(b: Dictionary) -> void:
 	ctx.restore()
 
 func draw_pause_overlay() -> void:
-	ctx.fill_style("rgba(6,4,12,0.72)")
-	ctx.fill_rect(0, 0, W, H)
-	ctx.text_align("center")
-	ctx.fill_style("#ffe08a")
-	ctx.font("900 40px Trebuchet MS")
-	ctx.fill_text("⏸ PAUSED", W / 2.0, H / 2.0 - 20)
-	ctx.fill_style("#c8b0d0")
-	ctx.font("14px monospace")
-	ctx.fill_text("PRESS ESC / P TO RESUME", W / 2.0, H / 2.0 + 20)
-	ctx.fill_style("#8fd0ff")
-	ctx.font("bold 13px Trebuchet MS")
-	ctx.fill_text("⌂ MAIN MENU  [M]", W / 2.0, H / 2.0 + 56)
-	ctx.text_align("left")
+	## Visual pause card is PauseMenu Control (HTML #pausescreen).
+	## Keep this empty so we don't double-draw over the full overlay.
+	pass
 
 func _hex_rgb(h) -> Array:
 	var s := str(h if h != null else "#fff").replace("#", "")

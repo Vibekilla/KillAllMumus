@@ -24,13 +24,14 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -160.0
-offset_right = 200.0
-offset_bottom = 160.0
+offset_left = -230.0
+offset_top = -250.0
+offset_right = 230.0
+offset_bottom = 250.0
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
 [node name="Title" type="Label" parent="Panel/VBox"]
 layout_mode = 2
@@ -38,23 +39,106 @@ theme_override_font_sizes/font_size = 22
 text = "⚙ SETTINGS"
 horizontal_alignment = 1
 
+[node name="Sub" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.78, 0.69, 0.82, 1)
+text = "Audio, mouse controls & speedrun"
+horizontal_alignment = 1
+
+[node name="SecAudio" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.82, 0.48, 1)
+text = "Audio"
+
+[node name="MusicLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "🎵 Music Volume  100%"
+
 [node name="MusicSlider" type="HSlider" parent="Panel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+max_value = 100.0
 value = 100.0
+
+[node name="SfxLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "🔊 Sound FX  90%"
 
 [node name="SfxSlider" type="HSlider" parent="Panel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+max_value = 100.0
 value = 90.0
+
+[node name="SecGame" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.82, 0.48, 1)
+text = "Gameplay"
+
+[node name="SpeedrunBtn" type="Button" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "🏁 Speedrun Mode  OFF"
+
+[node name="SecMouse" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.82, 0.48, 1)
+text = "Mouse"
+
+[node name="FollowLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Cursor Follow Tightness  80%"
+
+[node name="FollowSlider" type="HSlider" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 35.0
+max_value = 100.0
+step = 1.0
+value = 80.0
+
+[node name="SpeedLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Movement Speed  1.12×"
+
+[node name="SpeedSlider" type="HSlider" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 70.0
+max_value = 160.0
+step = 1.0
+value = 112.0
+
+[node name="SecMore" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.82, 0.48, 1)
+text = "More"
 
 [node name="DisplayBtn" type="Button" parent="Panel/VBox"]
 layout_mode = 2
-text = "🖥 Display"
+text = "🖥 Display — resolution, refresh, fullscreen"
+
+[node name="KeybindsBtn" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "🎮 Controls — mouse feel & keybinds"
 
 [node name="HelpBtn" type="Button" parent="Panel/VBox"]
 layout_mode = 2
-text = "📖 How to Play"
+text = "📖 How to Play — Arsenal & Mechanics"
 
 [node name="ResetInvBtn" type="Button" parent="Panel/VBox"]
 layout_mode = 2
@@ -64,9 +148,61 @@ text = "🗑 Reset Inventory"
 layout_mode = 2
 text = "Done"
 
+[node name="Ver" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.55, 0.45, 0.58, 1)
+text = "🐻 Bobina: KILL ALL MUMUS!! · A Bobina Council production"
+horizontal_alignment = 1
+
+[node name="ResetConfirm" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -120.0
+offset_right = 200.0
+offset_bottom = 120.0
+
+[node name="RVBox" type="VBoxContainer" parent="ResetConfirm"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RTitle" type="Label" parent="ResetConfirm/RVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🗑 RESET INVENTORY?"
+horizontal_alignment = 1
+
+[node name="RWarn" type="Label" parent="ResetConfirm/RVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+autowrap_mode = 3
+text = "Clears bought weapons, specials, melee, items & skulls. Keeps emblems, outfits & NG+."
+horizontal_alignment = 1
+
+[node name="RConfirm" type="Button" parent="ResetConfirm/RVBox"]
+layout_mode = 2
+text = "Yes, wipe my inventory"
+
+[node name="RCancel" type="Button" parent="ResetConfirm/RVBox"]
+layout_mode = 2
+text = "Cancel"
+
 [connection signal="value_changed" from="Panel/VBox/MusicSlider" to="." method="_on_music"]
 [connection signal="value_changed" from="Panel/VBox/SfxSlider" to="." method="_on_sfx"]
+[connection signal="pressed" from="Panel/VBox/SpeedrunBtn" to="." method="_on_speedrun"]
+[connection signal="value_changed" from="Panel/VBox/FollowSlider" to="." method="_on_follow"]
+[connection signal="value_changed" from="Panel/VBox/SpeedSlider" to="." method="_on_speed"]
 [connection signal="pressed" from="Panel/VBox/DisplayBtn" to="." method="_on_display"]
+[connection signal="pressed" from="Panel/VBox/KeybindsBtn" to="." method="_on_keybinds"]
 [connection signal="pressed" from="Panel/VBox/HelpBtn" to="." method="_on_help"]
 [connection signal="pressed" from="Panel/VBox/ResetInvBtn" to="." method="_on_reset_inventory"]
 [connection signal="pressed" from="Panel/VBox/CloseBtn" to="." method="_on_close"]
+[connection signal="pressed" from="ResetConfirm/RVBox/RConfirm" to="." method="_confirm_reset"]
+[connection signal="pressed" from="ResetConfirm/RVBox/RCancel" to="." method="_on_reset_cancel"]

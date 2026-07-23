@@ -128,12 +128,14 @@ func _physics_process(delta: float) -> void:
 	elif dir.length() > 0.1:
 		velocity = velocity.lerp(dir.normalized() * spd, 0.5)
 	else:
-		# mouse follow (desktop)
+		# mouse follow (desktop) — HTML MOUSE.follow / MOUSE.speed
 		var mouse := get_global_mouse_position()
 		var pf: Rect2 = Config.playfield()
 		if pf.grow(40).has_point(mouse):
-			var f := maxf(0.28, 0.5 * 0.55) if focus else 0.55
-			velocity = (mouse - global_position) * f * FRAME
+			var base_f := Config.mouse_follow if Config else 0.55
+			var spd_mul := Config.mouse_speed if Config else 1.12
+			var f := maxf(0.28, base_f * 0.5) if focus else base_f
+			velocity = (mouse - global_position) * f * spd_mul * FRAME
 		else:
 			velocity = velocity.lerp(Vector2.ZERO, 0.3)
 

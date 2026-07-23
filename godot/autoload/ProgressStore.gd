@@ -70,6 +70,27 @@ func _apply_to_fields() -> void:
 		GameState.specials.clear()
 		for s in ar["s"]:
 			GameState.specials.append(str(s))
+	# HTML MOUSE + audio + speedrun prefs
+	var st: Dictionary = progress.get("settings", {})
+	if typeof(st) == TYPE_DICTIONARY:
+		if st.has("follow"):
+			var f := float(st["follow"])
+			Config.mouse_follow = clampf(f if f > 1.0 else f, 0.35, 1.0)
+			if f > 1.0:
+				Config.mouse_follow = clampf(f / 100.0, 0.35, 1.0)
+		if st.has("mspeed"):
+			var s := float(st["mspeed"])
+			Config.mouse_speed = clampf(s if s > 2.0 else s, 0.7, 1.6)
+			if s > 2.0:
+				Config.mouse_speed = clampf(s / 100.0, 0.7, 1.6)
+		if st.has("music") and AudioBus:
+			var m := float(st["music"])
+			AudioBus.set_music_volume((m / 100.0) if m > 1.0 else m)
+		if st.has("sfx") and AudioBus:
+			var sx := float(st["sfx"])
+			AudioBus.set_sfx_volume((sx / 100.0) if sx > 1.0 else sx)
+		if st.has("speedrun"):
+			GameState.speedrun = bool(st["speedrun"]) if typeof(st["speedrun"]) == TYPE_BOOL else float(st["speedrun"]) > 0.5
 
 # ── HTML hasEmblem / unlockEmblem / saveEmblems ──────────────────────────
 

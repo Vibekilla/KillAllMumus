@@ -23,6 +23,7 @@
 [ext_resource type="Script" path="res://scripts/ui/HelpCanvas.gd" id="21"]
 [ext_resource type="Script" path="res://scripts/html_parity/WorldDraw.gd" id="22"]
 [ext_resource type="Script" path="res://scripts/ui/SoundGate.gd" id="23"]
+[ext_resource type="PackedScene" path="res://scenes/ui/KeybindsMenu.tscn" id="24"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1")
@@ -94,6 +95,7 @@ script = ExtResource("23")
 [node name="PauseMenu" parent="UI" instance=ExtResource("8")]
 [node name="DisplayMenu" parent="UI" instance=ExtResource("9")]
 [node name="SettingsMenu" parent="UI" instance=ExtResource("10")]
+[node name="KeybindsMenu" parent="UI" instance=ExtResource("24")]
 [node name="LeaderboardUI" parent="UI" instance=ExtResource("11")]
 [node name="EndScreen" parent="UI" instance=ExtResource("12")]
 [node name="ArsenalUI" parent="UI" instance=ExtResource("13")]

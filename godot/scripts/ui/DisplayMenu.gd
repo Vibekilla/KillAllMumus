@@ -9,6 +9,7 @@ extends Control
 func _ready() -> void:
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	add_to_group("display_menu")
 	scale_slider.value = Config.display_scale * 100.0
 	_refresh()
 

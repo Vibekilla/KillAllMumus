@@ -26,20 +26,72 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -160.0
-offset_top = -140.0
-offset_right = 160.0
-offset_bottom = 140.0
+offset_left = -200.0
+offset_top = -210.0
+offset_right = 200.0
+offset_bottom = 210.0
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "⏸ PAUSED"
 horizontal_alignment = 1
+
+[node name="MusicLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "🎵 Music  100%"
+
+[node name="MusicSlider" type="HSlider" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 100.0
+value = 100.0
+
+[node name="SfxLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "🔊 SFX  90%"
+
+[node name="SfxSlider" type="HSlider" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 100.0
+value = 90.0
+
+[node name="FollowLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Follow  80%"
+
+[node name="FollowSlider" type="HSlider" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 35.0
+max_value = 100.0
+step = 1.0
+value = 80.0
+
+[node name="SpeedLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Speed  1.12×"
+
+[node name="SpeedSlider" type="HSlider" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 70.0
+max_value = 160.0
+step = 1.0
+value = 112.0
 
 [node name="ResumeBtn" type="Button" parent="Panel/VBox"]
 layout_mode = 2
@@ -49,15 +101,19 @@ text = "▶ RESUME"
 layout_mode = 2
 text = "🖥 Display"
 
-[node name="SettingsBtn" type="Button" parent="Panel/VBox"]
+[node name="KeybindsBtn" type="Button" parent="Panel/VBox"]
 layout_mode = 2
-text = "⚙ Settings"
+text = "🎮 Controls"
 
 [node name="MenuBtn" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "⌂ RETURN TO MENU"
 
+[connection signal="value_changed" from="Panel/VBox/MusicSlider" to="." method="_on_music"]
+[connection signal="value_changed" from="Panel/VBox/SfxSlider" to="." method="_on_sfx"]
+[connection signal="value_changed" from="Panel/VBox/FollowSlider" to="." method="_on_follow"]
+[connection signal="value_changed" from="Panel/VBox/SpeedSlider" to="." method="_on_speed"]
 [connection signal="pressed" from="Panel/VBox/ResumeBtn" to="." method="_on_resume"]
 [connection signal="pressed" from="Panel/VBox/DisplayBtn" to="." method="_on_display"]
-[connection signal="pressed" from="Panel/VBox/SettingsBtn" to="." method="_on_settings"]
+[connection signal="pressed" from="Panel/VBox/KeybindsBtn" to="." method="_on_keybinds"]
 [connection signal="pressed" from="Panel/VBox/MenuBtn" to="." method="_on_menu"]
