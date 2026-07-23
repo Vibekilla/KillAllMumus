@@ -1,0 +1,8 @@
+.godot/
+export/
+*.translation
+*.import
+.mono/
+data_*/
+android/
+ios/

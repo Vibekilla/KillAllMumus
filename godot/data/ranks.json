@@ -1,0 +1,26 @@
+[
+  {
+    "kills": 0,
+    "rank": "D"
+  },
+  {
+    "kills": 25,
+    "rank": "C"
+  },
+  {
+    "kills": 60,
+    "rank": "B"
+  },
+  {
+    "kills": 120,
+    "rank": "A"
+  },
+  {
+    "kills": 200,
+    "rank": "S"
+  },
+  {
+    "kills": 320,
+    "rank": "SS"
+  }
+]

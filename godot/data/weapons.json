@@ -1,0 +1,62 @@
+{
+  "spread": {
+    "name": "Spread Shot",
+    "icon": "\u203b",
+    "color": "#ff9ecb",
+    "desc": "Wide fan of pink bullets."
+  },
+  "laser": {
+    "name": "Laser Beam",
+    "icon": "\u2502",
+    "color": "#8fd0ff",
+    "desc": "Piercing continuous beam."
+  },
+  "homing": {
+    "name": "Homing Missiles",
+    "icon": "\u27a4",
+    "color": "#ffd27a",
+    "desc": "Locks onto nearby Mumus."
+  },
+  "wave": {
+    "name": "Wave Pulse",
+    "icon": "\u223f",
+    "color": "#b8f08a",
+    "desc": "Sine-wave energy bolts."
+  },
+  "scatter": {
+    "name": "Scatter Burst",
+    "icon": "\u2726",
+    "color": "#ff8a5b",
+    "desc": "Explosive shotgun spray."
+  },
+  "gatling": {
+    "name": "Gatling",
+    "icon": "\u2261",
+    "color": "#c8ccd4",
+    "desc": "High fire-rate stream."
+  },
+  "grenade": {
+    "name": "Grenade Launcher",
+    "icon": "\u25c9",
+    "color": "#ff6b4a",
+    "desc": "Arcing explosives."
+  },
+  "voidripper": {
+    "name": "Voidripper",
+    "icon": "\ud83c\udf0c",
+    "color": "#9d6bff",
+    "desc": "Piercing void rifts."
+  },
+  "lotus": {
+    "name": "Lotus Petals",
+    "icon": "\ud83e\udeb7",
+    "color": "#ff8ac0",
+    "desc": "Homing petal spray."
+  },
+  "shock": {
+    "name": "Shock & Awe",
+    "icon": "\u26a1",
+    "color": "#8fd0ff",
+    "desc": "Chain lightning bolts."
+  }
+}

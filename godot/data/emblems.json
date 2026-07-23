@@ -1,0 +1,70 @@
+[
+  {
+    "id": "start",
+    "name": "Council Rookie",
+    "desc": "Join the Bobina Council.",
+    "icon": "\ud83d\udc3b",
+    "outfit": "og"
+  },
+  {
+    "id": "clear",
+    "name": "Mumu Exterminator",
+    "desc": "Clear the game.",
+    "icon": "\ud83c\udfc6"
+  },
+  {
+    "id": "clear_hard",
+    "name": "Hard Carry",
+    "desc": "Clear on HARD.",
+    "icon": "\ud83d\udd25"
+  },
+  {
+    "id": "clear_hell",
+    "name": "Hell Walker",
+    "desc": "Clear on HELL.",
+    "icon": "\u2620",
+    "outfit": "cabal"
+  },
+  {
+    "id": "score_1m",
+    "name": "Making Bank",
+    "desc": "Score 1,000,000.",
+    "icon": "\ud83d\udcbc",
+    "outfit": "business"
+  },
+  {
+    "id": "score_5m",
+    "name": "Diamond Hands",
+    "desc": "Score 5,000,000.",
+    "icon": "\ud83d\udcc8",
+    "outfit": "golden"
+  },
+  {
+    "id": "ng25",
+    "name": "Top Banana",
+    "desc": "Win NG+ Lv25.",
+    "icon": "\ud83c\udf4c",
+    "outfit": "banana"
+  },
+  {
+    "id": "ng50",
+    "name": "Squirrely",
+    "desc": "Win NG+ Lv50.",
+    "icon": "\ud83d\udc3f\ufe0f",
+    "outfit": "squirrely"
+  },
+  {
+    "id": "ng75",
+    "name": "Honeypot",
+    "desc": "Win NG+ Lv75.",
+    "icon": "\ud83c\udf6f",
+    "outfit": "honeypot"
+  },
+  {
+    "id": "ng100",
+    "name": "Cosmic Empress",
+    "desc": "Win NG+ Lv100.",
+    "icon": "\ud83d\udc51",
+    "outfit": "empress"
+  }
+]

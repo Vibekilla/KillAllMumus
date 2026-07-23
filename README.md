@@ -109,3 +109,8 @@ Server implements Authorization Code + PKCE against `https://bobina.moe`:
 
 Until credentials are set, anonymous play + X-handle leaderboard still work; Sign in shows a setup page.
 
+## Godot modular client
+
+The game is being ported to **Godot 4.3** under `godot/` (modular scenes/scripts/data).
+The live site still serves `public/index.html` until HTML5 export cutover.
+See `godot/README.md`.

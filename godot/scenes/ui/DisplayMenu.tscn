@@ -1,0 +1,98 @@
+[gd_scene load_steps=2 format=3 uid="uid://display001"]
+
+[ext_resource type="Script" path="res://scripts/ui/DisplayMenu.gd" id="1"]
+
+[node name="DisplayMenu" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.05, 0.08, 0.15, 0.85)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -180.0
+offset_right = 200.0
+offset_bottom = 180.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "🖥 DISPLAY"
+horizontal_alignment = 1
+
+[node name="ScaleLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 1
+
+[node name="ScaleSlider" type="HSlider" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 50.0
+max_value = 100.0
+step = 5.0
+value = 100.0
+
+[node name="HzLabel" type="Label" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "60 Hz"
+horizontal_alignment = 1
+
+[node name="HzRow" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="Hz30" type="Button" parent="Panel/VBox/HzRow"]
+layout_mode = 2
+text = "30"
+
+[node name="Hz60" type="Button" parent="Panel/VBox/HzRow"]
+layout_mode = 2
+text = "60"
+
+[node name="Hz120" type="Button" parent="Panel/VBox/HzRow"]
+layout_mode = 2
+text = "120"
+
+[node name="DebugBtn" type="Button" parent="Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "Debug layer: OFF"
+
+[node name="FsBtn" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Toggle fullscreen"
+
+[node name="CloseBtn" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "Done"
+
+[connection signal="value_changed" from="Panel/VBox/ScaleSlider" to="." method="_on_scale_changed"]
+[connection signal="pressed" from="Panel/VBox/HzRow/Hz30" to="." method="_on_hz_30"]
+[connection signal="pressed" from="Panel/VBox/HzRow/Hz60" to="." method="_on_hz_60"]
+[connection signal="pressed" from="Panel/VBox/HzRow/Hz120" to="." method="_on_hz_120"]
+[connection signal="toggled" from="Panel/VBox/DebugBtn" to="." method="_on_debug_toggled"]
+[connection signal="pressed" from="Panel/VBox/FsBtn" to="." method="_on_fullscreen"]
+[connection signal="pressed" from="Panel/VBox/CloseBtn" to="." method="_on_close"]

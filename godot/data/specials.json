@@ -1,0 +1,68 @@
+[
+  {
+    "key": "laser",
+    "name": "Kraken Cannon",
+    "icon": "\ud83d\udc19",
+    "color": "#a855f7"
+  },
+  {
+    "key": "mech",
+    "name": "SKOL Mech",
+    "icon": "\ud83e\udd16",
+    "color": "#8fb8ff"
+  },
+  {
+    "key": "bearzooka",
+    "name": "Bearzooka",
+    "icon": "\ud83d\ude80",
+    "color": "#ff9a3c"
+  },
+  {
+    "key": "vault",
+    "name": "Emblem Vaults",
+    "icon": "\u25c8",
+    "color": "#ffd27a"
+  },
+  {
+    "key": "stampede",
+    "name": "Jungle Stampede",
+    "icon": "\ud83d\udc02",
+    "color": "#7ed957"
+  },
+  {
+    "key": "badger",
+    "name": "Honey Badger",
+    "icon": "\ud83e\udda1",
+    "color": "#f0b030"
+  },
+  {
+    "key": "sixth",
+    "name": "Sixth Sense",
+    "icon": "\ud83d\udd70\ufe0f",
+    "color": "#7fdfff"
+  },
+  {
+    "key": "revenge",
+    "name": "Ourbie's Revenge",
+    "icon": "\ud83d\udd73\ufe0f",
+    "color": "#3ae66a"
+  },
+  {
+    "key": "kiss",
+    "name": "Kiss Me",
+    "icon": "\ud83d\udc8b",
+    "color": "#ff5b8d"
+  },
+  {
+    "key": "kraken",
+    "name": "Unleash the Kraken",
+    "icon": "\ud83e\udd91",
+    "color": "#5fc9c9"
+  },
+  {
+    "key": "void",
+    "name": "Call of the Void",
+    "icon": "\ud83d\udc41\ufe0f",
+    "color": "#9d6bff"
+  }
+]

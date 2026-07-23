@@ -1,0 +1,23 @@
+[
+  {
+    "key": "honeycomb",
+    "name": "Honeycomb",
+    "icon": "\ud83c\udf6f",
+    "color": "#ffd23a",
+    "cost": 15
+  },
+  {
+    "key": "bulltears",
+    "name": "Bull Tears",
+    "icon": "\ud83d\udca7",
+    "color": "#8fd0ff",
+    "cost": 20
+  },
+  {
+    "key": "bullsouls",
+    "name": "Bull Souls",
+    "icon": "\ud83d\udc7b",
+    "color": "#b06cff",
+    "cost": 25
+  }
+]

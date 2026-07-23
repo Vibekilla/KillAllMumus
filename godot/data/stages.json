@@ -1,0 +1,88 @@
+{
+  "stages": [
+    {
+      "id": 1,
+      "title": "STAGE 1",
+      "name": "The Jeet Jungle",
+      "boss": {
+        "id": "alchemist",
+        "name": "AlchemistTheOG",
+        "title": "Bored Ape Retard"
+      },
+      "accent": "#7ed957",
+      "waves": 12
+    },
+    {
+      "id": 2,
+      "title": "STAGE 2",
+      "name": "The Frozen Jeet Hell",
+      "boss": {
+        "id": "robotnik",
+        "name": "Dr. Robotnik",
+        "title": "Viceroy of Jeet Hell"
+      },
+      "accent": "#8fd0ff",
+      "waves": 12
+    },
+    {
+      "id": 3,
+      "title": "STAGE 3",
+      "name": "Mumina\u2019s Kingdom",
+      "boss": {
+        "id": "mumina",
+        "name": "Mumina",
+        "title": "Queen of the Bulls"
+      },
+      "accent": "#ff9ecb",
+      "waves": 12
+    },
+    {
+      "id": 4,
+      "title": "STAGE 4",
+      "name": "Lily\u2019s Solana Dog Park",
+      "boss": {
+        "id": "lily",
+        "name": "Lily",
+        "title": "The Ethereum-Hating Terrier"
+      },
+      "accent": "#ffd27a",
+      "waves": 12
+    },
+    {
+      "id": 5,
+      "title": "STAGE 5",
+      "name": "The Indian Call Center",
+      "boss": {
+        "id": "india_police",
+        "name": "India Police",
+        "title": "The Corrupted Inspector"
+      },
+      "accent": "#ff8a5b",
+      "waves": 12
+    },
+    {
+      "id": 6,
+      "title": "STAGE 6",
+      "name": "The Akashic Records",
+      "boss": {
+        "id": "bogdanoffs",
+        "name": "The Bogdanoffs",
+        "title": "Puppeteer Masters"
+      },
+      "accent": "#b06cff",
+      "waves": 12
+    },
+    {
+      "id": 7,
+      "title": "FINAL",
+      "name": "James Wynn\u2019s Lair",
+      "boss": {
+        "id": "james_wynn",
+        "name": "James Wynn",
+        "title": "LA Cabal Ringleader"
+      },
+      "accent": "#ff5b8d",
+      "waves": 14
+    }
+  ]
+}

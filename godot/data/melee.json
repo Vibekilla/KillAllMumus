@@ -1,0 +1,57 @@
+[
+  {
+    "key": "katana",
+    "name": "Kuma Katana",
+    "icon": "\ud83d\udde1\ufe0f",
+    "color": "#ff2b4d",
+    "reach": 155,
+    "arc": 2.0,
+    "kb": 5,
+    "dmg": 6,
+    "cd": 15
+  },
+  {
+    "key": "lash",
+    "name": "Kraken Lash",
+    "icon": "\ud83d\udc19",
+    "color": "#b06cff",
+    "reach": 225,
+    "arc": 1.25,
+    "kb": 4,
+    "dmg": 4,
+    "cd": 20
+  },
+  {
+    "key": "scythe",
+    "name": "Ourbie's Scythe",
+    "icon": "\ud83d\udfe2",
+    "color": "#3ae66a",
+    "reach": 150,
+    "arc": 2.7,
+    "kb": 8,
+    "dmg": 9,
+    "cd": 26
+  },
+  {
+    "key": "hammer",
+    "name": "Vault Hammer",
+    "icon": "\u25c8",
+    "color": "#ffcf5a",
+    "reach": 165,
+    "arc": 3.1,
+    "kb": 8,
+    "dmg": 8,
+    "cd": 26
+  },
+  {
+    "key": "claws",
+    "name": "Badger Claws",
+    "icon": "\ud83e\udda1",
+    "color": "#f0b030",
+    "reach": 130,
+    "arc": 2.3,
+    "kb": 3,
+    "dmg": 4,
+    "cd": 11
+  }
+]

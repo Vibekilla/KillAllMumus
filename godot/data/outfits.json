@@ -1,0 +1,143 @@
+[
+  {
+    "key": "og",
+    "name": "OG",
+    "emoji": "\ud83d\udc3b"
+  },
+  {
+    "key": "maid",
+    "name": "Maid",
+    "emoji": "\ud83c\udf80"
+  },
+  {
+    "key": "nanosuit",
+    "name": "Nanosuit",
+    "emoji": "\ud83e\udd16"
+  },
+  {
+    "key": "badger",
+    "name": "Badger",
+    "emoji": "\ud83e\udda1"
+  },
+  {
+    "key": "viking",
+    "name": "Viking",
+    "emoji": "\u2694\ufe0f"
+  },
+  {
+    "key": "ourbit",
+    "name": "Ourbit",
+    "emoji": "\ud83d\udfe2"
+  },
+  {
+    "key": "bullbina",
+    "name": "Bullbina",
+    "emoji": "\ud83d\udc02"
+  },
+  {
+    "key": "monke",
+    "name": "Monke",
+    "emoji": "\ud83d\udc35"
+  },
+  {
+    "key": "pickle",
+    "name": "Pickle",
+    "emoji": "\ud83e\udd52"
+  },
+  {
+    "key": "emblem",
+    "name": "Emblem",
+    "emoji": "\ud83d\udc8e"
+  },
+  {
+    "key": "labrat",
+    "name": "Labrat",
+    "emoji": "\ud83e\udd7d"
+  },
+  {
+    "key": "neko",
+    "name": "Neko",
+    "emoji": "\ud83d\udc31"
+  },
+  {
+    "key": "kigurumi",
+    "name": "Bear",
+    "emoji": "\ud83e\uddf8"
+  },
+  {
+    "key": "cheese",
+    "name": "Mouse",
+    "emoji": "\ud83e\uddc0"
+  },
+  {
+    "key": "business",
+    "name": "Business",
+    "emoji": "\ud83d\udcbc"
+  },
+  {
+    "key": "jester",
+    "name": "Jester",
+    "emoji": "\ud83e\udd21"
+  },
+  {
+    "key": "samurai",
+    "name": "Samurai",
+    "emoji": "\ud83e\udd77"
+  },
+  {
+    "key": "bride",
+    "name": "Bride",
+    "emoji": "\ud83d\udc70"
+  },
+  {
+    "key": "angel",
+    "name": "Angel",
+    "emoji": "\ud83d\udc7c"
+  },
+  {
+    "key": "golden",
+    "name": "Golden",
+    "emoji": "\u2728"
+  },
+  {
+    "key": "succubus",
+    "name": "Succubus",
+    "emoji": "\ud83d\ude08"
+  },
+  {
+    "key": "voidling",
+    "name": "Voidling",
+    "emoji": "\ud83c\udf0c"
+  },
+  {
+    "key": "honeybee",
+    "name": "Bobeena",
+    "emoji": "\ud83d\udc1d"
+  },
+  {
+    "key": "banana",
+    "name": "Banana",
+    "emoji": "\ud83c\udf4c"
+  },
+  {
+    "key": "squirrely",
+    "name": "Squirrely",
+    "emoji": "\ud83d\udc3f\ufe0f"
+  },
+  {
+    "key": "honeypot",
+    "name": "Honeypot",
+    "emoji": "\ud83c\udf6f"
+  },
+  {
+    "key": "empress",
+    "name": "Empress",
+    "emoji": "\ud83d\udc51"
+  },
+  {
+    "key": "cabal",
+    "name": "Cabal",
+    "emoji": "\u2620",
+    "locked": true
+  }
+]
