@@ -5,10 +5,11 @@ signal stage_ready_for_boss
 
 var bullet_pool: Node
 var playfield: Node2D
-var stage_time: float = 0.0  # frames
+var stage_time: float = 0.0  # frames @ 60 Hz
 var spawning: bool = false
 var boss_spawned: bool = false
-var roll: int = 0
+var roll: int = -1  # last pack index spawned (-1 = none yet)
+var _next_spawn_at: float = 0.0
 
 const FRAME := 60.0
 const EnemyScene := preload("res://scenes/enemies/Enemy.tscn")
@@ -20,7 +21,8 @@ func setup(pool: Node, pf: Node2D) -> void:
 
 func start_stage(_stage_index: int) -> void:
 	stage_time = 0.0
-	roll = 0
+	roll = -1
+	_next_spawn_at = 0.0  # first pack immediately
 	spawning = true
 	boss_spawned = false
 
@@ -49,6 +51,8 @@ func _process(delta: float) -> void:
 		stage_ready_for_boss.emit()
 
 func _spawn_waves() -> void:
+	if playfield == null:
+		return
 	var s := GameState.stage_index
 	var st := stage_time
 	var hm := 0.62 if GameState.hard_mode else 1.2
@@ -56,10 +60,12 @@ func _spawn_waves() -> void:
 	var wave_dur := float(stage.get("waveDur", 1500))
 	var prog := st / maxf(1.0, wave_dur)
 	var base_iv := 70.0 if s == 0 else (60.0 if s == 1 else 52.0)
-	var iv := maxi(18, int(floor(base_iv * hm * (1.0 - prog * 0.32))))
-	if int(st) % iv != 0:
+	var iv := maxf(18.0, floorf(base_iv * hm * (1.0 - prog * 0.32)))
+	# Schedule packs by absolute stage_time (robust under float dt)
+	if st < _next_spawn_at:
 		return
-	roll = int(st / float(iv))
+	roll += 1
+	_next_spawn_at = st + iv
 	var pf: Rect2 = Config.playfield()
 
 	if s == 0:

@@ -67,13 +67,23 @@ func _run() -> void:
 			" melee=", player.get("melee") != null, " consum=", player.get("consumables") != null)
 		# Fire all weapons briefly
 		if player.get("fire_sys") and player.get("bullet_pool"):
+			if player.fire_sys.has_method("reset_run"):
+				player.fire_sys.reset_run()
 			for w in GameState.weapons:
 				GameState.current_weapon = w
+				if player.fire_sys.has_method("reset_run"):
+					player.fire_sys.reset_run()
 				var ok = player.fire_sys.try_fire(player, player.bullet_pool, false)
 				print("[PLAYTEST] fire wep=", w, " ok=", ok)
 			GameState.current_weapon = "laser"
+			if player.fire_sys.has_method("reset_run"):
+				player.fire_sys.reset_run()
 			player.fire_sys.try_fire(player, player.bullet_pool, true)  # focus
 			print("[PLAYTEST] focus fire ok")
+		# Ensure waves started
+		var stages = root.get_node_or_null("StageController")
+		if stages and stages.has_method("start_waves_if_ready"):
+			stages.start_waves_if_ready()
 		if player.get("melee"):
 			player.melee.begin_hold()
 			for _i in range(10):

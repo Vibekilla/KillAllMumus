@@ -1,5 +1,6 @@
 extends Node
-## 1:1 port of HTML sfx() — WebAudio-style oscillator envelopes via AudioServer generators.
+## 1:1 port of HTML sfx() — oscillator envelopes as AudioStreamWAV (Web-safe).
+## AudioStreamGenerator + push_frame fails on HTML5 ("stream that cannot be sampled").
 ## Types: shoot, hit, kill, graze, item, power, extend, bomb, hurt, card, win,
 ## slash, whip, thud, boom, claw, warp
 
@@ -7,6 +8,7 @@ var sfx_volume: float = 0.9
 var music_volume: float = 1.0
 var _players: Array = []
 const POOL := 12
+const RATE := 22050
 
 func _ready() -> void:
 	for i in POOL:
@@ -77,31 +79,35 @@ func _beep(f0: float, f1: float, dur: float, wave: String, vol: float) -> void:
 func _beep_delayed(f0: float, f1: float, dur: float, wave: String, vol: float, delay: float) -> void:
 	if vol <= 0.0001:
 		return
-	var gen := AudioStreamGenerator.new()
-	gen.mix_rate = 22050.0
-	gen.buffer_length = 0.1
+	# Fire-and-forget coroutine
+	_play_wav_async(f0, f1, dur, wave, vol, delay)
+
+func _play_wav_async(f0: float, f1: float, dur: float, wave: String, vol: float, delay: float) -> void:
+	var stream := _make_wav(f0, f1, dur, wave, vol)
+	if stream == null:
+		return
+	if delay > 0.0:
+		await get_tree().create_timer(delay).timeout
 	var player: AudioStreamPlayer = _acquire()
 	if player == null:
 		return
-	player.stream = gen
-	player.volume_db = linear_to_db(clampf(vol * 4.0, 0.0001, 1.0))
-	if delay > 0.0:
-		await get_tree().create_timer(delay).timeout
+	player.stop()
+	player.stream = stream
+	player.volume_db = 0.0
 	player.play()
-	var playback := player.get_stream_playback() as AudioStreamGeneratorPlayback
-	if playback == null:
-		return
-	var rate := gen.mix_rate
-	var nframes := int(dur * rate) + 1
+
+func _make_wav(f0: float, f1: float, dur: float, wave: String, vol: float) -> AudioStreamWAV:
+	## Offline PCM — works on desktop + HTML5 (unlike live AudioStreamGenerator push)
+	var nframes := maxi(1, int(dur * float(RATE)) + 1)
+	var data := PackedByteArray()
+	data.resize(nframes * 2)  # mono 16-bit
 	var phase := 0.0
-	var frames := PackedVector2Array()
-	frames.resize(nframes)
 	for i in nframes:
 		var t := float(i) / float(nframes)
 		var freq := lerpf(f0, f1, t)
 		if freq < 20.0:
 			freq = 20.0
-		phase += TAU * freq / rate
+		phase += TAU * freq / float(RATE)
 		var s := 0.0
 		match wave:
 			"sine":
@@ -115,25 +121,21 @@ func _beep_delayed(f0: float, f1: float, dur: float, wave: String, vol: float, d
 				s = (u * 4.0 - 1.0) if u < 0.5 else (3.0 - u * 4.0)
 			_:
 				s = sin(phase)
-		# HTML WebAudio: gain exponentialRampToValueAtTime(0.001, t+d)
-		# Match attack + exponential decay envelope more closely
+		# HTML WebAudio-style attack + exponential decay
 		var attack := clampf(t / 0.04, 0.0, 1.0) if t < 0.04 else 1.0
 		var env := attack * exp(-4.2 * t) * (1.0 - t * 0.12)
-		var sample := s * env * 0.38
-		frames[i] = Vector2(sample, sample)
-	# push in chunks
-	var idx := 0
-	while idx < nframes:
-		var room := playback.get_frames_available()
-		if room <= 0:
-			await get_tree().process_frame
-			continue
-		var take := mini(room, nframes - idx)
-		for j in take:
-			playback.push_frame(frames[idx + j])
-		idx += take
-	await get_tree().create_timer(dur + 0.05).timeout
-	player.stop()
+		var sample := clampf(s * env * 0.38 * vol * 4.0, -1.0, 1.0)
+		var si := int(round(sample * 32767.0))
+		si = clampi(si, -32768, 32767)
+		# little-endian int16
+		data[i * 2] = si & 0xFF
+		data[i * 2 + 1] = (si >> 8) & 0xFF
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = RATE
+	stream.stereo = false
+	stream.data = data
+	return stream
 
 func _acquire() -> AudioStreamPlayer:
 	for p in _players:

@@ -43,7 +43,7 @@ func _draw() -> void:
 	hud.set_tick(tick)
 	var playish := GameState.state in [
 		GameState.State.PLAY, GameState.State.INTRO, GameState.State.PAUSED,
-		GameState.State.STAGE_CLEAR
+		GameState.State.STAGE_CLEAR, GameState.State.SHOP
 	]
 	# Panel + overlays only — never full-field stage bg (that covered entities)
 	if playish:
@@ -51,7 +51,7 @@ func _draw() -> void:
 		hud.draw_emblem_toasts()
 	if GameState.state == GameState.State.PAUSED:
 		hud.draw_pause_overlay()
-	if touch_draw and GameState.state == GameState.State.PLAY:
+	if touch_draw and GameState.state in [GameState.State.PLAY, GameState.State.SHOP]:
 		touch_draw.set_tick(tick)
 		touch_draw.draw()
 	if Config.debug_layer and debug_draw and debug_draw.has_method("draw_debug_layer"):

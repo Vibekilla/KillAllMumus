@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-23T05:05:57.889Z",
+  "generated": "2026-07-23T06:36:48.603Z",
   "policy": "public/index.html is source of truth. No approximate stubs. Map every draw* before claiming parity.",
   "draw_functions": [
     {
