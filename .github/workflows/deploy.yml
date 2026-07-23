@@ -33,10 +33,11 @@ jobs:
     # Explicit: no path filters, no if: — every push/PR runs this job
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v5+ runs on Node 24 (v4 emits Node 20 deprecation warnings)
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "24"
           cache: npm
@@ -86,7 +87,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install + restart
         run: |
