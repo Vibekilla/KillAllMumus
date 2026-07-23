@@ -83,23 +83,29 @@ if [[ "$DO_PUSH" -eq 1 ]]; then
   git push -u origin HEAD
 fi
 
+# If our tip is already on origin/dev, nothing to do
+if git merge-base --is-ancestor HEAD "origin/${BASE}" 2>/dev/null; then
+  echo "HEAD already contained in origin/${BASE} — nothing to ship."
+  exit 0
+fi
+
 echo "==> PR ${BRANCH} → ${BASE}"
 EXISTING=$(gh pr list --head "$BRANCH" --base "$BASE" --state open --json number --jq '.[0].number // empty')
-if [[ -z "$EXISTING" ]]; then
-  MERGED=$(gh pr list --head "$BRANCH" --base "$BASE" --state merged --json number --jq '.[0].number // empty')
-  if [[ -n "$MERGED" ]]; then
-    echo "Already merged as PR #${MERGED}"
-    PR="$MERGED"
-  else
-    ARGS=(pr create --base "$BASE" --head "$BRANCH" --title "$TITLE" --body "$BODY")
-    [[ "$DRAFT" -eq 1 ]] && ARGS+=(--draft)
-    gh "${ARGS[@]}"
-    PR=$(gh pr list --head "$BRANCH" --base "$BASE" --json number --jq '.[0].number')
-  fi
-else
+if [[ -n "$EXISTING" ]]; then
   PR="$EXISTING"
-  gh pr edit "$PR" --title "$TITLE" --body "$BODY" >/dev/null
-  echo "Updated PR #${PR}"
+  gh pr edit "$PR" --title "$TITLE" --body "$BODY" >/dev/null || true
+  echo "Updated open PR #${PR}"
+else
+  # Always open a new PR for commits not yet on base (never reuse an old merged PR number)
+  ARGS=(pr create --base "$BASE" --head "$BRANCH" --title "$TITLE" --body "$BODY")
+  [[ "$DRAFT" -eq 1 ]] && ARGS+=(--draft)
+  gh "${ARGS[@]}"
+  PR=$(gh pr list --head "$BRANCH" --base "$BASE" --state open --json number --jq '.[0].number')
+  if [[ -z "$PR" ]]; then
+    echo "Failed to create/find open PR for ${BRANCH}" >&2
+    exit 1
+  fi
+  echo "Created PR #${PR}"
 fi
 
 if [[ "$MERGE" -eq 0 ]]; then
