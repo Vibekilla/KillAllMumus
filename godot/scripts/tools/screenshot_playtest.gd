@@ -221,6 +221,29 @@ func _run() -> void:
 		await process_frame
 	await _save("godot_flow_stageclear")
 
+	# End screens (HTML drawWin / drawGameOver)
+	GameState.session_score = 125000
+	GameState.total_kills = 420
+	GameState.lives = 0
+	GameState.set_state(GameState.State.GAMEOVER)
+	_force_ui_size(_main)
+	var end_ui = _main.get_node_or_null("UI/EndScreen")
+	if end_ui and end_ui.has_method("queue_redraw"):
+		end_ui.queue_redraw()
+	for _i in range(8 if fast else 12):
+		await process_frame
+	await _save("godot_end_gameover")
+
+	GameState.session_score = 2500000
+	GameState.total_kills = 9001
+	GameState.set_state(GameState.State.WIN)
+	_force_ui_size(_main)
+	if end_ui and end_ui.has_method("queue_redraw"):
+		end_ui.queue_redraw()
+	for _i in range(8 if fast else 12):
+		await process_frame
+	await _save("godot_end_win")
+
 	if not fast:
 		for outfit in ["og", "maid", "honeypot", "cabal"]:
 			GameState.selected_outfit = outfit

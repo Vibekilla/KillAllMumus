@@ -63,6 +63,19 @@ function servePublic() {
         res.end("not found");
         return;
       }
+      // Dual-only: expose state bridge inside the same script scope as `let state`
+      if (urlPath === "/index.html" || file.endsWith("index.html")) {
+        let html = fs.readFileSync(file, "utf8");
+        if (!html.includes("window.__kamDual")) {
+          html = html.replace(
+            /function showNameEntry\(\)\{/,
+            `window.__kamDual={setState:function(s){state=s;},setScore:function(k,sc){totalKills=k;sessionScore=sc;},setEnd:function(w){endWon=!!w;endHandled=false;justSavedScore=false;nameEntryOpen=false;try{var n=document.getElementById("nameEntry");if(n)n.classList.remove("on");}catch(e){}}};function showNameEntry(){`
+          );
+        }
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(html);
+        return;
+      }
       res.writeHead(200, { "Content-Type": mime(file) });
       createReadStream(file).pipe(res);
     });
@@ -142,22 +155,18 @@ async function captureHtml() {
   await page.screenshot({ path: path.join(htmlDir, "html_play.png") });
   console.log("[HTML] play");
 
-  // Force shop + stageclear via page.evaluate (HTML globals)
+  // Force shop / stageclear / ends via __kamDual (closes over let state)
   try {
     await page.evaluate(() => {
-      // @ts-ignore
       if (typeof enterShop === "function") enterShop();
-      // @ts-ignore
-      else if (typeof state !== "undefined") { state = "shop"; shopTab = "w"; shopSel = 0; }
+      else if (window.__kamDual) window.__kamDual.setState("shop");
     });
     await page.waitForTimeout(fast ? 400 : 700);
     await page.screenshot({ path: path.join(htmlDir, "html_flow_shop.png") });
     console.log("[HTML] flow_shop");
     await page.evaluate(() => {
-      // @ts-ignore
       if (typeof leaveShop === "function") leaveShop();
-      // @ts-ignore
-      else state = "play";
+      else if (window.__kamDual) window.__kamDual.setState("play");
     });
     await page.waitForTimeout(200);
   } catch (e) {
@@ -165,20 +174,52 @@ async function captureHtml() {
   }
   try {
     await page.evaluate(() => {
-      // @ts-ignore
-      state = "stageclear";
-      // @ts-ignore
-      if (typeof clearMsgT !== "undefined") clearMsgT = 200;
+      if (window.__kamDual) window.__kamDual.setState("stageclear");
     });
     await page.waitForTimeout(fast ? 400 : 700);
     await page.screenshot({ path: path.join(htmlDir, "html_flow_stageclear.png") });
     console.log("[HTML] flow_stageclear");
-    await page.evaluate(() => {
-      // @ts-ignore
-      state = "title";
-    });
   } catch (e) {
     console.log("[HTML] stageclear eval skip", e.message || e);
+  }
+
+  // End screens — force canvas draw after state change (let state via __kamDual)
+  async function forceEnd(stateName, kills, score, won) {
+    await page.evaluate(
+      ({ stateName, kills, score, won }) => {
+        if (!window.__kamDual) return "no-dual";
+        window.__kamDual.setScore(kills, score);
+        window.__kamDual.setEnd(won);
+        window.__kamDual.setState(stateName);
+        // paint immediately; skip name-entry modal for dual shots
+        try {
+          if (typeof endHandled !== "undefined") endHandled = true;
+          if (typeof nameEntryOpen !== "undefined") nameEntryOpen = false;
+          const ne = document.getElementById("nameEntry");
+          if (ne) ne.classList.remove("on");
+        } catch (_) {}
+        if (typeof draw === "function") draw();
+        return typeof state !== "undefined" ? state : "?";
+      },
+      { stateName, kills, score, won }
+    );
+    await page.waitForTimeout(fast ? 450 : 700);
+  }
+  try {
+    const st1 = await forceEnd("gameover", 420, 125000, false);
+    console.log("[HTML] end_gameover state=", st1);
+    await page.screenshot({ path: path.join(htmlDir, "html_end_gameover.png") });
+    console.log("[HTML] end_gameover");
+    const st2 = await forceEnd("win", 9001, 2500000, true);
+    console.log("[HTML] end_win state=", st2);
+    await page.screenshot({ path: path.join(htmlDir, "html_end_win.png") });
+    console.log("[HTML] end_win");
+    await page.evaluate(() => {
+      if (window.__kamDual) window.__kamDual.setState("title");
+      if (typeof draw === "function") draw();
+    });
+  } catch (e) {
+    console.log("[HTML] end screens eval skip", e.message || e);
   }
 
   if (!fast) {
@@ -258,6 +299,8 @@ function writeIndex() {
     ["html_flow_shop.png", "godot_flow_shop.png", "Shop"],
     ["html_flow_stageclear.png", "godot_flow_stageclear.png", "Stage clear"],
     ["html_flow_intro.png", "godot_flow_intro.png", "Intro"],
+    ["html_end_gameover.png", "godot_end_gameover.png", "Game over"],
+    ["html_end_win.png", "godot_end_win.png", "Win"],
   ];
   if (!fast) pairs.push(["html_play_firing.png", "godot_play_power6.png", "Combat"]);
   let rows = "";
