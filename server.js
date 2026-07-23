@@ -6,8 +6,9 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const { createPool, migrate } = require('./lib/db');
+const { createPool, migrate, claimScoresForPlayer } = require('./lib/db');
 const { mountBobinaAuth, sessionPlayer, configured: bobinaConfigured } = require('./lib/bobina-auth');
+const { resolveLinkedDisplay, fetchMini } = require('./lib/bobina-profile');
 
 let sharp = null;
 try {
@@ -64,6 +65,11 @@ const OUTFIT_KEYS = [
   'honeybee', 'banana', 'squirrely', 'honeypot', 'empress', 'cabal',
 ];
 
+/**
+ * Leaderboard rows:
+ *  - linked (bc_id): display Bobina username via mini helper; profile → bobina.moe
+ *  - anonymous: display X handle; profile → x.com
+ */
 async function topScores(limit) {
   const n = Math.max(1, Math.min(200, Number(limit) || 100));
   const rows = await dbQuery(
@@ -74,27 +80,77 @@ async function topScores(limit) {
      LIMIT $1`,
     [n]
   );
-  return rows.map((r) => ({
-    name: r.name,
-    handle: r.handle,
-    score: Number(r.score),
-    kills: Number(r.kills),
-    rank: r.rank,
-    mode: r.mode,
-    won: Number(r.won),
-    outfit: r.outfit,
-    bcId: r.bc_id || null,
-    bobinaUsername: r.bobina_username || null,
-    xId: r.x_id || null,
-    avatar: r.avatar || null,
-    profileUrl: r.bobina_username
-      ? `https://bobina.moe/${r.bobina_username}`
-      : r.bc_id
-        ? `https://bobina.moe/api/user/${r.bc_id}/mini`
-        : r.handle
-          ? `https://x.com/${r.handle}`
-          : null,
-  }));
+
+  const out = [];
+  for (const r of rows) {
+    const base = {
+      score: Number(r.score),
+      kills: Number(r.kills),
+      rank: r.rank,
+      mode: r.mode,
+      won: Number(r.won),
+      outfit: r.outfit,
+      xId: r.x_id || null,
+    };
+
+    if (r.bc_id) {
+      const linked = await resolveLinkedDisplay(r.bc_id, {
+        bobinaUsername: r.bobina_username,
+        avatar: r.avatar,
+        name: r.name,
+      });
+      // Persist refreshed username occasionally (non-blocking best-effort)
+      if (
+        linked.bobinaUsername &&
+        linked.bobinaUsername !== r.bobina_username &&
+        !linked.deleted
+      ) {
+        dbExec(
+          `UPDATE bobina_scores SET bobina_username = $2, name = $3, avatar = COALESCE($4, avatar)
+           WHERE bc_id = $1`,
+          [
+            r.bc_id,
+            linked.bobinaUsername,
+            linked.displayName,
+            linked.avatar,
+          ]
+        ).catch(() => {});
+      }
+      const xHandle = (r.handle || '').replace(/^@+/, '');
+      out.push({
+        ...base,
+        linked: true,
+        bcId: r.bc_id,
+        name: linked.deleted
+          ? 'Anonymous Mumu Slayer'
+          : linked.displayName,
+        handle: xHandle || null,
+        bobinaUsername: linked.deleted ? null : linked.bobinaUsername,
+        avatar: linked.avatar,
+        profileUrl: linked.deleted ? null : linked.profileUrl,
+        xUrl: xHandle ? `https://x.com/${xHandle}` : r.x_id ? `https://x.com/i/user/${r.x_id}` : null,
+      });
+    } else {
+      const xHandle = (r.handle || '').replace(/^@+/, '');
+      const name = xHandle
+        ? `@${xHandle}`
+        : r.name && r.name !== 'Anon'
+          ? r.name
+          : 'Anon';
+      out.push({
+        ...base,
+        linked: false,
+        bcId: null,
+        name,
+        handle: xHandle || null,
+        bobinaUsername: null,
+        avatar: null,
+        profileUrl: xHandle ? `https://x.com/${xHandle}` : null,
+        xUrl: xHandle ? `https://x.com/${xHandle}` : null,
+      });
+    }
+  }
+  return out;
 }
 
 // Bobina.moe OIDC routes (/auth/bobina, /api/me, …)
@@ -122,33 +178,15 @@ app.post('/api/scores', async (req, res) => {
 
     const player = await sessionPlayer(pool, req);
 
-    let { name, handle, score, kills, rank, mode, won, outfit } = req.body || {};
-    handle = clean(handle, 16).replace(/^@+/, '');
-    name = clean(name, 16) || (handle ? '@' + handle : 'Anon');
+    let { handle, score, kills, rank, mode, won, outfit } = req.body || {};
+    // Anonymous players: X handle is the attribution key we persist
+    handle = clean(handle, 16).replace(/^@+/, '').replace(/[^A-Za-z0-9_]/g, '');
     score = Math.max(0, Math.min(999999999999, parseInt(score, 10) || 0));
     kills = Math.max(0, Math.min(100000, parseInt(kills, 10) || 0));
     rank = clean(rank, 3);
     mode = /^(NORMAL|HARD|HELL)(\+\d{1,2})?$/.test(mode) ? mode : 'NORMAL';
     won = won ? 1 : 0;
     outfit = OUTFIT_KEYS.includes(outfit) ? outfit : 'og';
-
-    // Prefer Bobina identity when signed in
-    let bcId = null;
-    let bobinaUsername = null;
-    let xId = null;
-    let avatar = null;
-    if (player) {
-      bcId = player.bc_id;
-      bobinaUsername = player.cached_username || null;
-      xId = player.cached_x_id || null;
-      avatar = player.cached_avatar || null;
-      if (bobinaUsername) {
-        name = clean('@' + bobinaUsername, 16);
-      }
-      if (player.cached_x_username) {
-        handle = clean(player.cached_x_username, 16).replace(/^@+/, '');
-      }
-    }
 
     const BLOCKED = [
       'test', 'testuser', 'tester', 'testing', 'admin', 'anon', 'anonymous',
@@ -158,7 +196,41 @@ app.post('/api/scores', async (req, res) => {
       return res.json({ ok: true, updated: false, scores: await topScores(100) });
     }
 
-    // Dedup: by bc_id when present, else by X handle
+    let bcId = null;
+    let bobinaUsername = null;
+    let xId = null;
+    let avatar = null;
+    let name = handle ? '@' + handle : 'Anon';
+
+    if (player) {
+      // Linked Bobina account — canonical key is bc_id; display via mini helper
+      bcId = player.bc_id;
+      const mini = await fetchMini(bcId);
+      bobinaUsername = mini?.username || player.cached_username || null;
+      avatar = mini?.image || player.cached_avatar || null;
+      xId = player.cached_x_id || null;
+      name = bobinaUsername ? '@' + bobinaUsername : 'Bobina player';
+      // Keep X handle as secondary credit (from account or this run)
+      if (player.cached_x_username) {
+        handle = clean(player.cached_x_username, 16).replace(/^@+/, '');
+      }
+      // Claim any prior anonymous runs under this X / bobina name
+      await claimScoresForPlayer(pool, {
+        bcId,
+        bobinaUsername,
+        avatar,
+        xId,
+        xUsername: handle || player.cached_x_username,
+        claimHandle: handle || bobinaUsername,
+      });
+    } else {
+      // Anonymous: must save X handle for credit (empty handle → Anon, no dedup identity)
+      name = handle ? '@' + handle : 'Anon';
+      bobinaUsername = null;
+      bcId = null;
+    }
+
+    // Dedup identity
     if (bcId) {
       const rows = await dbQuery(
         'SELECT MAX(score) AS best FROM bobina_scores WHERE bc_id = $1',
@@ -169,23 +241,34 @@ app.post('/api/scores', async (req, res) => {
         return res.json({ ok: true, updated: false, scores: await topScores(100) });
       }
       await dbExec('DELETE FROM bobina_scores WHERE bc_id = $1', [bcId]);
+      // Also drop unlinked rows with same X handle so they don't double-list
+      if (handle) {
+        await dbExec(
+          `DELETE FROM bobina_scores WHERE bc_id IS NULL AND LOWER(handle) = LOWER($1)`,
+          [handle]
+        );
+      }
     } else if (handle) {
       const rows = await dbQuery(
-        'SELECT MAX(score) AS best FROM bobina_scores WHERE handle = $1',
+        `SELECT MAX(score) AS best FROM bobina_scores
+         WHERE bc_id IS NULL AND LOWER(handle) = LOWER($1)`,
         [handle]
       );
       const best = rows[0] && rows[0].best != null ? Number(rows[0].best) : -1;
       if (score <= best) {
         return res.json({ ok: true, updated: false, scores: await topScores(100) });
       }
-      await dbExec('DELETE FROM bobina_scores WHERE handle = $1', [handle]);
+      await dbExec(
+        `DELETE FROM bobina_scores WHERE bc_id IS NULL AND LOWER(handle) = LOWER($1)`,
+        [handle]
+      );
     }
 
     await dbExec(
       `INSERT INTO bobina_scores
          (name, handle, score, kills, rank, mode, won, outfit, bc_id, bobina_username, x_id, avatar)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
-      [name, handle, score, kills, rank, mode, won, outfit, bcId, bobinaUsername, xId, avatar]
+      [name, handle || '', score, kills, rank, mode, won, outfit, bcId, bobinaUsername, xId, avatar]
     );
 
     if (bcId) {
@@ -194,32 +277,30 @@ app.post('/api/scores', async (req, res) => {
            high_score = GREATEST(high_score, $2),
            kills = GREATEST(kills, $3),
            games_played = games_played + 1,
+           cached_username = COALESCE($4, cached_username),
+           cached_avatar = COALESCE($5, cached_avatar),
            updated_at = NOW()
          WHERE bc_id = $1`,
-        [bcId, score, kills]
+        [bcId, score, kills, bobinaUsername, avatar]
       );
     }
 
-    res.json({ ok: true, updated: true, scores: await topScores(100) });
+    res.json({ ok: true, updated: true, linked: !!bcId, scores: await topScores(100) });
   } catch (e) {
     console.error('POST /api/scores', e.message);
     res.status(500).json({ ok: false, error: e.message });
   }
 });
 
-// Resolve a leaderboard bc_id → fresh bobina.moe profile (proxy to avoid CORS)
+// Resolve a leaderboard bc_id → fresh bobina.moe profile (proxy / helper)
 app.get('/api/bobina/mini/:bcId', async (req, res) => {
   try {
     const bcId = clean(req.params.bcId, 80);
     if (!bcId.startsWith('bc_') && !/^[a-zA-Z0-9_.-]+$/.test(bcId)) {
       return res.status(400).json({ error: 'invalid id' });
     }
-    const r = await fetch(`https://bobina.moe/api/user/${encodeURIComponent(bcId)}/mini`, {
-      headers: { Accept: 'application/json' },
-    });
-    if (r.status === 404) return res.status(404).json({ error: 'not found' });
-    if (!r.ok) return res.status(502).json({ error: 'upstream' });
-    const data = await r.json();
+    const data = await fetchMini(bcId);
+    if (!data) return res.status(404).json({ error: 'not found' });
     res.set('Cache-Control', 'public, max-age=120');
     res.json(data);
   } catch (e) {

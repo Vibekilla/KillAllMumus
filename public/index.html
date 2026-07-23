@@ -4312,21 +4312,31 @@ let endHandled=false, endWon=false, lastSubmit=null, lbCache=[], lbState='idle',
 let lbPage=0, lbPrevBtn=null, lbNextBtn=null; const LB_PER_PAGE=10;
 function lbPageCount(){ return Math.max(1, Math.ceil(lbCache.length/LB_PER_PAGE)); }
 function lbSetPage(n){ const pc=lbPageCount(); lbPage=Math.max(0,Math.min(pc-1,n)); }
+let bobinaMe=null; // {authenticated, bcId, username, ...} from /api/me
+window.__setBobinaMe=function(me){ bobinaMe=(me&&me.authenticated)?me:null; };
 function fetchLB(){ lbPage=0; lbState='loading'; fetch('api/scores',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{ lbCache=Array.isArray(d)?d:[]; lbState='ok'; }).catch(()=>{ lbState='error'; }); }
 function submitScore(handle){
   handle=(handle||'').trim().replace(/[<>@\s]/g,'').slice(0,15);
-  try{ localStorage.setItem('bobina_handle',handle); }catch(e){}
-  const name = handle ? '@'+handle : 'Anon';
-  lastSubmit={ handle, score:sessionScore, kills:totalKills };
-  const payload={ name, handle, score:sessionScore, kills:totalKills, rank:rankLetter(), mode:modeTag(), won:endWon?1:0, outfit:selectedOutfit };
+  try{ if(handle) localStorage.setItem('bobina_handle',handle); }catch(e){}
+  const linked = !!(bobinaMe && bobinaMe.authenticated);
+  lastSubmit={ handle: linked ? (bobinaMe.xUsername||handle||'') : handle, score:sessionScore, kills:totalKills, bcId: linked ? bobinaMe.bcId : null, bobinaUsername: linked ? bobinaMe.username : null };
+  const payload={ handle, score:sessionScore, kills:totalKills, rank:rankLetter(), mode:modeTag(), won:endWon?1:0, outfit:selectedOutfit };
   lbState='loading';
   fetch('api/scores',{ method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
     .then(r=>r.json()).then(d=>{ lbCache=(d&&d.scores)||[]; lbState='ok'; })
     .catch(()=>{ lbState='error'; });
 }
 const NE=document.getElementById('nameEntry'), NEinput=document.getElementById('ne-input');
-function showNameEntry(){ nameEntryOpen=true; NE.classList.add('on');
-  document.getElementById('ne-score').innerHTML = (endWon?'BOBO SAVED! ':'')+'Score '+fmtScore(sessionScore)+' · '+totalKills+' Mumus · Rank '+rankLetter()+((difficulty>0||ngPlus>0)?(' · '+modeTag()):'');
+function showNameEntry(){
+  // Linked Bobina players skip the X prompt — progress saves under bc_id
+  if(bobinaMe && bobinaMe.authenticated){
+    submitScore(bobinaMe.xUsername || localStorage.getItem('bobina_handle') || '');
+    justSavedScore=true;
+    state = endWon ? 'win' : 'gameover';
+    return;
+  }
+  nameEntryOpen=true; NE.classList.add('on');
+  document.getElementById('ne-score').innerHTML = (endWon?'BOBO SAVED! ':'')+'Score '+fmtScore(sessionScore)+' · '+totalKills+' Mumus · Rank '+rankLetter()+((difficulty>0||ngPlus>0)?(' · '+modeTag()):'')+'<br><span style="font-size:12px;color:#c8b0d0">Save your <b>X handle</b> for credit — or <a href="/auth/bobina" style="color:#ff9ecb">Sign in with Bobina</a> to sync forever</span>';
   try{ NEinput.value=localStorage.getItem('bobina_handle')||''; }catch(e){ NEinput.value=''; }
   setTimeout(()=>{ try{ NEinput.focus(); NEinput.select(); }catch(e){} },30);
 }
@@ -4618,7 +4628,7 @@ function drawWin(){
 }
 function drawPause(){ ctx.fillStyle='rgba(6,4,10,0.6)'; ctx.fillRect(0,0,W,H); ctx.textAlign='center'; ctx.fillStyle='#fff'; ctx.font='900 40px "Trebuchet MS"'; ctx.fillText('PAUSED', W/2, H/2); ctx.font='14px monospace'; ctx.fillStyle='#c0a8bc'; ctx.fillText('press P to resume', W/2, H/2+30); ctx.textAlign='left'; }
 
-function lbIsMine(e){ return lastSubmit && (e.handle||'')===(lastSubmit.handle||'') && e.score===lastSubmit.score && e.kills===lastSubmit.kills; }
+function lbIsMine(e){ if(!lastSubmit) return false; if(lastSubmit.bcId && e.bcId && lastSubmit.bcId===e.bcId) return true; return (e.handle||'')===(lastSubmit.handle||'') && e.score===lastSubmit.score && e.kills===lastSubmit.kills; }
 function drawLeaderboard(){
   const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#1a0e26'); g.addColorStop(1,'#2a1020'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   ctx.textAlign='center';
@@ -4628,7 +4638,7 @@ function drawLeaderboard(){
   const list=lbCache, x0=P?14:W/2-292; let y=P?90:116; lbRows=[];
   const oFit=P?20:26, oHandle=P?50:58, oIcon=P?28:34, oScore=P?300:330, oMumus=P?388:430, oRank=P?446:500, oMode=P?512:584, rowH=P?23:25, rf=P?12:14;
   ctx.textAlign='left'; ctx.fillStyle='#8fd0ff'; ctx.font='bold '+(P?10:12)+'px monospace';
-  ctx.fillText('#', x0, y); ctx.fillText('FIT', x0+oFit, y); ctx.fillText(P?'X HANDLE':'X HANDLE (tap to open)', x0+oHandle, y);
+  ctx.fillText('#', x0, y); ctx.fillText('FIT', x0+oFit, y); ctx.fillText(P?'PLAYER':'PLAYER (tap profile)', x0+oHandle, y);
   ctx.textAlign='right'; ctx.fillText('SCORE', x0+oScore, y); ctx.fillText('MUMUS', x0+oMumus, y); ctx.fillText('RANK', x0+oRank, y); ctx.fillText('MODE', x0+oMode, y);
   ctx.textAlign='left'; ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.beginPath(); ctx.moveTo(x0,y+7); ctx.lineTo(x0+oMode,y+7); ctx.stroke(); y+=26;
   if(lbState==='loading' && !list.length){ ctx.textAlign='center'; ctx.fillStyle='#9a7c96'; ctx.font='16px "Trebuchet MS"'; ctx.fillText('Loading global scores'+'.'.repeat(1+Math.floor(tick/20)%3), W/2, y+50); }
@@ -4644,8 +4654,10 @@ function drawLeaderboard(){
       const _fit=OUTFITS.some(o=>o.key===e.outfit)?e.outfit:'og';   // data-driven: any outfit in OUTFITS renders (incl. new ones); unknown → og
       ctx.save(); ctx.translate(x0+oIcon, y-3.5); ctx.scale(P?0.42:0.46,P?0.42:0.46); try{ drawBobina({x:0,y:0,iframe:0,focus:false,walk:0,bombFx:0,face:-Math.PI/2,vx:0,vy:0,outfit:_fit}); }catch(_e){} ctx.restore();   // actual Bobina in the outfit she wore this run
       ctx.textAlign='left'; ctx.font=(hot?'bold ':'')+rf+'px monospace';   // drawBobina left ctx state dirty — reset for the row text
-      const disp=(e.handle?('@'+e.handle):(e.name||'Anon')).slice(0,P?13:16);
-      if(e.handle){ ctx.fillStyle='#7ec8ff'; ctx.fillText(disp, x0+oHandle, y); const tw=ctx.measureText(disp).width; ctx.strokeStyle='rgba(126,200,255,0.5)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x0+oHandle,y+2); ctx.lineTo(x0+oHandle+tw,y+2); ctx.stroke(); lbRows.push({x:x0+oHandle-6,y:y-13,w:tw+12,h:19,handle:e.handle}); }
+      const linked=!!e.bcId || !!e.linked;
+      const disp=(linked ? (e.name || (e.bobinaUsername?('@'+e.bobinaUsername):'Bobina')) : (e.handle?('@'+e.handle):(e.name||'Anon'))).slice(0,P?13:16);
+      const purl=e.profileUrl || (e.bobinaUsername?('https://bobina.moe/'+e.bobinaUsername):null) || (e.handle?('https://x.com/'+e.handle):null);
+      if(purl){ ctx.fillStyle=linked?'#ff9ecb':'#7ec8ff'; ctx.fillText(disp, x0+oHandle, y); const tw=ctx.measureText(disp).width; ctx.strokeStyle=linked?'rgba(255,158,203,0.55)':'rgba(126,200,255,0.5)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x0+oHandle,y+2); ctx.lineTo(x0+oHandle+tw,y+2); ctx.stroke(); lbRows.push({x:x0+oHandle-6,y:y-13,w:tw+12,h:19,handle:e.handle,profileUrl:purl,bobinaUsername:e.bobinaUsername}); }
       else ctx.fillText(disp, x0+oHandle, y);
       ctx.textAlign='right'; ctx.fillStyle=hot?'#fff':'#c8b0c4'; ctx.fillText(fmtScore(e.score), x0+oScore, y); ctx.fillText(fmtScore(e.kills), x0+oMumus, y); ctx.fillText(e.rank||'-', x0+oRank, y);
       const _md=e.mode||'NORMAL'; ctx.fillStyle=_md.indexOf('HELL')===0?'#ff2a2a':(_md.indexOf('HARD')===0?'#ff5b6e':(hot?'#fff':'#8fd0a0')); ctx.font=(hot?'bold ':'')+(P?11:13)+'px monospace'; ctx.fillText(_md, x0+oMode, y); ctx.font=(hot?'bold ':'')+rf+'px monospace';
@@ -5007,24 +5019,33 @@ addEventListener('keydown', e=>{ if((e.key==='f'||e.key==='F') && !nameEntryOpen
 (function(){
   const el = document.getElementById('bobinaAuth');
   if(!el) return;
+  function loginHref(){
+    let h='';
+    try{ h=(localStorage.getItem('bobina_handle')||'').replace(/[^A-Za-z0-9_]/g,''); }catch(e){}
+    return h ? ('/auth/bobina?claim_handle='+encodeURIComponent(h)) : '/auth/bobina';
+  }
   function paint(me){
+    window.bobinaMe = me && me.authenticated ? me : null;
+    if(typeof bobinaMe!=='undefined'){ try{ bobinaMe = window.bobinaMe; }catch(e){} }
+    // sync outer let bobinaMe if present
+    try{ if(typeof bobinaMe==='object' || typeof bobinaMe==='undefined' || bobinaMe===null){ /* assigned below via global */ } }catch(e){}
+    if(window.__setBobinaMe) window.__setBobinaMe(me);
     if(!me || !me.authenticated){
-      const ready = me && me.bobinaConfigured;
-      el.innerHTML = ready
-        ? '<a href="/auth/bobina">Sign in with Bobina</a>'
-        : '<a href="/auth/bobina" title="OAuth app credentials needed on server">Sign in with Bobina</a>';
+      el.innerHTML = '<a href="'+loginHref()+'">Sign in with Bobina</a>';
       return;
     }
     const name = me.username ? '@'+me.username : 'Bobina player';
-    const img = me.avatar ? '<img src="'+me.avatar.replace(/"/g,'')+'" alt="">' : '🐻';
+    const img = me.avatar ? '<img src="'+String(me.avatar).replace(/"/g,'')+'" alt="">' : '🐻';
     const link = me.profileUrl || 'https://bobina.moe';
     el.innerHTML = '<span class="who">'+img+' <a href="'+link+'" target="_blank" rel="noopener" style="background:none;box-shadow:none;padding:0;color:#ffd0e4">'+name+'</a></span>'
       + '<button type="button" class="ghost" id="bobinaLogout">Sign out</button>';
     const b = document.getElementById('bobinaLogout');
     if(b) b.onclick = function(){
-      fetch('/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){ location.reload(); });
+      fetch('/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){ location.href='/'; });
     };
   }
+  // Bridge into game scope (bobinaMe let in main script)
+  window.__setBobinaMe = function(me){ try{ bobinaMe = (me && me.authenticated) ? me : null; }catch(e){ window.bobinaMe = me; } };
   fetch('/api/me',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
     .then(paint)
