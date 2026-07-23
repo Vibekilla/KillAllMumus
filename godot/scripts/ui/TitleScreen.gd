@@ -38,24 +38,23 @@ func _ready() -> void:
 	for c in get_children():
 		if c.name in ["VBox", "Backdrop"]:
 			c.visible = false
+	# HTML #bobinaAuth — centered above social strip (bottom ~52px on desktop)
 	_auth_label = Label.new()
 	_auth_label.name = "CanvasAuthLabel"
 	_auth_label.add_theme_font_size_override("font_size", 11)
 	_auth_label.add_theme_color_override("font_color", Color(1, 0.82, 0.9))
-	_auth_label.position = Vector2(12, Config.H - 48)
-	_auth_label.size = Vector2(420, 18)
+	_auth_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_auth_label.clip_text = true
 	_auth_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_auth_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	add_child(_auth_label)
 	_login_btn = Button.new()
 	_login_btn.name = "CanvasLoginBtn"
-	_login_btn.position = Vector2(12, Config.H - 28)
-	_login_btn.size = Vector2(220, 22)
 	_login_btn.clip_text = true
 	_login_btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_login_btn.pressed.connect(_on_login_pressed)
 	add_child(_login_btn)
+	_layout_auth_chrome()
 
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
 	ctx.bind(self)
@@ -109,10 +108,32 @@ func _on_state(s: StringName) -> void:
 
 func _sync_visible(st: GameState.State) -> void:
 	visible = st in MENU_STATES
+	# Auth is drawn on canvas (HTML #bobinaAuth) — hide Control stubs
 	if _login_btn:
-		_login_btn.visible = (st == GameState.State.TITLE)
+		_login_btn.visible = false
 	if _auth_label:
-		_auth_label.visible = (st == GameState.State.TITLE)
+		_auth_label.visible = false
+
+func _is_touch_ui() -> bool:
+	## HTML body.touch class — force desktop layout under dual/playtest
+	if OS.get_environment("PLAYTEST_FAST") != "" or OS.get_environment("PLAYTEST_FULL") != "":
+		return false
+	if OS.has_feature("headless"):
+		return false
+	return DisplayServer.is_touchscreen_available()
+
+func _layout_auth_chrome() -> void:
+	## Match HTML #bobinaAuth: centered, above #social strip (~28px chips)
+	if _login_btn == null or _auth_label == null:
+		return
+	var touch := _is_touch_ui()
+	var btn_w := 220.0
+	var btn_h := 26.0
+	var bottom := 10.0 if touch else 54.0  # desktop leaves room for social bar
+	_login_btn.size = Vector2(btn_w, btn_h)
+	_login_btn.position = Vector2((Config.W - btn_w) * 0.5, Config.H - bottom - btn_h)
+	_auth_label.size = Vector2(420, 16)
+	_auth_label.position = Vector2((Config.W - 420.0) * 0.5, _login_btn.position.y - 18.0)
 
 func _refresh_auth() -> void:
 	if _auth_label == null:
@@ -123,6 +144,7 @@ func _refresh_auth() -> void:
 	else:
 		_auth_label.text = "Play as guest — or link Bobina for cloud saves"
 		_login_btn.text = "Sign in with Bobina"
+	_layout_auth_chrome()
 
 func _process(delta: float) -> void:
 	if not visible:
@@ -163,7 +185,7 @@ func _draw() -> void:
 				"outfit": GameState.selected_outfit,
 				"tick": t,
 				"title_idle_t": title_idle_t,
-				"is_touch": DisplayServer.is_touchscreen_available(),
+				"is_touch": _is_touch_ui(),
 				"difficulty": GameState.difficulty,
 				"ng_plus": GameState.ng_plus,
 				"ng_unlocked": ProgressStore.ng_unlocked,
@@ -269,6 +291,15 @@ func _handle_title_click(p: Vector2) -> void:
 	if title_idle_t > 1800.0:
 		_start()
 		return
+	# HTML #social chip clicks
+	if title_drawer and "social_hits" in title_drawer:
+		for s in title_drawer.social_hits:
+			if MenuHelpers.in_btn(p, s):
+				var url := str(s.get("url", ""))
+				if url != "":
+					OS.shell_open(url)
+					_sfx("item")
+				return
 	for b in model.title_btns:
 		if not MenuHelpers.in_btn(p, b):
 			continue
@@ -319,6 +350,8 @@ func _handle_title_click(p: Vector2) -> void:
 				_sfx("item")
 			"start":
 				_start()
+			"login":
+				_on_login_pressed()
 		return
 	_start()
 
@@ -484,15 +517,18 @@ func _start() -> void:
 
 
 const SHOUTOUTS := [
-	{"url":"https://bobina.moe","label":"🌐 bobina.moe","sub":"Official site"},
-	{"url":"https://x.com/itsvibekilla","label":"𝕏 Vibekilla","sub":"@itsvibekilla"},
-	{"url":"https://x.com/bobina_council","label":"𝕏 Bobina Council","sub":"@bobina_council"},
-	{"url":"https://x.com/bobocouncil","label":"𝕏 Bobo Council","sub":"@bobocouncil"},
-	{"url":"https://x.com/emblemvault","label":"𝕏 Emblem Vault","sub":"@emblemvault"},
-	{"url":"https://x.com/JungleBayAC","label":"𝕏 Jungle Bay","sub":"@JungleBayAC"},
-	{"url":"https://x.com/monke_meme_eth","label":"𝕏 Monke","sub":"@monke_meme_eth"},
-	{"url":"https://x.com/SKOL_ERC20","label":"𝕏 SKOL","sub":"@SKOL_ERC20"},
-	{"url":"https://x.com/HBDCERC20","label":"𝕏 Honey Badger","sub":"@HBDCERC20"},
+	{"url": "https://bobina.moe", "label": "🌐 bobina.moe", "sub": "Official site"},
+	{"url": "https://x.com/itsvibekilla", "label": "𝕏 Vibekilla", "sub": "@itsvibekilla"},
+	{"url": "https://x.com/bobina_council", "label": "𝕏 Bobina Council", "sub": "@bobina_council"},
+	{"url": "https://x.com/bobocouncil", "label": "𝕏 Bobo Council", "sub": "@bobocouncil"},
+	{"url": "https://x.com/emblemvault", "label": "𝕏 Emblem Vault", "sub": "@emblemvault"},
+	{"url": "https://x.com/JungleBayAC", "label": "𝕏 Jungle Bay", "sub": "@JungleBayAC"},
+	{"url": "https://x.com/monke_meme_eth", "label": "𝕏 Monke", "sub": "@monke_meme_eth"},
+	{"url": "https://x.com/SKOL_ERC20", "label": "𝕏 SKOL", "sub": "@SKOL_ERC20"},
+	{"url": "https://x.com/HBDCERC20", "label": "𝕏 Honey Badger", "sub": "@HBDCERC20"},
+	{"url": "https://x.com/krakenfx", "label": "𝕏 Kraken", "sub": "@krakenfx"},
+	{"url": "https://x.com/ourbit", "label": "𝕏 Ourbit", "sub": "@ourbit"},
+	{"url": "https://picklecharts.com", "label": "🥒 PickleCharts", "sub": "picklecharts.com"},
 ]
 
 var _shout_hits: Array = []

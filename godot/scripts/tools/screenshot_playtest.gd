@@ -103,10 +103,21 @@ func _run() -> void:
 	var play_frames := 90 if fast else 200
 	var fire_frames := 40 if fast else 100
 
-	# Title
+	# Title — dismiss soundgate like HTML dual clicks #sg-mute
 	GameState.set_state(GameState.State.TITLE)
+	var sg = _main.get_node_or_null("UI/SoundGate")
+	if sg and sg.has_method("force_dismiss"):
+		sg.force_dismiss(false)
+	elif sg:
+		sg.visible = false
 	_force_ui_size(_main)
 	for _i in range(8 if fast else 12):
+		await process_frame
+	# Ensure title host redraws after gate
+	var title = _main.get_node_or_null("UI/TitleScreen")
+	if title and title.has_method("queue_redraw"):
+		title.queue_redraw()
+	for _i in range(4):
 		await process_frame
 	await _save("godot_title")
 

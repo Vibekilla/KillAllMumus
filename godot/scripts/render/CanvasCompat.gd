@@ -783,6 +783,17 @@ func clip() -> void:
 	else:
 		_clip = _intersect_clip(_clip, next)
 
+func clip_circle(cx: float, cy: float, r: float) -> void:
+	## Explicit circular clip (HTML peephole / portrait bust) in current local space.
+	var c_world := _xform * Vector2(cx, cy)
+	var edge := _xform * (Vector2(cx, cy) + Vector2(r, 0))
+	var next := {"kind": "circle", "c": c_world, "r": c_world.distance_to(edge)}
+	_last_full_arc = next.duplicate()
+	if _clip.is_empty():
+		_clip = next
+	else:
+		_clip = _intersect_clip(_clip, next)
+
 func _path_to_clip(src: PackedVector2Array) -> Dictionary:
 	var pts := _dedupe_path(src)
 	if pts.size() < 3 and _last_full_arc.is_empty():
