@@ -67,10 +67,18 @@ Backups directory (parent of the www worktree):
 ## Git / deploy model
 
 - **`main` is always live** — production deploy runs from `main`.
-- **`dev` is a codebase backup mirror** of the last successfully verified live tree (updated by CI after deploy).
-- Push feature work to **`dev`** → CI verifies → auto-merges into **`main`** → deploy serves `main`.
+- **`dev` is day-to-day work** — commit and push freely; promote when ready.
+- **No required PRs / feature branches.** Optional personal branches are fine.
+- Paths: live `/var/www/killallmumus.com` (`main`), work `/var/www/dev` (`dev`).
 
-Workflow: `.github/workflows/deploy.yml`
+```bash
+cd /var/www/dev
+git pull && # edit…
+git commit -am "feat: …" && git push origin dev
+./scripts/promote-to-live.sh   # merge dev → main when ready for live
+```
+
+Workflow: `.github/workflows/deploy.yml` · details: `CONTRIBUTING.md`
 
 ## nginx (sudo once)
 

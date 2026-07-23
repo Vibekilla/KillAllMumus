@@ -47,7 +47,7 @@ static func fmt_score(n) -> String:
 static func kb(action: String) -> String:
 	var map := {
 		"shoot": "shoot", "swap": "swap_weapon", "special": "special",
-		"cycle": "cycle_special", "melee": "melee", "meleeswap": "melee",
+		"cycle": "cycle_special", "melee": "melee", "meleeswap": "meleeswap",
 		"item_switch": "item_switch", "item_use": "item_use", "interact": "interact", "bomb": "bomb",
 	}
 	var act := str(map.get(action, action))
@@ -55,7 +55,7 @@ static func kb(action: String) -> String:
 		# HTML DEFAULT_BINDS
 		var defaults := {
 			"shoot": "Z", "swap_weapon": "C", "special": "V", "cycle_special": "B",
-			"melee": "SPACE", "bomb": "X", "item_switch": "A", "item_use": "Q", "interact": "E",
+			"melee": "SPACE", "meleeswap": "D", "bomb": "X", "item_switch": "A", "item_use": "Q", "interact": "E",
 		}
 		return str(defaults.get(act, act.to_upper()))
 	for e in InputMap.action_get_events(act):

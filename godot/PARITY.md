@@ -89,4 +89,16 @@ KEEP_GODOT_WASM=1 godot --path godot --headless --export-release Web ../public_g
 
 - Ship approximate Godot as default while visuals/systems diverge  
 - Remove `USE_GODOT` / `/godot/` dual path before full conversion  
-- Commit work on `dev`/`main` — only `feature/*` then `./scripts/ship-feature.sh`  
+- Force-reset `dev` from `main` after deploy (wipes integration WIP)  
+
+## Git (simple)
+
+Work on **`dev`** (`/var/www/dev`), promote to **`main`** for live:
+
+```bash
+cd /var/www/dev
+git commit -am "feat: …" && git push origin dev
+./scripts/promote-to-live.sh   # when ready for production
+```
+
+See `CONTRIBUTING.md`.
