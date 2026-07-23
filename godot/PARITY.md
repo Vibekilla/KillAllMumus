@@ -79,14 +79,13 @@ Report: `tools/port/playtest_out/index.html` (re-run `npm run port:dual -- --ful
 | Play | close | Full Bobina / mumus / bullets / HUD (dual invuln only for capture) |
 | Intro / shop / stage clear | close | Stage clear: clear art + leek + EDIT ARSENAL + MAIN MENU + NEXT STAGE |
 | Win / game over | close | Maid/win art; dual forces name-entry closed for canvas compare |
-| Settings / pause / NG+ | dual frames present | Layout polish residual (Control vs HTML CSS card) |
-| FPS web | pending | re-check after export |
+| Settings / pause / NG+ | close | OverlayTheme pink/violet cards; settings hints + sections |
+| FPS web | pending | re-check after export / `/godot/` smoke |
 
 **Still open (not cutover blockers if dual review accepts):**
 
-- Settings / pause Control chrome not 1:1 pink HTML card styling
-- Outfits tile emoji / unlock state depends on ProgressStore (not dual-forced)
-- Ellipse fill gradients improved (Bobina iris); keep re-checking outfit preview
+- Outfit Bobina face at ×4.7 preview still not pixel-identical to HTML (iris layers improved)
+- Dual menu shots force empty emblems for fair wardrobe count; live progress is unchanged
 
 ```bash
 npm run port:inventory

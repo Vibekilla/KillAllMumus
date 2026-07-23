@@ -501,12 +501,34 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 	if rxf < 0.05 or ryf < 0.05:
 		return
 	var g: CanvasGradient = _fill_grad
-	var bands := 14
-	var cs := cos(rotf)
-	var sn := sin(rotf)
-	# Prefer vertical slice when gradient is mostly vertical (eye iris dark→gold)
 	var axis := Vector2(g.x1 - g.x0, g.y1 - g.y0)
 	var vertical := absf(axis.x) < absf(axis.y) * 0.5 or absf(axis.x) < 0.001
+	# Tiny irises (Bobina smile eyes at any preview scale): layered solid discs along the
+	# gradient axis. Banded quads under large CTM scale read as dark “glasses” rims;
+	# layered circles match the HTML amber look more reliably.
+	if rxf <= 4.0 and ryf <= 4.0 and vertical:
+		var n_layers := 10
+		var dir_axis := axis.normalized() if axis.length_squared() > 0.0001 else Vector2(0, 1)
+		for i in range(n_layers):
+			var t := float(i) / float(n_layers - 1)
+			# shrink slightly toward gradient end so gold bottom dominates (HTML smile iris)
+			var shrink := 1.0 - t * 0.22
+			var shift := dir_axis * (t * ryf * 0.55)
+			var col := _c(g.sample(t))
+			var ec: Vector2 = _xform * (c_local + shift)
+			var ex: Vector2 = _xform * (c_local + shift + Vector2(rxf * shrink, 0).rotated(rotf))
+			var ey: Vector2 = _xform * (c_local + shift + Vector2(0, ryf * shrink).rotated(rotf))
+			var wrx := ec.distance_to(ex)
+			var wry := ec.distance_to(ey)
+			if wrx < 0.2 or wry < 0.2:
+				continue
+			node.draw_set_transform(ec, rotf + _xform.get_rotation(), Vector2(wrx, wry))
+			node.draw_circle(Vector2.ZERO, 1.0, col)
+			node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
+	var bands := 16
+	var cs := cos(rotf)
+	var sn := sin(rotf)
 	if vertical:
 		for i in range(bands):
 			var t0 := float(i) / float(bands)
@@ -517,7 +539,6 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 			var hw := sqrt(maxf(0.0, 1.0 - ym * ym))
 			if hw < 0.02:
 				continue
-			# local band centre for gradient sample
 			var lx_mid := 0.0
 			var ly_mid := ym * ryf
 			var local := c_local + Vector2(lx_mid * cs - ly_mid * sn, lx_mid * sn + ly_mid * cs)
@@ -532,7 +553,6 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 				var rx: float = lx * cs - ly * sn
 				var ry: float = lx * sn + ly * cs
 				wpts.append(_xform * (c_local + Vector2(rx, ry)))
-			# Fan triangles only — draw_colored_polygon(n>3) fails under non-uniform xform
 			if wpts.size() >= 3:
 				node.draw_colored_polygon(PackedVector2Array([wpts[0], wpts[1], wpts[2]]), col)
 				if wpts.size() >= 4:

@@ -85,11 +85,46 @@ func _apply_html_chrome() -> void:
 	OverlayTheme.style_button(speedrun_btn, "ghost")
 	if speedrun_btn:
 		speedrun_btn.text = "Skip villain monologues"
+	# HTML .set-hint copy under rows
+	if vbox and vbox.get_node_or_null("HintMusic") == null:
+		_insert_hint(vbox, music_slider, "HintMusic", "Bobina's lofi radio stream.")
+		_insert_hint(vbox, sfx_slider, "HintSfx", "Shots, hits, pickups and jingles.")
+		if speedrun_btn:
+			_insert_hint(vbox, speedrun_btn, "HintSpeedrun", "“Bobina hates monologues too.” Cuts straight to the fights.")
+		var reset_n := vbox.get_node_or_null("ResetInvBtn")
+		if reset_n:
+			_insert_hint(vbox, reset_n, "HintReset", "Clears bought gear & skulls. Keeps emblems, outfits & NG+.")
+	# HTML section labels: Display / Controls / Data (not single “MORE”)
+	var sec_more := vbox.get_node_or_null("SecMore") as Label if vbox else null
+	if sec_more:
+		sec_more.text = "DISPLAY"
 	var display := (vbox.get_node_or_null("DisplayBtn") if vbox else null) as Button
 	var keybinds := (vbox.get_node_or_null("KeybindsBtn") if vbox else null) as Button
 	var help := (vbox.get_node_or_null("HelpBtn") if vbox else null) as Button
 	var reset_btn := (vbox.get_node_or_null("ResetInvBtn") if vbox else null) as Button
 	var close := (vbox.get_node_or_null("CloseBtn") if vbox else null) as Button
+	if vbox and vbox.get_node_or_null("SecControls") == null and keybinds:
+		var sc := Label.new()
+		sc.name = "SecControls"
+		sc.text = "CONTROLS"
+		OverlayTheme.style_sec(sc)
+		vbox.add_child(sc)
+		vbox.move_child(sc, keybinds.get_index())
+		var sd := Label.new()
+		sd.name = "SecData"
+		sd.text = "DATA"
+		OverlayTheme.style_sec(sd)
+		vbox.add_child(sd)
+		if reset_btn:
+			vbox.move_child(sd, reset_btn.get_index())
+	# Speedrun row label like HTML “🏁 Speedrun Mode … OFF”
+	if vbox and vbox.get_node_or_null("SpeedrunLabel") == null and speedrun_btn:
+		var sl := Label.new()
+		sl.name = "SpeedrunLabel"
+		sl.text = "🏁 Speedrun Mode"
+		OverlayTheme.style_label(sl)
+		vbox.add_child(sl)
+		vbox.move_child(sl, speedrun_btn.get_index())
 	OverlayTheme.style_button(display, "ghost")
 	OverlayTheme.style_button(keybinds, "ghost")
 	OverlayTheme.style_button(help, "help")
@@ -99,8 +134,21 @@ func _apply_html_chrome() -> void:
 	if ver:
 		ver.add_theme_color_override("font_color", Color(0.416, 0.353, 0.447))
 		ver.add_theme_font_size_override("font_size", 10)
+		ver.text = "🐻 Bobina: KILL ALL MUMUS!!  ·  v1.9.0  ·  A Bobina Council production"
 	if reset_confirm is PanelContainer:
 		(reset_confirm as PanelContainer).add_theme_stylebox_override("panel", OverlayTheme.card_style(OverlayTheme.PINK, 16))
+
+func _insert_hint(vbox: VBoxContainer, after: Node, name: String, text: String) -> void:
+	if after == null or vbox == null:
+		return
+	var h := Label.new()
+	h.name = name
+	h.text = text
+	h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	h.add_theme_color_override("font_color", Color(0.55, 0.48, 0.60))
+	h.add_theme_font_size_override("font_size", 11)
+	vbox.add_child(h)
+	vbox.move_child(h, after.get_index() + 1)
 
 func _sync_ui() -> void:
 	## HTML syncSettingsUI
@@ -142,13 +190,23 @@ func _refresh_follow_labels() -> void:
 func _refresh_speedrun() -> void:
 	if speedrun_btn:
 		var on := GameState.speedrun
-		# HTML: label shows OFF/ON; button is "Skip villain monologues"
-		speedrun_btn.text = "Skip villain monologues  ·  %s" % ("ON" if on else "OFF")
+		# HTML: button is "Skip villain monologues"; status on the row label
+		speedrun_btn.text = "Skip villain monologues"
 		speedrun_btn.button_pressed = on
 		if on:
 			speedrun_btn.add_theme_color_override("font_color", Color(0.776, 0.949, 0.682))
 		else:
 			speedrun_btn.add_theme_color_override("font_color", OverlayTheme.MUTED_BTN)
+	var vbox := get_node_or_null("CenterHost/Panel/VBox")
+	if vbox == null:
+		var p := get_node_or_null("Panel")
+		if p:
+			vbox = p.get_node_or_null("VBox")
+	var sl := vbox.get_node_or_null("SpeedrunLabel") as Label if vbox else null
+	if sl:
+		var on2 := GameState.speedrun
+		sl.text = "🏁 Speedrun Mode                    %s" % ("ON" if on2 else "OFF")
+		sl.add_theme_color_override("font_color", Color(1.0, 0.82, 0.48) if on2 else OverlayTheme.LABEL)
 
 func _on_music(v: float) -> void:
 	if AudioBus:

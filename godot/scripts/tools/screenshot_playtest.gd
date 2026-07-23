@@ -121,6 +121,19 @@ func _run() -> void:
 		await process_frame
 	await _save("godot_title")
 
+	# Dual fairness: HTML guest has only free skins; strip emblem unlocks for menu shots
+	# (in-memory only — process exits; do not queue_save). emblems is Dictionary id→bool.
+	var _ps = _A("ProgressStore")
+	var _saved_emblems: Dictionary = {}
+	if _ps:
+		_saved_emblems = _ps.emblems.duplicate(true)
+		_ps.emblems = {"start": true}
+	GameState.selected_outfit = "og"
+	if title and "model" in title and title.model:
+		title.model.outfit_preview = "og"
+		title.model.victory_face = 0
+		title.model.outfit_pose = 0
+
 	# Meta menus (always — dual compares these to HTML)
 	for st_name in [
 		[GameState.State.OUTFITS, "godot_menu_outfits"],
@@ -148,6 +161,10 @@ func _run() -> void:
 				for _i in range(3):
 					await process_frame
 		await _save(str(st_name[1]))
+
+	# Restore emblems for rest of dual (play may earn more)
+	if _ps:
+		_ps.emblems = _saved_emblems
 
 	# Settings + NG select (title meta screens HTML dual also captures)
 	GameState.set_state(GameState.State.SETTINGS)
