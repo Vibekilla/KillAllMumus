@@ -17,7 +17,18 @@ func is_authenticated() -> bool:
 	return authenticated
 
 func _url(path: String) -> String:
-	return Config.api_base_url.rstrip("/") + path
+	var p := str(path)
+	if not p.begins_with("/"):
+		p = "/" + p
+	var base := str(Config.api_base_url).rstrip("/")
+	# Absolute URLs only — Godot web HTTPRequest rejects relative paths
+	if base == "":
+		if OS.has_feature("web") and ClassDB.class_exists("JavaScriptBridge"):
+			var origin = JavaScriptBridge.eval("window.location.origin", true)
+			base = str(origin) if origin != null else ""
+		if base == "" or base == "null":
+			base = "https://killallmumus.com"
+	return base + p
 
 func refresh_me() -> void:
 	var req := HTTPRequest.new()

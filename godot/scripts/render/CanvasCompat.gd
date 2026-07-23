@@ -3,6 +3,8 @@ class_name CanvasCompat
 ## Canvas2D-compatible drawing API for 1:1 ports of HTML draw* code.
 ## Attach to a CanvasItem via bind(node); call begin_frame() before drawing; node.queue_redraw().
 
+const _ColorUtil = preload("res://scripts/render/ColorUtil.gd")
+
 ## HTML CanvasGradient stand-in (linear / radial) with addColorStop.
 class CanvasGradient:
 	extends RefCounted
@@ -20,13 +22,41 @@ class CanvasGradient:
 
 	func add_color_stop(offset, color) -> void:
 		var t = clampf(float(offset), 0.0, 1.0)
-		var col: Color
-		if color is Color:
-			col = color
-		else:
-			col = CanvasCompat.static_parse_color(color)
+		# Nested classes cannot resolve outer class_name (CanvasCompat) at compile time
+		# in Godot 4.3 — that broke the whole draw stack and WASM with OOB crashes.
+		var col: Color = ColorUtil_parse(color)
 		stops.append({"t": t, "c": col})
 		stops.sort_custom(func(a, b): return float(a["t"]) < float(b["t"]))
+
+	## Local parse so nested class has zero outer/class_name deps
+	static func ColorUtil_parse(c) -> Color:
+		if c is Color:
+			return c
+		var s := str(c).strip_edges().replace("'", "").replace('"', '')
+		if s.begins_with("rgba(") or s.begins_with("rgb("):
+			var inner := s.trim_prefix("rgba(").trim_prefix("rgb(").trim_suffix(")")
+			var parts := inner.split(",")
+			if parts.size() >= 3:
+				var r0 := float(parts[0].strip_edges())
+				var g0 := float(parts[1].strip_edges())
+				var b0 := float(parts[2].strip_edges())
+				var a := float(parts[3].strip_edges()) if parts.size() > 3 else 1.0
+				if r0 > 1.0 or g0 > 1.0 or b0 > 1.0:
+					return Color(r0 / 255.0, g0 / 255.0, b0 / 255.0, a)
+				return Color(r0, g0, b0, a)
+		if s.begins_with("hsla(") or s.begins_with("hsl("):
+			var inner2 := s.trim_prefix("hsla(").trim_prefix("hsl(").trim_suffix(")")
+			var parts2 := inner2.split(",")
+			if parts2.size() >= 3:
+				var h := float(parts2[0].strip_edges())
+				var sat := float(parts2[1].strip_edges().replace("%", "")) / 100.0
+				var lit := float(parts2[2].strip_edges().replace("%", "")) / 100.0
+				var a2 := float(parts2[3].strip_edges()) if parts2.size() > 3 else 1.0
+				return Color.from_hsv(fposmod(h, 360.0) / 360.0, sat, lit, a2)
+		if s.begins_with("#"):
+			return Color.html(s)
+		return Color.WHITE
+
 
 	func sample(t: float) -> Color:
 		if stops.is_empty():
@@ -109,37 +139,10 @@ func _c(col: Color) -> Color:
 	return c
 
 static func static_parse_color(c) -> Color:
-	if c is Color:
-		return c
-	var s := str(c).strip_edges().replace("'", "").replace('"', '')
-	if s.begins_with("rgba(") or s.begins_with("rgb("):
-		var inner := s.trim_prefix("rgba(").trim_prefix("rgb(").trim_suffix(")")
-		var parts := inner.split(",")
-		if parts.size() >= 3:
-			var r := float(parts[0].strip_edges()) / 255.0
-			var g := float(parts[1].strip_edges()) / 255.0
-			var b := float(parts[2].strip_edges()) / 255.0
-			var a := float(parts[3].strip_edges()) if parts.size() > 3 else 1.0
-			if float(parts[0].strip_edges()) <= 1.0 and float(parts[1].strip_edges()) <= 1.0:
-				r = float(parts[0].strip_edges())
-				g = float(parts[1].strip_edges())
-				b = float(parts[2].strip_edges())
-			return Color(r, g, b, a)
-	if s.begins_with("hsla(") or s.begins_with("hsl("):
-		var inner2 := s.trim_prefix("hsla(").trim_prefix("hsl(").trim_suffix(")")
-		var parts2 := inner2.split(",")
-		if parts2.size() >= 3:
-			var h := float(parts2[0].strip_edges())
-			var sat := float(parts2[1].strip_edges().replace("%", "")) / 100.0
-			var lit := float(parts2[2].strip_edges().replace("%", "")) / 100.0
-			var a2 := float(parts2[3].strip_edges()) if parts2.size() > 3 else 1.0
-			return Color.from_hsv(fposmod(h, 360.0) / 360.0, sat, lit, a2)
-	if s.begins_with("#"):
-		return Color.html(s)
-	return Color.WHITE
+	return _ColorUtil.parse_css(c)
 
 func _parse_color(c) -> Color:
-	return static_parse_color(c)
+	return _ColorUtil.parse_css(c)
 
 func fill_style(c) -> void:
 	## Accept solid color OR CanvasGradient (HTML fillStyle = gradient)
@@ -202,8 +205,14 @@ func font(f) -> void:
 		_font_size = int(r.get_string(1))
 
 func _active_font() -> Font:
-	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/FontBank"):
-		return FontBank.font_for(_font_css)
+	## Resolve FontBank via node path — avoid bare autoload id at parse time
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree:
+		var fb = tree.root.get_node_or_null("/root/FontBank")
+		if fb != null and fb.has_method("font_for"):
+			return fb.font_for(_font_css)
+		if fb != null and fb.get("ui") != null:
+			return fb.ui as Font
 	return ThemeDB.fallback_font
 
 func text_align(a) -> void:
@@ -653,8 +662,10 @@ func stroke_rect(x, y, w, h) -> void:
 func fill_text(text, x, y) -> void:
 	if node == null:
 		return
-	var p := _xform * Vector2(x, y)
 	var f := _active_font()
+	if f == null:
+		return
+	var p := _xform * Vector2(x, y)
 	var sz := _font_size
 	var w := f.get_string_size(str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 	if _align == "center":
@@ -672,8 +683,10 @@ func fill_text(text, x, y) -> void:
 func stroke_text(text, x, y) -> void:
 	if node == null:
 		return
-	var p := _xform * Vector2(x, y)
 	var f := _active_font()
+	if f == null:
+		return
+	var p := _xform * Vector2(x, y)
 	var sz := _font_size
 	var w := f.get_string_size(str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 	if _align == "center":

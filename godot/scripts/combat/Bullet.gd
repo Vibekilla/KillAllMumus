@@ -42,10 +42,21 @@ var ported: RefCounted
 func _ensure_draw() -> void:
 	if ctx != null:
 		return
-	ctx = load("res://scripts/render/CanvasCompat.gd").new()
+	var sc = load("res://scripts/render/CanvasCompat.gd")
+	if sc == null:
+		push_error("[Bullet] CanvasCompat failed to load")
+		return
+	ctx = sc.new()
+	if ctx == null or not ctx.has_method("bind"):
+		ctx = null
+		push_error("[Bullet] CanvasCompat.new() failed")
+		return
 	ctx.bind(self)
-	ported = load("res://scripts/render/PortedDraw.gd").new()
-	ported.setup(ctx)
+	var pd = load("res://scripts/render/PortedDraw.gd")
+	if pd:
+		ported = pd.new()
+		if ported and ported.has_method("setup"):
+			ported.setup(ctx)
 
 func activate(pos: Vector2, vel: Vector2, dmg: float, col: Color, t: Team) -> void:
 	z_index = 12
@@ -262,8 +273,10 @@ func _draw() -> void:
 	if not active:
 		return
 	_ensure_draw()
+	if ctx == null:
+		return
 	ctx.begin_frame()
-	if SimClock and ported.has_method("set_tick"):
+	if SimClock and ported and ported.has_method("set_tick"):
 		ported.set_tick(SimClock.tick)
 	var col_hex := "#%02x%02x%02x" % [int(color.r * 255), int(color.g * 255), int(color.b * 255)]
 	# Player shots → drawPShot (weapon flavours); enemy → drawBullet
