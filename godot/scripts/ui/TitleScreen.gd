@@ -207,15 +207,15 @@ func _draw() -> void:
 			title_drawer.drawTitle()
 			model.title_btns = title_drawer.title_btns
 		GameState.State.OUTFITS:
-			menus.draw_outfits()
+			menus.drawOutfits()
 		GameState.State.EMBLEMS:
-			menus.draw_emblems()
+			menus.drawEmblems()
 		GameState.State.NG_SELECT:
-			menus.draw_ng_select()
+			menus.drawNgSelect()
 		GameState.State.ARSENAL:
-			menus.draw_arsenal()
+			menus.drawArsenal()
 		GameState.State.LEADERBOARD:
-			menus.draw_leaderboard()
+			menus.drawLeaderboard()
 	if P2Meta.shoutouts_open:
 		_draw_shoutouts()
 

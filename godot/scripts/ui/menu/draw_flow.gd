@@ -36,7 +36,7 @@ func _hex_a(h, a) -> String:
 	var n := s.hex_to_int()
 	return "rgba(%d,%d,%d,%s)" % [(n >> 16) & 255, (n >> 8) & 255, n & 255, str(a)]
 
-func draw_intro() -> void:
+func drawIntro() -> void:
 	## HTML drawIntro
 	ctx.fill_style("rgba(6,4,10,0.82)")
 	ctx.fill_rect(0, 0, W, H)
@@ -63,7 +63,7 @@ func draw_intro() -> void:
 	ctx.fill_text("PRESS " + MenuHelpers.kb("shoot") + " / TAP TO BEGIN", W / 2.0, H / 2.0 + 72.0)
 	ctx.text_align("left")
 
-func draw_stage_clear(info: Dictionary) -> void:
+func drawStageClear(info: Dictionary) -> void:
 	## HTML drawStageClear — 1:1 layout (clear art, leek, stats, arsenal, menu+next)
 	ctx.fill_style("rgba(6,4,10,0.92)")
 	ctx.fill_rect(0, 0, W, H)
@@ -202,7 +202,7 @@ func _draw_sc_menu_btn(cx: float, y: float) -> void:
 	ctx.text_align("center")
 	ctx.fill_text("⌂ MAIN MENU  [M]", cx, y + 19)
 
-func draw_clear_gate(portal, shop, msg_t: float) -> void:
+func drawClearGate(portal, shop, msg_t: float) -> void:
 	## HTML drawClearGate — field portal + shop marker
 	if portal == null:
 		return
@@ -287,7 +287,7 @@ func draw_clear_gate(portal, shop, msg_t: float) -> void:
 		ctx.fill_text("🛍 SHOP", sx, sy - 36)
 	ctx.text_align("left")
 
-func draw_shop(tab: String, sel: int, msg: String, msg_t: float) -> void:
+func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 	## HTML drawShop (grid + tabs + heads + badger)
 	shop_btns = []
 	ctx.fill_style("#2a1c12")
@@ -520,7 +520,7 @@ func _shop_list(tab: String) -> Array:
 			})
 	return out
 
-func draw_dialog(d: Dictionary) -> void:
+func drawDialog(d: Dictionary) -> void:
 	## HTML drawDialog — playfield-bottom bar, per-speaker style, portrait bust, grow-up height
 	if d.is_empty():
 		return
@@ -582,7 +582,7 @@ func draw_dialog(d: Dictionary) -> void:
 	ctx.shadow_blur(0)
 	# HTML drawPortraitBust + manageGifOverlays talk gif for Bobina lines
 	if ported:
-		ported.draw_portrait_bust(x + 40.0, y + h / 2.0, 58.0, str(cfg.portrait), str(cfg.pcol))
+		ported.drawPortraitBust(x + 40.0, y + h / 2.0, 58.0, str(cfg.portrait), str(cfg.pcol))
 	if who == 1 and AssetBank and AssetBank.ok("talk"):
 		var talk_tex = AssetBank.get_tex("talk")
 		ctx.save()

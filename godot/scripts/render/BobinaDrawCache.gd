@@ -1,12 +1,15 @@
 extends Node
-## Phase 1 performance: bake full drawBobina into textures for menu / outfit previews.
-## HTML still owns pixels; this only avoids re-running the expensive drawer every frame.
-## WorldDraw in-game path can adopt the same cache later (Phase 1.2).
+## Phase 1 performance: bake full drawBobina into textures.
+## Menus/outfit previews (scale≥2) and in-game (scale 1, face buckets).
+## HTML still owns pixels — this only avoids re-running the drawer every frame.
 
 const PAD := 48.0
-const MAX_ENTRIES := 64
+const MAX_ENTRIES := 96
 ## Quantize tick so breath/bob anim steps without unique tex every frame
 const TICK_BUCKET := 4
+const TICK_BUCKET_PLAY := 3
+## In-game facing bins (full 360 body rotate inside drawBobina)
+const FACE_BINS := 16
 
 var _vp: SubViewport
 var _host: Node2D
@@ -44,19 +47,43 @@ func _ensure_viewport() -> void:
 	if _host.has_method("configure"):
 		_host.configure(_ctx, _bobina)
 
-func cache_key(outfit: String, expr, pose: int, tick: int, scale: float) -> String:
+func cache_key(outfit: String, expr, pose: int, tick: int, scale: float, extra: String = "") -> String:
 	var e := str(expr) if expr != null else "null"
-	var tb := int(floor(float(tick) / float(TICK_BUCKET)))
+	var tb := int(floor(float(tick) / float(TICK_BUCKET if scale >= 2.0 else TICK_BUCKET_PLAY)))
 	var sc := snappedf(scale, 0.1)
-	return "%s|%s|%d|%d|%.1f" % [outfit, e, pose, tb, sc]
+	return "%s|%s|%d|%d|%.1f|%s" % [outfit, e, pose, tb, sc, extra]
+
+func _face_bucket(face: float) -> float:
+	var step := TAU / float(FACE_BINS)
+	return roundf(face / step) * step
 
 func get_texture(outfit: String, expr, pose: int, tick: int, scale: float, state: Dictionary = {}) -> Texture2D:
 	_ensure_viewport()
 	var key := cache_key(outfit, expr, pose, tick, scale)
+	return _get_or_enqueue(key, outfit, expr, tick, scale, state)
+
+## Playfield Bobina: quantize facing + focus; iframe/alpha applied by caller at blit.
+func get_play_texture(st: Dictionary) -> Texture2D:
+	_ensure_viewport()
+	var outfit := str(st.get("outfit", "og"))
+	var face := _face_bucket(float(st.get("face", -PI / 2.0)))
+	var focus := 1 if bool(st.get("focus", false)) else 0
+	var tick := int(st.get("tick", 0))
+	var extra := "f%.3f|fo%d" % [face, focus]
+	var key := cache_key(outfit, null, 0, tick, 1.0, extra)
+	var bake := st.duplicate(true)
+	bake["face"] = face
+	bake["iframe"] = 0  # flash applied at blit
+	bake["x"] = 0
+	bake["y"] = 0
+	bake["bombFx"] = 0
+	bake["dash"] = 0
+	return _get_or_enqueue(key, outfit, null, tick, 1.0, bake)
+
+func _get_or_enqueue(key: String, outfit: String, expr, tick: int, scale: float, state: Dictionary) -> Texture2D:
 	if _ready_tex.has(key):
 		_touch(key)
 		return _ready_tex[key]
-	# Enqueue bake (one per process tick)
 	var found := false
 	for q in _queue:
 		if str(q.get("key", "")) == key:
@@ -68,16 +95,24 @@ func get_texture(outfit: String, expr, pose: int, tick: int, scale: float, state
 		st["tick"] = tick
 		if expr != null:
 			st["expr"] = expr
-		_queue.append({
-			"key": key,
-			"state": st,
-			"scale": scale,
-			"pose": pose,
-		})
+		# Prefer play bakes (scale 1) — insert front so combat stays smooth
+		var job := {"key": key, "state": st, "scale": scale, "pose": 0}
+		if scale < 2.0:
+			_queue.push_front(job)
+		else:
+			_queue.append(job)
 	return null
 
 func has_texture(outfit: String, expr, pose: int, tick: int, scale: float) -> bool:
 	return _ready_tex.has(cache_key(outfit, expr, pose, tick, scale))
+
+func has_play_texture(st: Dictionary) -> bool:
+	var outfit := str(st.get("outfit", "og"))
+	var face := _face_bucket(float(st.get("face", -PI / 2.0)))
+	var focus := 1 if bool(st.get("focus", false)) else 0
+	var tick := int(st.get("tick", 0))
+	var extra := "f%.3f|fo%d" % [face, focus]
+	return _ready_tex.has(cache_key(outfit, null, 0, tick, 1.0, extra))
 
 func _touch(key: String) -> void:
 	var i := _order.find(key)

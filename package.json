@@ -27,7 +27,8 @@
     "port:gate:p1": "node tools/port/phase_gates/check_phase1.mjs",
     "port:inventory": "node tools/port/inventory_public.mjs",
     "port:dual": "node tools/port/dual_playtest.mjs",
-    "port:dual:full": "node tools/port/dual_playtest.mjs --full"
+    "port:dual:full": "node tools/port/dual_playtest.mjs --full",
+    "port:fps": "xvfb-run -a -s '-screen 0 960x540x24' ${GODOT:-$HOME/.local/godot/godot} --path godot --script res://scripts/tools/fps_probe.gd"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",

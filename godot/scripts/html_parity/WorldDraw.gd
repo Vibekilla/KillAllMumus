@@ -15,6 +15,7 @@ var ported: RefCounted
 var hud: RefCounted
 var combat_fx: RefCounted
 var item_draw: RefCounted
+var bobina_cache: Node = null
 var tick: int = 0
 var _bullet_pool: Node = null
 var _last_tick: int = -1
@@ -34,6 +35,12 @@ func _ready() -> void:
 	combat_fx.setup(ctx)
 	item_draw = load("res://scripts/render/drawers/drawItem.gd").new()
 	item_draw.setup(ctx)
+	# Phase 1.2: shared Bobina bake cache for playfield draws
+	bobina_cache = get_node_or_null("BobinaDrawCache")
+	if bobina_cache == null:
+		bobina_cache = load("res://scripts/render/BobinaDrawCache.gd").new()
+		bobina_cache.name = "BobinaDrawCache"
+		add_child(bobina_cache)
 	call_deferred("_bind_pool")
 
 func _bind_pool() -> void:
@@ -45,6 +52,14 @@ func _process(_d: float) -> void:
 	var nt := int(SimClock.tick) if SimClock else tick + 1
 	if nt == _last_tick:
 		return
+	# Phase 1.3: non-combat field states need less than 60 Hz
+	if GameState.state in [GameState.State.SHOP, GameState.State.STAGE_CLEAR, GameState.State.INTRO]:
+		if (nt % 3) != 0:
+			return
+	elif GameState.state == GameState.State.PAUSED:
+		# World under pause is frozen — 6 Hz is enough for invuln flash residual
+		if (nt % 10) != 0:
+			return
 	_last_tick = nt
 	tick = nt
 	if _is_playish():
@@ -82,17 +97,17 @@ func _draw() -> void:
 	ctx.clip()
 
 	# --- stage bg + boss ambience ---
-	if hud.has_method("draw_stage_bg"):
-		hud.draw_stage_bg()
+	if hud.has_method("drawStageBg"):
+		hud.drawStageBg()
 	if GameState.state == GameState.State.PLAY or GameState.state == GameState.State.PAUSED:
-		if hud.has_method("draw_boss_ambience"):
-			hud.draw_boss_ambience()
+		if hud.has_method("drawBossAmbience"):
+			hud.drawBossAmbience()
 
 	# --- power radiance early (HTML before floaters) ---
 	if player and is_instance_valid(player) and combat_fx:
 		var pst := _player_state(player)
 		if not bool(pst.get("dead", false)):
-			combat_fx.draw_power_radiance(pst)
+			combat_fx.drawPowerRadiance(pst)
 
 	# --- floaters (confused.gif) ---
 	if ItemSystem:
@@ -139,16 +154,16 @@ func _draw() -> void:
 				_draw_bullet_node(b)
 
 	# --- phase veil under Bobina ---
-	if hud.has_method("draw_phase_veil"):
-		hud.draw_phase_veil()
+	if hud.has_method("drawPhaseVeil"):
+		hud.drawPhaseVeil()
 
 	# --- Bobina full drawBobina + auras / consumable rings ---
 	if player and is_instance_valid(player):
 		_draw_player(player)
 
 	# --- fx / particles / melee / score / bomb / slowmo ---
-	if ported.has_method("draw_fx") and CombatHelpers and "fx" in CombatHelpers:
-		ported.draw_fx(CombatHelpers.fx)
+	if ported.has_method("drawFx") and CombatHelpers and "fx" in CombatHelpers:
+		ported.drawFx(CombatHelpers.fx)
 
 	if CombatHelpers:
 		for p in CombatHelpers.particles:
@@ -159,11 +174,11 @@ func _draw() -> void:
 			ctx.arc(float(p.get("x", 0)), float(p.get("y", 0)), 2.2, 0, TAU)
 			ctx.fill()
 			ctx.global_alpha(1.0)
-		if ported.has_method("draw_melee_fx"):
+		if ported.has_method("drawMeleeFx"):
 			var mfx: Array = []
 			if "melee_fx" in CombatHelpers:
 				mfx = CombatHelpers.melee_fx
-			ported.draw_melee_fx(mfx, player)
+			ported.drawMeleeFx(mfx, player)
 		for s in CombatHelpers.score_texts:
 			var life2 := float(s.get("life", 0))
 			ctx.global_alpha(clampf(life2 / 44.0, 0.0, 1.0))
@@ -183,8 +198,8 @@ func _draw() -> void:
 		if CombatHelpers.flash_msg.has("txt") and float(CombatHelpers.flash_msg.get("t", 0)) > 0.0:
 			_draw_flash_msg(pf)
 
-	if hud.has_method("draw_slowmo_fx"):
-		hud.draw_slowmo_fx()
+	if hud.has_method("drawSlowmoFx"):
+		hud.drawSlowmoFx()
 
 	# collect line hint when focused
 	var focused := false
@@ -204,7 +219,7 @@ func _draw() -> void:
 		ctx.stroke()
 
 	# Hell portals on bosses
-	if tree and hud.has_method("draw_hell_portal"):
+	if tree and hud.has_method("drawHellPortal"):
 		for b in tree.get_nodes_in_group("bosses"):
 			if not is_instance_valid(b):
 				continue
@@ -213,7 +228,7 @@ func _draw() -> void:
 			if hell_on or hell_r > 1.0:
 				var rad := float(b.get("radius")) if b.get("radius") != null else 40.0
 				var ht := float(b.get("t")) if b.get("t") != null else float(tick)
-				hud.draw_hell_portal({
+				hud.drawHellPortal({
 					"x": b.global_position.x, "y": b.global_position.y,
 					"hellR": hell_r if hell_r > 1.0 else rad,
 					"hellT": ht, "hy": b.global_position.y,
@@ -324,9 +339,9 @@ func _draw_enemy(e: Node) -> void:
 		"elite": str(e.get("elite_type")) if e.get("elite_type") != null else "",
 	}
 	if str(st["kind"]) == "elite":
-		ported.draw_elite(st)
+		ported.drawElite(st)
 	else:
-		ported.draw_mumu(st)
+		ported.drawMumu(st)
 	# stun stars
 	var stun := float(e.get("stun")) if e.get("stun") != null else 0.0
 	if stun > 0.0:
@@ -368,7 +383,7 @@ func _draw_boss_node(b: Node) -> void:
 		"portrait": str(data.get("portrait", "")) if data is Dictionary else "",
 		"flash": float(b.get("flash")) if b.get("flash") != null else 0.0,
 	}
-	ported.draw_boss(st)
+	ported.drawBoss(st)
 
 func _draw_bullet_node(b: Node) -> void:
 	var col: Color = b.color if b.get("color") != null else Color(1, 0.4, 0.6)
@@ -395,9 +410,9 @@ func _draw_bullet_node(b: Node) -> void:
 			"col": col_hex,
 			"life": b.life_frames if b.get("life_frames") != null else null,
 		}
-		ported.draw_pshot(st)
+		ported.drawPShot(st)
 	else:
-		ported.draw_bullet({
+		ported.drawBullet({
 			"x": b.global_position.x, "y": b.global_position.y,
 			"r": r, "col": col_hex,
 			"hp": float(b.hp) if b.get("hp") != null else 0.0,
@@ -429,15 +444,40 @@ func _player_state(player: Node) -> Dictionary:
 		"dead": false,
 	}
 
+func _draw_bobina_cached_or_live(st: Dictionary) -> void:
+	## Phase 1.2: SubViewport-baked drawBobina when state is cacheable.
+	## High-motion states (dash/bomb) stay live for exact FX.
+	var dash := float(st.get("dash", 0))
+	var bomb := float(st.get("bombFx", 0))
+	var use_cache := bobina_cache != null and dash <= 0.0 and bomb <= 0.0
+	if use_cache and bobina_cache.has_method("get_play_texture"):
+		var tex: Texture2D = bobina_cache.get_play_texture(st)
+		if tex != null and ctx.has_method("draw_image"):
+			var tw := float(tex.get_width())
+			var th := float(tex.get_height())
+			var px := float(st.get("x", 0))
+			var py := float(st.get("y", 0))
+			# iframe flash (HTML: alpha 0.5 every other 4 frames of invuln)
+			var iframe := float(st.get("iframe", 0))
+			var flash := iframe > 0.0 and (int(floorf(iframe / 4.0)) % 2) == 1
+			if flash:
+				ctx.global_alpha(0.5)
+			ctx.draw_image(tex, px - tw * 0.5, py - th * 0.5, tw, th)
+			if flash:
+				ctx.global_alpha(1.0)
+			return
+	# Live full drawer (cache miss or dash/bomb)
+	ported.drawBobina(st)
+
 func _draw_player(player: Node) -> void:
 	var st := _player_state(player)
 	if combat_fx:
-		combat_fx.draw_dash_comet(st)
-		combat_fx.draw_power_aura(st)
-	# Full drawBobina — never a placeholder
-	ported.draw_bobina(st)
+		combat_fx.drawDashComet(st)
+		combat_fx.drawPowerAura(st)
+	# Full drawBobina — cache bake when possible; live fallback (never a placeholder circle)
+	_draw_bobina_cached_or_live(st)
 	if combat_fx:
-		combat_fx.draw_options(true)
+		combat_fx.drawOptions(true)
 	# shield / rapid / vial / phase rings — HTML overlays on Bobina
 	var shield_t := float(st.get("shieldT", 0))
 	if shield_t > 0.0:

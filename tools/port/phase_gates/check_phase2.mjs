@@ -14,9 +14,9 @@ g.ok(bob.includes("% 230") || bob.includes("%230"), "blink period 230");
 g.ok(bob.includes("selected_outfit") || bob.includes("outfit"), "outfit-aware");
 
 const fx = read("godot/scripts/render/drawers/drawCombatFx.gd");
-g.ok(fx.includes("func pose_params"), "pose_params");
-g.ok(fx.includes("func draw_pose_prop"), "draw_pose_prop");
-g.ok(fx.includes("func coffee_hold"), "coffee_hold");
+g.ok(fx.includes("func poseParams"), "poseParams");
+g.ok(fx.includes("func drawPoseProp"), "drawPoseProp");
+g.ok(fx.includes("func coffeeHold"), "coffeeHold");
 
 const menus = read("godot/scripts/ui/menu/draw_menus.gd");
 g.ok(menus.includes("_draw_posed_figure") || menus.includes("draw_posed"), "outfit posed figure");

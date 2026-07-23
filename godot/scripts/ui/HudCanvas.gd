@@ -55,10 +55,10 @@ func _draw() -> void:
 	]
 	# Panel + overlays only — never full-field stage bg (that covered entities)
 	if playish:
-		hud.draw_panel()
-		hud.draw_emblem_toasts()
+		hud.drawPanel()
+		hud.drawEmblemToasts()
 	if GameState.state == GameState.State.PAUSED:
-		hud.draw_pause_overlay()
+		hud.drawPauseOverlay()
 	if touch_draw and GameState.state in [GameState.State.PLAY, GameState.State.SHOP]:
 		touch_draw.set_tick(tick)
 		touch_draw.draw()

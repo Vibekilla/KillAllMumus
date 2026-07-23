@@ -15,7 +15,7 @@ func _ready() -> void:
 		for c in parent.get_children():
 			if c != self and (c is Polygon2D or c is Sprite2D):
 				c.visible = false
-	# No self-draw — WorldDraw.draw_bobina is the single presentation path
+	# No self-draw — WorldDraw.drawBobina is the single presentation path
 
 func set_outfit(key: String) -> void:
 	outfit_key = key

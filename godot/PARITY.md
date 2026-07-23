@@ -78,6 +78,15 @@ After **any** asset or drawer change, re-run dual and inspect the report. File p
 
 ---
 
+## Naming convention (HTML → Godot)
+
+Public draw entry points use **HTML camelCase** exactly (`drawBobina`, `drawOutfits`, `drawStageClear`, `poseParams`, …).
+
+- Drawers: `func drawBobina(...)` in `drawBobina.gd` (same for other `draw*.gd`)
+- `PortedDraw`: thin host that exposes the same names and dispatches to drawers — no snake_case twin API
+- Menu modules (`draw_menus.gd`, `draw_flow.gd`, `draw_hud.gd`): public `func drawX` matches HTML; private helpers may use `_snake_case` per GDScript practice
+- CanvasCompat: canvas-style API may use snake_case helpers (`draw_image`, `begin_path`) as a Canvas2D adapter, not HTML game functions
+
 ## Modular Godot structure (keep this)
 
 ```
@@ -114,22 +123,31 @@ godot/
 
 | # | Requirement | Status |
 | --- | --- | --- |
-| 1.1 | Menus / outfit previews: cache complex drawers (esp. full `drawBobina`) into SubViewport / bake on state change | **started** — `BobinaDrawCache` + outfit stage bake |
-| 1.2 | In-game Bobina: same caching for outfit + expression + pose | open |
-| 1.3 | World / HUD / FX: throttle redraws; keep CanvasCompat hot paths | partial (WorldDraw tick gate, title 30 Hz) |
-| 1.4 | Target: 60 FPS desktop, ≥30–45 FPS web | open |
+| 1.1 | Menus / outfit previews: cache complex drawers (esp. full `drawBobina`) into SubViewport / bake on state change | **done** — `BobinaDrawCache` + outfit stage bake |
+| 1.2 | In-game Bobina: same caching for outfit + expression + pose | **done** — `get_play_texture` + face bins; dash/bomb live |
+| 1.3 | World / HUD / FX: throttle redraws; keep CanvasCompat hot paths | **partial** — WorldDraw 20 Hz shop/clear/intro, 6 Hz pause; HUD 30 Hz; PLAY still 60 Hz |
+| 1.4 | Target: 60 FPS desktop, ≥30–45 FPS web | **open** — probe on llvmpipe still ~3 FPS play (software GL); re-measure on GPU |
 
 ### FPS root cause notes (Phase 0.3 / 1)
 
-Measured / code-path analysis (desktop headless + dual Xvfb; web still TBD):
+Probe: `npm run port:fps` (Xvfb + Mesa **llvmpipe** software GL — not representative of real GPU).
 
-1. **Full `drawBobina` every redraw** — outfits menu at ×4.7 and title idle re-run the entire HTML port path (thousands of CanvasCompat ops). Primary cost.
-2. **WorldDraw single pass** — every SimClock tick redraws full field (mumus, bullets, FX, Bobina). Correct for parity; needs throttle + cache, not art cuts.
-3. **Title** — already tick-throttled (~30 Hz for idle) in `TitleScreen.gd`.
-4. **Mitigation in progress** — `BobinaDrawCache` bakes menu/outfit previews to `ImageTexture` on state/tick-bucket change; live vector fallback until bake ready.
+| Scene | Wall ms/frame (llvmpipe) | Notes |
+| --- | --- | --- |
+| title | ~73 ms (~14 FPS) | full title draw path |
+| play | ~299 ms (~3.3 FPS) | WorldDraw + entities + Bobina |
+
+Code-path root causes:
+
+1. **Full `drawBobina` every redraw** — primary cost (menus ×4.7, play every tick).  
+2. **WorldDraw single pass** — full field each sim tick on PLAY (correct for parity).  
+3. **Title** — tick-throttled (~30 Hz idle).  
+4. **Mitigations landed** — `BobinaDrawCache` for menus + play (face-bucketed); shop/stage-clear/intro WorldDraw 20 Hz; pause 6 Hz; HUD 30 Hz.  
+5. **Still needed** — enemy/bullet batching, more PLAY-path budget, measure on hardware GPU / web.
 
 ```bash
 npm run port:gates          # structure Phases 0–8
+npm run port:fps            # wall-clock probe
 npm run port:dual -- --full # product gate after cache changes
 ```
 

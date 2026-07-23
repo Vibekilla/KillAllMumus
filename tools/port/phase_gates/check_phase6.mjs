@@ -19,13 +19,13 @@ const ui = [
 for (const [p, name] of ui) g.ok(exists(p), name);
 
 const menus = read("godot/scripts/ui/menu/draw_menus.gd");
-for (const f of ["draw_outfits", "draw_arsenal", "draw_emblems", "draw_ng_select", "draw_leaderboard"]) {
-  g.ok(menus.includes(`func ${f}`), `draw_menus.${f}`);
+for (const f of ["drawOutfits", "drawArsenal", "drawEmblems", "drawNgSelect", "drawLeaderboard"]) {
+  g.ok(menus.includes(`func ${f}`), `menus.${f}`);
 }
 
 const flow = read("godot/scripts/ui/menu/draw_flow.gd");
-for (const f of ["draw_intro", "draw_stage_clear", "draw_shop", "draw_dialog"]) {
-  g.ok(flow.includes(`func ${f}`), `draw_flow.${f}`);
+for (const f of ["drawIntro", "drawStageClear", "drawShop", "drawDialog"]) {
+  g.ok(flow.includes(`func ${f}`), `flow.${f}`);
 }
 
 const end = read("godot/scripts/ui/EndScreen.gd");

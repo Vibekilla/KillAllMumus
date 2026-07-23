@@ -93,8 +93,8 @@ func _draw_posed_figure(cx: float, cy: float, scale: float, pose: int, outfit: S
 	## HTML drawPosedFigure / drawOutfitFigure — full poseParams + drawBobina + pose prop
 	var t := float(tick)
 	var P := {"vx": 0.0, "vy": 0.0, "lean": 0.0, "expr": "smile", "rot": 0.0, "bounce": 0.0, "sway": 0.0, "sq": 1.0}
-	if combat_fx and combat_fx.has_method("pose_params"):
-		P = combat_fx.pose_params(pose, t)
+	if combat_fx and combat_fx.has_method("poseParams"):
+		P = combat_fx.poseParams(pose, t)
 	var expr = expr_override if expr_override != null else P.get("expr", "smile")
 	var face := -PI / 2.0
 	# Spin about body centre (HTML: 16px up along facing)
@@ -110,8 +110,8 @@ func _draw_posed_figure(cx: float, cy: float, scale: float, pose: int, outfit: S
 		"face": face,
 		"pose": pose,
 	}
-	if pose == 5 and combat_fx and combat_fx.has_method("coffee_hold"):
-		extras["hold"] = combat_fx.coffee_hold(t)
+	if pose == 5 and combat_fx and combat_fx.has_method("coffeeHold"):
+		extras["hold"] = combat_fx.coffeeHold(t)
 	# Phase 1: bake full drawBobina at outer scale (outfit stage is ×4.7) — pose prop still live
 	if bobina_cache and scale >= CACHE_SCALE_MIN and bobina_cache.has_method("get_texture"):
 		var tex: Texture2D = bobina_cache.get_texture(outfit, expr, pose, tick, scale, extras)
@@ -131,8 +131,8 @@ func _draw_posed_figure(cx: float, cy: float, scale: float, pose: int, outfit: S
 				ctx.translate(0, 16.0 * scale)
 			ctx.draw_image(tex, -tw * 0.5, -th * 0.5, tw, th)
 			ctx.scale(scale, scale)
-			if combat_fx and combat_fx.has_method("draw_pose_prop"):
-				combat_fx.draw_pose_prop(pose, t)
+			if combat_fx and combat_fx.has_method("drawPoseProp"):
+				combat_fx.drawPoseProp(pose, t)
 			ctx.restore()
 			return
 	ctx.save()
@@ -142,12 +142,12 @@ func _draw_posed_figure(cx: float, cy: float, scale: float, pose: int, outfit: S
 	ctx.rotate(float(P.get("rot", 0)))
 	ctx.translate(-pcx, -pcy)
 	_draw_bobina_at(0, 0, 1.0, outfit, extras)
-	if combat_fx and combat_fx.has_method("draw_pose_prop"):
-		combat_fx.draw_pose_prop(pose, t)
+	if combat_fx and combat_fx.has_method("drawPoseProp"):
+		combat_fx.drawPoseProp(pose, t)
 	ctx.restore()
 
 # ───────────────────────── OUTFITS ─────────────────────────
-func draw_outfits() -> void:
+func drawOutfits() -> void:
 	model.outfit_tiles.clear()
 	model.outfit_pose_btn = null
 	model.outfit_back_btn = null
@@ -302,7 +302,7 @@ func draw_outfits() -> void:
 	model.outfit_back_btn = _back_btn()
 
 # ───────────────────────── EMBLEMS ─────────────────────────
-func draw_emblems() -> void:
+func drawEmblems() -> void:
 	model.em_prev_btn = null
 	model.em_next_btn = null
 	_bg("#1a0e26", "#2a1020")
@@ -411,7 +411,7 @@ func _nav_btn(b: Dictionary, label: String, on: bool) -> void:
 	ctx.text_align("left")
 
 # ───────────────────────── NG+ ─────────────────────────
-func draw_ng_select() -> void:
+func drawNgSelect() -> void:
 	model.ng_tiles.clear()
 	model.ng_back_btn = null
 	_bg("#1a1226", "#241018")
@@ -477,7 +477,7 @@ func draw_ng_select() -> void:
 	model.ng_back_btn = _back_btn()
 
 # ───────────────────────── ARSENAL ─────────────────────────
-func draw_arsenal() -> void:
+func drawArsenal() -> void:
 	model.arsenal_tiles.clear()
 	_bg("#101828", "#1a1020")
 	ctx.text_align("center")
@@ -698,7 +698,7 @@ func draw_arsenal() -> void:
 	ctx.text_align("left")
 
 # ───────────────────────── LEADERBOARD ─────────────────────────
-func draw_leaderboard() -> void:
+func drawLeaderboard() -> void:
 	model.lb_rows.clear()
 	model.lb_prev_btn = null
 	model.lb_next_btn = null

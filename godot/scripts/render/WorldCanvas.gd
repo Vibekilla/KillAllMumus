@@ -45,11 +45,11 @@ func _draw() -> void:
 	ctx.begin_frame()
 	hud.set_tick(tick)
 	# HTML: drawStageBg then drawBossAmbience (then entities, then fx)
-	hud.draw_stage_bg()
+	hud.drawStageBg()
 	if GameState.state == GameState.State.PLAY:
-		hud.draw_boss_ambience()
-		hud.draw_phase_veil()
-		hud.draw_slowmo_fx()
+		hud.drawBossAmbience()
+		hud.drawPhaseVeil()
+		hud.drawSlowmoFx()
 		var tree := get_tree()
 		if tree:
 			for b in tree.get_nodes_in_group("bosses"):
@@ -60,7 +60,7 @@ func _draw() -> void:
 				if hell_on or hell_r > 1.0:
 					var rad := float(b.get("radius")) if b.get("radius") != null else 40.0
 					var ht := float(b.get("t")) if b.get("t") != null else float(tick)
-					hud.draw_hell_portal({
+					hud.drawHellPortal({
 						"x": b.global_position.x, "y": b.global_position.y,
 						"hellR": hell_r if hell_r > 1.0 else rad,
 						"hellT": ht,

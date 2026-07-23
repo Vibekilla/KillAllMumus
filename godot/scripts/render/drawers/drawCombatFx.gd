@@ -17,7 +17,7 @@ func _hex_a(h, a) -> String:
 	var n := s.hex_to_int()
 	return "rgba(%d,%d,%d,%s)" % [(n >> 16) & 255, (n >> 8) & 255, n & 255, str(a)]
 
-func draw_options(player_local: bool = true) -> void:
+func drawOptions(player_local: bool = true) -> void:
 	## HTML drawOptions — option orbs around player (local 0,0 if on BobinaSprite)
 	var lv := CombatHelpers.shot_level()
 	var offsets: Array = []
@@ -44,7 +44,7 @@ func draw_options(player_local: bool = true) -> void:
 		ctx.fill()
 		ctx.restore()
 
-func draw_power_aura(p: Dictionary) -> void:
+func drawPowerAura(p: Dictionary) -> void:
 	## HTML drawPowerAura — psychedelic power bubble (local coords: p.x/p.y often 0)
 	var power := float(p.get("power", GameState.power))
 	var pf := clampf((power - 1.0) / 5.0, 0.0, 1.0)
@@ -105,7 +105,7 @@ func draw_power_aura(p: Dictionary) -> void:
 	ctx.stroke()
 	ctx.restore()
 
-func draw_power_radiance(p: Dictionary) -> void:
+func drawPowerRadiance(p: Dictionary) -> void:
 	## HTML drawPowerRadiance
 	if float(p.get("power", GameState.power)) < 0.0:
 		pass
@@ -148,7 +148,7 @@ func draw_power_radiance(p: Dictionary) -> void:
 		ctx.stroke()
 	ctx.restore()
 
-func draw_dash_comet(p: Dictionary) -> void:
+func drawDashComet(p: Dictionary) -> void:
 	## HTML drawDashComet — trail + head (local or absolute points in p.trail)
 	var trail: Array = p.get("trail", [])
 	var dashing := bool(p.get("dash", false)) or float(p.get("dash", 0)) > 0.0
@@ -204,11 +204,11 @@ func draw_dash_comet(p: Dictionary) -> void:
 			ctx.stroke()
 	ctx.restore()
 
-func coffee_hold(t: float) -> Dictionary:
+func coffeeHold(t: float) -> Dictionary:
 	var sip := (1.0 - cos(t * 0.025)) / 2.0
 	return {"x": 0.0, "y": 3.0 - sip * 7.0, "sip": sip}
 
-func pose_params(pose: int, t: float) -> Dictionary:
+func poseParams(pose: int, t: float) -> Dictionary:
 	## HTML poseParams
 	var vx := 0.0
 	var vy := 0.0
@@ -251,11 +251,11 @@ func pose_params(pose: int, t: float) -> Dictionary:
 		expr = "smile"
 	return {"vx": vx, "vy": vy, "lean": lean, "expr": expr, "rot": rot, "bounce": bounce, "sway": sway, "sq": sq}
 
-func draw_pose_prop(pose: int, t: float) -> void:
+func drawPoseProp(pose: int, t: float) -> void:
 	## HTML drawPoseProp — This Is Fine fire + coffee
 	if pose != 5:
 		return
-	var h := coffee_hold(t)
+	var h := coffeeHold(t)
 	# ring of fire
 	for i in range(12):
 		var fa := float(i) / 12.0 * TAU
@@ -316,7 +316,7 @@ func _flame(fx: float, fby: float, fl: float, i: int, t: float) -> void:
 	ctx.close_path()
 	ctx.fill()
 
-func draw_melee_weapon(key: String, length: float, col: String, charge: float) -> void:
+func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> void:
 	## HTML drawMeleeWeapon — drawn in local space along +X
 	ctx.line_cap("round")
 	ctx.line_join("round")

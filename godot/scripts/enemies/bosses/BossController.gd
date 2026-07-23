@@ -470,6 +470,6 @@ func _update_wynn_hell(delta: float) -> void:
 			queue_free()
 
 func _draw() -> void:
-	## Visuals owned by WorldDraw.draw_boss — AI/collision only here.
+	## Visuals owned by WorldDraw.drawBoss — AI/collision only here.
 	pass
 

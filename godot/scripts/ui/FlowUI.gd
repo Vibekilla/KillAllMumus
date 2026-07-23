@@ -48,11 +48,11 @@ func _draw() -> void:
 	flow_draw.set_tick(tick)
 	match GameState.state:
 		GameState.State.INTRO:
-			flow_draw.draw_intro()
+			flow_draw.drawIntro()
 		GameState.State.STAGE_CLEAR:
-			flow_draw.draw_stage_clear(StageFlow.clear_info if StageFlow else {})
+			flow_draw.drawStageClear(StageFlow.clear_info if StageFlow else {})
 		GameState.State.SHOP:
-			flow_draw.draw_shop(
+			flow_draw.drawShop(
 				StageFlow.shop_tab if StageFlow else "w",
 				StageFlow.shop_sel if StageFlow else 0,
 				StageFlow.shop_msg if StageFlow else "",
@@ -60,10 +60,10 @@ func _draw() -> void:
 			)
 		GameState.State.PLAY:
 			if StageFlow and StageFlow.is_field_cleared():
-				flow_draw.draw_clear_gate(StageFlow.clear_portal, StageFlow.clear_shop, StageFlow.clear_msg_t)
+				flow_draw.drawClearGate(StageFlow.clear_portal, StageFlow.clear_shop, StageFlow.clear_msg_t)
 	# dialog overlay on play
 	if StageFlow and StageFlow.dialog != null and GameState.state == GameState.State.PLAY:
-		flow_draw.draw_dialog(StageFlow.dialog)
+		flow_draw.drawDialog(StageFlow.dialog)
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:

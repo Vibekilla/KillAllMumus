@@ -11,7 +11,7 @@ func _init():
 	pd.setup(ctx)
 	pd.set_tick(100)
 	ctx.begin_frame()
-	pd.draw_title({
+	pd.drawTitle({
 		"outfit": "og",
 		"tick": 100,
 		"title_idle_t": 0,
@@ -28,7 +28,7 @@ func _init():
 	print("[TEST] ids=", ",".join(ids))
 	# maid dance path
 	ctx.begin_frame()
-	pd.draw_title({
+	pd.drawTitle({
 		"outfit": "og", "tick": 200, "title_idle_t": 2000,
 		"is_touch": false, "difficulty": 0, "ng_plus": 0, "ng_unlocked": 0,
 	})

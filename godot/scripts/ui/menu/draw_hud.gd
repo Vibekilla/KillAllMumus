@@ -45,7 +45,7 @@ func _rgb_hue(r: float, g: float, b: float) -> float:
 		hh = (r - g) / d + 4.0
 	return hh * 60.0
 
-func draw_stage_bg() -> void:
+func drawStageBg() -> void:
 	## HTML drawStageBg — prefer full drawer (gradient + motifs + drawStageBgFx)
 	if _stage_bg_drawer == null:
 		var sc = load("res://scripts/render/drawers/drawStageBg.gd")
@@ -94,14 +94,14 @@ func draw_stage_bg() -> void:
 	ctx.fill_rect(pf2.position.x, pf2.position.y, pf2.size.x, pf2.size.y * 0.55)
 	ctx.fill_style(bot)
 	ctx.fill_rect(pf2.position.x, pf2.position.y + pf2.size.y * 0.45, pf2.size.x, pf2.size.y * 0.55)
-	draw_stage_bg_fx(s)
+	drawStageBgFx(s)
 	ctx.stroke_style("rgba(255,120,190,0.35)")
 	ctx.line_width(2)
 	ctx.begin_path()
 	ctx.round_rect(pf2.position.x, pf2.position.y, pf2.size.x, pf2.size.y, 4)
 	ctx.stroke()
 
-func draw_stage_bg_fx(s: int) -> void:
+func drawStageBgFx(s: int) -> void:
 	## HTML drawStageBgFx — simplified geometric psychedelic layers
 	var t := float(tick)
 	var pf: Rect2 = Config.playfield()
@@ -165,7 +165,7 @@ func draw_stage_bg_fx(s: int) -> void:
 				ctx.stroke()
 	ctx.restore()
 
-func draw_boss_ambience() -> void:
+func drawBossAmbience() -> void:
 	## HTML drawBossAmbience
 	var boss := _boss()
 	if boss == null:
@@ -222,7 +222,7 @@ func draw_boss_ambience() -> void:
 		ctx.stroke()
 	ctx.restore()
 
-func draw_panel() -> void:
+func drawPanel() -> void:
 	## HTML drawPanel — portrait | touch | landscape
 	if Config.portrait:
 		_draw_panel_portrait()
@@ -1152,7 +1152,7 @@ func _draw_item_chips(x: float, cy: float, max_w: float) -> void:
 		ctx.font("9px monospace")
 		ctx.fill_text("— none equipped —", x, cy + 16)
 
-func draw_emblem_toasts() -> void:
+func drawEmblemToasts() -> void:
 	if ProgressStore == null:
 		return
 	var toasts: Array = ProgressStore.get_meta("emblem_toasts", []) if ProgressStore.has_meta("emblem_toasts") else []
@@ -1209,7 +1209,7 @@ func draw_emblem_toasts() -> void:
 		toasts.pop_front()
 		ProgressStore.set_meta("emblem_toasts", toasts)
 
-func draw_phase_veil() -> void:
+func drawPhaseVeil() -> void:
 	var p := _player()
 	if p == null or float(p.get("phase_t") if p.get("phase_t") != null else 0.0) <= 0.0:
 		return
@@ -1228,7 +1228,7 @@ func draw_phase_veil() -> void:
 		ctx.fill()
 	ctx.restore()
 
-func draw_slowmo_fx() -> void:
+func drawSlowmoFx() -> void:
 	if not GameState.has_meta("slowmo"):
 		return
 	var slowmo_t := float(GameState.get_meta("slowmo"))
@@ -1252,7 +1252,7 @@ func draw_slowmo_fx() -> void:
 			ctx.stroke()
 	ctx.restore()
 
-func draw_hell_portal(b: Dictionary) -> void:
+func drawHellPortal(b: Dictionary) -> void:
 	var R := float(b.get("hellR", 0))
 	if R <= 1.0:
 		return
@@ -1295,7 +1295,7 @@ func draw_hell_portal(b: Dictionary) -> void:
 	ctx.fill()
 	ctx.restore()
 
-func draw_pause_overlay() -> void:
+func drawPauseOverlay() -> void:
 	## Visual pause card is PauseMenu Control (HTML #pausescreen).
 	## Keep this empty so we don't double-draw over the full overlay.
 	pass

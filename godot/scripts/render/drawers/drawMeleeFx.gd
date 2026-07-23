@@ -18,8 +18,8 @@ func set_tick(t: int) -> void:
 
 func drawMeleeWeapon(key, length = 100.0, col = "#fff", charge = 0.0) -> void:
 	## HTML drawMeleeWeapon
-	if combat_fx and combat_fx.has_method("draw_melee_weapon"):
-		combat_fx.draw_melee_weapon(str(key), float(length), str(col), float(charge))
+	if combat_fx and combat_fx.has_method("drawMeleeWeapon"):
+		combat_fx.drawMeleeWeapon(str(key), float(length), str(col), float(charge))
 
 func drawMeleeFx(melee_fx: Array = [], player: Node = null) -> void:
 	## HTML drawMeleeFx — pass CombatHelpers.melee_fx or MeleeSystem swipe_fx

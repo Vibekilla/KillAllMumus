@@ -1,6 +1,7 @@
 extends RefCounted
 ## Host for 1:1 HTML draw* ports via CanvasCompat.
-## Owns all entity drawers and dispatches with dict state (local coords: x/y often 0).
+## Public method names match HTML exactly (camelCase): drawBobina, drawMumu, …
+## Drawers under scripts/render/drawers/ own the real implementations.
 
 var ctx
 var tick: int = 0
@@ -91,7 +92,9 @@ func set_outfit(o: String) -> void:
 	if _bobina and _bobina.has_method("set_outfit"):
 		_bobina.set_outfit(o)
 
-func draw_bobina(st: Dictionary) -> void:
+# ── HTML-named draw entry points (exact camelCase) ─────────────────────
+
+func drawBobina(st: Dictionary) -> void:
 	if _bobina == null:
 		return
 	if _bobina.has_method("set_outfit"):
@@ -100,26 +103,26 @@ func draw_bobina(st: Dictionary) -> void:
 		_bobina.set_tick(int(st.get("tick", tick)))
 	_bobina.drawBobina(st)
 
-func draw_mumu(e: Dictionary) -> void:
+func drawMumu(e: Dictionary) -> void:
 	if str(e.get("kind", "")) == "elite":
-		draw_elite(e)
+		drawElite(e)
 		return
 	if _mumu:
 		_mumu.drawMumu(e)
 
-func draw_elite(e: Dictionary) -> void:
+func drawElite(e: Dictionary) -> void:
 	if _elite:
 		_elite.drawElite(e)
 
-func draw_bullet(b: Dictionary) -> void:
+func drawBullet(b: Dictionary) -> void:
 	if _bullet:
 		_bullet.drawBullet(b)
 
-func draw_pshot(s: Dictionary) -> void:
+func drawPShot(s: Dictionary) -> void:
 	if _pshot:
 		_pshot.drawPShot(s)
 
-func draw_title(st: Dictionary = {}) -> void:
+func drawTitle(st: Dictionary = {}) -> void:
 	if _title == null:
 		return
 	if st.size():
@@ -137,47 +140,48 @@ func get_title_btns() -> Array:
 func get_bobina():
 	return _bobina
 
-func draw_bobo(cx, cy, sc=1.0, happy=true) -> void:
+func drawBobo(cx, cy, sc = 1.0, happy = true) -> void:
 	if _bobo:
 		_bobo.set_tick(tick)
 		_bobo.drawBobo(cx, cy, sc, happy)
 
-func draw_mech(x, y, alpha=1.0, rot=0.0) -> void:
+func drawMech(x, y, alpha = 1.0, rot = 0.0) -> void:
 	if _mech:
 		_mech.set_tick(tick)
 		_mech.drawMech(x, y, alpha, rot)
 
-func draw_item(it: Dictionary) -> void:
+func drawItem(it: Dictionary) -> void:
 	if _item:
 		_item.set_tick(tick)
 		_item.drawItem(it)
 
-func draw_boss(b: Dictionary) -> void:
-	## 1:1 HTML drawBoss — via drawBoss.gd only (no alternate implementation)
+func drawBoss(b: Dictionary) -> void:
+	## 1:1 HTML drawBoss — via drawBoss.gd only
 	if _boss == null:
-		push_error("PortedDraw.draw_boss: drawBoss.gd missing — public parity broken")
+		push_error("PortedDraw.drawBoss: drawBoss.gd missing — public parity broken")
 		return
 	_boss.drawBoss(b)
 
-func draw_portrait_bust(px, py, size, type, color) -> void:
+func drawPortraitBust(px, py, size, type, color) -> void:
 	## 1:1 HTML drawPortraitBust
 	if _portrait_bust == null:
-		push_error("PortedDraw.draw_portrait_bust: drawer missing")
+		push_error("PortedDraw.drawPortraitBust: drawer missing")
 		return
 	_portrait_bust.drawPortraitBust(px, py, size, type, color)
 
-func draw_fx(fx_list: Array = []) -> void:
+func drawFx(fx_list: Array = []) -> void:
 	if _fx and _fx.has_method("drawFx"):
 		_fx.drawFx(fx_list)
 
-func draw_melee_fx(melee_fx: Array = [], player: Node = null) -> void:
+func drawMeleeFx(melee_fx: Array = [], player: Node = null) -> void:
 	if _melee_fx and _melee_fx.has_method("drawMeleeFx"):
 		_melee_fx.drawMeleeFx(melee_fx, player)
 
-func draw_stage_bg() -> void:
+func drawStageBg() -> void:
 	if _stage_bg and _stage_bg.has_method("drawStageBg"):
 		_stage_bg.drawStageBg()
 
 func fire(player: Node2D = null, pool: Node = null, focus: bool = false) -> void:
 	if _fire and _fire.has_method("fire"):
 		_fire.fire(player, pool, focus)
+

@@ -21,5 +21,5 @@ func _draw() -> void:
 	if ctx == null:
 		return
 	ctx.begin_frame()
-	if ported and ported.has_method("draw_bobina"):
-		ported.draw_bobina(player_state)
+	if ported and ported.has_method("drawBobina"):
+		ported.drawBobina(player_state)

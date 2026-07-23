@@ -56,7 +56,7 @@ g.ok(world.includes("ported") || world.includes("PortedDraw") || world.includes(
 g.ok(world.includes("combat_fx") || world.includes("drawCombatFx"), "WorldDraw combat FX");
 
 const fx = read("godot/scripts/render/drawers/drawCombatFx.gd");
-for (const f of ["draw_power_aura", "draw_dash_comet", "draw_power_radiance", "draw_melee_weapon"]) {
+for (const f of ["drawPowerAura", "drawDashComet", "drawPowerRadiance", "drawMeleeWeapon"]) {
   g.ok(fx.includes(`func ${f}`), `drawCombatFx.${f}`);
 }
 

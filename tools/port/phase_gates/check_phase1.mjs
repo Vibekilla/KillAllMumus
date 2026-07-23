@@ -22,11 +22,14 @@ const bob = read("godot/scripts/player/BobinaSprite.gd");
 // Entity sprite must not own the full HTML drawBobina body (WorldDraw / menus do)
 g.ok(bob.length < 8000 && !bob.includes("func drawBobina"), "BobinaSprite is not full drawBobina module");
 
-// Performance cache module (Phase 1.1)
+// Performance cache module (Phase 1.1–1.2)
 g.ok(exists("godot/scripts/render/BobinaDrawCache.gd"), "BobinaDrawCache.gd");
 g.ok(exists("godot/scripts/render/BobinaBakeHost.gd"), "BobinaBakeHost.gd");
 g.ok(read("godot/scripts/ui/TitleScreen.gd").includes("BobinaDrawCache"), "TitleScreen wires cache");
 g.ok(read("godot/scripts/ui/menu/draw_menus.gd").includes("bobina_cache"), "draw_menus uses bobina_cache");
+g.ok(world.includes("bobina_cache") && world.includes("get_play_texture"), "WorldDraw in-game Bobina cache");
+g.ok(world.includes("% 3") || world.includes("% 3") || world.includes("%3"), "WorldDraw non-combat throttle");
+g.ok(exists("godot/scripts/tools/fps_probe.gd"), "fps_probe.gd for Phase 1.4");
 
 const proj = read("godot/project.godot");
 g.ok(proj.includes("viewport_width=960") && proj.includes("viewport_height=540"), "viewport 960×540");
