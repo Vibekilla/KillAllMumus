@@ -107,12 +107,10 @@ if [[ -n "$MAIN_WT" ]]; then
 else
   # Fall back: push refs if fast-forward, else temp worktree
   if git merge-base --is-ancestor origin/main origin/dev 2>/dev/null; then
-    if [[ "$FF_ONLY" -eq 0 || "$FF_ONLY" -eq 1 ]]; then
-      if [[ "$DO_PUSH" -eq 1 ]]; then
-        git push origin origin/dev:main
-      fi
-      echo "✓ Live main @ $(git rev-parse --short origin/dev) (ff push)"
+    if [[ "$DO_PUSH" -eq 1 ]]; then
+      git push origin origin/dev:main
     fi
+    echo "✓ Live main @ $(git rev-parse --short origin/dev) (ff push)"
   else
     TMP=$(mktemp -d)
     trap 'git worktree remove --force "$TMP" 2>/dev/null || rm -rf "$TMP"' EXIT
@@ -121,4 +119,57 @@ else
   fi
 fi
 
-echo "  CI deploy runs on main. dev is left as-is (not force-reset)."
+# Keep origin/dev from looking "N commits behind main" after promote merges.
+# Merge main → dev (no force-reset). Safe: only adds promote merge commits.
+sync_dev_with_main() {
+  git fetch origin dev main --prune
+  local BEHIND
+  BEHIND=$(git rev-list --count "origin/dev..origin/main" 2>/dev/null || echo 0)
+  if [[ "${BEHIND}" -eq 0 ]]; then
+    echo "  dev already contains main — no sync needed."
+    return 0
+  fi
+  echo "==> Sync origin/dev with origin/main (${BEHIND} commit(s) on main not in dev)"
+  local DEV_WT=""
+  while read -r path _rest; do
+    if [[ "$_rest" == *"[dev]"* ]] || [[ "$_rest" == *"[dev "* ]]; then
+      DEV_WT="$path"
+      break
+    fi
+  done < <(git worktree list)
+  if [[ -z "$DEV_WT" ]]; then
+    if [[ -d /var/www/dev/.git ]] || [[ -f /var/www/dev/.git ]]; then
+      DEV_WT=/var/www/dev
+    fi
+  fi
+  if [[ -n "$DEV_WT" ]]; then
+    if [[ -n "$(git -C "$DEV_WT" status --porcelain)" ]]; then
+      echo "  WARN: dev worktree dirty — skip auto-sync; run: git -C $DEV_WT merge origin/main && git push" >&2
+      return 0
+    fi
+    git -C "$DEV_WT" checkout dev
+    git -C "$DEV_WT" pull --ff-only origin dev || true
+    git -C "$DEV_WT" merge origin/main -m "chore: sync dev with promoted main"
+    if [[ "$DO_PUSH" -eq 1 ]]; then
+      git -C "$DEV_WT" push origin dev
+    fi
+    echo "✓ dev synced @ $(git -C "$DEV_WT" rev-parse --short HEAD)"
+  else
+    # No worktree: push merge via temporary worktree
+    local TMP2
+    TMP2=$(mktemp -d)
+    git worktree add "$TMP2" origin/dev
+    git -C "$TMP2" merge origin/main -m "chore: sync dev with promoted main"
+    if [[ "$DO_PUSH" -eq 1 ]]; then
+      git -C "$TMP2" push origin HEAD:dev
+    fi
+    git worktree remove --force "$TMP2" 2>/dev/null || rm -rf "$TMP2"
+    echo "✓ dev synced via temp worktree"
+  fi
+}
+
+if [[ "$DO_PUSH" -eq 1 ]]; then
+  sync_dev_with_main || true
+fi
+
+echo "  CI: Verify always runs on push; deploy only on main after Verify."
