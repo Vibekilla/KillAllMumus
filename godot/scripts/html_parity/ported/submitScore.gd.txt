@@ -1,0 +1,16 @@
+## AUTO-PORTED from HTML function submitScore — review required
+func submitScore(handle):
+
+	  handle=(handle||'').trim().replace(/[<>@\s]/g,'').slice(0,15);
+	  try{ if(handle) HtmlBridge.storage_set('bobina_handle',handle); }catch(e){}
+	  var _me = HtmlBridge.win.bobinaMe || bobinaMe; var linked = !!( _me && _me.authenticated);
+	  lastSubmit={ handle: linked ? (_me.xUsername||handle||'') : handle, score:sessionScore, kills:totalKills, bcId: linked ? _me.bcId : null, bobinaUsername: linked ? _me.username : null };
+	  var payload={ handle, score:sessionScore, kills:totalKills, rank:rankLetter(), mode:modeTag(), won:endWon?1:0, outfit:selectedOutfit };
+	  lbState='loading';
+	  fetch('api/scores',{ method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+	    .then(func(r): return r.json()).then(func(d): return { lbCache=(d&&d.scores)||[]; lbState='ok'; })
+	    .catchfunc((): # arrow
+	 lbState='error'; });
+	}
+	var NE=HtmlBridge.doc.getElementById('nameEntry'), NEinput=HtmlBridge.doc.getElementById('ne-input');
+

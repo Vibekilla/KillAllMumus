@@ -1,0 +1,5 @@
+function drawIntro(){ ctx.fillStyle='rgba(6,4,10,0.82)'; ctx.fillRect(0,0,W,H); const s=STAGES[run.stageIdx]; ctx.textAlign='center';
+  ctx.fillStyle=s.accent; ctx.font='bold 20px monospace'; ctx.fillText(s.title, W/2, H/2-40);
+  ctx.save(); ctx.shadowColor=s.accent; ctx.shadowBlur=20; ctx.fillStyle='#fff'; ctx.font='900 40px "Trebuchet MS"'; ctx.fillText(s.name, W/2, H/2); ctx.restore();
+  ctx.fillStyle='#c8b0c4'; ctx.font='14px "Trebuchet MS"'; ctx.fillText('The Mumus must be exterminated.', W/2, H/2+34);
+  ctx.fillStyle=(Math.floor(tick/26)%2)?'#fff':'#9a7c96'; ctx.font='bold 16px monospace'; ctx.fillText('PRESS '+kb('shoot')+' / TAP TO BEGIN', W/2, H/2+72); ctx.textAlign='left'; }

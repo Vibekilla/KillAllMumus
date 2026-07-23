@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function setBind — review required
+func setBind(action, code):
+	 for a in binds){ if(binds[a]==code) binds[a]=''; } binds[action]=code; saveBinds(); rebuildKMAP(); 

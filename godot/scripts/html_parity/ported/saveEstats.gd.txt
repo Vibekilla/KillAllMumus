@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function saveEstats — review required
+func saveEstats():
+	 try{ HtmlBridge.storage_set('bobina_estats', JSON.stringify(estats)); }catch(e){} 

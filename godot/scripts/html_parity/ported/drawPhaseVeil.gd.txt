@@ -1,0 +1,19 @@
+## AUTO-PORTED from HTML function drawPhaseVeil — review required
+func drawPhaseVeil():
+	 var t=tick, pt=player.phaseT, cx=PF.x+PF.w/2, cy=PF.y+PF.h/2;
+	  ctx.save(); ctx.beginPath(); ctx.rect(PF.x,PF.y,PF.w,PF.h); ctx.clip();
+	  ctx.fillStyle='rgba(14,4,34,0.66)'; ctx.fillRect(PF.x,PF.y,PF.w,PF.h);   // deep interdimensional veil — the field recedes into a vague other-reality
+	  var vg=ctx.createRadialGradient(cx,cy,20,cx,cy,maxf(PF.w,PF.h)*0.7);   // violet vignette pulling to the edges
+	  vg.addColorStop(0,'rgba(60,20,90,0)'); vg.addColorStop(1,'rgba(40,8,70,0.5)'); ctx.fillStyle=vg; ctx.fillRect(PF.x,PF.y,PF.w,PF.h);
+	  ctx.globalCompositeOperation='lighter';
+	  ctx.fillStyle='rgba(60,150,255,0.06)'; ctx.fillRect(PF.x,PF.y,PF.w,PF.h);
+	  ctx.strokeStyle='rgba(150,230,255,0.22)'; ctx.lineWidth=1; var sp=(t*4)%40;   // scrolling lane-lines = the "lane change" feel
+	  for(var y=PF.y-40;y<PF.y+PF.h;y+=40){ ctx.beginPath(); ctx.moveTo(PF.x,y+sp); ctx.lineTo(PF.x+PF.w,y+sp); ctx.stroke(); }
+	  ctx.strokeStyle='rgba(185,140,255,0.16)'; var sp2=(t*2.4)%80;   // a second, slower violet lane set for parallax
+	  for(var y=PF.y-80;y<PF.y+PF.h;y+=80){ ctx.beginPath(); ctx.moveTo(PF.x,y+sp2); ctx.lineTo(PF.x+PF.w,y+sp2); ctx.stroke(); }
+	  var edge=(pt>162)?(pt-162)/18:(pt<26)?(1-pt/26):0;   // shear bars sweep in on entry, out on exit
+	  if(edge>0){ for i in range(int(0), int(8)){ var by=PF.y+((i*43+t*13)%PF.h), off=sin(t*0.3+i*1.3)*edge*40; ctx.fillStyle='rgba(120,220,255,'+(0.28*edge)+')'; ctx.fillRect(PF.x+off,by,PF.w,6); } }
+	  ctx.restore(); HtmlBridge.win.__veilRan=(HtmlBridge.win.__veilRan||0)+1;
+	}
+	// Sixth Sense time-warp overlay — cyan wash + ticking clock rings + vignette (fades in/out)
+

@@ -1,0 +1,1 @@
+function killExtend(){ if(run.lives<MAX_LIVES){ run.lives++; sfx('extend'); flashMsg={t:110,txt:'MUMU SLAYER — 1UP!'}; pop(player.x,player.y-32,'1UP','#ff4d8d'); for(let i=0;i<20;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,life:30,c:'#ff6ec7'}); } else { sessionScore+=50000; flashMsg={t:80,txt:'MUMU SLAYER BONUS!'}; } }

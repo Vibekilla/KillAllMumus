@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function enterShop — review required
+func enterShop():
+	 shopReturn='stageclear'; shopSel=0; shopTab='w'; state='shop'; sfx('item'); 

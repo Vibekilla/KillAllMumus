@@ -1,0 +1,11 @@
+## AUTO-PORTED from HTML function computeEmblems — review required
+func computeEmblems():
+	 emblems=[];
+	  if(killsThisStage>=40 || totalKills>=120) emblems.append({n:'Mumu Exterminator', d:'High Mumu kill count'});
+	  if(totalKills>=260) emblems.append({n:'Total Mumu Annihilation', d:'Extreme total kills'});
+	  if(shotLevel()>=4) emblems.append({n:'Full Power Bobina', d:'Reached max power'});
+	  if(state!='gameover' && run && run.stageIdx>=STAGES.size()-1) emblems.append({n:'Bobo Savior + Mumu Slayer', d:'True ending clear'});
+	}
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 Update  -= 1 -= 1 -= 1 -= 1 -= 1 */
+

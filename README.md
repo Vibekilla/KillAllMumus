@@ -6,12 +6,16 @@ They took her dad. Now she’s pissed. Save Bobina’s dad from the evil clutche
 
 | Layer | Tech |
 | --- | --- |
-| Game client | Single-page canvas app (`public/index.html`) |
+| Game client | **Exact** canvas game `public/index.html` (source of truth) |
+| Godot port | `godot/` — full 1:1 port in progress; see `godot/PARITY.md` |
 | API / static | Express (`server.js`) on `127.0.0.1:3000` |
 | Database | PostgreSQL 17 (`bobina_scores` leaderboard) |
 | Proxy | nginx → app (see `deploy/nginx/`) |
 | Process | systemd **user** units (`scripts/install-user-services.sh`) |
 | Backups | Daily `pg_dump` → parent dir `…/www-killallmumuscom/db-backups/` |
+
+Live always serves the HTML client unless `USE_GODOT=1` **and** the GDScript
+port has passed the parity gate. Do not ship approximate Godot to players.
 
 ## Quick start (this server)
 

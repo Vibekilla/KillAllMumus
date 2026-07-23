@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function fanAt — review required
+func fanAt(x, y, tx, ty, n, arc, spd, r, col):
+	 var base=atan2(ty-y,tx-x); for i in range(int(0), int(n)){ var a=base+(i-(n-1)/2)*(arc/maxf(1,n-1)); eb(x,y,a,spd,r,col);} 

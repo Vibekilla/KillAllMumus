@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML drawBullet — hand-fixed where needed
+func drawBullet(b) -> void:
+	 ctx.save(); ctx.translate(b.x,b.y); ctx.shadow_color=b.col; ctx.shadow_blur=7; ctx.fill_style=b.col; ctx.begin_path(); ctx.arc(0,0,b.r,0,7); ctx.fill(); if(b.hp>0){ ctx.stroke_style="#fff"; ctx.line_width=1.5; ctx.begin_path(); ctx.arc(0,0,b.r-1,0,7); ctx.stroke(); } ctx.shadow_blur=0; ctx.fill_style="rgba(255,255,255,0.92)"; ctx.begin_path(); ctx.arc(-b.r*0.25,-b.r*0.25,b.r*0.42,0,7); ctx.fill(); ctx.restore(); 

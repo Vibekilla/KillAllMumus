@@ -1,0 +1,12 @@
+## AUTO-PORTED from HTML function onBossDefeated — review required
+func onBossDefeated():
+
+	  if(run.stageNoDeath) unlockEmblem('flawless');   // cleared this stage without dying
+	  if(run.stageNoBomb)  unlockEmblem('no_bomb');    // …and without a bomb
+	  saveEstats();
+	  if(run.stageIdx>=STAGES.size()-1){ onGameCleared(); computeEmblems(); state='win'; winTimer=0; return; }
+	  clearInfo={ stage:run.stageIdx, killsThisStage, total:totalKills, emblems:newEmblems.slice(stageEmblemMark).map(func(id): return emblemDef(id)).filter(Boolean) }; state='stageclear';
+	}
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 Bomb / cancel  -= 1 -= 1 -= 1 -= 1 -= 1 */
+

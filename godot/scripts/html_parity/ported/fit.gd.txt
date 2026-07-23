@@ -1,0 +1,15 @@
+## AUTO-PORTED from HTML function fit — review required
+func fit():
+	 var vv=HtmlBridge.win.visualViewport; var vw=vv?vv.width:HtmlBridge.win.innerWidth, vh=vv?vv.height:HtmlBridge.win.innerHeight;
+	  var wantP = false;   // mobile is landscape-only (portrait shows the rotate prompt) — the HUD control panel lives in the landscape layout
+	  if(wantP!=portrait || cv.width!=(wantP?540:960)){ applyLayout(wantP, vw, vh); }
+	  var s=minf(vw/W, vh/H)*(typeof displayScale=="number"?displayScale:1); var cwv=roundf(W*s), chv=roundf(H*s);
+	  cv.style.width=cwv+'px'; cv.style.height=chv+'px';
+	  var r=HtmlBridge.doc.documentElement.style; r.setProperty(' -= 1mx', maxf(0,(vw-cwv)/2)+'px'); r.setProperty(' -= 1my', maxf(0,(vh-chv)/2)+'px');
+	  HtmlBridge.doc.body.classList.toggle('portrait', portrait); }
+	HtmlBridge.add_listener('resize',fit); HtmlBridge.add_listener('orientationchange',()=>setTimeout(fit,120));
+	if(HtmlBridge.win.visualViewport){ HtmlBridge.win.visualViewport.HtmlBridge.add_listener('resize',fit); HtmlBridge.win.visualViewport.HtmlBridge.add_listener('scroll',fit); }
+	fit();
+
+	//  -= 1 -= 1 Display settings (resolution scale, sim Hz, debug, fullscreen)  -= 1 -= 1
+

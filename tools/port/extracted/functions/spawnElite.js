@@ -1,0 +1,1 @@
+function spawnElite(x){ const s=run?Math.min(6,run.stageIdx):0; enemies.push({kind:'elite', elite:ELITE_KIND[s], x, y:PF.y-40, vx:0, vy:0.5+s*0.05, r:30, hp:Math.round(ELITE_HP[s]*1.3*(1+(hardMode?0.45:0))*(1+s*0.05)), t:0, flash:0, hover:PF.y+90+Math.random()*70, bcol:ELITE_BCOL[s], icy:false}); }

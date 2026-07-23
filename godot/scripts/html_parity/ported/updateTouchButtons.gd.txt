@@ -1,0 +1,16 @@
+## AUTO-PORTED from HTML function updateTouchButtons — review required
+func updateTouchButtons():
+	 if(!run) return;
+	  var sb=btnEls.special; if(sb){ var ready=run.special>=100; var l=ready?'★<br>USE!':('★<br><small>'+floorf(run.special)+'%</small>');
+	    if(sb._l!=l){ sb._l=l; sb.innerHTML=l; } if(sb._r!=ready){ sb._r=ready; sb.classList.toggle('ready',ready); } }
+	  var bb=btnEls.bomb; if(bb){ var l='✸<br><small>×'+run.bombs+'</small>'; if(bb._l!=l){ bb._l=l; bb.innerHTML=l; } }
+	  var wb=btnEls.swap; if(wb){ var wp=WEAPONS[run.weapon], l=(wp?wp.icon:'⇄')+'<br>SWAP'; if(wb._l!=l){ wb._l=l; wb.innerHTML=l; } }
+	  var fb=btnEls.fire; if(fb){ var l=autoFire?'🔥<br>FIRE':'🔥<br><small>OFF</small>'; if(fb._l!=l){ fb._l=l; fb.innerHTML=l; } if(fb._o!=autoFire){ fb._o=autoFire; fb.classList.toggle('off',!autoFire); } }
+	  var mb=btnEls.melee; if(mb && player){ var m=MELEE[player.melee||0]||MELEE[0], chg=(player.meleeHeld?(player.meleeChg||0):0); var l=(m.icon||'⚔')+'<br>'+(chg>0?('<small>'+roundf(chg*100)+'%</small>'):'MELEE'); if(mb._l!=l){ mb._l=l; mb.innerHTML=l; } }
+	  var cs=btnEls.meleeswap; if(cs && player){ var nm=MELEE[((player.melee||0)+1)%MELEE.size()]; var l=(nm.icon||'🗡')+'<br><small>MEL⇄</small>'; if(cs._l!=l){ cs._l=l; cs.innerHTML=l; } } }
+	// pause button (mobile)
+	(function(){ var pb=HtmlBridge.doc.getElementById('pausebtn'); if(!pb)return;
+	  var tap=func(e): return { e.preventDefault(); if(state=='play') paused=!paused; };
+	  pb.HtmlBridge.add_listener('touchstart',tap,{passive:false}); pb.HtmlBridge.add_listener('click',tap); })();
+	// PAUSE overlay — tap anywhere / RESUME to un-pause (no return-to-menu here)
+

@@ -1,0 +1,1 @@
+[ { key:'blast', name:'Bobina Blast', icon:'✸', col:'#ff8ad6', desc:'Clears every bullet on screen, hits all enemies + the boss, and grants brief invincibility.' } ]

@@ -1,0 +1,1 @@
+function drawHeart(x,y,r){ ctx.fillStyle='#ff4d8d'; ctx.beginPath(); ctx.moveTo(x,y+r*0.3); ctx.bezierCurveTo(x,y-r*0.5,x-r,y-r*0.5,x-r,y+r*0.1); ctx.bezierCurveTo(x-r,y+r*0.7,x,y+r,x,y+r*1.3); ctx.bezierCurveTo(x,y+r,x+r,y+r*0.7,x+r,y+r*0.1); ctx.bezierCurveTo(x+r,y-r*0.5,x,y-r*0.5,x,y+r*0.3); ctx.fill(); }

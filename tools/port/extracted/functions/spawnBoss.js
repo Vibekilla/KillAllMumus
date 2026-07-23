@@ -1,0 +1,13 @@
+function spawnBoss(){
+  const bd=STAGES[run.stageIdx].boss;
+  // bosses are ~2x tougher, and progressively harder each stage
+  const hp=Math.round(bd.hp * (2.1 + run.stageIdx*0.07));   // fiercer bosses — a touch more HP, scaling harder through the stages
+  boss={ x:PF.x+PF.w/2, y:PF.y-40, tx:PF.x+PF.w/2, ty:PF.y+110, r:38, hp, maxhp:hp,
+         phase:0, phases:3, t:0, spin:0, flash:0, intro:9999, introDlg:true, dead:false, deadT:0, data:bd, specialUsed:false, specialT:0 };
+  if(bd.twin){ const th=Math.round(hp*0.6);   // two-stage boss: each twin has his own HP pool; you must beat BOTH
+    boss.twin=true; boss.phases=1; boss.specialUsed=true;   // no generic phase-shifts / special — the twins have their own act
+    boss.tw={ igor:{hp:th,max:th,done:false}, grichka:{hp:th,max:th,done:false} };
+    boss.active='igor'; boss.hp=th; boss.maxhp=th; boss.swapCd=420+((Math.random()*180)|0); boss.hudName='Igor Bogdanoff'; }
+  startDialog(bd.intro, bd);
+  sfx('card');
+}

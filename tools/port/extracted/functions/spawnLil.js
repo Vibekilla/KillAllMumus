@@ -1,0 +1,1 @@
+function spawnLil(x,y,vx,vy,icy){ const d=run?run.stageIdx:0; enemies.push({kind:'lil',x,y,vx:vx*(1+d*0.1),vy:vy*(1+d*0.14),r:15,hp:Math.round((icy?3:2)*(1+d*0.45)),icy:!!icy,t:(Math.random()*100)|0,flash:0}); }

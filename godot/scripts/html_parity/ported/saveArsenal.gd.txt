@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function saveArsenal — review required
+func saveArsenal():
+	 try{ HtmlBridge.storage_set('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){} 

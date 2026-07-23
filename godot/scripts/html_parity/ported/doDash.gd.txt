@@ -1,0 +1,15 @@
+## AUTO-PORTED from HTML function doDash — review required
+func doDash():
+	 var p=player; if(!p||p.dead||p.dash>0||p.dashCd>0) return;
+	  estats.dashes=(estats.dashes||0)+1; if(estats.dashes>=50) unlockEmblem('dash_50'); saveEstats();
+	  var ang=(p.face!=null?p.face:-PI/2);
+	  if(!isTouch && (mouse.x||mouse.y)){ var dx=mouse.x-p.x, dy=mouse.y-p.y; if(sqrt_sum_sq(dx,dy)>8) ang=atan2(dy,dx); }   // dash where the pointer is
+	  var slash=(p.meleeHeld && (p.meleeChg||0)>=0.99);   // hold SPACE to full charge, then double-tap SHIFT → SLASH DASH
+	  p.dash=slash?16:12; p.dashAng=ang; p.dashCd=slash?52:40; p.iframe=maxf(p.iframe, slash?22:15); p.trail=[]; p.slashDash=slash;
+	  var oc=outfitColors();
+	  if(slash){ p.meleeHeld=false; p.meleeChg=0; p.meleeCd=maxf(p.meleeCd,24); flashMsg={t:42,txt:'✦ SLASH DASH!'}; unlockEmblem('slash_dash');
+	    doMeleeSwipe(1.0, ang); screenShake=maxf(screenShake,6); sfx('card'); sfx(MELEE[p.melee||0].snd||'slash'); }
+	  else { sfx('graze'); sfx('power'); }
+	  for i in range(int(0), int((slash?24:14))) particles.append({x:p.x,y:p.y,vx:-cos(ang)*4+(randf()-.5)*(slash?3.6:2.5),vy:-sin(ang)*4+(randf()-.5)*(slash?3.6:2.5),life:18,c:i%2?oc[0]:oc[1]}); }
+	// small rainbow explosion where the dash touches down
+

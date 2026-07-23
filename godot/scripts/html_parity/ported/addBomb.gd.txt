@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function addBomb — review required
+func addBomb(def):
+	 BOMBS.append(def); return BOMBS.size()-1; 

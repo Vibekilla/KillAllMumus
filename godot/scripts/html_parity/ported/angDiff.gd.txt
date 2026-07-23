@@ -1,0 +1,13 @@
+## AUTO-PORTED from HTML function angDiff — review required
+func angDiff(a, b):
+	 var d=(a-b)%(PI*2); if(d>PI)d-=PI*2; if(d<-PI)d+=PI*2; return absf(d); }
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 State  -= 1 -= 1 -= 1 -= 1 -= 1 */
+	var state='title', paused=false, tick=0, hardMode=false;
+	var titleIdleT=0; function bumpIdle(){ titleIdleT=0; }   // AFK timer for the title-screen easter egg
+	//  -= 1 -= 1 difficulty tiers + New Game+ + persistent unlocks  -= 1 -= 1
+	var hellMode=false, difficulty=0, ngPlus=0, ngUnlocked=0, hellCleared=false, winCabalUnlock=false, winNgLv=0;
+	try{ ngUnlocked=minf(100, int(HtmlBridge.storage_get('bobina_ngunlocked'))||0); hellCleared=HtmlBridge.storage_get('bobina_hellclear')=='1'; }catch(e){}   // NG+ hard-capped at 100
+	// remember the player's last difficulty + NG+ level across sessions (outfit + settings already persist)
+	try{ difficulty=maxf(0,minf(2,int(HtmlBridge.storage_get('bobina_difficulty'))||0)); }catch(e){}
+	try{ ngPlus=maxf(0,minf(ngUnlocked,int(HtmlBridge.storage_get('bobina_nglevel'))||0)); }catch(e){

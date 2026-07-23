@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function bodyCtr — review required
+func bodyCtr(p):
+	 var r=(p.face!=null?p.face:-PI/2)+PI/2; return { x:p.x-sin(r)*16, y:(p.y-16)+cos(r)*16 }; }
+	// Wormhole phase veil — dims the field into a vague "alt reality" with scrolling lane-lines + entry/exit shear bars
+

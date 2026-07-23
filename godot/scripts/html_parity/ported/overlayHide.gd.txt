@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function overlayHide — review required
+func overlayHide(el):
+	 if(el._shown!=false){ el.style.display='none'; el._shown=false; } 

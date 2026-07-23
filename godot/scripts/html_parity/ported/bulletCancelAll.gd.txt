@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function bulletCancelAll — review required
+func bulletCancelAll():
+	 var pts=0; for b in bullets){ floaters.append({x:b.x,y:b.y,life:22,vy:-0.6,scale:0.42}); if(pts<40){ dropItem(b.x,b.y,'point'); pts += 1; } } bullets=[]; }
+	// sweep any leftover wave enemies (used when a boss's intro ends) — burst them for points so the boss starts on a clean arena
+

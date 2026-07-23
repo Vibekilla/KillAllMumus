@@ -1,0 +1,8 @@
+## AUTO-PORTED from HTML function saveConsum — review required
+func saveConsum():
+	 try{ HtmlBridge.storage_set('bobina_consum', JSON.stringify(consumInv)); }catch(e){} }
+
+	// ====== CLOUD PROGRESS (Bobina-linked accounts) ======
+	// Mirrors all game mechanics into Postgres for signed-in bc_id users.
+	var _cloudTimer=null, _cloudBusy=false, _cloudReady=false, _cloudPullDone=false;
+

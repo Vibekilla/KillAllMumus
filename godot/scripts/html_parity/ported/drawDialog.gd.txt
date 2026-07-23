@@ -1,0 +1,20 @@
+## AUTO-PORTED from HTML function drawDialog — review required
+func drawDialog():
+	 var d=dialog; if(!d)return; var cur=d.queue[d.i]; if(!cur)return; var bd=d.boss;
+	  var x=PF.x+8, w=PF.w-16, lh=16;
+	  // per-speaker styling: 0 = boss, 2 = the Devil, else = Bobina
+	  var cfg;
+	  if(cur.w==0) cfg={portrait:bd.portrait,pcol:bd.color,name:bd.name,title:bd.title,bg:'rgba(12,6,16,0.9)',stroke:bd.color,ncol:bd.color,tcol:'#c8b0c4',txt:'#fff',glow:null};
+	  else if(cur.w==2) cfg={portrait:'devil',pcol:'#ff3b1a',name:'The Devil',title:'Collector of Debts',bg:'rgba(24,4,4,0.94)',stroke:'#ff3b1a',ncol:'#ff7a3a',tcol:'#d0a0a0',txt:'#ffdccc',glow:'#ff2a00'};
+	  else cfg={portrait:'bobina',pcol:'#ff6ec7',name:'Bobina',title:'Danmaku Bear',bg:'rgba(22,8,20,0.92)',stroke:'#ff6ec7',ncol:'#ff9ecb',tcol:'#c8b0c4',txt:'#fff',glow:null};
+	  // measure text so the box GROWS (upward) to fit — long lines like Wynn's rant no longer overflow the bottom
+	  var lines=wrapLines('“'+cur.t+'”', w-92);
+	  var h=maxf(88, 52 + lines.size()*lh);         // header (~y+38) + a gap, then every wrapped line
+	  var y=PF.y+PF.h-8-h;                                // pinned to the same bottom edge, extends up as needed
+	  ctx.fillStyle=cfg.bg; ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill();
+	  ctx.strokeStyle=cfg.stroke; ctx.lineWidth=2; if(cfg.glow){ctx.shadowColor=cfg.glow;ctx.shadowBlur=14;} ctx.stroke(); ctx.shadowBlur=0;
+	  drawPortraitBust(x+40,y+h/2,58,cfg.portrait,cfg.pcol); ctx.textAlign='left';
+	  ctx.fillStyle=cfg.ncol; ctx.font='bold 15px "Trebuchet MS"'; ctx.fillText(cfg.name, x+80, y+22);
+	  ctx.fillStyle=cfg.tcol; ctx.font='italic 12px "Trebuchet MS"'; ctx.fillText(cfg.title, x+80, y+38);
+	  ctx.fillStyle=cfg.txt; ctx.font='bold 14px "Trebuchet MS"'; var ty=y+56; for ln in lines){ ctx.fillText(ln, x+80, ty); ty+=lh; }
+

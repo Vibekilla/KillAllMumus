@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function consumById — review required
+func consumById(k):
+	 return CONSUMABLES.find(func(c): return c.key==k); 

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function applyMusicVol — review required
+func applyMusicVol():
+	 if(ytReady&&ytPlayer){ try{ ytPlayer.setVolume(roundf(musicVol*100)); }catch(e){} } 

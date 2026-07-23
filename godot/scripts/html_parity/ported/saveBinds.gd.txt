@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function saveBinds — review required
+func saveBinds():
+	 try{ HtmlBridge.storage_set('bobina_binds', JSON.stringify(binds)); }catch(e){} 

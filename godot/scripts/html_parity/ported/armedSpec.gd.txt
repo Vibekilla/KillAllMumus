@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function armedSpec — review required
+func armedSpec():
+	 if(!run||!run.specials||!run.specials.size()) return null; return SPECIALS.find(func(s): return s.key==run.specials[run.armed%run.specials.size()])||null; 

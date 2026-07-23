@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function rebuildKMAP — review required
+func rebuildKMAP():
+	 KMAP={}.merge(FIXED_KMAP); for a in binds){ if(binds[a]) KMAP[binds[a]]=a; } 

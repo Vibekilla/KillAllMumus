@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function specialButton — review required
+func specialButton():
+	 useSpecial(); 

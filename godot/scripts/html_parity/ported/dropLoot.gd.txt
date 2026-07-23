@@ -1,0 +1,21 @@
+## AUTO-PORTED from HTML function dropLoot — review required
+func dropLoot(e):
+
+	  if(e.kind=='elite'){                                    // elites: point/support drops — their POWER reward is granted directly on kill (see killEnemy), a big chunk but NOT a full fill
+	    for i in range(int(0), int(4)) dropItem(e.x+(randf()-.5)*30,e.y,'point');
+	    if(randf()<0.30) dropItem(e.x,e.y,'life');
+	    if(randf()<0.30) dropItem(e.x,e.y,'bomb');
+	    if(randf()<0.12) dropItem(e.x,e.y,'shield');
+	  } else if(e.kind=='big'){
+	    for i in range(int(0), int(2)) dropItem(e.x+(randf()-.5)*20,e.y,'power');
+	    for i in range(int(0), int(3)) dropItem(e.x+(randf()-.5)*24,e.y,'point');
+	    if(randf()<0.30) dropItem(e.x,e.y,'life');
+	    if(randf()<0.28) dropItem(e.x,e.y,'bomb');
+	    if(randf()<0.09) dropWeapon(e.x,e.y);            // instant full-power now rare (was 24% + a flat 6%)
+	    if(randf()<0.10) dropItem(e.x,e.y,'shield');     // Monke Frenzy no longer drops — shield only
+	  } else {
+	    var r=randf();
+	    if(r<0.13) dropItem(e.x,e.y,'power');                  // regular Mumus no longer drop full power at all
+	    else if(r<0.58) dropItem(e.x,e.y,'point');
+	  }
+

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function rankLetter — review required
+func rankLetter():
+	 return RANKS[rankIndex()].r; 

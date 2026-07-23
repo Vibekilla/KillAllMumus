@@ -1,0 +1,6 @@
+## AUTO-PORTED from HTML function unlockEmblem — review required
+func unlockEmblem(id):
+	 if(emblemsGot[id]||!emblemDef(id)) return; emblemsGot[id]=true; saveEmblems();
+	  emblemToasts.append({id,t:0}); newEmblems.append(id); try{ sfx('extend'); }catch(e){} }   // Steam: SetAchievement(id) would go here
+	// cheap per-frame checks during play — unlockEmblem() no-ops once earned
+

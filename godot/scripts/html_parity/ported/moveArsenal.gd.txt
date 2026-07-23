@@ -1,0 +1,7 @@
+## AUTO-PORTED from HTML function moveArsenal — review required
+func moveArsenal(type, key, dir):
+	   // shift an item's position in the cycle order (customize loadout order)
+	  var arr=arsArr(type), i=arr.find(key), j=i+dir;
+	  if(i<0||j<0||j>=arr.size()){ sfx('hit'); return; }
+	  var t=arr[i]; arr[i]=arr[j]; arr[j]=t; sfx('item'); saveArsenal(); if(run) applyArsenalToRun();
+

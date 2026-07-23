@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function pauseReturnMenu — review required
+func pauseReturnMenu(e):
+	 if(e){ e.preventDefault(); e.stopPropagation(); } paused=false; state='title'; menuBtn=null; ngPlus=minf(ngPlus,ngUnlocked); try{ sfx('item'); }catch(_){} }
+	// keep the pause-menu sliders in sync with the live values every time the menu opens
+

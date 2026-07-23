@@ -1,0 +1,11 @@
+{
+  "MAX_LIVES": 9,
+  "KILL_EXTEND": 50,
+  "MAX_NG": 100,
+  "YT_ID": "rPjez8z61rI",
+  "EXTEND_SCORES": [
+    300000,
+    800000,
+    1600000
+  ]
+}

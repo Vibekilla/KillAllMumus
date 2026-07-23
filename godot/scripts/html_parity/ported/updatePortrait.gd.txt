@@ -1,0 +1,13 @@
+## AUTO-PORTED from HTML function updatePortrait — review required
+func updatePortrait():
+	 /* gif reactions now show in the unified dialogue bar; gif <img>s stay rendered so drawImage animates */ }
+	var HURT_LINES=['Ngh—!','Ow!','Tch—!','That stings!','Is that all?!','Not today!',
+	  'Rugged?! Never!','Down bad — not down out.','That’s a dip, not a top.','Cope — I respawn.','Paper hands? Me? Never.',
+	  'Buy the dip… of my HP.','Bobo needs me — get up!','Not my final form.','Comeback loading…','You call that a candle?',
+	  'Diamond paws, diamond will.','Ref, that was a foul!','Ugh, gas fees hurt less.','I’ve seen redder charts.',
+	  // non-crypto — funny / philosophical
+	  'Pain is just spicy feedback.','That’ll buff out.','Ow. Anyway.','Is this character development?','Respawning builds character.',
+	  'I meant to do that.','The bear abides.','A bear’s gotta bear.','Owie. Noted.',
+	  'The universe is testing me. Rude.','Plot twist incoming.','Bonk taken, grudge kept.',
+	  'What doesn’t kill me respawns me.','Tis but a scratch.','I’ll allow it. Once.','Gravity, my old nemesis.'];
+

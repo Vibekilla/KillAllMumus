@@ -1,0 +1,528 @@
+extends RefCounted
+## 1:1 port of HTML drawFx
+
+var ctx
+var tick: int = 0
+var selected_outfit: String = "og"
+var EAR_HIDE := {
+	"neko": true, "monke": true, "kigurumi": true, "cheese": true, "cabal": true,
+	"badger": true, "viking": true, "samurai": true, "bullbina": true, "jester": true,
+	"succubus": true, "squirrely": true, "banana": true
+}
+var _armCol = "#5f3823"
+var _armW: float = 3.8
+var _handCols = null
+var _hold = null
+var _armSw: float = 0.0
+var _sBob: float = 0.0
+
+func setup(c) -> void:
+	ctx = c
+
+func set_tick(t: int) -> void:
+	tick = t
+
+func set_outfit(o: String) -> void:
+	selected_outfit = o
+
+func p_orb(x, y, glow, c1, c2) -> void:
+	ctx.save()
+	ctx.translate(float(x), float(y))
+	ctx.global_alpha(0.55)
+	ctx.fill_style(str(glow))
+	ctx.begin_path()
+	ctx.arc(0, 0, 5.5, 0, TAU)
+	ctx.fill()
+	ctx.global_alpha(1.0)
+	ctx.fill_style(str(c1))
+	ctx.begin_path()
+	ctx.arc(0, 0, 3.2, 0, TAU)
+	ctx.fill()
+	ctx.fill_style(str(c2))
+	ctx.begin_path()
+	ctx.arc(-0.8, -0.8, 1.2, 0, TAU)
+	ctx.fill()
+	ctx.restore()
+
+func draw_circle_helper(x, y, r, col) -> void:
+	ctx.fill_style(col)
+	ctx.begin_path()
+	ctx.arc(float(x), float(y), float(r), 0, TAU)
+	ctx.fill()
+
+func _hexA(h, a) -> String:
+	var c: Array = _hexRgb(h)
+	return "rgba(%d,%d,%d,%s)" % [int(c[0]), int(c[1]), int(c[2]), str(a)]
+
+func _hexRgb(h) -> Array:
+	var s := str(h if h != null else "#fff").replace("#", "")
+	if s.length() == 3:
+		s = s[0] + s[0] + s[1] + s[1] + s[2] + s[2]
+	var n := s.hex_to_int()
+	return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+
+func _rgbHue(r, g, b) -> float:
+	r = float(r) / 255.0
+	g = float(g) / 255.0
+	b = float(b) / 255.0
+	var mx := maxf(r, maxf(g, b))
+	var mn := minf(r, minf(g, b))
+	var d := mx - mn
+	if d < 0.0001:
+		return 0.0
+	var hh := 0.0
+	if is_equal_approx(mx, r):
+		hh = fmod(((g - b) / d), 6.0)
+	elif is_equal_approx(mx, g):
+		hh = (b - r) / d + 2.0
+	else:
+		hh = (r - g) / d + 4.0
+	return hh * 60.0
+
+
+func drawFx() -> void:
+	for f in fx:
+		if f.type == "laser":
+			var px = (player.x if ((f.x if (isFinite(f.x) ) else player )) else PF.x + PF.w / 2)
+			var py = (player.y if ((f.y if (isFinite(f.y) ) else player )) else PF.y + PF.h - 70)
+			var ang = (f.ang if (isFinite(f.ang) ) else -PI / 2)
+			ctx.save()
+			ctx.begin_path()
+			ctx.rect(PF.x, PF.y, PF.w, PF.h)
+			ctx.clip()
+			ctx.translate(px, py)
+			ctx.rotate(ang + PI / 2)
+			var L = PF.w + PF.h
+			var hw = f.w / 2
+			ctx.global_alpha(0.85 * minf(1, (64 - f.t) / 6) * minf(1, f.t / 12))
+			var g = ctx.createLinearGradient(-hw, 0, hw, 0)
+			# gradient API skipped
+			# gradient API skipped
+			# gradient API skipped
+			ctx.fill_style(g)
+			ctx.fill_rect(-hw, -L, f.w, L)
+			ctx.fill_style("rgba(236,220,255,0.95)")
+			ctx.fill_rect(-4, -L, 8, L)
+			ctx.restore()
+		elif f.type == "mech":
+			var fade = ((240 - f.t) / 30 if ((f.t / 40 if (f.t < 40 ) else f.t > 210 )) else 1)
+			# TODO_PORT: drawMech(
+			# TODO_PORT: f.x, f.y, fade, (f.face !== undefined ? f.face : -Math.PI / 2) + Math.PI / 2, )
+			if player  and  !player.dead:
+				var _sc = bodyCtr(player)
+				ctx.save()
+				ctx.global_composite_operation("lighter")
+				ctx.translate(_sc.x, _sc.y)
+				ctx.global_alpha(0.6 * fade)
+				ctx.stroke_style("#8fb8ff")
+				ctx.line_width(2.4)
+				ctx.shadow_color("#8fb8ff")
+				ctx.shadow_blur(12)
+				ctx.begin_path()
+				ctx.arc(0, 0, 27, 0, 7)
+				ctx.stroke()
+				ctx.stroke_style("rgba(220,235,255,0.7)")
+				ctx.line_width(1)
+				for i in range(int(0), int(5)):
+					var a = tick * 0.06 + i * 1.257
+					ctx.begin_path()
+					ctx.arc(0, 0, 27, a, a + 0.4)
+					ctx.stroke()
+				ctx.restore()
+				ctx.global_alpha(1)
+		elif f.type == "bearzooka":
+			pass
+			# TODO_PORT: drawMech(
+			# TODO_PORT: f.x, f.y, Math.min(1, f.t / 20) * Math.min(1, (156 - f.t) / 12), Math.PI * 0.5, )
+		elif f.type == "bombdrop":
+			ctx.save()
+			ctx.translate(f.x, f.y)
+			ctx.fill_style("rgba(255,170,60,0.75)")
+			ctx.begin_path()
+			ctx.move_to(-3.5, 7)
+			ctx.line_to(0, 16 + sin(tick * 0.5) * 3)
+			ctx.line_to(3.5, 7)
+			ctx.close_path()
+			ctx.fill()
+			ctx.fill_style("#33333c")
+			ctx.begin_path()
+			ctx.ellipse(0, 0, 5, 8.5, 0, 0, 7)
+			ctx.fill()
+			ctx.fill_style("#8a8a95")
+			ctx.begin_path()
+			ctx.ellipse(-1.6, -2, 1.6, 3, 0, 0, 7)
+			ctx.fill()
+			ctx.fill_style("#ffb04a")
+			ctx.begin_path()
+			ctx.move_to(-4.5, -6.5)
+			ctx.line_to(0, -13)
+			ctx.line_to(4.5, -6.5)
+			ctx.close_path()
+			ctx.fill()
+			ctx.fill_style(("#fff" if (tick % 4 < 2 ) else "#ff6a2a"))
+			ctx.begin_path()
+			ctx.arc(0, -13, 1.4, 0, 7)
+			ctx.fill()
+			ctx.restore()
+		elif f.type == "blackhole":
+			var t = tick
+			var R = 15 + (f.get("r", 0))
+			ctx.save()
+			ctx.global_composite_operation("lighter")
+			ctx.translate(f.x, f.y)
+			var g = ctx.createRadialGradient(0, 0, 4, 0, 0, 64)
+			# gradient API skipped
+			# gradient API skipped
+			# gradient API skipped
+			ctx.fill_style(g)
+			ctx.begin_path()
+			ctx.arc(0, 0, 64, 0, 7)
+			ctx.fill()
+			for k in range(int(0), int(5)):
+				var rr = 8 + k * 7
+				var a0 = (1 if (t * 0.16 * (k % 2 ) else -1)) + k * 1.3
+				ctx.stroke_style("rgba(90,235,140," + str(0.55 - k * 0.08) + ")")
+				ctx.line_width(2.6 - k * 0.35)
+				ctx.begin_path()
+				ctx.arc(0, 0, rr, a0, a0 + 3.6)
+				ctx.stroke()
+			ctx.restore()
+			ctx.save()
+			ctx.translate(f.x, f.y)
+			ctx.fill_style("#04160b")
+			ctx.begin_path()
+			ctx.arc(0, 0, f.get("r", 8), 0, 7)
+			ctx.fill()
+			ctx.stroke_style("#3ae66a")
+			ctx.line_width(1.6)
+			ctx.stroke()
+			ctx.restore()
+		elif f.type == "wave":
+			if f.delay > 0:
+				continue
+			ctx.save()
+			ctx.global_alpha(maxf(0, 1 - f.r / PF.w))
+			ctx.stroke_style("#ffd27a")
+			ctx.line_width(5)
+			ctx.shadow_color("#ffd27a")
+			ctx.shadow_blur(14)
+			ctx.begin_path()
+			ctx.arc(f.x, f.y, f.r, 0, 7)
+			ctx.stroke()
+			ctx.stroke_style("#fff")
+			ctx.line_width(2)
+			ctx.begin_path()
+			ctx.arc(f.x, f.y, f.r, 0, 7)
+			ctx.stroke()
+			ctx.restore()
+		elif f.type == "bull":
+			ctx.save()
+			ctx.translate(f.x, f.y)
+			ctx.global_alpha(minf(1, f.t / 12))
+			ctx.fill_style("rgba(191,230,160,0.5)")
+			for i in range(int(0), int(3)):
+				ctx.begin_path()
+				ctx.arc(-7 + i * 7, 14 + ((f.t * 3 + i * 9) % 10), 2.4, 0, 7)
+				ctx.fill()
+			ctx.save()
+			ctx.shadow_color("#7ed957")
+			ctx.shadow_blur(14)
+			ctx.fill_style("#7ed957")
+			ctx.begin_path()
+			ctx.ellipse(0, 0, 15, 11, 0, 0, 7)
+			ctx.fill()
+			ctx.begin_path()
+			ctx.ellipse(0, -11, 8.5, 7.5, 0, 0, 7)
+			ctx.fill()
+			ctx.fill_style("#d6ffa8")
+			ctx.begin_path()
+			ctx.move_to(-6, -16)
+			ctx.line_to(-11, -23)
+			ctx.line_to(-2, -17)
+			ctx.close_path()
+			ctx.fill()
+			ctx.begin_path()
+			ctx.move_to(6, -16)
+			ctx.line_to(11, -23)
+			ctx.line_to(2, -17)
+			ctx.close_path()
+			ctx.fill()
+			ctx.fill_style("#c0202a")
+			draw_circle_helper(-3, -11, 1.6, "#c0202a")
+			draw_circle_helper(3, -11, 1.6, "#c0202a")
+			ctx.restore()
+			ctx.restore()
+		elif f.type == "badger":
+			ctx.save()
+			ctx.translate(f.x, f.y)
+			ctx.scale(f.dir, 1)
+			ctx.global_alpha(minf(1, f.t / 12))
+			# honey dust trail
+			ctx.fill_style("rgba(240,176,48,0.5)")
+			for i in range(int(0), int(4)):
+				ctx.begin_path()
+				ctx.arc(-18 - i * 6, 6 + ((f.t * 3 + i * 7) % 8), 2.6, 0, 7)
+				ctx.fill()
+			ctx.save()
+			ctx.shadow_color("#f0b030")
+			ctx.shadow_blur(12)
+			# legs pumping + pale paws
+			ctx.fill_style("#20201c")
+			ctx.begin_path()
+			ctx.ellipse(-7, 10, 3, 4, 0, 0, 7)
+			ctx.ellipse(7, 10, 3, 4, 0, 0, 7)
+			ctx.fill()
+			var lp = sin(f.t * 0.7) * 1.6
+			ctx.fill_style("#c9b48a")
+			ctx.begin_path()
+			ctx.ellipse(-7 + lp, 13, 2.2, 1.5, 0, 0, 7)
+			ctx.ellipse(7 - lp, 13, 2.2, 1.5, 0, 0, 7)
+			ctx.fill()
+			# dark underside + pale badger mantle
+			ctx.fill_style("#221f18")
+			ctx.begin_path()
+			ctx.ellipse(0, 4, 21, 9, 0, 0, 7)
+			ctx.fill()
+			ctx.fill_style("#dcd6c6")
+			ctx.begin_path()
+			ctx.ellipse(-2, -2, 20, 8, 0, 0, 7)
+			ctx.fill()
+			# head (dark)
+			ctx.fill_style("#1c1a16")
+			ctx.begin_path()
+			ctx.ellipse(17, 1, 9.5, 8, 0, 0, 7)
+			ctx.fill()
+			# signature white face stripe
+			ctx.fill_style("#f4efe6")
+			ctx.begin_path()
+			ctx.move_to(9, -6)
+			ctx.line_to(25, -6)
+			ctx.line_to(25, -2.5)
+			ctx.line_to(9, -2.5)
+			ctx.close_path()
+			ctx.fill()
+			# rounded ear
+			ctx.fill_style("#1c1a16")
+			ctx.begin_path()
+			ctx.arc(12, -7, 2.6, 0, 7)
+			ctx.fill()
+			# eye
+			ctx.fill_style("#fff")
+			draw_circle_helper(19, -0.5, 1.5, "#fff")
+			ctx.fill_style("#100c08")
+			draw_circle_helper(19.6, -0.5, 0.8, "#100c08")
+			# snout + nose
+			ctx.fill_style("#efe8db")
+			ctx.begin_path()
+			ctx.ellipse(25, 2, 3.4, 3, 0, 0, 7)
+			ctx.fill()
+			ctx.fill_style("#100c08")
+			ctx.begin_path()
+			ctx.ellipse(27.4, 2, 1.6, 1.3, 0, 0, 7)
+			ctx.fill()
+			# fearless snarl + fang
+			ctx.fill_style("#7a1c22")
+			ctx.begin_path()
+			ctx.ellipse(24.5, 5, 2.2, 1.4, 0, 0, 7)
+			ctx.fill()
+			ctx.fill_style("#fff")
+			ctx.begin_path()
+			ctx.move_to(23.4, 4)
+			ctx.line_to(24.4, 6.4)
+			ctx.line_to(25.4, 4)
+			ctx.close_path()
+			ctx.fill()
+			# front claws
+			ctx.stroke_style("#eae2d0")
+			ctx.line_width(1.5)
+			ctx.line_cap("round")
+			for i in range(int(0), int(3)):
+				ctx.begin_path()
+				ctx.move_to(14, 9 + i * 2.2)
+				ctx.line_to(21, 8 + i * 2.2)
+				ctx.stroke()
+			ctx.restore()
+			ctx.restore()
+		elif f.type == "kiss":
+			ctx.save()
+			ctx.global_alpha(maxf(0, 1 - f.r / (PF.w * 0.95)))
+			ctx.stroke_style("#ff5b8d")
+			ctx.line_width(5)
+			ctx.shadow_color("#ff8ac0")
+			ctx.shadow_blur(16)
+			ctx.begin_path()
+			ctx.arc(f.x, f.y, f.r, 0, 7)
+			ctx.stroke()
+			ctx.shadow_blur(0)
+			ctx.text_align("center")
+			for i in range(int(0), int(12)):
+				var a = (i / 12) * 6.283 + tick * 0.02
+				var hx = f.x + cos(a) * f.r
+				var hy = f.y + sin(a) * f.r
+				ctx.font("13px serif")
+				ctx.fill_text("💗", hx, hy + 4)
+			ctx.text_align("left")
+			ctx.restore()
+		elif f.type == "bubble":
+			ctx.save()
+			if f.pop > 0:
+				var a = maxf(0, f.pop / 16)
+				ctx.global_alpha(a)
+				ctx.stroke_style("#bfe8ff")
+				ctx.line_width(3)
+				ctx.shadow_color("#8fd0ff")
+				ctx.shadow_blur(12)
+				ctx.begin_path()
+				ctx.arc(f.x, f.y, f.popR, 0, 7)
+				ctx.stroke()
+			else:
+				ctx.global_alpha(0.62)
+				var g = ctx.createRadialGradient(
+				# TODO_PORT: f.x - f.r * 0.3, f.y - f.r * 0.3, 1, f.x, f.y, f.r, )
+				# gradient API skipped
+				# gradient API skipped
+				# gradient API skipped
+				ctx.fill_style(g)
+				ctx.begin_path()
+				ctx.arc(f.x, f.y, f.r, 0, 7)
+				ctx.fill()
+				ctx.global_alpha(0.9)
+				ctx.stroke_style("#cbeaff")
+				ctx.line_width(1.4)
+				ctx.begin_path()
+				ctx.arc(f.x, f.y, f.r, 0, 7)
+				ctx.stroke()
+				ctx.fill_style("rgba(255,255,255,0.85)")
+				ctx.begin_path()
+				ctx.arc(f.x - f.r * 0.35, f.y - f.r * 0.4, f.r * 0.16, 0, 7)
+				ctx.fill()
+			ctx.restore()
+		elif f.type == "stardust":
+			ctx.save()
+			ctx.global_composite_operation("lighter")
+			for st in f.stars:
+				var fade = minf(1, st.t / 4) * minf(1, (st.life - st.t) / 7)
+				var tw = 0.55 + 0.45 * sin(tick * 0.3 + st.rot)
+				if st.sapping:
+					ctx.stroke_style("hsla(" + str(st.hue) + ",100%,74%," + str(0.45 * fade) + ")")
+					ctx.line_width(1)
+					ctx.begin_path()
+					ctx.move_to(st.x, st.y)
+					ctx.line_to(st.sapX, st.sapY)
+					ctx.stroke()
+				var s = st.sz * (0.7 + 0.5 * tw)
+				ctx.save()
+				ctx.translate(st.x, st.y)
+				ctx.rotate(st.rot + tick * 0.05)
+				ctx.fill_style("hsla(" + str(st.hue) + ",100%,82%," + str(0.9 * fade * tw) + ")")
+				ctx.shadow_color("hsl(" + str(st.hue) + ",100%,70%)")
+				ctx.shadow_blur(6)
+				ctx.begin_path()
+				ctx.move_to(0, -s * 2.4)
+				ctx.line_to(s * 0.5, -s * 0.5)
+				ctx.line_to(s * 2.4, 0)
+				ctx.line_to(s * 0.5, s * 0.5)
+				ctx.line_to(0, s * 2.4)
+				ctx.line_to(-s * 0.5, s * 0.5)
+				ctx.line_to(-s * 2.4, 0)
+				ctx.line_to(-s * 0.5, -s * 0.5)
+				ctx.close_path()
+				ctx.fill()
+				ctx.restore()
+			ctx.restore()
+		elif f.type == "tentacle":
+			var fade = minf(1, f.t / 24) * minf(1, (360 - f.t) / 16)
+			ctx.save()
+			ctx.translate(f.x, f.y)
+			ctx.global_alpha(fade)
+			ctx.save()
+			ctx.global_composite_operation("lighter")
+			ctx.global_alpha(fade * 0.35)
+			ctx.fill_style("#5fc9c9")
+			ctx.begin_path()
+			ctx.arc(0, 0, f.reach * 0.5, 0, 7)
+			ctx.fill()
+			ctx.restore()
+			var segs = 11
+			var pts = []
+			for s in range(int(0), int(segs) + 1):
+				pts.push([sin(f.ph + s * 0.5) * s * 1.5, -s * 7.5])
+			ctx.line_cap("round")
+			ctx.line_join("round")
+			ctx.stroke_style("#2f6d6d")
+			ctx.line_width(10)
+			ctx.begin_path()
+			ctx.move_to(pts[0][0], pts[0][1])
+			for q in pts) ctx.lineTo(q[0], q[1]:
+				pass
+			ctx.stroke()
+			ctx.stroke_style("#5fc9c9")
+			ctx.line_width(5.5)
+			ctx.begin_path()
+			ctx.move_to(pts[0][0], pts[0][1])
+			for q in pts) ctx.lineTo(q[0], q[1]:
+				pass
+			ctx.stroke()
+			ctx.fill_style("#bff0f0")
+			for s in range(float(2), float(segs) + 0.0001, float(2)):
+				ctx.begin_path()
+				ctx.arc(pts[s][0], pts[s][1], 1.7, 0, 7)
+				ctx.fill()
+			ctx.restore()
+		elif f.type == "servitor":
+			var t = tick
+			var sz = f.get("sz", 1)
+			var fade = minf(1, (600 - f.t) / 16) * minf(1, f.t / 20)
+			ctx.save()
+			ctx.translate(f.x, f.y)
+			ctx.save()
+			ctx.scale(sz, sz)
+			ctx.save()
+			ctx.global_composite_operation("lighter")
+			ctx.global_alpha(fade * 0.55)
+			var g = ctx.createRadialGradient(0, 0, 1, 0, 0, 18)
+			# gradient API skipped
+			# gradient API skipped
+			ctx.fill_style(g)
+			ctx.begin_path()
+			ctx.arc(0, 0, 18, 0, 7)
+			ctx.fill()
+			ctx.restore()
+			ctx.global_alpha(fade)
+			ctx.stroke_style("#3a1a5a")
+			ctx.line_width(2.2)
+			ctx.line_cap("round")
+			for k in range(int(0), int(8)):
+				var a = t * 0.05 + k * 0.785
+				var ln = 9 + sin(t * 0.11 + k) * 3.8
+				ctx.begin_path()
+				ctx.move_to(0, 0)
+				ctx.line_to(cos(a) * ln, sin(a) * ln)
+				ctx.stroke()
+			ctx.fill_style("#2a1040")
+			ctx.begin_path()
+			ctx.arc(0, 0, 7.5, 0, 7)
+			ctx.fill()
+			ctx.fill_style("#e0d0ff")
+			ctx.begin_path()
+			ctx.arc(0, 0, 4.4, 0, 7)
+			ctx.fill()
+			ctx.fill_style("#9d1bff")
+			ctx.begin_path()
+			ctx.arc(cos(t * 0.1) * 1.7, sin(t * 0.1) * 1.7, 2.3, 0, 7)
+			ctx.fill()
+			ctx.restore()
+			# health bar above its head
+			ctx.global_alpha(fade)
+			var bw = 32
+			var bh = 5
+			var bx = -bw / 2
+			var by = -12 * sz - 10
+			var hf = maxf(0, minf(1, f.hp / (f.get("maxhp", f.hp))))
+			ctx.fill_style("rgba(0,0,0,0.55)")
+			ctx.fill_rect(bx - 1, by - 1, bw + 2, bh + 2)
+			ctx.fill_style("#241038")
+			ctx.fill_rect(bx, by, bw, bh)
+			ctx.fill_style(("#ffb04a" if (("#b57aff" if (hf > 0.5 ) else hf > 0.25 )) else "#ff5b6e"))
+			ctx.fill_rect(bx, by, bw * hf, bh)
+			ctx.restore()

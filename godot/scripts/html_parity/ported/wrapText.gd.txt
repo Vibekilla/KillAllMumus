@@ -1,0 +1,8 @@
+## AUTO-PORTED from HTML function wrapText — review required
+func wrapText(t, x, y, maxw, lh):
+	 var words=t.split(' '); var line='',yy=y; for wd in words){ if(ctx.measureText(line+wd+' ').width>maxw){ ctx.fillText(line,x,yy); line=wd+' '; yy+=lh; } else line+=wd+' '; } ctx.fillText(line,x,yy); }
+
+	/*  -= 1 -= 1 HUD panel  -= 1 -= 1 */
+	// mobile-landscape HUD: a COMPACT readout packed into the top of the panel, leaving the lower box free
+	// for the on-screen control panel (weapon/special/melee/bomb are shown on the buttons, so they're dropped here).
+

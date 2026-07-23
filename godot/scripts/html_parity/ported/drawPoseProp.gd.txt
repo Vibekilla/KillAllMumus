@@ -1,0 +1,21 @@
+## AUTO-PORTED from HTML function drawPoseProp — review required
+func drawPoseProp(p, t):
+
+	  if(p==5){ // "This Is Fine" — fire all around; the cup sits in her real raised orb hand (the arm itself is drawn by drawBobina)
+	    var h=coffeeHold(t), sip=h.sip;
+	    var flame=func(fx,fby,fl,i): # arrow
+	 var gr=ctx.createLinearGradient(fx,fby,fx,fby-fl); gr.addColorStop(0,'#ff2e00'); gr.addColorStop(0.5,'#ff8a12'); gr.addColorStop(1,'rgba(255,220,90,0)');
+	      ctx.fillStyle=gr; ctx.beginPath(); ctx.moveTo(fx-fl*0.18-0.6,fby); ctx.quadraticCurveTo(fx-0.8,fby-fl*0.6, fx+sin(t*0.22+i)*1.3,fby-fl); ctx.quadraticCurveTo(fx+0.8,fby-fl*0.6, fx+fl*0.18+0.6,fby); ctx.closePath(); ctx.fill(); };
+	    for i in range(int(0), int(12)){ var fa=i/12*6.283, ring=(i%2?12:9.5), fx=cos(fa)*ring, fby=17+sin(fa)*4.5;   // ring of fire around her base
+	      flame(fx,fby,(4.5+(i%3)*2.4)*(0.55+0.45*absf(sin(t*0.3+i*1.7))),i); }
+	    for sx in [-13.5,13.5]) flame(sx,14,13+absf(sin(t*0.25+sx))*6, sx);   // tall flames flanking her
+	    // the coffee mug, cradled between both orb hands (at h.x, h.y)
+	    ctx.save(); ctx.translate(h.x, h.y-0.6);
+	    ctx.fillStyle='#f4efe6'; ctx.beginPath(); ctx.moveTo(-2.4,-2.2); ctx.lineTo(2.4,-2.2); ctx.lineTo(1.9,2.3); ctx.lineTo(-1.9,2.3); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#b89a68'; ctx.lineWidth=0.6; ctx.stroke();
+	    ctx.fillStyle='#4a2c14'; ctx.beginPath(); ctx.ellipse(0,-2.2,2.3,0.7,0,0,7); ctx.fill();
+	    ctx.strokeStyle='#f4efe6'; ctx.lineWidth=0.9; ctx.beginPath(); ctx.arc(2.7,0.2,1.3,-1,1.7); ctx.stroke();   // handle
+	    if(sip<0.5){ ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=0.5; for i in range(int(-1), int(1)){ ctx.beginPath(); for(var s=0;s<=1;s+=0.25){ var yy=-2.6-s*4, xx=i*1.1+sin(s*6+t*0.1+i)*0.8; s?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy); } ctx.stroke(); } }
+	    ctx.restore(); }
+	}
+	// Draws Bobina performing a pose. Used by the outfit preview (motionScale 1) AND her on-field victory (motionScale <1 for the small field sprite).
+

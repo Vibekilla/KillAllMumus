@@ -1,0 +1,32 @@
+# AUTO-PORTED from public/index.html — needs manual polish
+# Original: drawBobo
+extends RefCounted
+# expects `ctx` CanvasCompat and game globals
+
+func drawBobo(cx,cy,sc,happy) -> void:
+
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(sc,sc); ctx.line_join('round'); ctx.line_cap('round');
+  var fur='#6e4a2e',furD='#4e3320',ear='#7a5540',muz='#e8cfa4',nose='#241812',shirt='#cf2f38',shirtD='#9c1f27',ln='#241611';
+  var bob=Math.sin(tick*0.08)*1.2;
+  // body / red shirt
+  ctx.fill_style(shirt); ctx.begin_path(); ctx.ellipse(0,30+bob,26,22,0,0,7); ctx.stroke_style(ln); ctx.line_width(2); ctx.stroke(); ctx.fill();
+  ctx.fill_style(shirtD); ctx.begin_path(); ctx.ellipse(0,40+bob,24,10,0,0,7); ctx.fill();
+  // arms
+  ctx.fill_style(fur); ctx.begin_path(); ctx.ellipse(-22,26+bob,7,9,0.4,0,7); ctx.ellipse(22,26+bob,7,9,-0.4,0,7); ctx.fill();
+  ctx.fill_style(fur); ctx.begin_path(); ctx.ellipse(-12,50+bob,8,6,0,0,7); ctx.ellipse(12,50+bob,8,6,0,0,7); ctx.fill();
+  // ears
+  ctx.fill_style(fur); ctx.begin_path(); ctx.arc(-22,-30+bob,13,0,7); ctx.arc(22,-30+bob,13,0,7); ctx.fill();
+  ctx.fill_style(ear); ctx.begin_path(); ctx.arc(-22,-30+bob,6.5,0,7); ctx.arc(22,-30+bob,6.5,0,7); ctx.fill();
+  // head
+  ctx.fill_style(fur); ctx.begin_path(); ctx.arc(0,-12+bob,30,0,7); ctx.stroke_style(ln); ctx.line_width(2); ctx.stroke(); ctx.fill();
+  // muzzle
+  ctx.fill_style(muz); ctx.begin_path(); ctx.ellipse(0,0+bob,16,13,0,0,7); ctx.fill();
+  // nose
+  ctx.fill_style(nose); ctx.begin_path(); ctx.move_to(-5,-4+bob); ctx.line_to(5,-4+bob); ctx.line_to(0,1+bob); ctx.close_path(); ctx.fill();
+  ctx.begin_path(); ctx.move_to(0,1+bob); ctx.quadratic_curve_to(0,6+bob,-4,7+bob); ctx.move_to(0,1+bob); ctx.quadratic_curve_to(0,6+bob,4,7+bob); ctx.stroke_style(nose); ctx.line_width(1.4); ctx.stroke();
+  // eyes (happy)
+  if (happy): # { ctx.stroke_style(ln); ctx.line_width(2.4); ctx.begin_path(); ctx.arc(-12,-16+bob,5,Math.PI*1.15,Math.PI*1.85); ctx.arc(12,-16+bob,5,Math.PI*1.15,Math.PI*1.85); ctx.stroke(); # }
+  else : # { for(var ex of [-12,12]): # { ctx.fill_style(Color.html("#fff")); ctx.begin_path(); ctx.ellipse(ex,-15+bob,4,5,0,0,7); ctx.fill(); ctx.fill_style(Color.html("#1a120c")); ctx.begin_path(); ctx.arc(ex,-14+bob,2.4,0,7); ctx.fill(); ctx.fill_style(Color.html("#fff")); ctx.begin_path(); ctx.arc(ex-1,-16+bob,1,0,7); ctx.fill(); # } # }
+  // cheek blush
+  ctx.fill_style(Color.html("rgba(220,120,120,0.4)")); ctx.begin_path(); ctx.arc(-18,-6+bob,4,0,7); ctx.arc(18,-6+bob,4,0,7); ctx.fill();
+  ctx.restore();

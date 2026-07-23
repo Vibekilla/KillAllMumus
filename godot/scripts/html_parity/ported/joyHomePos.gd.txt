@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function joyHomePos — review required
+func joyHomePos():
+	 var vh=(HtmlBridge.win.visualViewport?HtmlBridge.win.visualViewport.height:HtmlBridge.win.innerHeight);
+	  var mx=float(getComputedStyle(HtmlBridge.doc.documentElement).getPropertyValue(' -= 1mx'))||40;
+	  return { x: maxf(58, mx*0.5+32), y: vh - 106 }; 

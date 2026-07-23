@@ -1,0 +1,22 @@
+## AUTO-PORTED from HTML function anyModalOpen — review required
+func anyModalOpen():
+	 var kb=HtmlBridge.doc.getElementById('keybinds'); var disp=HtmlBridge.doc.getElementById('display'); return (setEl&&setEl.classList.contains('on')) || (helpEl&&helpEl.classList.contains('on')) || (kb&&kb.classList.contains('on')) || (disp&&disp.classList.contains('on')) || (typeof shoutEl!='null'&&shoutEl&&shoutEl.classList.contains('on')) || (typeof NE!='null'&&NE&&NE.classList.contains('on')); }
+	(function(){ var f=HtmlBridge.doc.getElementById('set-follow'), s=HtmlBridge.doc.getElementById('set-speed');
+	  if(f) f.addEventListenerfunc('input',(): # arrow
+	 MOUSE.follow=int(f.value)/100; HtmlBridge.doc.getElementById('set-follow-v').textContent=f.value+'%'; try{HtmlBridge.storage_set('bobina_follow',String(MOUSE.follow));}catch(e){} });
+	  if(s) s.addEventListenerfunc('input',(): # arrow
+	 MOUSE.speed=int(s.value)/100; HtmlBridge.doc.getElementById('set-speed-v').textContent=MOUSE.speed.toFixed(2)+'×'; try{HtmlBridge.storage_set('bobina_mspeed',String(MOUSE.speed));}catch(e){} });
+	  var mu=HtmlBridge.doc.getElementById('set-music'), sx=HtmlBridge.doc.getElementById('set-sfx'), sr=HtmlBridge.doc.getElementById('set-speedrun');
+	  if(mu) mu.addEventListenerfunc('input',(): # arrow
+	 musicVol=int(mu.value)/100; HtmlBridge.doc.getElementById('set-music-v').textContent=mu.value+'%'; applyMusicVol(); try{HtmlBridge.storage_set('bobina_musicvol',String(musicVol));}catch(e){} });
+	  if(sx) sx.addEventListenerfunc('input',(): # arrow
+	 sfxVol=int(sx.value)/100; HtmlBridge.doc.getElementById('set-sfx-v').textContent=sx.value+'%'; applySfxVol(); try{HtmlBridge.storage_set('bobina_sfxvol',String(sfxVol));}catch(e){} });
+	  if(sx) sx.addEventListenerfunc('change',(): # arrow
+	 try{ initMaster(); applySfxVol(); sfx('item'); }catch(e){} });   // preview beep at the new level
+	  if(sr) sr.addEventListenerfunc('click',(): # arrow
+	 speedrun=!speedrun; sr.classList.toggle('on',speedrun); HtmlBridge.doc.getElementById('set-speedrun-v').textContent=speedrun?'ON':'OFF'; try{HtmlBridge.storage_set('bobina_speedrun',speedrun?'1':'0');}catch(e){} try{ sfx('item'); }catch(e){} });
+	  var cb=HtmlBridge.doc.getElementById('set-close'); if(cb){ cb.HtmlBridge.add_listener('click',closeSettings); cb.HtmlBridge.add_listener('touchstart',func(e): return {e.preventDefault();closeSettings();},{passive:false}); }
+	  if(setEl) setEl.HtmlBridge.add_listener('click',func(e): return { if(e.target==setEl) closeSettings(); }); })();
+	// ==== Controls + Help (How to Play) — the arsenal list is generated from the game data, so it auto-updates ====
+	var helpEl=HtmlBridge.doc.getElementById('helpmodal');
+

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function emPageCount — review required
+func emPageCount():
+	 return maxf(1, ceilf(EMBLEMS.size()/EM_PER_PAGE)); 

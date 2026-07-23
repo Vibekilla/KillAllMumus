@@ -1,0 +1,1 @@
+function addPower(a){ const before=shotLevel(); run.power=Math.min(powerCap(), run.power + a*powerGainMul()); const lv=shotLevel(); if(lv>before){ pop(player.x,player.y-30,'POWER UP! Lv'+lv,'#ffd27a'); flashMsg={t:70,txt:lv>=shotLevelCap()?'★ MAX POWER — LV'+lv+' ★':'POWER UP'}; } }

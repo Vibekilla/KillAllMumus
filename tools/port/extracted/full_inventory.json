@@ -1,0 +1,1506 @@
+{
+  "functionCount": 290,
+  "functions": [
+    {
+      "name": "drawBobina",
+      "bytes": 96414,
+      "lines": 876
+    },
+    {
+      "name": "update",
+      "bytes": 15325,
+      "lines": 172
+    },
+    {
+      "name": "outfitColors",
+      "bytes": 14184,
+      "lines": 116
+    },
+    {
+      "name": "drawPanel",
+      "bytes": 13454,
+      "lines": 109
+    },
+    {
+      "name": "updateBoss",
+      "bytes": 10131,
+      "lines": 105
+    },
+    {
+      "name": "updateFx",
+      "bytes": 10812,
+      "lines": 100
+    },
+    {
+      "name": "drawFx",
+      "bytes": 11288,
+      "lines": 100
+    },
+    {
+      "name": "drawHoneyBadger",
+      "bytes": 7625,
+      "lines": 98
+    },
+    {
+      "name": "drawElite",
+      "bytes": 9657,
+      "lines": 89
+    },
+    {
+      "name": "onFsChange",
+      "bytes": 3498,
+      "lines": 87
+    },
+    {
+      "name": "drawMeleeWeapon",
+      "bytes": 6672,
+      "lines": 72
+    },
+    {
+      "name": "applyProgressSnapshot",
+      "bytes": 5567,
+      "lines": 69
+    },
+    {
+      "name": "drawOutfits",
+      "bytes": 6348,
+      "lines": 69
+    },
+    {
+      "name": "drawPowerAura",
+      "bytes": 6220,
+      "lines": 66
+    },
+    {
+      "name": "draw",
+      "bytes": 6587,
+      "lines": 64
+    },
+    {
+      "name": "cloudPullAndMerge",
+      "bytes": 2888,
+      "lines": 62
+    },
+    {
+      "name": "drawStageBgFx",
+      "bytes": 6123,
+      "lines": 62
+    },
+    {
+      "name": "drawArsenal",
+      "bytes": 7449,
+      "lines": 61
+    },
+    {
+      "name": "drawPanelPortrait",
+      "bytes": 5487,
+      "lines": 58
+    },
+    {
+      "name": "threatMul",
+      "bytes": 6923,
+      "lines": 56
+    },
+    {
+      "name": "drawTitle",
+      "bytes": 5213,
+      "lines": 51
+    },
+    {
+      "name": "drawClearGate",
+      "bytes": 5332,
+      "lines": 50
+    },
+    {
+      "name": "fire",
+      "bytes": 3841,
+      "lines": 48
+    },
+    {
+      "name": "drawShop",
+      "bytes": 5907,
+      "lines": 48
+    },
+    {
+      "name": "drawLeaderboard",
+      "bytes": 5761,
+      "lines": 47
+    },
+    {
+      "name": "drawBogdanoff",
+      "bytes": 4006,
+      "lines": 45
+    },
+    {
+      "name": "buildHelp",
+      "bytes": 5586,
+      "lines": 41
+    },
+    {
+      "name": "lockCost",
+      "bytes": 5792,
+      "lines": 41
+    },
+    {
+      "name": "pdown",
+      "bytes": 4041,
+      "lines": 40
+    },
+    {
+      "name": "buildProgressSnapshot",
+      "bytes": 2181,
+      "lines": 40
+    },
+    {
+      "name": "sfx",
+      "bytes": 4411,
+      "lines": 37
+    },
+    {
+      "name": "drawEmblems",
+      "bytes": 4445,
+      "lines": 37
+    },
+    {
+      "name": "keyPress",
+      "bytes": 3430,
+      "lines": 36
+    },
+    {
+      "name": "drawWin",
+      "bytes": 3945,
+      "lines": 35
+    },
+    {
+      "name": "drawDebugLayer",
+      "bytes": 2126,
+      "lines": 34
+    },
+    {
+      "name": "doMeleeSwipe",
+      "bytes": 2862,
+      "lines": 33
+    },
+    {
+      "name": "drawLily",
+      "bytes": 3151,
+      "lines": 32
+    },
+    {
+      "name": "drawDashComet",
+      "bytes": 2602,
+      "lines": 31
+    },
+    {
+      "name": "drawPShot",
+      "bytes": 3561,
+      "lines": 31
+    },
+    {
+      "name": "drawMech",
+      "bytes": 2258,
+      "lines": 30
+    },
+    {
+      "name": "drawBobo",
+      "bytes": 2270,
+      "lines": 30
+    },
+    {
+      "name": "drawMumina",
+      "bytes": 3000,
+      "lines": 30
+    },
+    {
+      "name": "drawPolice",
+      "bytes": 2886,
+      "lines": 30
+    },
+    {
+      "name": "drawMaidDance",
+      "bytes": 2086,
+      "lines": 29
+    },
+    {
+      "name": "drawMeleeFx",
+      "bytes": 2989,
+      "lines": 27
+    },
+    {
+      "name": "drawNgSelect",
+      "bytes": 2704,
+      "lines": 27
+    },
+    {
+      "name": "drawBossAmbience",
+      "bytes": 2281,
+      "lines": 26
+    },
+    {
+      "name": "pup",
+      "bytes": 1735,
+      "lines": 24
+    },
+    {
+      "name": "closeHelp",
+      "bytes": 3148,
+      "lines": 24
+    },
+    {
+      "name": "tweetResult",
+      "bytes": 1387,
+      "lines": 24
+    },
+    {
+      "name": "drawStageBg",
+      "bytes": 2902,
+      "lines": 23
+    },
+    {
+      "name": "drawItem",
+      "bytes": 2012,
+      "lines": 23
+    },
+    {
+      "name": "applyArsenalToRun",
+      "bytes": 3824,
+      "lines": 22
+    },
+    {
+      "name": "onGameCleared",
+      "bytes": 1487,
+      "lines": 22
+    },
+    {
+      "name": "scheduleCloudSave",
+      "bytes": 817,
+      "lines": 22
+    },
+    {
+      "name": "spawnWaves",
+      "bytes": 1331,
+      "lines": 22
+    },
+    {
+      "name": "drawMumu",
+      "bytes": 2409,
+      "lines": 22
+    },
+    {
+      "name": "loop",
+      "bytes": 1277,
+      "lines": 22
+    },
+    {
+      "name": "syncPauseUI",
+      "bytes": 2211,
+      "lines": 21
+    },
+    {
+      "name": "useSpecial",
+      "bytes": 2347,
+      "lines": 21
+    },
+    {
+      "name": "drawDevil",
+      "bytes": 1755,
+      "lines": 21
+    },
+    {
+      "name": "drawPanelTouch",
+      "bytes": 3577,
+      "lines": 21
+    },
+    {
+      "name": "dropLoot",
+      "bytes": 1145,
+      "lines": 20
+    },
+    {
+      "name": "applyLayout",
+      "bytes": 808,
+      "lines": 19
+    },
+    {
+      "name": "drawDialog",
+      "bytes": 1783,
+      "lines": 19
+    },
+    {
+      "name": "drawEmblemToasts",
+      "bytes": 1306,
+      "lines": 19
+    },
+    {
+      "name": "meleeChargeFx",
+      "bytes": 1725,
+      "lines": 18
+    },
+    {
+      "name": "updateItems",
+      "bytes": 725,
+      "lines": 18
+    },
+    {
+      "name": "drawStageClear",
+      "bytes": 2763,
+      "lines": 18
+    },
+    {
+      "name": "poseParams",
+      "bytes": 1317,
+      "lines": 18
+    },
+    {
+      "name": "drawPoseProp",
+      "bytes": 1959,
+      "lines": 18
+    },
+    {
+      "name": "drawPhaseVeil",
+      "bytes": 1635,
+      "lines": 17
+    },
+    {
+      "name": "load",
+      "bytes": 588,
+      "lines": 16
+    },
+    {
+      "name": "readUiOverride",
+      "bytes": 1244,
+      "lines": 16
+    },
+    {
+      "name": "drawEmote",
+      "bytes": 1627,
+      "lines": 16
+    },
+    {
+      "name": "killEnemy",
+      "bytes": 1201,
+      "lines": 16
+    },
+    {
+      "name": "advanceScreen",
+      "bytes": 738,
+      "lines": 16
+    },
+    {
+      "name": "_hEsc",
+      "bytes": 457,
+      "lines": 15
+    },
+    {
+      "name": "hitPlayer",
+      "bytes": 1612,
+      "lines": 15
+    },
+    {
+      "name": "drawPowerRadiance",
+      "bytes": 1108,
+      "lines": 15
+    },
+    {
+      "name": "showNameEntry",
+      "bytes": 949,
+      "lines": 15
+    },
+    {
+      "name": "updateTouchButtons",
+      "bytes": 1593,
+      "lines": 14
+    },
+    {
+      "name": "anyModalOpen",
+      "bytes": 2457,
+      "lines": 14
+    },
+    {
+      "name": "spawnBoss",
+      "bytes": 977,
+      "lines": 14
+    },
+    {
+      "name": "drawSlowmoFx",
+      "bytes": 1092,
+      "lines": 14
+    },
+    {
+      "name": "drawWynn",
+      "bytes": 1381,
+      "lines": 14
+    },
+    {
+      "name": "drawGameOver",
+      "bytes": 1417,
+      "lines": 14
+    },
+    {
+      "name": "collectItem",
+      "bytes": 1612,
+      "lines": 13
+    },
+    {
+      "name": "optionShot",
+      "bytes": 1259,
+      "lines": 13
+    },
+    {
+      "name": "doDash",
+      "bytes": 1225,
+      "lines": 13
+    },
+    {
+      "name": "submitScore",
+      "bytes": 960,
+      "lines": 13
+    },
+    {
+      "name": "drawPosedFigure",
+      "bytes": 981,
+      "lines": 13
+    },
+    {
+      "name": "fit",
+      "bytes": 1051,
+      "lines": 13
+    },
+    {
+      "name": "imgOK",
+      "bytes": 1187,
+      "lines": 12
+    },
+    {
+      "name": "angDiff",
+      "bytes": 1002,
+      "lines": 12
+    },
+    {
+      "name": "loadStage",
+      "bytes": 976,
+      "lines": 12
+    },
+    {
+      "name": "twinSwap",
+      "bytes": 847,
+      "lines": 12
+    },
+    {
+      "name": "updateBurns",
+      "bytes": 1144,
+      "lines": 12
+    },
+    {
+      "name": "updatePortrait",
+      "bytes": 1026,
+      "lines": 11
+    },
+    {
+      "name": "doBomb",
+      "bytes": 894,
+      "lines": 11
+    },
+    {
+      "name": "drawBoss",
+      "bytes": 1128,
+      "lines": 11
+    },
+    {
+      "name": "drawApe",
+      "bytes": 936,
+      "lines": 11
+    },
+    {
+      "name": "manageTouchUI",
+      "bytes": 562,
+      "lines": 10
+    },
+    {
+      "name": "emblemTick",
+      "bytes": 577,
+      "lines": 10
+    },
+    {
+      "name": "drawHellPortal",
+      "bytes": 885,
+      "lines": 10
+    },
+    {
+      "name": "onBossDefeated",
+      "bytes": 528,
+      "lines": 10
+    },
+    {
+      "name": "chainLightning",
+      "bytes": 862,
+      "lines": 10
+    },
+    {
+      "name": "drawPortraitBust",
+      "bytes": 1337,
+      "lines": 10
+    },
+    {
+      "name": "handleTitleClick",
+      "bytes": 911,
+      "lines": 10
+    },
+    {
+      "name": "setDisplayScale",
+      "bytes": 507,
+      "lines": 10
+    },
+    {
+      "name": "toggleFullscreen",
+      "bytes": 688,
+      "lines": 10
+    },
+    {
+      "name": "kb",
+      "bytes": 833,
+      "lines": 9
+    },
+    {
+      "name": "resetInventory",
+      "bytes": 598,
+      "lines": 9
+    },
+    {
+      "name": "startWynnHell",
+      "bytes": 517,
+      "lines": 9
+    },
+    {
+      "name": "dashLandExplosion",
+      "bytes": 821,
+      "lines": 9
+    },
+    {
+      "name": "computeEmblems",
+      "bytes": 496,
+      "lines": 9
+    },
+    {
+      "name": "drawRobotnik",
+      "bytes": 1019,
+      "lines": 9
+    },
+    {
+      "name": "manageGifOverlays",
+      "bytes": 564,
+      "lines": 9
+    },
+    {
+      "name": "saveDisplayPrefs",
+      "bytes": 340,
+      "lines": 9
+    },
+    {
+      "name": "syncDisplayUI",
+      "bytes": 415,
+      "lines": 9
+    },
+    {
+      "name": "closeShoutouts",
+      "bytes": 741,
+      "lines": 8
+    },
+    {
+      "name": "joyReset",
+      "bytes": 614,
+      "lines": 8
+    },
+    {
+      "name": "syncSettingsUI",
+      "bytes": 883,
+      "lines": 8
+    },
+    {
+      "name": "renderKeybinds",
+      "bytes": 531,
+      "lines": 8
+    },
+    {
+      "name": "consumeSelected",
+      "bytes": 1014,
+      "lines": 8
+    },
+    {
+      "name": "shopBuySelected",
+      "bytes": 907,
+      "lines": 8
+    },
+    {
+      "name": "spawnClearGate",
+      "bytes": 479,
+      "lines": 8
+    },
+    {
+      "name": "bossSpecial",
+      "bytes": 792,
+      "lines": 8
+    },
+    {
+      "name": "updateWynnHell",
+      "bytes": 578,
+      "lines": 8
+    },
+    {
+      "name": "drawShareBtn",
+      "bytes": 676,
+      "lines": 8
+    },
+    {
+      "name": "toggleArsenal",
+      "bytes": 439,
+      "lines": 8
+    },
+    {
+      "name": "setRefreshRate",
+      "bytes": 341,
+      "lines": 8
+    },
+    {
+      "name": "setDebugLayer",
+      "bytes": 254,
+      "lines": 8
+    },
+    {
+      "name": "goFullscreenMobile",
+      "bytes": 542,
+      "lines": 7
+    },
+    {
+      "name": "pOrb",
+      "bytes": 2392,
+      "lines": 7
+    },
+    {
+      "name": "saveShopUnlocks",
+      "bytes": 621,
+      "lines": 7
+    },
+    {
+      "name": "newRun",
+      "bytes": 560,
+      "lines": 7
+    },
+    {
+      "name": "spawnBig",
+      "bytes": 714,
+      "lines": 7
+    },
+    {
+      "name": "nadeBoom",
+      "bytes": 716,
+      "lines": 7
+    },
+    {
+      "name": "enemyExplode",
+      "bytes": 697,
+      "lines": 7
+    },
+    {
+      "name": "drawIntro",
+      "bytes": 753,
+      "lines": 7
+    },
+    {
+      "name": "closeGate",
+      "bytes": 399,
+      "lines": 6
+    },
+    {
+      "name": "saveConsum",
+      "bytes": 322,
+      "lines": 6
+    },
+    {
+      "name": "shopList",
+      "bytes": 532,
+      "lines": 6
+    },
+    {
+      "name": "spawnBubbles",
+      "bytes": 393,
+      "lines": 6
+    },
+    {
+      "name": "optionOffsets",
+      "bytes": 468,
+      "lines": 6
+    },
+    {
+      "name": "drawBurns",
+      "bytes": 524,
+      "lines": 6
+    },
+    {
+      "name": "_hexA",
+      "bytes": 576,
+      "lines": 6
+    },
+    {
+      "name": "_rgbHue",
+      "bytes": 685,
+      "lines": 6
+    },
+    {
+      "name": "wrapText",
+      "bytes": 488,
+      "lines": 6
+    },
+    {
+      "name": "dropToSlot",
+      "bytes": 590,
+      "lines": 6
+    },
+    {
+      "name": "moveArsenal",
+      "bytes": 321,
+      "lines": 6
+    },
+    {
+      "name": "musicPause",
+      "bytes": 384,
+      "lines": 5
+    },
+    {
+      "name": "cloudLinked",
+      "bytes": 157,
+      "lines": 5
+    },
+    {
+      "name": "neutralizeInputs",
+      "bytes": 308,
+      "lines": 5
+    },
+    {
+      "name": "optionPos",
+      "bytes": 238,
+      "lines": 5
+    },
+    {
+      "name": "burst",
+      "bytes": 181,
+      "lines": 5
+    },
+    {
+      "name": "overlayShow",
+      "bytes": 347,
+      "lines": 5
+    },
+    {
+      "name": "drawMenuBtn",
+      "bytes": 428,
+      "lines": 5
+    },
+    {
+      "name": "doSaveScore",
+      "bytes": 413,
+      "lines": 5
+    },
+    {
+      "name": "drawOutfitFigure",
+      "bytes": 346,
+      "lines": 5
+    },
+    {
+      "name": "simStep",
+      "bytes": 103,
+      "lines": 5
+    },
+    {
+      "name": "joyHomePos",
+      "bytes": 257,
+      "lines": 4
+    },
+    {
+      "name": "joyStart",
+      "bytes": 319,
+      "lines": 4
+    },
+    {
+      "name": "modeTag",
+      "bytes": 264,
+      "lines": 4
+    },
+    {
+      "name": "fmtScore",
+      "bytes": 346,
+      "lines": 4
+    },
+    {
+      "name": "unlockEmblem",
+      "bytes": 311,
+      "lines": 4
+    },
+    {
+      "name": "contentUnlocked",
+      "bytes": 362,
+      "lines": 4
+    },
+    {
+      "name": "startRun",
+      "bytes": 107,
+      "lines": 4
+    },
+    {
+      "name": "heavyShell",
+      "bytes": 223,
+      "lines": 4
+    },
+    {
+      "name": "pop",
+      "bytes": 115,
+      "lines": 4
+    },
+    {
+      "name": "bossDmgMul",
+      "bytes": 516,
+      "lines": 4
+    },
+    {
+      "name": "spawnStardust",
+      "bytes": 231,
+      "lines": 4
+    },
+    {
+      "name": "startDialog",
+      "bytes": 239,
+      "lines": 4
+    },
+    {
+      "name": "bulletCancelNear",
+      "bytes": 342,
+      "lines": 4
+    },
+    {
+      "name": "drawHeart",
+      "bytes": 335,
+      "lines": 4
+    },
+    {
+      "name": "lbSetPage",
+      "bytes": 237,
+      "lines": 4
+    },
+    {
+      "name": "pmove",
+      "bytes": 315,
+      "lines": 3
+    },
+    {
+      "name": "pauseReturnMenu",
+      "bytes": 276,
+      "lines": 3
+    },
+    {
+      "name": "joyShowHome",
+      "bytes": 286,
+      "lines": 3
+    },
+    {
+      "name": "joyApply",
+      "bytes": 255,
+      "lines": 3
+    },
+    {
+      "name": "applyDiff",
+      "bytes": 142,
+      "lines": 3
+    },
+    {
+      "name": "_hSec",
+      "bytes": 109,
+      "lines": 3
+    },
+    {
+      "name": "aimAngle",
+      "bytes": 157,
+      "lines": 3
+    },
+    {
+      "name": "drawStunStars",
+      "bytes": 298,
+      "lines": 3
+    },
+    {
+      "name": "bulletCancelAll",
+      "bytes": 312,
+      "lines": 3
+    },
+    {
+      "name": "bodyCtr",
+      "bytes": 258,
+      "lines": 3
+    },
+    {
+      "name": "drawFloater",
+      "bytes": 310,
+      "lines": 3
+    },
+    {
+      "name": "arsPool",
+      "bytes": 483,
+      "lines": 3
+    },
+    {
+      "name": "coffeeHold",
+      "bytes": 260,
+      "lines": 3
+    },
+    {
+      "name": "rebuildKMAP",
+      "bytes": 118,
+      "lines": 2
+    },
+    {
+      "name": "saveBinds",
+      "bytes": 102,
+      "lines": 2
+    },
+    {
+      "name": "setBind",
+      "bytes": 140,
+      "lines": 2
+    },
+    {
+      "name": "keyName",
+      "bytes": 332,
+      "lines": 2
+    },
+    {
+      "name": "canvasPos",
+      "bytes": 172,
+      "lines": 2
+    },
+    {
+      "name": "inBtn",
+      "bytes": 83,
+      "lines": 2
+    },
+    {
+      "name": "resumeGame",
+      "bytes": 109,
+      "lines": 2
+    },
+    {
+      "name": "openShoutouts",
+      "bytes": 69,
+      "lines": 2
+    },
+    {
+      "name": "joyMove",
+      "bytes": 235,
+      "lines": 2
+    },
+    {
+      "name": "joyEnd",
+      "bytes": 185,
+      "lines": 2
+    },
+    {
+      "name": "bobinaSay",
+      "bytes": 155,
+      "lines": 2
+    },
+    {
+      "name": "applySfxVol",
+      "bytes": 91,
+      "lines": 2
+    },
+    {
+      "name": "applyMusicVol",
+      "bytes": 116,
+      "lines": 2
+    },
+    {
+      "name": "actx",
+      "bytes": 116,
+      "lines": 2
+    },
+    {
+      "name": "initMaster",
+      "bytes": 159,
+      "lines": 2
+    },
+    {
+      "name": "musicPlay",
+      "bytes": 166,
+      "lines": 2
+    },
+    {
+      "name": "limb",
+      "bytes": 143,
+      "lines": 2
+    },
+    {
+      "name": "circle",
+      "bytes": 166,
+      "lines": 2
+    },
+    {
+      "name": "lerpAngle",
+      "bytes": 124,
+      "lines": 2
+    },
+    {
+      "name": "saveArsenal",
+      "bytes": 146,
+      "lines": 2
+    },
+    {
+      "name": "arsenalCount",
+      "bytes": 67,
+      "lines": 2
+    },
+    {
+      "name": "meleeIdxList",
+      "bytes": 150,
+      "lines": 2
+    },
+    {
+      "name": "armedSpec",
+      "bytes": 167,
+      "lines": 2
+    },
+    {
+      "name": "addWeapon",
+      "bytes": 118,
+      "lines": 2
+    },
+    {
+      "name": "addSpecial",
+      "bytes": 74,
+      "lines": 2
+    },
+    {
+      "name": "addMelee",
+      "bytes": 66,
+      "lines": 2
+    },
+    {
+      "name": "addBomb",
+      "bytes": 65,
+      "lines": 2
+    },
+    {
+      "name": "saveNgPrefs",
+      "bytes": 160,
+      "lines": 2
+    },
+    {
+      "name": "diffName",
+      "bytes": 78,
+      "lines": 2
+    },
+    {
+      "name": "hasEmblem",
+      "bytes": 51,
+      "lines": 2
+    },
+    {
+      "name": "emblemDef",
+      "bytes": 61,
+      "lines": 2
+    },
+    {
+      "name": "emblemCount",
+      "bytes": 77,
+      "lines": 2
+    },
+    {
+      "name": "saveEmblems",
+      "bytes": 111,
+      "lines": 2
+    },
+    {
+      "name": "saveEstats",
+      "bytes": 105,
+      "lines": 2
+    },
+    {
+      "name": "cabalUnlocked",
+      "bytes": 60,
+      "lines": 2
+    },
+    {
+      "name": "outfitUnlocked",
+      "bytes": 174,
+      "lines": 2
+    },
+    {
+      "name": "openSettings",
+      "bytes": 82,
+      "lines": 2
+    },
+    {
+      "name": "closeSettings",
+      "bytes": 68,
+      "lines": 2
+    },
+    {
+      "name": "controlsHtml",
+      "bytes": 168,
+      "lines": 2
+    },
+    {
+      "name": "openKeybinds",
+      "bytes": 176,
+      "lines": 2
+    },
+    {
+      "name": "closeKeybinds",
+      "bytes": 127,
+      "lines": 2
+    },
+    {
+      "name": "_hItem",
+      "bytes": 187,
+      "lines": 2
+    },
+    {
+      "name": "openHelp",
+      "bytes": 75,
+      "lines": 2
+    },
+    {
+      "name": "saveHeads",
+      "bytes": 98,
+      "lines": 2
+    },
+    {
+      "name": "consumQty",
+      "bytes": 49,
+      "lines": 2
+    },
+    {
+      "name": "consumById",
+      "bytes": 65,
+      "lines": 2
+    },
+    {
+      "name": "selConsumObj",
+      "bytes": 177,
+      "lines": 2
+    },
+    {
+      "name": "cycleConsumable",
+      "bytes": 290,
+      "lines": 2
+    },
+    {
+      "name": "enterShop",
+      "bytes": 100,
+      "lines": 2
+    },
+    {
+      "name": "leaveShop",
+      "bytes": 181,
+      "lines": 2
+    },
+    {
+      "name": "enterPortal",
+      "bytes": 127,
+      "lines": 2
+    },
+    {
+      "name": "initPlayer",
+      "bytes": 501,
+      "lines": 2
+    },
+    {
+      "name": "eb",
+      "bytes": 158,
+      "lines": 2
+    },
+    {
+      "name": "ring",
+      "bytes": 105,
+      "lines": 2
+    },
+    {
+      "name": "fanAt",
+      "bytes": 171,
+      "lines": 2
+    },
+    {
+      "name": "spawnLil",
+      "bytes": 212,
+      "lines": 2
+    },
+    {
+      "name": "spawnElite",
+      "bytes": 300,
+      "lines": 2
+    },
+    {
+      "name": "dropItem",
+      "bytes": 122,
+      "lines": 2
+    },
+    {
+      "name": "dropWeapon",
+      "bytes": 161,
+      "lines": 2
+    },
+    {
+      "name": "emote",
+      "bytes": 56,
+      "lines": 2
+    },
+    {
+      "name": "powerCap",
+      "bytes": 207,
+      "lines": 2
+    },
+    {
+      "name": "powerGainMul",
+      "bytes": 151,
+      "lines": 2
+    },
+    {
+      "name": "addPower",
+      "bytes": 284,
+      "lines": 2
+    },
+    {
+      "name": "shotLevelCap",
+      "bytes": 135,
+      "lines": 2
+    },
+    {
+      "name": "gainLife",
+      "bytes": 179,
+      "lines": 2
+    },
+    {
+      "name": "shotLevel",
+      "bytes": 78,
+      "lines": 2
+    },
+    {
+      "name": "bossWepMul",
+      "bytes": 107,
+      "lines": 2
+    },
+    {
+      "name": "nearestTarget",
+      "bytes": 249,
+      "lines": 2
+    },
+    {
+      "name": "swapWeapon",
+      "bytes": 218,
+      "lines": 2
+    },
+    {
+      "name": "cycleSpecial",
+      "bytes": 212,
+      "lines": 2
+    },
+    {
+      "name": "specialButton",
+      "bytes": 42,
+      "lines": 2
+    },
+    {
+      "name": "lineTime",
+      "bytes": 67,
+      "lines": 2
+    },
+    {
+      "name": "clearWaveMobs",
+      "bytes": 170,
+      "lines": 2
+    },
+    {
+      "name": "killExtend",
+      "bytes": 369,
+      "lines": 2
+    },
+    {
+      "name": "checkExtend",
+      "bytes": 143,
+      "lines": 2
+    },
+    {
+      "name": "diffScoreMul",
+      "bytes": 111,
+      "lines": 2
+    },
+    {
+      "name": "scoreMult",
+      "bytes": 129,
+      "lines": 2
+    },
+    {
+      "name": "rankIndex",
+      "bytes": 113,
+      "lines": 2
+    },
+    {
+      "name": "rankLetter",
+      "bytes": 54,
+      "lines": 2
+    },
+    {
+      "name": "eliteHearts",
+      "bytes": 164,
+      "lines": 2
+    },
+    {
+      "name": "sparks",
+      "bytes": 128,
+      "lines": 2
+    },
+    {
+      "name": "drawOptions",
+      "bytes": 373,
+      "lines": 2
+    },
+    {
+      "name": "_hexRgb",
+      "bytes": 169,
+      "lines": 2
+    },
+    {
+      "name": "drawBullet",
+      "bytes": 432,
+      "lines": 2
+    },
+    {
+      "name": "overlayHide",
+      "bytes": 95,
+      "lines": 2
+    },
+    {
+      "name": "wrapLines",
+      "bytes": 299,
+      "lines": 2
+    },
+    {
+      "name": "measureLines",
+      "bytes": 233,
+      "lines": 2
+    },
+    {
+      "name": "lbPageCount",
+      "bytes": 85,
+      "lines": 2
+    },
+    {
+      "name": "fetchLB",
+      "bytes": 208,
+      "lines": 2
+    },
+    {
+      "name": "hideNameEntry",
+      "bytes": 112,
+      "lines": 2
+    },
+    {
+      "name": "drawTitleBtn",
+      "bytes": 376,
+      "lines": 2
+    },
+    {
+      "name": "drawPause",
+      "bytes": 319,
+      "lines": 2
+    },
+    {
+      "name": "lbIsMine",
+      "bytes": 234,
+      "lines": 2
+    },
+    {
+      "name": "exitArsenal",
+      "bytes": 91,
+      "lines": 2
+    },
+    {
+      "name": "unequipArsenal",
+      "bytes": 288,
+      "lines": 2
+    },
+    {
+      "name": "arsArr",
+      "bytes": 108,
+      "lines": 2
+    },
+    {
+      "name": "arsItemByKey",
+      "bytes": 222,
+      "lines": 2
+    },
+    {
+      "name": "emPageCount",
+      "bytes": 85,
+      "lines": 2
+    },
+    {
+      "name": "openDisplay",
+      "bytes": 116,
+      "lines": 2
+    },
+    {
+      "name": "closeDisplay",
+      "bytes": 103,
+      "lines": 2
+    }
+  ],
+  "data": {
+    "STAGES": {
+      "bytes": 8982
+    },
+    "WEAPONS": {
+      "bytes": 1368
+    },
+    "WEAPON_ORDER": {
+      "bytes": 93
+    },
+    "SPECIALS": {
+      "bytes": 1877
+    },
+    "MELEE": {
+      "bytes": 1852
+    },
+    "BOMBS": {
+      "bytes": 165
+    },
+    "EMBLEMS": {
+      "bytes": 5905
+    },
+    "OUTFITS": {
+      "bytes": 839
+    },
+    "OUTFIT_COLORS": {
+      "bytes": 822
+    },
+    "OUTFIT_EMOJI": {
+      "bytes": 345
+    },
+    "RANKS": {
+      "bytes": 84
+    },
+    "CONSUMABLES": {
+      "error": "unbalanced"
+    },
+    "DEFAULT_BINDS": {
+      "bytes": 192
+    },
+    "FIXED_KMAP": {
+      "bytes": 114
+    },
+    "BIND_LIST": {
+      "bytes": 307
+    },
+    "MOUSE": {
+      "bytes": 26
+    }
+  },
+  "scriptBytes": 492735
+}

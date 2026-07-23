@@ -1,0 +1,11 @@
+## AUTO-PORTED from HTML function drawPortraitBust — review required
+func drawPortraitBust(px, py, size, type, color):
+	 ctx.save(); ctx.translate(px,py); var R=size*0.5;
+	  ctx.fillStyle='rgba(10,6,14,0.7)'; ctx.beginPath(); ctx.arc(0,0,R+4,0,7); ctx.fill(); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,R+4,0,7); ctx.stroke();
+	  ctx.save(); ctx.beginPath(); ctx.arc(0,0,R,0,7); ctx.clip();
+	  if(type=='mumina' && imgOK(IMG.mumina)){ var img=IMG.mumina, iw=img.naturalWidth, ih=img.naturalHeight, s=maxf(2*R/iw,2*R/ih)*1.06, dw=iw*s, dh=ih*s; ctx.drawImage(img, -0.5*dw, -0.46*dh, dw, dh); }
+	  else if(type=='lily' && imgOK(IMG.lily)){ var img=IMG.lily, iw=img.naturalWidth, ih=img.naturalHeight, s=maxf(2*R/iw,2*R/ih)*1.04, dw=iw*s, dh=ih*s; ctx.drawImage(img, -0.5*dw, -0.5*dh, dw, dh); }
+	  else if(type=='bobina'){ ctx.fillStyle='#2a1830'; ctx.fillRect(-R,-R,2*R,2*R); }  // interior filled by the live #talk gif overlay
+	  else { var fake={r:R*1.1,data:{color}}; if(type=='ape') drawApe(fake,false); else if(type=='robotnik') drawRobotnik(fake,false); else if(type=='mumina') drawMumina(fake,false); else if(type=='lily') drawLily(fake,false); else if(type=='police') drawPolice(fake,false); else if(type=='bogdanoff') drawBogdanoff(fake,false); else if(type=='devil') drawDevil(fake,false); else drawWynn(fake,false); }
+	  ctx.restore(); ctx.restore();
+

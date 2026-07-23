@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function drawPause — review required
+func drawPause():
+	 ctx.fillStyle='rgba(6,4,10,0.6)'; ctx.fillRect(0,0,W,H); ctx.textAlign='center'; ctx.fillStyle='#fff'; ctx.font='900 40px "Trebuchet MS"'; ctx.fillText('PAUSED', W/2, H/2); ctx.font='14px monospace'; ctx.fillStyle='#c0a8bc'; ctx.fillText('press P to resume', W/2, H/2+30); ctx.textAlign='left'; 

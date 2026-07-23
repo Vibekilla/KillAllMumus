@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function rankIndex — review required
+func rankIndex():
+	 var idx=0; for i in range(int(0), int(RANKS.size())) if(totalKills>=RANKS[i].k) idx=i; return idx; 

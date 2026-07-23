@@ -1,0 +1,26 @@
+## AUTO-PORTED from HTML function pup — review required
+func pup():
+	 pointer.down=false;
+	  if(state=='arsenal' && arsDrag){ var d=arsDrag; arsDrag=null;
+	    if(d.empty){ if(!d.moved) exitArsenal(); return; }   // tapped empty area → leave
+	    if(!d.moved){                                         // tap
+	      if(d.from=='pool'){ toggleArsenal(d.type,d.key); }           // tap pool tile → equip / unequip
+	      else if(d.from=='hotbar' && d.key){ unequipArsenal(d.type,d.key); }   // tap filled slot → remove
+	      return;
+	    }
+	    if(d.key){ var dropped=false;                         // drag → drop into a hotbar slot
+	      for t in arsenalTiles){ if(t.hotbarSlot!=null && inBtn({x:d.x,y:d.y},t)){ dropToSlot(d.type,d.key,t.hotbarSlot); dropped=true; break; } }
+	      if(!dropped && d.from=='hotbar'){ unequipArsenal(d.type,d.key); }   // dragged a slot item out → remove
+	    }
+	  } }
+	cv.HtmlBridge.add_listener('mousedown',func(e): return {e.preventDefault();pdown(e);});
+	// track the mouse on the whole window so a click-drag keeps steering her even when the cursor leaves the canvas/window
+	HtmlBridge.add_listener('mousemove',pmove); HtmlBridge.add_listener('mouseup',pup);
+	cv.HtmlBridge.add_listener('touchstart',func(e): return {e.preventDefault();pdown(e);},{passive:false});
+	cv.HtmlBridge.add_listener('touchmove',func(e): return {e.preventDefault();pmove(e);},{passive:false});
+	HtmlBridge.add_listener('touchend',pup);
+	// Touch-PRIMARY detection: a mouse/trackpad (even on touchscreen laptops) reports hover:hover / pointer:fine,
+	// so this stays false on desktop. Only true phones/tablets match — fixes desktops wrongly getting the mobile UI.
+	// explicit UI override (escape hatch for mis-detected devices + lets us verify the mobile UI):
+	//   ?touch=1 forces mobile controls, ?touch=0 forces desktop; the choice persists in localStorage.
+

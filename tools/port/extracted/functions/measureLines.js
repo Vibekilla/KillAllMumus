@@ -1,0 +1,1 @@
+function measureLines(t,maxw){ ctx.font='bold 14px "Trebuchet MS"'; const words=t.split(' '); let line='',n=1; for(const wd of words){ if(ctx.measureText(line+wd+' ').width>maxw){ line=wd+' '; n++; } else line+=wd+' '; } return n; }

@@ -1,0 +1,9 @@
+## AUTO-PORTED from HTML function setRefreshRate — review required
+func setRefreshRate(hz):
+
+	  hz=float(hz)||60; if(hz!=30&&hz!=60&&hz!=120) hz=60;
+	  refreshRate=hz; simStepMs=1000/refreshRate;
+	  var v=HtmlBridge.doc.getElementById('disp-hz-v'); if(v) v.textContent=hz+' Hz';
+	  HtmlBridge.doc.querySelectorAll('.disp-hz') # forEach func(b): return b.classList.toggle('on', float(b.dataset.hz)==hz));
+	  saveDisplayPrefs();
+

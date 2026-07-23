@@ -1,0 +1,68 @@
+## AUTO-PORTED from HTML function drawPowerAura — review required
+func drawPowerAura(p):
+	 if(!run) return;
+	  var pf=maxf(0,minf(1,(run.power-1)/5));   // 0 at base power → 1 at max
+	  if(pf<0.02) return;
+	  var t=tick, oc=outfitColors();
+	  var rot=(p.face!=null?p.face:-PI/2)+PI/2;
+	  var R=(30+pf*15)*(1+sin(t*0.09)*0.05*(0.4+pf));   // bubble fits her whole body from the start, grows modestly with power
+	  var hue0=(t*2.4)%360;
+	  var _c=bodyCtr(p), cx=_c.x, cy=_c.y;   // keep her dead-centre in the bubble at every facing
+	  ctx.save(); ctx.translate(cx, cy); ctx.globalCompositeOperation='lighter';
+	  // outer aura glow — tinted with the outfit colours for cohesion
+	  var gg=ctx.createRadialGradient(0,0,R*0.3,0,0,R*1.6);
+	  gg.addColorStop(0,_hexA(oc[0],0.12+pf*0.16)); gg.addColorStop(0.55,_hexA(oc[1],0.10+pf*0.16)); gg.addColorStop(1,_hexA(oc[1],0));
+	  ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(0,0,R*1.6,0,7); ctx.fill();
+	  // ==== bubble surface (rotates with her body so it follows the model) ====
+	  ctx.save(); ctx.rotate(rot);
+	  // iridescent oil-slick film — concentric hue-shifting bands
+	  var bands=6+floorf(pf*4);
+	  for(var i=bands;i>=1;i -= 1){ var rr=R*(i/bands+0.03), hue=(hue0+i*(38+pf*26)+sin(t*0.09+i)*18)%360;
+	    ctx.strokeStyle="hsla(" + str(hue) + ",100%,60%," + str(0.07+pf*0.12) + ")"; ctx.lineWidth=(R/bands)*1.6; ctx.beginPath(); ctx.arc(0,0,rr,0,7); ctx.stroke(); }
+	  // swirling psychedelic ribbons (each segment its own hue)
+	  ctx.lineCap='round'; var swirls=2+floorf(pf*3);
+	  for k in range(int(0), int(swirls)){ var dir=k%2?1:-1, base=t*(0.02+k*0.006)*dir+k*2.2; var px=null,py=null;
+	    for(var s=0;s<=1.2;s+=0.075){ var a=base+s*3.6, rr=R*(0.5+0.42*sin(s*5+t*0.11+k)), x=cos(a)*rr, y=sin(a)*rr;
+	      if(px!=null){ var hue=(hue0+s*180+k*70)%360; ctx.strokeStyle="hsla(" + str(hue) + ",100%,64%," + str(0.38+pf*0.34) + ")"; ctx.lineWidth=1.6+pf*1.5; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(x,y); ctx.stroke(); } px=x; py=y; } }
+	  // rotating rainbow soap-bubble rim
+	  var rim=26; ctx.lineWidth=2+pf*1.6;
+	  for i in range(int(0), int(rim)){ var a0=i/rim*6.283+t*0.02, a1=(i+1)/rim*6.283+t*0.02, hue=(hue0+i/rim*360)%360;
+	    ctx.strokeStyle="hsla(" + str(hue) + ",100%,66%," + str(0.4+pf*0.34) + ")"; ctx.beginPath(); ctx.arc(0,0,R*0.98,a0,a1); ctx.stroke(); }
+	  // twinkling sparkles inside the bubble — smooth hue-shifting fade-in/out (no popping)
+	  var spk=5+floorf(pf*7);
+	  for i in range(int(0), int(spk)){ var a=i*2.399+t*0.03, rr=R*(0.28+0.62*((i*0.37)%1)), x=cos(a)*rr, y=sin(a)*rr*0.92;
+	    var sn=sin(t*0.28+i*1.7), tw=sn>0?sn*sn:0;   // 0→1→0, spends time off — smooth twinkle
+	    if(tw<0.02) continue; var sz=(0.9+pf*1.2)*tw, hue=(hue0+i*47)%360;
+	    ctx.fillStyle="hsla(" + str(hue) + ",100%,72%," + str(0.75*tw) + ")"; ctx.beginPath(); ctx.arc(x,y,sz,0,7); ctx.fill();
+	    ctx.strokeStyle="hsla(" + str((hue+30)%360) + ",100%,82%," + str(0.5*tw) + ")"; ctx.lineWidth=0.8; ctx.beginPath(); ctx.moveTo(x-sz*2.4,y); ctx.lineTo(x+sz*2.4,y); ctx.moveTo(x,y-sz*2.4); ctx.lineTo(x,y+sz*2.4); ctx.stroke(); }
+	  ctx.restore();
+	  // glossy sheen highlight — now hue-shifting + gently breathing so it's not a static white blob
+	  var shHue=(hue0+150)%360, shA=(0.30+pf*0.22)*(0.7+0.3*sin(t*0.13));
+	  var sg=ctx.createRadialGradient(-R*0.34,-R*0.42,0,-R*0.34,-R*0.42,R*0.52);
+	  sg.addColorStop(0,"hsla(" + str(shHue) + ",100%,90%," + str(shA) + ")"); sg.addColorStop(0.55,"hsla(" + str(shHue) + ",100%,72%," + str(shA*0.4) + ")"); sg.addColorStop(1,'hsla(0,0%,100%,0)');
+	  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(-R*0.34,-R*0.42,R*0.52,0,7); ctx.fill();
+	  // ==== LEVEL 5 — the SAME soap-bubble aesthetic, overflowing: a second larger iridescent bubble +
+	  //       gentle rainbow ripples + orbiting mini soap-bubbles (a natural escalation of the Lv4 look) ====
+	  if(run.power>=5){ var p5=0.5+0.5*sin(t*0.09);
+	    var R2=R*(1.34+0.05*p5);
+	    // faint iridescent film filling the gap out to the outer bubble
+	    var fg=ctx.createRadialGradient(0,0,R*0.96,0,0,R2); fg.addColorStop(0,'rgba(0,0,0,0)'); fg.addColorStop(0.6,"hsla(" + str((hue0+80)%360) + ",100%,66%,0.10)"); fg.addColorStop(1,"hsla(" + str((hue0+200)%360) + ",100%,66%,0.15)");
+	    ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(0,0,R2,0,7); ctx.fill();
+	    // a SECOND rainbow soap-bubble rim, concentric with the inner one (counter-rotating)
+	    var rim2=30; ctx.lineWidth=2.2+0.8*p5;
+	    for i in range(int(0), int(rim2)){ var a0=i/rim2*6.283-t*0.016, a1=(i+1)/rim2*6.283-t*0.016, hue=(hue0+150+i/rim2*360)%360; ctx.strokeStyle="hsla(" + str(hue) + ",100%,68%," + str(0.30+0.12*p5) + ")"; ctx.beginPath(); ctx.arc(0,0,R2,a0,a1); ctx.stroke(); }
+	    // rainbow bubble-ripples drifting gently outward
+	    for k in range(int(0), int(3)){ var ph=((t*0.014+k/3)%1), rr=R*(1.0+ph*1.5); ctx.strokeStyle="hsla(" + str((hue0+ph*360)%360) + ",100%,70%," + str((1-ph)*0.4) + ")"; ctx.lineWidth=2*(1-ph)+0.5; ctx.beginPath(); ctx.arc(0,0,rr,0,7); ctx.stroke(); }
+	    // little orbiting soap-bubbles with glossy highlights
+	    for i in range(int(0), int(5)){ var a=t*(0.018+i*0.004)+i*1.257, orb=R*(1.24+0.1*sin(t*0.1+i)), bx=cos(a)*orb, by=sin(a)*orb, br=R*0.14*(0.85+0.3*sin(t*0.2+i)), bh=(hue0+i*72)%360;
+	      ctx.fillStyle="hsla(" + str(bh) + ",100%,80%,0.14)"; ctx.beginPath(); ctx.arc(bx,by,br,0,7); ctx.fill();
+	      ctx.strokeStyle="hsla(" + str(bh) + ",100%,74%,0.6)"; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(bx,by,br,0,7); ctx.stroke();
+	      ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.arc(bx-br*0.35,by-br*0.4,br*0.24,0,7); ctx.fill(); } }
+	  ctx.restore();
+	  // extra iridescent LV5 sparks streaming up (soap-bubble palette, matching her aura)
+	  if(run.power>=5 && !paused && t%3==0){ particles.append({x:cx+(randf()-.5)*R*1.8, y:cy+R*0.5, vx:(randf()-.5)*1.4, vy:-2.0-randf()*2.4, life:20+((randf()*16)|0), c:"hsl(" + str((hue0+randf()*160)%360|0) + ",100%,76%)"}); }
+	  // rising psychedelic sparkle particles — the trail she likes, hue-shifting
+	  if(pf>0.12 && !paused && t%maxf(2,5-floorf(pf*3))==0){ var hue=(hue0+randf()*80)%360; particles.append({x:cx+(randf()-.5)*R*1.5, y:cy+R*0.4, vx:(randf()-.5)*1.3, vy:-1.6-randf()*2.2*pf, life:18+((randf()*14)|0), c:"hsl(" + str(hue|0) + ",100%,72%)"}); }
+	}
+	// the bubble's radiance bleeds into the map — a faint hue halo + wavy ripple rings that make reality wobble around her
+

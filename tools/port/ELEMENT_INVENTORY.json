@@ -1,0 +1,510 @@
+{
+  "generated": "2026-07-23T05:05:57.889Z",
+  "policy": "public/index.html is source of truth. No approximate stubs. Map every draw* before claiming parity.",
+  "draw_functions": [
+    {
+      "html": "circle",
+      "godot": "godot/scripts/render/drawers/circle.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "draw",
+      "godot": "godot/scripts/main/Main.gd + FxLayer.gd + HudCanvas.gd + TitleScreen.gd (HTML draw() dispatch)",
+      "status": "mapped"
+    },
+    {
+      "html": "drawApe",
+      "godot": "godot/scripts/render/drawers/drawApe.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawArsenal",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawBobina",
+      "godot": "godot/scripts/render/drawers/drawBobina.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawBobo",
+      "godot": "godot/scripts/render/drawers/drawBobo.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawBogdanoff",
+      "godot": "godot/scripts/render/drawers/drawBogdanoff.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawBoss",
+      "godot": "godot/scripts/render/drawers/drawBoss.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawBossAmbience",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawBullet",
+      "godot": "godot/scripts/render/drawers/drawBullet.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawBurns",
+      "godot": "godot/scripts/render/FxLayer.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawClearGate",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawDashComet",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawDebugLayer",
+      "godot": "godot/scripts/ui/menu/draw_debug.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawDevil",
+      "godot": "godot/scripts/render/drawers/drawDevil.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawDialog",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawElite",
+      "godot": "godot/scripts/render/drawers/drawElite.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawEmblemToasts",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawEmblems",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawEmote",
+      "godot": "godot/scripts/render/FxLayer.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawFloater",
+      "godot": "godot/scripts/render/FxLayer.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawFx",
+      "godot": "godot/scripts/render/drawers/drawFx.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawGameOver",
+      "godot": "godot/scripts/ui/EndScreen.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawHeart",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawHellPortal",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawHoneyBadger",
+      "godot": "godot/scripts/render/drawers/drawHoneyBadger.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawIntro",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawItem",
+      "godot": "godot/scripts/render/drawers/drawItem.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawLeaderboard",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawLily",
+      "godot": "godot/scripts/render/drawers/drawLily.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawMaidDance",
+      "godot": "godot/scripts/ui/EndScreen.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawMech",
+      "godot": "godot/scripts/render/drawers/drawMech.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawMeleeFx",
+      "godot": "godot/scripts/render/drawers/drawMeleeFx.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawMeleeWeapon",
+      "godot": "godot/scripts/render/drawers/drawMeleeFx.gd + drawCombatFx.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawMenuBtn",
+      "godot": "godot/scripts/ui/menu/MenuHelpers.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawMumina",
+      "godot": "godot/scripts/render/drawers/drawMumina.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawMumu",
+      "godot": "godot/scripts/render/drawers/drawMumu.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawNgSelect",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawOptions",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawOutfitFigure",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawOutfits",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPShot",
+      "godot": "godot/scripts/render/drawers/drawPShot.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPanel",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPanelPortrait",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPanelTouch",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPause",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPhaseVeil",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPolice",
+      "godot": "godot/scripts/render/drawers/drawPolice.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPortraitBust",
+      "godot": "godot/scripts/render/drawers/drawPortraitBust.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPoseProp",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPosedFigure",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPowerAura",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawPowerRadiance",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawRobotnik",
+      "godot": "godot/scripts/render/drawers/drawRobotnik.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawShareBtn",
+      "godot": "godot/scripts/ui/EndScreen.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawShop",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawSlowmoFx",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawStageBg",
+      "godot": "godot/scripts/render/drawers/drawStageBg.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawStageBgFx",
+      "godot": "godot/scripts/render/drawers/drawStageBg.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawStageClear",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawStunStars",
+      "godot": "godot/scripts/enemies/EnemyBase.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawTitle",
+      "godot": "godot/scripts/render/drawers/drawTitle.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawTitleBtn",
+      "godot": "godot/scripts/render/drawers/drawTitle.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawWin",
+      "godot": "godot/scripts/ui/EndScreen.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "drawWynn",
+      "godot": "godot/scripts/render/drawers/drawWynn.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "fire",
+      "godot": "godot/scripts/combat/FireSystem.gd + drawers/fire.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "limb",
+      "godot": "godot/scripts/render/drawers/limb.gd",
+      "status": "mapped"
+    },
+    {
+      "html": "pOrb",
+      "godot": "godot/scripts/render/drawers/pOrb.gd + drawBobina",
+      "status": "mapped"
+    }
+  ],
+  "img_loads": [
+    {
+      "key": "peephole",
+      "public": "assets/peephole.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "portrait",
+      "public": "assets/portrait.webp",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "confused",
+      "public": "assets/confused.gif",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "maid",
+      "public": "assets/maid.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "clear0",
+      "public": "assets/clear-0.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "clear1",
+      "public": "assets/clear-1.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "clear2",
+      "public": "assets/clear-2.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "mumina",
+      "public": "assets/mumina.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "lily",
+      "public": "assets/lily.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "clear3",
+      "public": "assets/clear-3.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "clear4",
+      "public": "assets/clear-4.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "winimg",
+      "public": "assets/win.jpg",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "honeybadger",
+      "public": "assets/honeybadger.png",
+      "public_ok": true,
+      "godot_texture": true
+    },
+    {
+      "key": "clear5",
+      "public": "assets/clear-5.png",
+      "public_ok": true,
+      "godot_texture": true
+    }
+  ],
+  "icon_glyphs": [
+    "—",
+    "⇄",
+    "⏱️",
+    "◈",
+    "☠",
+    "☢️",
+    "☮️",
+    "⚔️",
+    "⚡",
+    "✦",
+    "✨",
+    "✸",
+    "❄",
+    "🌀",
+    "🌌",
+    "🌟",
+    "🌿",
+    "🍀",
+    "🍌",
+    "🍯",
+    "🎏",
+    "🎒",
+    "🎭",
+    "🏁",
+    "🐂",
+    "🐙",
+    "🐱",
+    "🐻",
+    "🐿️",
+    "👁️",
+    "👊",
+    "👑",
+    "👰",
+    "💀",
+    "💃",
+    "💋",
+    "💗",
+    "💣",
+    "💥",
+    "💧",
+    "💨",
+    "💫",
+    "💼",
+    "📈",
+    "🔁",
+    "🔥",
+    "🔮",
+    "🕊️",
+    "🕰️",
+    "🕳️",
+    "🗡️",
+    "😈",
+    "😤",
+    "🚀",
+    "🛡️",
+    "🟢",
+    "🤖",
+    "🥩",
+    "🦑",
+    "🦡",
+    "🧨",
+    "🧪",
+    "🧸",
+    "🩰",
+    "🩸",
+    "🪭",
+    "🪷",
+    "🫧"
+  ],
+  "summary": {
+    "draw_total": 68,
+    "draw_mapped": 68,
+    "draw_unmapped": 0,
+    "assets_total": 14,
+    "assets_ok": 14,
+    "icons": 68
+  }
+}

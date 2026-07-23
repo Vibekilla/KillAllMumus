@@ -1,0 +1,12 @@
+## AUTO-PORTED from HTML function chainLightning — review required
+func chainLightning(sx, sy, dmg, jumps, col):
+	 var x=sx,y=sy; var hit={}, pts=[{x,y}];
+	  for j in range(int(0), int(jumps)){ var best=null,bd=1e9; for e in enemies){ if(hit.has(e))continue; var d=sqrt_sum_sq(e.x-x,e.y-y); if(d<175 && d<bd){bd=d;best=e;} }
+	    if(!best) break; hit[best); best.hp-=dmg+2; best.flash=6; best.stun=maxf(best.stun||0,24); x=best.x; y=best.y; pts.append({x,y});
+	    for s in range(int(0), int(4)) particles.append({x,y,vx:(randf()-.5)*4,vy:(randf()-.5)*4,life:12,c:s%2?col:'#fff'}); }
+	  for e in enemies){ if(e.hp<=0 && hit.has(e)) killEnemy(e); } enemies=enemies.filter(func(e): return e.hp>0);
+	  if(pts.size()>1) meleeFx.append({bolt:true,pts,col,life:12,t:0});
+	}
+	// a flung Mumu smacks a wall and detonates — damages nearby Mumus + clears nearby bullets
+	// Grrnade Launcher blast — AoE damage + bullet clear where a grenade dies
+

@@ -1,0 +1,13 @@
+[
+  { key:'laser', name:'Kraken Cannon',   icon:'🐙', col:'#a855f7', desc:'A giant kraken beam that sweeps the whole field.' },  // Kraken — purple
+  { key:'mech',  name:'SKOL Mech',       icon:'🤖', col:'#8fb8ff', desc:'A SKOL mech escorts me — mirrors my orientation, fires alongside me, and shields me from bullets.' },  // SKOL — steel blue
+  { key:'bearzooka', name:'Bearzooka',   icon:'🚀', col:'#ff9a3c', desc:'My SKOL gunship carpet-bombs from the sky and unloads a bullet volley — pure hell.' },  // SKOL — orange ordnance
+  { key:'vault', name:'Emblem Vaults',   icon:'◈', col:'#ffd27a', desc:'Emblem vaults orbit me, shredding nearby bullets.' },   // Emblem Vault — gold
+  { key:'stampede', name:'Jungle Stampede', icon:'🐂', col:'#7ed957', desc:'A bull stampede tramples straight up the field.' }, // Jungle Bay — green
+  { key:'badger', name:'Honey Badger',   icon:'🦡', col:'#f0b030', desc:'The honey badger goes berserk — relentless damage.' },  // HBDC — honey amber
+  { key:'sixth', name:'Sixth Sense',     icon:'🕰️', col:'#7fdfff', desc:'Time warps to a crawl — bullets and Mumus slow while I keep moving at full speed. I’ll weave through hell.' },  // slow-mo
+  { key:'revenge', name:"Ourbie's Revenge", icon:'🕳️', col:'#3ae66a', desc:'A wave of green black holes tears open across the field, devouring nearby bullets and Mumus.' },
+  { key:'kiss',  name:'Kiss Me',         icon:'💋', col:'#ff5b8d', desc:'I blow a kiss — a shockwave charms every Mumu into turning on their brethren, then bursting after 3s.' },
+  { key:'kraken', name:'Unleash the Kraken', icon:'🦑', col:'#5fc9c9', desc:'Colossal tentacles erupt across the map and thrash the Mumus for 6 seconds.' },
+  { key:'void',  name:'Call of the Void', icon:'👁️', col:'#9d6bff', desc:'I tear open reality; eldritch servitors pour out to hunt the Mumus — powerful, but they can be destroyed.' },
+]

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function _hItem — review required
+func _hItem(ic, nm, ds):
+	 return "<div class="help-item"><span class="ic">" + str(ic) + "</span><span><span class="nm">" + str(_hEsc(nm)) + "</span><br><span class="ds">" + str(_hEsc(ds)) + "</span></span></div>"; 

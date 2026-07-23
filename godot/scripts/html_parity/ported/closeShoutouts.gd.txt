@@ -1,0 +1,10 @@
+## AUTO-PORTED from HTML function closeShoutouts — review required
+func closeShoutouts():
+	 if(shoutEl) shoutEl.classList.remove('on'); }
+	(function(){ var cb=HtmlBridge.doc.getElementById('so-close'); if(cb){ cb.HtmlBridge.add_listener('click',closeShoutouts); cb.HtmlBridge.add_listener('touchstart',func(e): return {e.preventDefault();closeShoutouts();},{passive:false}); }
+	  if(shoutEl) shoutEl.HtmlBridge.add_listener('click',func(e): return { if(e.target==shoutEl) closeShoutouts(); }); })();
+	// ==== virtual joystick: FIXED base seated in the lower-left; the knob deflects toward your thumb (base never moves) ====
+	var joyzone=HtmlBridge.doc.getElementById('joyzone'), joybase=HtmlBridge.doc.getElementById('joybase'), joyknob=HtmlBridge.doc.getElementById('joyknob');
+	var joy={active:false, id:null, cx:0, cy:0, vx:0, vy:0}, joyHome={x:60,y:200};
+	var JOY_R=54;
+

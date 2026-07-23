@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function closeDisplay — review required
+func closeDisplay():
+	 var d=HtmlBridge.doc.getElementById('display'); if(d) d.classList.remove('on'); 

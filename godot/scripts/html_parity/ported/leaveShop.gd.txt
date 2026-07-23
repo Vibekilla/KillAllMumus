@@ -1,0 +1,4 @@
+## AUTO-PORTED from HTML function leaveShop — review required
+func leaveShop():
+	 state='play'; neutralizeInputs(); sfx('item'); }   // out of the shop → back onto the cleared field; same clean-input handoff as a stage start (no stray shot)
+

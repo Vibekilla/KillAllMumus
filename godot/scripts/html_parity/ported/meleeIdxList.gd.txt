@@ -1,0 +1,4 @@
+## AUTO-PORTED from HTML function meleeIdxList — review required
+func meleeIdxList():
+	 return arsenalM.map(func(k): return MELEE.findIndex(func(m): return m.key==k)).filter(func(i): return i>=0); }   // selected melee → MELEE indices, in cycle order
+

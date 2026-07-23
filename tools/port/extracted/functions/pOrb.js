@@ -1,0 +1,1 @@
+function pOrb(x,y,glow,c1,c2){ ctx.save(); ctx.shadowColor=glow; ctx.shadowBlur=8; ctx.fillStyle=c1; ctx.beginPath(); ctx.arc(x,y,3,0,7); ctx.fill(); ctx.fillStyle=c2; ctx.beginPath(); ctx.arc(x,y,1.3,0,7); ctx.fill(); ctx.restore(); }

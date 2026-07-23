@@ -1,0 +1,7 @@
+function spawnClearGate(){   // boss cleared → drop a portal + a shop entrance on the field and hand control back to the player
+  if(run.stageIdx>=STAGES.length-1){ onBossDefeated(); return; }   // final boss → straight to the win screen
+  run.cleared=true; boss=null; bullets=[]; enemies=[];
+  clearPortal={ x:PF.x+PF.w*0.5, y:PF.y+PF.h*0.30 };
+  clearShop={ x:PF.x+PF.w*0.80, y:PF.y+PF.h*0.55 };
+  clearMsgT=260; mumuHeads+=15; saveHeads(); sfx('win');   // boss head bounty
+}

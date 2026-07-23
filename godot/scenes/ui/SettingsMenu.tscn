@@ -52,6 +52,14 @@ value = 90.0
 layout_mode = 2
 text = "🖥 Display"
 
+[node name="HelpBtn" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "📖 How to Play"
+
+[node name="ResetInvBtn" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "🗑 Reset Inventory"
+
 [node name="CloseBtn" type="Button" parent="Panel/VBox"]
 layout_mode = 2
 text = "Done"
@@ -59,4 +67,6 @@ text = "Done"
 [connection signal="value_changed" from="Panel/VBox/MusicSlider" to="." method="_on_music"]
 [connection signal="value_changed" from="Panel/VBox/SfxSlider" to="." method="_on_sfx"]
 [connection signal="pressed" from="Panel/VBox/DisplayBtn" to="." method="_on_display"]
+[connection signal="pressed" from="Panel/VBox/HelpBtn" to="." method="_on_help"]
+[connection signal="pressed" from="Panel/VBox/ResetInvBtn" to="." method="_on_reset_inventory"]
 [connection signal="pressed" from="Panel/VBox/CloseBtn" to="." method="_on_close"]

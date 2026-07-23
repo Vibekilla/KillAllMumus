@@ -1,0 +1,6 @@
+## AUTO-PORTED from HTML function lbSetPage — review required
+func lbSetPage(n):
+	 var pc=lbPageCount(); lbPage=maxf(0,minf(pc-1,n)); }
+	var bobinaMe=null; // {authenticated, bcId, username, ...} from /api/me
+	HtmlBridge.win.__setBobinaMe=function(me){ bobinaMe=(me&&me.authenticated)?me:null; };
+

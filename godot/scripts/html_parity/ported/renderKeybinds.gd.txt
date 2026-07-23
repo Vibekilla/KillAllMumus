@@ -1,0 +1,9 @@
+## AUTO-PORTED from HTML function renderKeybinds — review required
+func renderKeybinds():
+	 var sc=HtmlBridge.doc.getElementById('kb-list'); if(!sc)return;
+	  var html='';
+	  for(var [a,label] of BIND_LIST){ var w=(rebindAction==a);
+	    html+="<div class="kb-row"><span>" + str(_hEsc(label)) + "</span><button class="kb-key" + str(w?' waiting':'') data-a=str(a)>" + str(w?'press…':_hEsc(keyName(binds[a]))) + "</button></div>"; }
+	  sc.innerHTML=html;
+	  sc.querySelectorAll('.kb-key') # forEach func(b): return { b.onclick=func(ev): return { ev.stopPropagation(); rebindAction=(rebindAction==b.dataset.a?null:b.dataset.a); renderKeybinds(); }; });
+

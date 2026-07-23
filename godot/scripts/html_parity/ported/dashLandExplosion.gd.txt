@@ -1,0 +1,11 @@
+## AUTO-PORTED from HTML function dashLandExplosion — review required
+func dashLandExplosion(p):
+	 var slash=p.slashDash, base=(tick*4)%360, n=slash?26:16;
+	  for i in range(int(0), int(n)){ var a=i/n*6.283+randf()*0.2, sp=(slash?4:2.6)+randf()*(slash?4.5:3), hue=(base+i*(360/n))%360;
+	    particles.append({x:p.x,y:p.y,vx:cos(a)*sp,vy:sin(a)*sp,life:15+((randf()*16)|0),c:"hsl(" + str(hue|0) + ",100%,66%)"}); }
+	  meleeFx.append({ring:true,rainbow:true,x:p.x,y:p.y,r0:5,r1:slash?62:42,col:'#fff',life:18,t:0});   // expanding rainbow ring
+	  screenShake=maxf(screenShake, slash?4.5:2.2); sfx('item'); if(slash) sfx('graze');
+	}
+	// SPACE melee swipe — a wide arc in front of Bobina that damages + knocks back enemies and shoves/cancels nearby bullets.
+	// Charge (hold SPACE) scales reach, knockback, damage; a strong charge deletes the bullets it catches for real breathing room.
+

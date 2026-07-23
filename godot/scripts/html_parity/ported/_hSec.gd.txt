@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function _hSec — review required
+func _hSec(t, inner):
+	 return "<div class="help-sec">" + str(_hEsc(t)) + "</div>" + str(inner); }
+	var helpTab='controls';
+

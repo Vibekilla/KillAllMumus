@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function addSpecial — review required
+func addSpecial(def):
+	 SPECIALS.append(def); return SPECIALS.size()-1; 

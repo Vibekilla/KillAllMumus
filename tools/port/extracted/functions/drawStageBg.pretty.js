@@ -1,0 +1,108 @@
+function drawStageBg() {
+  const s = run ? run.stageIdx : 0,
+    sc = stageTime || tick;
+  let top, bot;
+  if (s === 0) {
+    top = '#0b2412';
+    bot = '#193f1f';
+  } else if (s === 1) {
+    top = '#0b1a30';
+    bot = '#1c3f60';
+  } else if (s === 2) {
+    top = '#0d200d';
+    bot = '#1f501c';
+  } else if (s === 3) {
+    top = '#150826';
+    bot = '#2c1648';
+  } else if (s === 4) {
+    top = '#241808';
+    bot = '#3f2c0d';
+  } else if (s === 5) {
+    top = '#0a0a1e';
+    bot = '#1b1746';
+  } else {
+    top = '#240812';
+    bot = '#4e1019';
+  } // s5 Akashic Records: deep cosmic indigo-violet (NOT Wynn's crimson)
+  const g = ctx.createLinearGradient(0, PF.y, 0, PF.y + PF.h);
+  g.addColorStop(0, top);
+  g.addColorStop(1, bot);
+  ctx.fillStyle = g;
+  ctx.fillRect(PF.x, PF.y, PF.w, PF.h);
+  // ===== per-stage DARK psychedelic geometric backdrop (complements the bright boss ambience — deepens the field so projectiles pop) =====
+  drawStageBgFx(s);
+  // scrolling environment motif (the "trees etc") on top of the backdrop
+  const off = (sc * (s === 1 ? 1.4 : 2)) % 80;
+  ctx.globalAlpha = 0.11;
+  for (let y = -80; y < PF.h + 80; y += 80)
+    for (let x = 0; x < PF.w; x += 80) {
+      const px = PF.x + x,
+        py = PF.y + ((y + off) % (PF.h + 80));
+      if (s === 0) {
+        ctx.fillStyle = '#7cbf5a';
+        ctx.beginPath();
+        ctx.ellipse(px + 40, py + 40, 26, 10, 0.5, 0, 7);
+        ctx.fill();
+      } else if (s === 1) {
+        ctx.fillStyle = '#bfe6ff';
+        ctx.beginPath();
+        ctx.moveTo(px + 40, py + 20);
+        ctx.lineTo(px + 48, py + 40);
+        ctx.lineTo(px + 40, py + 60);
+        ctx.lineTo(px + 32, py + 40);
+        ctx.closePath();
+        ctx.fill();
+      } else if (s === 2) {
+        ctx.fillStyle = '#8fd35a';
+        ctx.beginPath();
+        ctx.moveTo(px + 40, py + 22);
+        ctx.quadraticCurveTo(px + 58, py + 40, px + 40, py + 58);
+        ctx.quadraticCurveTo(px + 22, py + 40, px + 40, py + 22);
+        ctx.fill();
+      } else if (s === 3) {
+        ctx.save();
+        ctx.translate(px + 40, py + 40);
+        ctx.rotate(-0.5);
+        ctx.fillStyle = '#9945ff';
+        ctx.fillRect(-15, -9, 30, 4);
+        ctx.fillStyle = '#14f195';
+        ctx.fillRect(-15, -1, 30, 4);
+        ctx.fillStyle = '#9945ff';
+        ctx.fillRect(-15, 7, 30, 4);
+        ctx.restore();
+      } else if (s === 4) {
+        ctx.fillStyle = '#e0a850';
+        ctx.fillRect(px + 30, py + 28, 20, 16);
+        ctx.fillStyle = '#3a2e18';
+        ctx.fillRect(px + 33, py + 31, 14, 8);
+        ctx.fillStyle = '#e0a850';
+        ctx.fillRect(px + 37, py + 44, 6, 4);
+      } // cubicle monitors
+      else if (s === 5) {
+        ctx.save();
+        ctx.translate(px + 40, py + 40);
+        ctx.rotate(sc * 0.008); // AKASHIC — drifting astral stars (violet + gold), not Wynn's red candlesticks
+        ctx.fillStyle = '#b48ce0';
+        ctx.beginPath();
+        ctx.moveTo(0, -13);
+        ctx.lineTo(3, -3);
+        ctx.lineTo(13, 0);
+        ctx.lineTo(3, 3);
+        ctx.lineTo(0, 13);
+        ctx.lineTo(-3, 3);
+        ctx.lineTo(-13, 0);
+        ctx.lineTo(-3, -3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#e0b84a';
+        ctx.beginPath();
+        ctx.arc(0, 0, 2.4, 0, 7);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        ctx.fillStyle = '#ff5b6e';
+        ctx.fillRect(px + 30, py + 20, 20, 44);
+      }
+    } // LAIR — Wynn's red candlesticks
+  ctx.globalAlpha = 1;
+}

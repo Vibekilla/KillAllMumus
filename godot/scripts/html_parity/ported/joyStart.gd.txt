@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function joyStart — review required
+func joyStart(e):
+	 var t=e.changedTouches?e.changedTouches[0]:e; joy.active=true; joy.id=(t.identifier!=null?t.identifier:'m');
+	  joy.cx=joyHome.x; joy.cy=joyHome.y;   // fixed centre — the base stays seated in one place
+	  joybase.classList.remove('idle'); joyApply(t); if(e.cancelable)e.preventDefault(); 

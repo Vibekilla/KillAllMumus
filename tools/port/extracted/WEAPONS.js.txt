@@ -1,0 +1,12 @@
+{
+  spread:{name:'Emblem Amulets', icon:'◈', col:'#ffd27a', desc:'A wide fan of gold amulets — great all-round coverage.'},   // Emblem Vault — gold
+  laser: {name:'Red Death',      icon:'💀', col:'#ff3b5c', desc:'Piercing crimson beams — high single-target damage.'},   // Red Death — crimson
+  homing:{name:'Monke Bananas',  icon:'🍌', col:'#ffe14a', desc:'Bananas that curve toward the nearest Mumu.'},   // Monke — banana yellow
+  wave:  {name:'Jungle Vines',   icon:'🌿', col:'#7ed957', desc:'Sweeping vine waves — wide crowd control.'},   // Jungle Bay — green
+  scatter:{name:'Bobo Bear Claws', icon:'🐻', col:'#e0a060', desc:'A short-range spray of claws — brutal up close.'}, // Bobo Council — brown
+  gatling:{name:'Gatling Lasers', icon:'🟢', col:'#7ed957', desc:'A rapid stream of green laser bolts — shreds single targets. Mumina would be mad if she found out I had these!'},
+  grenade:{name:'Grrnade Launcher', icon:'🧨', col:'#b6e34a', desc:'Lobs grenades that burst in an explosive AoE.'},
+  voidripper:{name:'Voidripper', icon:'🌌', col:'#9d6bff', desc:'Void rifts that pierce clean through every Mumu in a line.'},
+  lotus:{name:'Lotus Petals', icon:'🪷', col:'#ff8ac0', desc:'A blooming spray of petals that drift and home in.'},
+  shock:{name:'Shock & Awe', icon:'⚡', col:'#8fd0ff', desc:'Electric bolts that arc chain-lightning between Mumus.'},
+}

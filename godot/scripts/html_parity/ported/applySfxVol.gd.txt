@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function applySfxVol — review required
+func applySfxVol():
+	 if(masterGain){ try{ masterGain.gain.value=sfxVol; }catch(e){} } 

@@ -1,0 +1,27 @@
+## AUTO-PORTED from HTML function syncPauseUI — review required
+func syncPauseUI():
+	 var el=func(id): return HtmlBridge.doc.getElementById(id);
+	  var m=el('pz-music'), s=el('pz-sfx'), f=el('pz-follow'), sp=el('pz-speed'); if(!m) return;
+	  m.value=roundf(musicVol*100); el('pz-music-v').textContent=roundf(musicVol*100)+'%';
+	  s.value=roundf(sfxVol*100);   el('pz-sfx-v').textContent=roundf(sfxVol*100)+'%';
+	  f.value=roundf(MOUSE.follow*100); el('pz-follow-v').textContent=roundf(MOUSE.follow*100)+'%';
+	  sp.value=roundf(MOUSE.speed*100); el('pz-speed-v').textContent=MOUSE.speed.toFixed(2)+'×'; }
+	(function(){ var ps=HtmlBridge.doc.getElementById('pausescreen'), rb=HtmlBridge.doc.getElementById('ps-resume'), mb=HtmlBridge.doc.getElementById('ps-menu');
+	  var backdropResume=func(e): return { if(e.target==ps) resumeGame(e); };   // only tapping the dimmed area (not the card/controls) resumes
+	  if(ps){ ps.HtmlBridge.add_listener('touchstart',backdropResume,{passive:false}); ps.HtmlBridge.add_listener('mousedown',backdropResume); }
+	  if(rb){ rb.HtmlBridge.add_listener('touchstart',resumeGame,{passive:false}); rb.HtmlBridge.add_listener('click',resumeGame); }
+	  if(mb){ mb.HtmlBridge.add_listener('touchstart',pauseReturnMenu,{passive:false}); mb.HtmlBridge.add_listener('click',pauseReturnMenu); }
+	  var el=func(id): return HtmlBridge.doc.getElementById(id);
+	  var m=el('pz-music'), s=el('pz-sfx'), f=el('pz-follow'), sp=el('pz-speed');
+	  if(m) m.addEventListenerfunc('input',(): # arrow
+	 musicVol=int(m.value)/100; el('pz-music-v').textContent=m.value+'%'; applyMusicVol(); try{HtmlBridge.storage_set('bobina_musicvol',String(musicVol));}catch(e){} });
+	  if(s) s.addEventListenerfunc('input',(): # arrow
+	 sfxVol=int(s.value)/100; el('pz-sfx-v').textContent=s.value+'%'; applySfxVol(); try{HtmlBridge.storage_set('bobina_sfxvol',String(sfxVol));}catch(e){} });
+	  if(f) f.addEventListenerfunc('input',(): # arrow
+	 MOUSE.follow=int(f.value)/100; el('pz-follow-v').textContent=f.value+'%'; try{HtmlBridge.storage_set('bobina_follow',String(MOUSE.follow));}catch(e){} });
+	  if(sp) sp.addEventListenerfunc('input',(): # arrow
+	 MOUSE.speed=int(sp.value)/100; el('pz-speed-v').textContent=MOUSE.speed.toFixed(2)+'×'; try{HtmlBridge.storage_set('bobina_mspeed',String(MOUSE.speed));}catch(e){} });
+	})();
+	// SHOUTOUTS modal
+	var shoutEl=HtmlBridge.doc.getElementById('shoutouts');
+

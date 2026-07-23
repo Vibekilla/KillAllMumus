@@ -1,0 +1,6 @@
+## AUTO-PORTED from HTML function overlayShow — review required
+func overlayShow(el, cxC, cyC, wC, hC):
+	 var rect=cv.getBoundingClientRect(); var sx=rect.width/W, sy=rect.height/H;
+	  el.style.left=(rect.left+(cxC-wC/2)*sx)+'px'; el.style.top=(rect.top+(cyC-hC/2)*sy)+'px';
+	  el.style.width=(wC*sx)+'px'; el.style.height=(hC*sy)+'px';
+	  if(el._shown!=true){ el.style.display='block'; el._shown=true; } 

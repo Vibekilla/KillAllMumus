@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function arsItemByKey — review required
+func arsItemByKey(type, k):
+	 return type=='w' ? (WEAPONS[k]?{key:k}.merge(WEAPONS[k]):null) : type=='s' ? SPECIALS.find(func(s): return s.key==k) : type=='m' ? MELEE.find(func(m): return m.key==k) : CONSUMABLES.find(func(c): return c.key==k); 

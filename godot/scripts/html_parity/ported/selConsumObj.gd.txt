@@ -1,0 +1,4 @@
+## AUTO-PORTED from HTML function selConsumObj — review required
+func selConsumObj():
+	 if(selConsum>=arsenalI.size()) selConsum=0; return consumById(arsenalI[selConsum]); }   // the selected item is now whatever sits in that equipped slot
+

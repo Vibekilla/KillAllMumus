@@ -1,0 +1,15 @@
+## AUTO-PORTED from HTML drawWynn — hand-fixed where needed
+func drawWynn(b, flash) -> void:
+	 var R=b.r;
+	  ctx.fill_style=flash._STR0__:"#5a2b3a"; ctx.begin_path(); ctx.ellipse(0,10,R*0.95,R*0.8,0,0,7); ctx.fill();
+	  ctx.fill_style=flash._STR2__:"#6a3345"; ctx.begin_path(); ctx.arc(0,-6,R*0.66,0,7); ctx.fill();
+	  ctx.fill_style=flash._STR4__:"#8a4a5e"; ctx.begin_path(); ctx.ellipse(0,R*0.06,R*0.4,R*0.3,0,0,7); ctx.fill();
+	  ctx.fill_style="#25101a"; circle(-R*0.14,R*0.02,R*0.06,"#25101a"); circle(R*0.14,R*0.02,R*0.06,"#25101a");
+	  ctx.stroke_style="#e8dcc4"; ctx.line_width=2.5; ctx.begin_path(); ctx.arc(0,R*0.16,R*0.14,0.1,PI-0.1); ctx.stroke();
+	  ctx.fill_style=flash._STR10__:"#e8dcc4";
+	  ctx.begin_path(); ctx.move_to(-R*0.4,-R*0.4); ctx.quadratic_curve_to(-R*1.15,-R*0.9,-R*1.1,-R*0.2); ctx.quadratic_curve_to(-R*0.7,-R*0.55,-R*0.25,-R*0.35); ctx.fill();
+	  ctx.begin_path(); ctx.move_to(R*0.4,-R*0.4); ctx.quadratic_curve_to(R*1.15,-R*0.9,R*1.1,-R*0.2); ctx.quadratic_curve_to(R*0.7,-R*0.55,R*0.25,-R*0.35); ctx.fill();
+	  ctx.save(); ctx.shadow_color="#ff2b2b"; ctx.shadow_blur=12; ctx.fill_style="#ff3b30"; circle(-R*0.22,-R*0.14,R*0.11,"#ff3b30"); circle(R*0.22,-R*0.14,R*0.11,"#ff3b30"); ctx.restore();
+	  ctx.fill_style="#ffd27a"; circle(-R*0.22,-R*0.16,R*0.04,"#ffd27a"); circle(R*0.22,-R*0.16,R*0.04,"#ffd27a");
+	  ctx.fill_style="#ffd700"; ctx.font="bold "+(R*0.5)+"px monospace"; ctx.text_align="center"; ctx.fill_text("$",0,R*0.7); ctx.text_align="left";
+	
