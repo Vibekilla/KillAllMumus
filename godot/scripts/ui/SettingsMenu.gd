@@ -1,6 +1,8 @@
 extends Control
 ## Settings panel — HTML #settings openSettings/syncSettingsUI 1:1 (audio, mouse, speedrun, links).
 
+const OverlayTheme = preload("res://scripts/ui/menu/OverlayTheme.gd")
+
 @onready var music_slider: HSlider = %MusicSlider
 @onready var sfx_slider: HSlider = %SfxSlider
 @onready var music_label: Label = %MusicLabel
@@ -17,11 +19,88 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if reset_confirm:
 		reset_confirm.visible = false
+	_apply_html_chrome()
 	GameState.state_changed.connect(func(_s):
 		visible = GameState.state == GameState.State.SETTINGS
 		if visible:
 			_sync_ui()
 	)
+
+func _apply_html_chrome() -> void:
+	## HTML .set-card — violet border; mouse controls live in Controls modal (not main settings)
+	var dim := get_node_or_null("Dim") as ColorRect
+	var panel := get_node_or_null("Panel") as PanelContainer
+	OverlayTheme.apply_settings_card(panel, dim)
+	if panel:
+		var w := 420.0
+		var host: CenterContainer = get_node_or_null("CenterHost") as CenterContainer
+		if host == null:
+			host = CenterContainer.new()
+			host.name = "CenterHost"
+			host.set_anchors_preset(Control.PRESET_FULL_RECT)
+			host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			add_child(host)
+			move_child(host, get_child_count() - 1)
+		if panel.get_parent() != host:
+			panel.reparent(host)
+		panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		panel.custom_minimum_size = Vector2(w, 0)
+		panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var title := get_node_or_null("Panel/VBox/Title") as Label
+	if title:
+		title.add_theme_color_override("font_color", OverlayTheme.TITLE_SET)
+		title.add_theme_font_size_override("font_size", 22)
+	var sub := get_node_or_null("Panel/VBox/Sub") as Label
+	if sub:
+		sub.add_theme_color_override("font_color", OverlayTheme.SUB)
+		sub.add_theme_font_size_override("font_size", 12)
+	var vbox: Node = null
+	if panel:
+		vbox = panel.get_node_or_null("VBox")
+	for sec_name in ["SecAudio", "SecGame", "SecMouse", "SecMore"]:
+		var sec := (vbox.get_node_or_null(sec_name) if vbox else null) as Label
+		if sec:
+			OverlayTheme.style_sec(sec)
+			sec.text = sec.text.to_upper()
+	# HTML main settings has NO mouse sliders (those are under Controls / pause)
+	for n in ["SecMouse", "FollowLabel", "FollowSlider", "SpeedLabel", "SpeedSlider"]:
+		var node: Node = null
+		if n == "FollowLabel":
+			node = follow_label
+		elif n == "FollowSlider":
+			node = follow_slider
+		elif n == "SpeedLabel":
+			node = speed_label
+		elif n == "SpeedSlider":
+			node = speed_slider
+		elif vbox:
+			node = vbox.get_node_or_null(n)
+		if node and node is CanvasItem:
+			(node as CanvasItem).visible = false
+	OverlayTheme.style_label(music_label)
+	OverlayTheme.style_label(sfx_label)
+	OverlayTheme.style_slider(music_slider)
+	OverlayTheme.style_slider(sfx_slider)
+	OverlayTheme.style_button(speedrun_btn, "ghost")
+	if speedrun_btn:
+		speedrun_btn.text = "Skip villain monologues"
+	var display := (vbox.get_node_or_null("DisplayBtn") if vbox else null) as Button
+	var keybinds := (vbox.get_node_or_null("KeybindsBtn") if vbox else null) as Button
+	var help := (vbox.get_node_or_null("HelpBtn") if vbox else null) as Button
+	var reset_btn := (vbox.get_node_or_null("ResetInvBtn") if vbox else null) as Button
+	var close := (vbox.get_node_or_null("CloseBtn") if vbox else null) as Button
+	OverlayTheme.style_button(display, "ghost")
+	OverlayTheme.style_button(keybinds, "ghost")
+	OverlayTheme.style_button(help, "help")
+	OverlayTheme.style_button(reset_btn, "ghost")
+	OverlayTheme.style_button(close, "ghost")
+	var ver := (vbox.get_node_or_null("Ver") if vbox else null) as Label
+	if ver:
+		ver.add_theme_color_override("font_color", Color(0.416, 0.353, 0.447))
+		ver.add_theme_font_size_override("font_size", 10)
+	if reset_confirm is PanelContainer:
+		(reset_confirm as PanelContainer).add_theme_stylebox_override("panel", OverlayTheme.card_style(OverlayTheme.PINK, 16))
 
 func _sync_ui() -> void:
 	## HTML syncSettingsUI
@@ -63,8 +142,13 @@ func _refresh_follow_labels() -> void:
 func _refresh_speedrun() -> void:
 	if speedrun_btn:
 		var on := GameState.speedrun
-		speedrun_btn.text = "🏁 Speedrun Mode  %s" % ("ON" if on else "OFF")
+		# HTML: label shows OFF/ON; button is "Skip villain monologues"
+		speedrun_btn.text = "Skip villain monologues  ·  %s" % ("ON" if on else "OFF")
 		speedrun_btn.button_pressed = on
+		if on:
+			speedrun_btn.add_theme_color_override("font_color", Color(0.776, 0.949, 0.682))
+		else:
+			speedrun_btn.add_theme_color_override("font_color", OverlayTheme.MUTED_BTN)
 
 func _on_music(v: float) -> void:
 	if AudioBus:

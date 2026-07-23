@@ -187,6 +187,19 @@ func stroke_style(c) -> void:
 func line_width(w: float) -> void:
 	_lw = w
 
+func _effective_lw() -> float:
+	## HTML Canvas2D: lineWidth is in user space and scales with the current CTM.
+	## Cap the scale factor so large menu previews (×4.7) keep lid weight readable without
+	## turning smile eyes into heavy “glasses” frames.
+	var sc := _xform.get_scale()
+	var m := (absf(sc.x) + absf(sc.y)) * 0.5
+	if m < 0.001:
+		m = 1.0
+	# Soft compress: full scale up to 1.5×, then sqrt-dampen above that
+	if m > 1.5:
+		m = 1.5 + sqrt(m - 1.5) * 0.85
+	return maxf(0.5, _lw * m)
+
 func global_alpha(a: float) -> void:
 	_alpha = a
 
@@ -772,11 +785,12 @@ func stroke() -> void:
 				return
 			pts = kept
 	var col := _c(_stroke)
+	var elw := _effective_lw()
 	if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
 		var sc := _shadow_col
 		sc.a *= _alpha * 0.45
-		node.draw_polyline(pts, sc, _lw + _shadow_blur * 0.25, true)
-	node.draw_polyline(pts, col, _lw, true)
+		node.draw_polyline(pts, sc, elw + _shadow_blur * 0.25, true)
+	node.draw_polyline(pts, col, elw, true)
 
 func fill_rect(x, y, w, h) -> void:
 	if node == null:
