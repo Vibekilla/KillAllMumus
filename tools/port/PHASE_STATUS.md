@@ -6,7 +6,7 @@
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 | Foundation / docs / dual as living checklist | **active** — docs + `port:gates` 0–8 |
-| 1 | Performance (cache Bobina, throttle redraws) | **in progress** — BobinaDrawCache for outfit previews |
+| 1 | Performance (cache Bobina, throttle redraws) | **in progress** — menu + play Bobina cache; throttle; GPU FPS still open |
 | 2 | Bobina animation (breath, blink, expressions, outfits, poses) | **open** |
 | 3 | Exhaustive visuals (weapons / specials / melee / auras / powerups / bosses / meta) | **open** |
 | 4 | Exhaustive mechanics + boss AI + stage flow + progress | **open** |

@@ -71,6 +71,19 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 	var tick := int(st.get("tick", 0))
 	var extra := "f%.3f|fo%d" % [face, focus]
 	var key := cache_key(outfit, null, 0, tick, 1.0, extra)
+	if _ready_tex.has(key):
+		_touch(key)
+		return _ready_tex[key]
+	# Stale-but-close frame: same outfit/face/focus, any tick bucket (avoids live drawBobina)
+	var prefix := "%s|null|0|" % outfit
+	var suffix := "|1.0|%s" % extra
+	var fallback: Texture2D = null
+	for k in _ready_tex.keys():
+		var ks := str(k)
+		if ks.begins_with(prefix) and ks.ends_with(suffix):
+			fallback = _ready_tex[k]
+			_touch(ks)
+			break
 	var bake := st.duplicate(true)
 	bake["face"] = face
 	bake["iframe"] = 0  # flash applied at blit
@@ -78,7 +91,8 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 	bake["y"] = 0
 	bake["bombFx"] = 0
 	bake["dash"] = 0
-	return _get_or_enqueue(key, outfit, null, tick, 1.0, bake)
+	_get_or_enqueue(key, outfit, null, tick, 1.0, bake)
+	return fallback  # null only until first bake for this facing lands
 
 func _get_or_enqueue(key: String, outfit: String, expr, tick: int, scale: float, state: Dictionary) -> Texture2D:
 	if _ready_tex.has(key):
@@ -129,11 +143,16 @@ func _process(_d: float) -> void:
 	if _busy or _queue.is_empty():
 		return
 	_busy = true
-	_run_next()
+	# Drain up to 2 play-priority jobs per frame when queue is deep
+	_run_batch()
 
-func _run_next() -> void:
-	var job: Dictionary = _queue.pop_front()
-	await _bake(job)
+func _run_batch() -> void:
+	var n := mini(2, _queue.size()) if _queue.size() > 3 else 1
+	for _i in range(n):
+		if _queue.is_empty():
+			break
+		var job: Dictionary = _queue.pop_front()
+		await _bake(job)
 	_busy = false
 
 func _bake(job: Dictionary) -> void:
