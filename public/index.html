@@ -100,12 +100,6 @@
   #wrap { position:fixed; top:0; left:0; width:100vw; width:100dvw; height:100vh; height:100dvh; display:flex; align-items:center; justify-content:center; }
   canvas { background:#07060c; box-shadow:0 0 80px rgba(200,60,140,0.45), 0 0 0 1px rgba(255,120,190,0.15); border-radius:6px; touch-action:none; cursor:crosshair; display:block; }
   @media (pointer:coarse){ canvas{ border-radius:0; box-shadow:none; } }
-  /* faint "KILL ALL MUMUS" side labels — desktop (non-touch, wide) only, sitting behind the canvas in the letterbox */
-  .side{ position:fixed; top:0; bottom:0; width:120px; display:none; align-items:center; justify-content:center; pointer-events:none; z-index:-1; }
-  #sideL{ left:0; } #sideR{ right:0; }
-  .side span{ writing-mode:vertical-rl; font-weight:900; font-size:54px; letter-spacing:8px; color:rgba(255,140,200,0.12); white-space:nowrap; text-shadow:0 0 18px rgba(255,80,150,0.14); }
-  #sideR span{ transform:rotate(180deg); }
-  @media (min-width:1200px){ body:not(.touch) .side{ display:flex; } }
   #ui { position:fixed; top:10px; left:14px; z-index:20; display:flex; gap:8px; align-items:center; }
   .tb, .link { border:1px solid rgba(255,120,190,0.4); color:#e8cfe0; font-size:11px; letter-spacing:.5px; padding:7px 11px; border-radius:9px; cursor:pointer; user-select:none; text-decoration:none; background:rgba(30,16,40,0.72); display:inline-flex; align-items:center; gap:5px; }
   .link:hover, .tb:hover{ border-color:#ff7ab5; color:#fff; }
@@ -169,7 +163,7 @@
     #note{ display:none; }
   }
   #ytmusic{ position:fixed; width:2px; height:2px; left:0; bottom:0; opacity:0.01; pointer-events:none; z-index:-1; }
-  #fsbtn{ position:fixed; top:10px; left:12px; z-index:16; width:34px; height:34px; display:flex; align-items:center; justify-content:center; background:rgba(28,16,38,0.72); border:1px solid rgba(255,120,190,0.4); border-radius:8px; color:#e8cfe0; font-size:18px; line-height:1; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+  #fsbtn{ position:fixed; top:10px; left:12px; z-index:16; width:34px; height:34px; display:none; /* use Display menu */ align-items:center; justify-content:center; background:rgba(28,16,38,0.72); border:1px solid rgba(255,120,190,0.4); border-radius:8px; color:#e8cfe0; font-size:18px; line-height:1; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
   #fsbtn:hover{ border-color:#ff7ab5; color:#fff; }
   #fsbtn:active{ background:rgba(220,70,140,0.55); }
   /* the gifs are overlaid as REAL <img> elements on top of the canvas so the browser plays them natively (drawImage only ever grabs frame 0 of an animated gif) */
@@ -338,15 +332,23 @@
   #kb-reset{ margin-top:12px; width:100%; min-height:42px; border:1px solid rgba(255,140,200,0.4); border-radius:11px; cursor:pointer; background:rgba(255,140,200,0.12); color:#ffd6ea; font-size:13px; font-weight:bold; }
   #kb-done{ margin-top:10px; width:100%; min-height:46px; border:1px solid rgba(255,255,255,0.18); border-radius:12px; cursor:pointer; background:rgba(143,208,255,0.16); color:#bfe6ff; font-size:15px; font-weight:bold; }
 
-  #bobinaAuth{ position:fixed; top:10px; left:10px; z-index:40; display:flex; align-items:center; gap:8px;
-    font:12px/1.2 "Trebuchet MS",system-ui,sans-serif; color:#f5e6ef; pointer-events:auto; }
+  /* Bobina login — title menu only (hidden during play / stages) */
+  #bobinaAuth{ position:fixed; left:50%; bottom:calc(52px + env(safe-area-inset-bottom)); transform:translateX(-50%);
+    z-index:18; display:none; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+    max-width:min(920px,96vw); font:13px/1.2 "Trebuchet MS",system-ui,sans-serif; color:#f5e6ef; pointer-events:auto; }
+  body.on-title #bobinaAuth{ display:flex; }
+  body.touch.on-title #bobinaAuth{ bottom:calc(10px + env(safe-area-inset-bottom)); }
   #bobinaAuth a, #bobinaAuth button{
     background:linear-gradient(180deg,#ff5b8d,#c42a5c); color:#fff; border:0; border-radius:999px;
-    padding:8px 12px; cursor:pointer; text-decoration:none; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,.35); }
-  #bobinaAuth button.ghost{ background:transparent; border:1px solid #6a3a55; color:#e8cfe0; }
-  #bobinaAuth .who{ background:rgba(20,8,16,.75); border:1px solid #4a2840; border-radius:999px; padding:6px 10px;
-    display:flex; align-items:center; gap:6px; max-width:220px; }
-  #bobinaAuth .who img{ width:22px; height:22px; border-radius:50%; object-fit:cover; }
+    padding:10px 16px; cursor:pointer; text-decoration:none; font-weight:700; box-shadow:0 2px 10px rgba(0,0,0,.4); }
+  #bobinaAuth button.ghost{ background:rgba(20,10,28,0.85); border:1px solid #6a3a55; color:#e8cfe0; }
+  #bobinaAuth .who{ background:rgba(20,8,16,.88); border:1px solid #ff7ab5; border-radius:999px; padding:8px 14px;
+    display:flex; align-items:center; gap:8px; max-width:min(360px,90vw); box-shadow:0 0 18px rgba(255,90,140,.25); }
+  #bobinaAuth .who img{ width:26px; height:26px; border-radius:50%; object-fit:cover; }
+  #bobinaAuth .who a{ background:none; box-shadow:none; padding:0; color:#ffd0e4; }
+  #display{ position:fixed; inset:0; z-index:48; display:none; align-items:center; justify-content:center; padding:14px;
+    background:radial-gradient(700px 520px at 50% 40%,rgba(20,28,48,0.94),rgba(6,4,12,0.97)); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+  #display.on{ display:flex; }
 
 </style>
 </head>
@@ -354,8 +356,6 @@
 
 <div id="bobinaAuth" aria-live="polite"></div>
 <div id="rotate"><div class="ic">📱</div>Rotate to landscape<small>Bobina slays Mumus best in landscape mode</small></div>
-<div id="sideL" class="side"><span>KILL ALL MUMUS!!</span></div>
-<div id="sideR" class="side"><span>KILL ALL MUMUS!!</span></div>
 <div id="wrap"><canvas id="c" width="960" height="540"></canvas></div>
 <div id="fsbtn" title="Fullscreen (F)">⛶</div>
 <div id="social">
@@ -424,6 +424,7 @@
     <div class="set-row"><label>Movement Speed <span id="pz-speed-v">1.12×</span></label><input id="pz-speed" type="range" min="70" max="160" step="1"></div>
   </div>
   <button id="ps-resume">▶ RESUME</button>
+  <button id="ps-display">🖥 Display</button>
   <button id="ps-keybinds">🎮 Controls</button>
   <button id="ps-menu">⌂ RETURN TO MENU</button>
   <div class="ps-hint">tap outside the card or press P to resume · returning to menu ends this run</div>
@@ -447,6 +448,48 @@
   </div>
   <button id="so-close">Close</button>
 </div></div>
+
+<div id="display"><div class="set-card">
+  <div class="set-title">🖥 DISPLAY</div>
+  <div class="set-sub">Resolution, refresh rate, debug &amp; fullscreen</div>
+  <div class="set-sec">Resolution scale</div>
+  <div class="set-row">
+    <label>Scale <span id="disp-scale-v">100%</span></label>
+    <input id="disp-scale" type="range" min="50" max="100" step="5" value="100">
+    <div class="set-hint">Shrinks the game canvas on large monitors (letterboxed). 100% = fill available space.</div>
+  </div>
+  <div class="set-row">
+    <label>Preset</label>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+      <button type="button" class="set-toggle disp-preset" data-scale="50">50%</button>
+      <button type="button" class="set-toggle disp-preset" data-scale="75">75%</button>
+      <button type="button" class="set-toggle disp-preset" data-scale="100">100%</button>
+    </div>
+  </div>
+  <div class="set-sec">Simulation refresh</div>
+  <div class="set-row">
+    <label>Tick rate <span id="disp-hz-v">60 Hz</span></label>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+      <button type="button" class="set-toggle disp-hz" data-hz="30">30</button>
+      <button type="button" class="set-toggle disp-hz" data-hz="60">60</button>
+      <button type="button" class="set-toggle disp-hz" data-hz="120">120</button>
+    </div>
+    <div class="set-hint">Internal sim steps per second (gameplay speed stays consistent; higher = smoother substeps on high-Hz panels).</div>
+  </div>
+  <div class="set-sec">Overlays</div>
+  <div class="set-row">
+    <label>Debug layer <span id="disp-debug-v">OFF</span></label>
+    <button id="disp-debug" class="set-toggle" type="button">Show FPS / state / player coords</button>
+    <div class="set-hint">Developer overlay drawn on top of the playfield.</div>
+  </div>
+  <div class="set-sec">Fullscreen</div>
+  <div class="set-row">
+    <label>Mode <span id="disp-fs-v">Windowed</span></label>
+    <button id="disp-fs" class="set-toggle" type="button">Toggle fullscreen</button>
+    <div class="set-hint">Or press F. Works best after the title sound gate.</div>
+  </div>
+  <button id="disp-close" type="button">Done</button>
+</div></div>
 <div id="settings"><div class="set-card">
   <div class="set-title">⚙ SETTINGS</div>
   <div class="set-sub">Audio, mouse controls &amp; speedrun</div>
@@ -467,6 +510,8 @@
     <button id="set-speedrun" class="set-toggle">Skip villain monologues</button>
     <div class="set-hint">“Bobina hates monologues too.” Cuts straight to the fights.</div>
   </div>
+  <div class="set-sec">Display</div>
+  <button id="set-display">🖥 Display — resolution, refresh, fullscreen</button>
   <div class="set-sec">Controls</div>
   <button id="set-keybinds">🎮 Controls — mouse feel &amp; keybinds</button>
   <button id="set-help">📖 How to Play — Arsenal &amp; Mechanics</button>
@@ -1107,7 +1152,7 @@ function syncSettingsUI(){ const f=document.getElementById('set-follow'), s=docu
   if(sr){ sr.classList.toggle('on',speedrun); document.getElementById('set-speedrun-v').textContent=speedrun?'ON':'OFF'; } }
 function openSettings(){ syncSettingsUI(); if(setEl) setEl.classList.add('on'); }
 function closeSettings(){ if(setEl) setEl.classList.remove('on'); }
-function anyModalOpen(){ const kb=document.getElementById('keybinds'); return (setEl&&setEl.classList.contains('on')) || (helpEl&&helpEl.classList.contains('on')) || (kb&&kb.classList.contains('on')) || (typeof shoutEl!=='undefined'&&shoutEl&&shoutEl.classList.contains('on')) || (typeof NE!=='undefined'&&NE&&NE.classList.contains('on')); }
+function anyModalOpen(){ const kb=document.getElementById('keybinds'); const disp=document.getElementById('display'); return (setEl&&setEl.classList.contains('on')) || (helpEl&&helpEl.classList.contains('on')) || (kb&&kb.classList.contains('on')) || (disp&&disp.classList.contains('on')) || (typeof shoutEl!=='undefined'&&shoutEl&&shoutEl.classList.contains('on')) || (typeof NE!=='undefined'&&NE&&NE.classList.contains('on')); }
 (function(){ const f=document.getElementById('set-follow'), s=document.getElementById('set-speed');
   if(f) f.addEventListener('input',()=>{ MOUSE.follow=parseInt(f.value)/100; document.getElementById('set-follow-v').textContent=f.value+'%'; try{localStorage.setItem('bobina_follow',String(MOUSE.follow));}catch(e){} });
   if(s) s.addEventListener('input',()=>{ MOUSE.speed=parseInt(s.value)/100; document.getElementById('set-speed-v').textContent=MOUSE.speed.toFixed(2)+'×'; try{localStorage.setItem('bobina_mspeed',String(MOUSE.speed));}catch(e){} });
@@ -1302,7 +1347,10 @@ function buildProgressSnapshot(){
       mspeed: (typeof MOUSE!=='undefined') ? MOUSE.speed : null,
       speedrun: !!(typeof speedrun!=='undefined' && speedrun),
       autofire: (typeof autoFire==='undefined') ? true : !!autoFire,
-      ui: (function(){ try{ return localStorage.getItem('bobina_ui'); }catch(e){ return null; } })()
+      ui: (function(){ try{ return localStorage.getItem('bobina_ui'); }catch(e){ return null; } })(),
+      displayScale: (typeof displayScale!=='undefined')?displayScale:1,
+      refreshRate: (typeof refreshRate!=='undefined')?refreshRate:60,
+      debugLayer: !!(typeof debugLayer!=='undefined' && debugLayer)
     }
   };
 }
@@ -1362,7 +1410,15 @@ function applyProgressSnapshot(p){
     if(st.speedrun!=null && typeof speedrun!=='undefined'){ speedrun=!!st.speedrun; try{ localStorage.setItem('bobina_speedrun', speedrun?'1':'0'); }catch(e){} }
     if(st.autofire!=null && typeof autoFire!=='undefined'){ autoFire=!!st.autofire; try{ localStorage.setItem('bobina_autofire', autoFire?'1':'0'); }catch(e){} }
     if(st.ui){ try{ localStorage.setItem('bobina_ui', st.ui); }catch(e){} }
+    if(st.displayScale!=null && typeof setDisplayScale==='function') setDisplayScale(Math.round(Number(st.displayScale)*100));
+    else if(p.displayScale!=null && typeof setDisplayScale==='function') setDisplayScale(Math.round(Number(p.displayScale)*100));
+    if(st.refreshRate!=null && typeof setRefreshRate==='function') setRefreshRate(st.refreshRate);
+    if(st.debugLayer!=null && typeof setDebugLayer==='function') setDebugLayer(!!st.debugLayer);
   }
+  // top-level display fields
+  if(p.displayScale!=null && typeof setDisplayScale==='function' && !p.settings) setDisplayScale(Math.round(Number(p.displayScale)*100));
+  if(p.refreshRate!=null && typeof setRefreshRate==='function') setRefreshRate(p.refreshRate);
+  if(p.debugLayer!=null && typeof setDebugLayer==='function') setDebugLayer(!!p.debugLayer);
   emblemsGot['start']=true;
   if(typeof saveEmblems==='function'){ /* already written */ }
 }
@@ -5153,7 +5209,14 @@ function drawOutfits(){
 // ---- fixed-timestep loop: sim always runs at 60 steps/sec regardless of display refresh ----
 // (rAF fires once per refresh; on a 120/144/165Hz monitor that's >60/sec, which used to make the
 //  whole game run proportionally faster. We now accumulate real elapsed time and step the sim to match.)
-const SIM_STEP=1000/60;   // ms per simulation tick
+let displayScale=1, refreshRate=60, debugLayer=false, simStepMs=1000/60;
+try{
+  let ds=parseFloat(localStorage.getItem('bobina_disp_scale')); if(!isNaN(ds)) displayScale=Math.max(0.5,Math.min(1,ds));
+  let hz=parseInt(localStorage.getItem('bobina_disp_hz'),10); if(hz===30||hz===60||hz===120) refreshRate=hz;
+  debugLayer=localStorage.getItem('bobina_disp_debug')==='1';
+  simStepMs=1000/refreshRate;
+}catch(e){}
+const SIM_STEP=1000/60; // legacy name — loop uses simStepMs
 let _lastFrame=null, _simAcc=0;
 function simStep(){
   if(state==='title') titleIdleT++; else titleIdleT=0;
@@ -5166,11 +5229,14 @@ function loop(now){
   if(frameMs>100) frameMs=100;   // clamp big gaps (tab-out / hitch) so we don't spiral catching up
   _simAcc+=frameMs;
   let steps=0;
-  while(_simAcc>=SIM_STEP && steps<6){ simStep(); _simAcc-=SIM_STEP; steps++; }
-  draw(); drawEmblemToasts(); updatePortrait(); manageGifOverlays(); manageTouchUI();
+  while(_simAcc>=simStepMs && steps<6){ simStep(); _simAcc-=simStepMs; steps++; }
+  draw();
+  if(typeof debugLayer!=='undefined' && debugLayer && typeof drawDebugLayer==='function') drawDebugLayer();
+  drawEmblemToasts(); updatePortrait(); manageGifOverlays(); manageTouchUI();
   { const ps=document.getElementById('pausescreen'), want=(state==='play'&&paused); if(ps && ps._on!==want){ ps._on=want; ps.classList.toggle('on',want); if(want) syncPauseUI(); } }
-  // Sponsor/social buttons render ONLY on the title menu
+  // Title-only chrome: Bobina login + social strip
   const wantSocial=(state==='title');
+  document.body.classList.toggle('on-title', wantSocial);
   if(wantSocial!==socialShown){ socialShown=wantSocial; if(socialEl) socialEl.style.display=wantSocial?'flex':'none'; }
   // On reaching an end screen, prompt once for a leaderboard name
   if((state==='win'||state==='gameover') && !endHandled){ endHandled=true; endWon=(state==='win'); showNameEntry(); }
@@ -5180,13 +5246,88 @@ loop();
 function fit(){ const vv=window.visualViewport; const vw=vv?vv.width:window.innerWidth, vh=vv?vv.height:window.innerHeight;
   const wantP = false;   // mobile is landscape-only (portrait shows the rotate prompt) — the HUD control panel lives in the landscape layout
   if(wantP!==portrait || cv.width!==(wantP?540:960)){ applyLayout(wantP, vw, vh); }
-  const s=Math.min(vw/W, vh/H); const cwv=Math.round(W*s), chv=Math.round(H*s);
+  const s=Math.min(vw/W, vh/H)*(typeof displayScale==="number"?displayScale:1); const cwv=Math.round(W*s), chv=Math.round(H*s);
   cv.style.width=cwv+'px'; cv.style.height=chv+'px';
   const r=document.documentElement.style; r.setProperty('--mx', Math.max(0,(vw-cwv)/2)+'px'); r.setProperty('--my', Math.max(0,(vh-chv)/2)+'px');
   document.body.classList.toggle('portrait', portrait); }
 addEventListener('resize',fit); addEventListener('orientationchange',()=>setTimeout(fit,120));
 if(window.visualViewport){ window.visualViewport.addEventListener('resize',fit); window.visualViewport.addEventListener('scroll',fit); }
 fit();
+
+// ---- Display settings (resolution scale, sim Hz, debug, fullscreen) ----
+function saveDisplayPrefs(){
+  try{
+    localStorage.setItem('bobina_disp_scale', String(displayScale));
+    localStorage.setItem('bobina_disp_hz', String(refreshRate));
+    localStorage.setItem('bobina_disp_debug', debugLayer?'1':'0');
+  }catch(e){}
+  if(typeof scheduleCloudSave==='function') try{ scheduleCloudSave(false); }catch(e){}
+}
+function setDisplayScale(pct){
+  displayScale=Math.max(0.5, Math.min(1, (Number(pct)||100)/100));
+  const el=document.getElementById('disp-scale'); if(el) el.value=Math.round(displayScale*100);
+  const v=document.getElementById('disp-scale-v'); if(v) v.textContent=Math.round(displayScale*100)+'%';
+  document.querySelectorAll('.disp-preset').forEach(b=>{
+    b.classList.toggle('on', Number(b.dataset.scale)===Math.round(displayScale*100));
+  });
+  saveDisplayPrefs(); if(typeof fit==='function') fit();
+}
+function setRefreshRate(hz){
+  hz=Number(hz)||60; if(hz!==30&&hz!==60&&hz!==120) hz=60;
+  refreshRate=hz; simStepMs=1000/refreshRate;
+  const v=document.getElementById('disp-hz-v'); if(v) v.textContent=hz+' Hz';
+  document.querySelectorAll('.disp-hz').forEach(b=>b.classList.toggle('on', Number(b.dataset.hz)===hz));
+  saveDisplayPrefs();
+}
+function setDebugLayer(on){
+  debugLayer=!!on;
+  const b=document.getElementById('disp-debug'), v=document.getElementById('disp-debug-v');
+  if(b) b.classList.toggle('on', debugLayer);
+  if(v) v.textContent=debugLayer?'ON':'OFF';
+  saveDisplayPrefs();
+}
+function syncDisplayUI(){
+  setDisplayScale(Math.round((displayScale||1)*100));
+  setRefreshRate(refreshRate||60);
+  setDebugLayer(!!debugLayer);
+  const fsOn=!!(document.fullscreenElement||document.webkitFullscreenElement);
+  const fv=document.getElementById('disp-fs-v'); if(fv) fv.textContent=fsOn?'Fullscreen':'Windowed';
+  const fb=document.getElementById('disp-fs'); if(fb) fb.classList.toggle('on', fsOn);
+}
+function openDisplay(){ syncDisplayUI(); const d=document.getElementById('display'); if(d) d.classList.add('on'); }
+function closeDisplay(){ const d=document.getElementById('display'); if(d) d.classList.remove('on'); }
+function drawDebugLayer(){
+  try{
+    const fps = (typeof _lastFrame==='number' && typeof performance!=='undefined')
+      ? Math.round(1000/Math.max(1, (performance.now()-(_dbgLast||_lastFrame)))) : 0;
+    _dbgLast = typeof performance!=='undefined'?performance.now():0;
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(8,8,210,92);
+    ctx.strokeStyle='#7ed957'; ctx.strokeRect(8,8,210,92);
+    ctx.fillStyle='#7ed957'; ctx.font='bold 12px monospace'; ctx.textAlign='left';
+    ctx.fillText('DEBUG', 16, 26);
+    ctx.fillStyle='#c8f0c8'; ctx.font='11px monospace';
+    ctx.fillText('state: '+state+(paused?' (paused)':''), 16, 44);
+    ctx.fillText('scale: '+Math.round(displayScale*100)+'%  sim: '+refreshRate+'Hz', 16, 60);
+    ctx.fillText('canvas: '+W+'×'+H, 16, 76);
+    if(typeof player!=='undefined' && player) ctx.fillText('player: '+Math.round(player.x)+','+Math.round(player.y), 16, 92);
+    ctx.restore();
+  }catch(e){}
+}
+(function(){
+  const scale=document.getElementById('disp-scale');
+  if(scale) scale.addEventListener('input',()=>setDisplayScale(scale.value));
+  document.querySelectorAll('.disp-preset').forEach(b=>b.addEventListener('click',()=>setDisplayScale(b.dataset.scale)));
+  document.querySelectorAll('.disp-hz').forEach(b=>b.addEventListener('click',()=>setRefreshRate(b.dataset.hz)));
+  const dbg=document.getElementById('disp-debug'); if(dbg) dbg.addEventListener('click',()=>setDebugLayer(!debugLayer));
+  const fs=document.getElementById('disp-fs'); if(fs) fs.addEventListener('click',()=>{ if(typeof toggleFullscreen==='function') toggleFullscreen(); setTimeout(syncDisplayUI,80); });
+  const cl=document.getElementById('disp-close'); if(cl) cl.addEventListener('click', closeDisplay);
+  const d=document.getElementById('display'); if(d) d.addEventListener('click',e=>{ if(e.target===d) closeDisplay(); });
+  const sd=document.getElementById('set-display'); if(sd) sd.addEventListener('click', openDisplay);
+  const pd=document.getElementById('ps-display'); if(pd) pd.addEventListener('click', openDisplay);
+})();
+
 // ---- Fullscreen ----
 function toggleFullscreen(){ const el=document.documentElement;
   if(!document.fullscreenElement && !document.webkitFullscreenElement){
