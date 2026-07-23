@@ -119,6 +119,21 @@ godot/
 | 0.2 | Dual report is the living checklist | active |
 | 0.3 | Profile Godot desktop + web; document FPS root cause | **partial** — see FPS notes below |
 
+### Simulation clock (fixed step — always)
+
+HTML is **tick-driven**. Godot keeps the same determinism via `SimClock` (autoload):
+
+| API | Role |
+| --- | --- |
+| `SIM_DT` / `HZ` | `1/60` fixed step (HTML sim frame) |
+| `sim_frame` | Integer frame index — use for `% 230` blink, thrash, dual QA |
+| `sim_time` | Seconds (`sim_frame * SIM_DT`) — sines / breath / continuous anim |
+| `tick` | **Alias** of `sim_frame` (legacy drawers + playtest) |
+| `alpha` | Display leftover toward next step (optional render interp) |
+| `sim_tick(dt)` | Signal — wire combat / FX / stage / power bleed here |
+
+Rules: **no** pure variable-`delta` combat; **no** wall-clock inside sim; rendering free-runs.
+
 ### Phase 1 — Performance (blocks all visual polish work)
 
 | # | Requirement | Status |

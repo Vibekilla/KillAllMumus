@@ -29,7 +29,7 @@ func _ready() -> void:
 var _last_tick: int = -1
 
 func _process(_d: float) -> void:
-	var nt := SimClock.tick if SimClock else tick + 1
+	var nt := SimClock.sim_frame if SimClock else tick + 1
 	if nt == _last_tick:
 		return
 	# Panel meters don't need 60 Hz — 30 Hz is fine (huge panel draw cost)

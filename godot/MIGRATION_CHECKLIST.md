@@ -16,6 +16,8 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 
 ## Phase 1 — Performance
 
+- [x] Fixed-step `SimClock` (`sim_frame` + `sim_time` + `tick` alias; accumulator; `Engine.physics_ticks_per_second=60`)
+
 - [x] Menu / outfit preview: cache full `drawBobina` (SubViewport bake — `BobinaDrawCache`)
 - [x] In-game Bobina cache (`get_play_texture`, face bins, stale-frame fallback; dash/bomb live)
 - [x] Stage bg amortize (`StageBgDrawCache` — PF bake of gradient + motifs + StageBgFx)

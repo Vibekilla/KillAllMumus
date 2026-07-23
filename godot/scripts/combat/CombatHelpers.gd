@@ -279,7 +279,7 @@ func dash_land_explosion(player: Node2D, slash: bool = false) -> void:
 	## HTML dashLandExplosion
 	if player == null:
 		return
-	var base := float((SimClock.tick if SimClock else 0) * 4) 
+	var base := float((SimClock.sim_frame if SimClock else 0) * 4)
 	var n := 26 if slash else 16
 	var px := player.global_position.x
 	var py := player.global_position.y

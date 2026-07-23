@@ -214,7 +214,7 @@ func _physics_process(delta: float) -> void:
 				"outfit": GameState.selected_outfit,
 				"power": GameState.power,
 				"lean": clampf(velocity.x / 200.0, -1.0, 1.0),
-				"tick": SimClock.tick if SimClock else 0,
+				"tick": SimClock.sim_frame if SimClock else 0,
 				"pose": int(ProgressStore.progress.get("pose", 0)),
 			})
 

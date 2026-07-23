@@ -19,7 +19,7 @@ func _ready() -> void:
 var _last_tick: int = -1
 
 func _process(_d: float) -> void:
-	var nt := SimClock.tick if SimClock else tick + 1
+	var nt := SimClock.sim_frame if SimClock else tick + 1
 	if nt == _last_tick:
 		return
 	if (nt % 2) != 0:

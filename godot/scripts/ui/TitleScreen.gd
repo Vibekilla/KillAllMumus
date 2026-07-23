@@ -168,7 +168,7 @@ func _process(delta: float) -> void:
 	# ctx/title_drawer can be null if CanvasCompat failed to load — guard hard
 	if ctx == null or title_drawer == null or menus == null:
 		return
-	var t: int = int(SimClock.tick) if SimClock else int(title_drawer.tick) + 1
+	var t: int = int(SimClock.sim_frame) if SimClock else int(title_drawer.tick) + 1
 	# Throttle full-canvas redraws to sim tick (~60 Hz) — was redrawing every render frame
 	if t == _last_draw_tick and GameState.state != GameState.State.TITLE:
 		return
@@ -192,7 +192,7 @@ func _draw() -> void:
 		return
 	ctx.begin_frame()
 	model.reset_hits()
-	var t: int = int(SimClock.tick) if SimClock else int(title_drawer.tick)
+	var t: int = int(SimClock.sim_frame) if SimClock else int(title_drawer.tick)
 	match GameState.state:
 		GameState.State.TITLE:
 			title_drawer.set_menu_state({

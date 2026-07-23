@@ -62,7 +62,7 @@ func _on_ended(won: bool) -> void:
 func _process(_d: float) -> void:
 	if not visible:
 		return
-	tick = SimClock.tick if SimClock else tick + 1
+	tick = SimClock.sim_frame if SimClock else tick + 1
 	queue_redraw()
 
 func _draw() -> void:

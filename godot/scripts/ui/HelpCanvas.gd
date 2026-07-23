@@ -45,7 +45,7 @@ func close_help() -> void:
 func _process(_d: float) -> void:
 	if not open:
 		return
-	tick = SimClock.tick if SimClock else tick + 1
+	tick = SimClock.sim_frame if SimClock else tick + 1
 	queue_redraw()
 
 func _draw() -> void:

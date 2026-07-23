@@ -17,13 +17,18 @@ func _ready() -> void:
 	flow_draw.setup(ctx)
 	GameState.state_changed.connect(func(_s): queue_redraw())
 	visible = true
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
 
 var _last_tick: int = -1
 
-func _process(delta: float) -> void:
+func _on_sim_tick(dt: float) -> void:
+	## Stage flow timers advance on fixed sim steps only.
 	if StageFlow:
-		StageFlow.tick(delta)
-	var nt := SimClock.tick if SimClock else tick + 1
+		StageFlow.tick(dt)
+
+func _process(_delta: float) -> void:
+	var nt := SimClock.sim_frame if SimClock else tick + 1
 	# show for flow states or when field portal is active
 	var show := GameState.state in [
 		GameState.State.INTRO, GameState.State.STAGE_CLEAR, GameState.State.SHOP

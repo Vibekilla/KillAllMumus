@@ -191,7 +191,7 @@ func _run() -> void:
 		if sc:
 			var was_paused: bool = bool(sc.paused) if "paused" in sc else false
 			sc.paused = true
-			sc.tick = 10  # open eyes
+			sc.sim_frame = 10  # open eyes (tick alias ok)
 			if title.has_method("set_process"):
 				pass
 			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
@@ -201,7 +201,7 @@ func _run() -> void:
 				await process_frame
 				title.queue_redraw()
 			await _save("godot_bobina_blink_open")
-			sc.tick = 3  # closed lids
+			sc.sim_frame = 3  # closed lids
 			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
 				title.menus.set_tick(3)
 			title.queue_redraw()

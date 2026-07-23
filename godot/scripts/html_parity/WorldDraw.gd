@@ -56,7 +56,8 @@ func _bind_pool() -> void:
 		_bullet_pool = main.get_node_or_null("BulletPool")
 
 func _process(_d: float) -> void:
-	var nt := int(SimClock.tick) if SimClock else tick + 1
+	## Redraw gated on sim_frame (fixed 60 Hz source), not display rate.
+	var nt := int(SimClock.sim_frame) if SimClock else tick + 1
 	if nt == _last_tick:
 		return
 	# Phase 1.3: non-combat field states need less than 60 Hz

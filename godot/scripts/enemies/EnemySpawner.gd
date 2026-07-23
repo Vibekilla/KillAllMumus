@@ -18,6 +18,8 @@ func setup(pool: Node, pf: Node2D) -> void:
 	bullet_pool = pool
 	playfield = pf
 	add_to_group("enemy_spawner")
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
 
 func start_stage(_stage_index: int) -> void:
 	stage_time = 0.0
@@ -33,10 +35,11 @@ func clear() -> void:
 		if is_instance_valid(e) and not e.is_in_group("bosses"):
 			e.queue_free()
 
-func _process(delta: float) -> void:
+func _on_sim_tick(_dt: float) -> void:
+	## Wave timers in HTML frames @ 60 Hz — one unit per fixed sim step.
 	if not spawning or GameState.state != GameState.State.PLAY:
 		return
-	stage_time += delta * FRAME
+	stage_time += 1.0
 	_spawn_waves()
 	# After waveDur frames → boss
 	var stage: Dictionary = DataRegistry.get_stage(GameState.stage_index)

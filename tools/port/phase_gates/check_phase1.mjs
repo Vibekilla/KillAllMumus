@@ -17,6 +17,11 @@ g.ok(world.includes("_last_tick") || world.includes("SimClock"), "WorldDraw tick
 
 const clock = read("godot/scripts/html_parity/SimClock.gd");
 g.ok(/60/.test(clock), "SimClock 60 Hz");
+g.ok(clock.includes("sim_frame") && clock.includes("sim_time"), "SimClock exposes sim_frame + sim_time");
+g.ok(clock.includes("SIM_DT") || clock.includes("1.0 / 60"), "SimClock fixed SIM_DT");
+g.ok(clock.includes("accumulator"), "SimClock fixed-step accumulator");
+g.ok(clock.includes("var tick") || clock.includes("tick:"), "SimClock tick alias for dual/HTML parity");
+g.ok(clock.includes("blink_closed") || clock.includes("% 230") || clock.includes("230"), "SimClock blink helper or period");
 
 const bob = read("godot/scripts/player/BobinaSprite.gd");
 // Entity sprite must not own the full HTML drawBobina body (WorldDraw / menus do)

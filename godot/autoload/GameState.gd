@@ -32,9 +32,14 @@ var speedrun: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	set_process(true)
+	# Power bleed is fixed-step (HTML 0.00085 per sim frame) — not display delta.
+	call_deferred("_bind_sim_clock")
 
-func _process(delta: float) -> void:
+func _bind_sim_clock() -> void:
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
+
+func _on_sim_tick(_dt: float) -> void:
 	## HTML update(): power bleed 0.00085/frame when power>1, not in dialog, not stage-cleared
 	if state != State.PLAY:
 		return
@@ -46,9 +51,7 @@ func _process(delta: float) -> void:
 		dialog_open = StageFlow.dialog != null
 	if cleared or dialog_open:
 		return
-	# HTML runs at 60 sim frames; scale by delta*60 so wall-time matches
-	var df := delta * 60.0
-	power = maxf(1.0, power - 0.00085 * df)
+	power = maxf(1.0, power - 0.00085)
 
 func set_state(s: State) -> void:
 	state = s

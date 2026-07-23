@@ -1,5 +1,6 @@
 extends Node2D
 ## World-space FX: particles, score pops, flash msg, melee swipe weapons.
+## Simulation advances only on SimClock fixed steps (not display rate).
 
 var ctx: RefCounted
 var combat_fx: RefCounted
@@ -17,16 +18,18 @@ func _ready() -> void:
 	item_draw.setup(ctx)
 	ported = load("res://scripts/render/PortedDraw.gd").new()
 	ported.setup(ctx)
-	set_process(true)
+	if SimClock:
+		if not SimClock.sim_tick.is_connected(_on_sim_tick):
+			SimClock.sim_tick.connect(_on_sim_tick)
 
-var _last_tick: int = -1
-
-func _process(delta: float) -> void:
-	## Sim-side FX/item updates only — presentation is WorldDraw
+func _on_sim_tick(dt: float) -> void:
+	## One HTML sim frame — fixed SIM_DT from SimClock.
 	if CombatHelpers:
-		CombatHelpers.tick_fx(delta)
+		CombatHelpers.tick_fx(dt)
 	if ItemSystem:
-		ItemSystem.tick(delta)
+		ItemSystem.tick(dt)
+	if SimClock:
+		tick = SimClock.sim_frame
 
 func _draw() -> void:
 	## Presentation merged into WorldDraw (HTML draw order).

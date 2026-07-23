@@ -117,14 +117,16 @@ func _inject_action(k: String, pressed: bool) -> void:
 func _process(_delta: float) -> void:
 	if Config.debug_layer:
 		debug_label.visible = true
-		var sim_t := SimClock.tick if SimClock else 0
-		debug_label.text = "state=%s score=%d kills=%d stage=%d fps=%.0f sim=%d" % [
+		var sf := SimClock.sim_frame if SimClock else 0
+		var st := SimClock.sim_time if SimClock else 0.0
+		debug_label.text = "state=%s score=%d kills=%d stage=%d fps=%.0f frame=%d t=%.2fs" % [
 			GameState.State.keys()[GameState.state],
 			GameState.session_score,
 			GameState.total_kills,
 			GameState.stage_index + 1,
 			Engine.get_frames_per_second(),
-			sim_t,
+			sf,
+			st,
 		]
 	else:
 		debug_label.visible = false
