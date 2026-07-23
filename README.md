@@ -51,7 +51,7 @@ npm run db:backup          # manual dump now
 | Refuse backup if free disk &lt; | `MIN_FREE_MB=1024` |
 | Cap total backup size | `MAX_BACKUP_GB=5` |
 | Always keep newest N dumps | `KEEP_MIN=3` |
-| Age prune | `KEEP_DAYS=14` |
+| Age prune | `KEEP_DAYS=30` |
 | Emergency | schema-only dump if no runway |
 
 Backups directory (parent of the www worktree):
@@ -88,4 +88,24 @@ sudo certbot --nginx -d killallmumus.com -d www.killallmumus.com
 | GET | `/api/health` | DB connectivity + score count |
 | GET | `/api/scores` | Top 100 leaderboard |
 | POST | `/api/scores` | Submit run (per-IP throttle, best-per-handle) |
+
+## Bobina.moe login (OIDC)
+
+Server implements Authorization Code + PKCE against `https://bobina.moe`:
+
+| Route | Purpose |
+| --- | --- |
+| `GET /auth/bobina` | Start login |
+| `GET /auth/bobina/callback` | OAuth callback |
+| `GET /api/me` | Current session |
+| `POST /auth/logout` | Clear session |
+| `GET /auth/bobina/status` | Whether credentials are configured |
+
+1. Register app on bobina.moe (**System → OAuth Apps**).
+2. Redirect URI: `https://killallmumus.com/auth/bobina/callback`
+3. Scopes: `openid profile social`
+4. Put `BOBINA_CLIENT_ID` / `BOBINA_CLIENT_SECRET` in `.env`
+5. `systemctl --user restart killallmumus`
+
+Until credentials are set, anonymous play + X-handle leaderboard still work; Sign in shows a setup page.
 

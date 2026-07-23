@@ -11,8 +11,10 @@
     "services:install": "bash scripts/install-user-services.sh"
   },
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "express": "^4.22.2",
+    "jose": "^6.2.4",
     "pg": "^8.22.0",
     "sharp": "^0.35.3"
   },
@@ -24,7 +26,7 @@
       }
     ]
   },
-  "description": "Bobina: Kill All Mumus \u2014 killallmumus.com",
+  "description": "Bobina: Kill All Mumus — killallmumus.com",
   "engines": {
     "node": ">=20.9.0"
   }

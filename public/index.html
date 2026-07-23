@@ -22,19 +22,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="rating" content="General">
-<link rel="canonical" href="https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/">
+<link rel="canonical" href="https://killallmumus.com/">
 
 <!-- ============ Open Graph ============ -->
 <meta property="og:site_name" content="Bobina Council · bobina.moe">
 <meta property="og:title" content="Bobina: Kill All Mumus!! — Touhou-Style Bullet-Hell Game">
 <meta property="og:description" content="A free Touhou-style bullet-hell by the Bobina Council. Blast the Mumu army across 7 stages, beat 7 meme bosses & save Bobo. Powered by Emblem Vault. Play at bobina.moe.">
-<meta property="og:image" content="https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/og.png">
-<meta property="og:image:secure_url" content="https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/og.png">
+<meta property="og:image" content="https://killallmumus.com/og.png">
+<meta property="og:image:secure_url" content="https://killallmumus.com/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Bobina: Kill All Mumus!! — a Touhou-style bullet-hell game by the Bobina Council">
-<meta property="og:url" content="https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/">
+<meta property="og:url" content="https://killallmumus.com/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_US">
 <meta property="og:see_also" content="https://bobina.moe">
@@ -45,7 +45,7 @@
 <meta name="twitter:creator" content="@Bobina_Council">
 <meta name="twitter:title" content="Bobina: Kill All Mumus!! — Touhou-Style Bullet-Hell Game">
 <meta name="twitter:description" content="A free Touhou-style bullet-hell by the Bobina Council. Blast the Mumu army across 7 stages, beat 7 meme bosses & save Bobo. Powered by Emblem Vault.">
-<meta name="twitter:image" content="https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/og.png">
+<meta name="twitter:image" content="https://killallmumus.com/og.png">
 <meta name="twitter:image:alt" content="Bobina: Kill All Mumus!! title card by the Bobina Council">
 
 <!-- ============ Structured Data (rich results) ============ -->
@@ -57,8 +57,8 @@
       "@type": "VideoGame",
       "name": "Bobina: Kill All Mumus!!",
       "alternateName": ["Bobina Kill All Mumus", "Bobina Blaster", "Kill All Mumus"],
-      "url": "https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/",
-      "image": "https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/og.png",
+      "url": "https://killallmumus.com/",
+      "image": "https://killallmumus.com/og.png",
       "description": "A free Touhou-style bullet-hell game by the Bobina Council. Blast the Mumu army across 7 stages, beat 7 meme bosses and save Bobo. Powered by Emblem Vault.",
       "genre": ["Bullet Hell", "Shoot 'em up", "Danmaku", "Arcade", "Meme Game"],
       "gamePlatform": ["Web Browser", "Mobile", "Desktop"],
@@ -75,14 +75,14 @@
       "@type": "Organization",
       "name": "Bobina Council",
       "url": "https://bobina.moe",
-      "logo": "https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/og.png",
+      "logo": "https://killallmumus.com/og.png",
       "description": "The Bobina Council — creators of Bobina, Bobo and the Kill All Mumus universe. Powered by Emblem Vault.",
       "sameAs": ["https://bobina.moe", "https://x.com/bobina_council", "https://x.com/bobocouncil", "https://x.com/emblemvault", "https://x.com/itsvibekilla"]
     },
     {
       "@type": "WebSite",
       "name": "Bobina: Kill All Mumus!!",
-      "url": "https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/",
+      "url": "https://killallmumus.com/",
       "publisher": { "@type": "Organization", "name": "Bobina Council", "url": "https://bobina.moe" }
     }
   ]
@@ -337,9 +337,22 @@
   .kb-key.waiting{ border-color:#ffd27a; background:rgba(255,210,120,0.22); color:#ffe08a; }
   #kb-reset{ margin-top:12px; width:100%; min-height:42px; border:1px solid rgba(255,140,200,0.4); border-radius:11px; cursor:pointer; background:rgba(255,140,200,0.12); color:#ffd6ea; font-size:13px; font-weight:bold; }
   #kb-done{ margin-top:10px; width:100%; min-height:46px; border:1px solid rgba(255,255,255,0.18); border-radius:12px; cursor:pointer; background:rgba(143,208,255,0.16); color:#bfe6ff; font-size:15px; font-weight:bold; }
+
+  #bobinaAuth{ position:fixed; top:10px; left:10px; z-index:40; display:flex; align-items:center; gap:8px;
+    font:12px/1.2 "Trebuchet MS",system-ui,sans-serif; color:#f5e6ef; pointer-events:auto; }
+  #bobinaAuth a, #bobinaAuth button{
+    background:linear-gradient(180deg,#ff5b8d,#c42a5c); color:#fff; border:0; border-radius:999px;
+    padding:8px 12px; cursor:pointer; text-decoration:none; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,.35); }
+  #bobinaAuth button.ghost{ background:transparent; border:1px solid #6a3a55; color:#e8cfe0; }
+  #bobinaAuth .who{ background:rgba(20,8,16,.75); border:1px solid #4a2840; border-radius:999px; padding:6px 10px;
+    display:flex; align-items:center; gap:6px; max-width:220px; }
+  #bobinaAuth .who img{ width:22px; height:22px; border-radius:50%; object-fit:cover; }
+
 </style>
 </head>
 <body>
+
+<div id="bobinaAuth" aria-live="polite"></div>
 <div id="rotate"><div class="ic">📱</div>Rotate to landscape<small>Bobina slays Mumus best in landscape mode</small></div>
 <div id="sideL" class="side"><span>KILL ALL MUMUS!!</span></div>
 <div id="sideR" class="side"><span>KILL ALL MUMUS!!</span></div>
@@ -598,7 +611,7 @@ function pdown(e){ bumpIdle(); const p=canvasPos(e); pointer.down=true; pointer.
   if(state==='leaderboard'){
     if(lbPrevBtn && inBtn(p,lbPrevBtn)){ if(lbPage>0){ lbSetPage(lbPage-1); sfx('item'); } return; }
     if(lbNextBtn && inBtn(p,lbNextBtn)){ if(lbPage<lbPageCount()-1){ lbSetPage(lbPage+1); sfx('item'); } return; }
-    for(const r of lbRows){ if(inBtn(p,r)){ try{ window.open('https://x.com/'+r.handle,'_blank','noopener'); }catch(e2){} return; } } advanceScreen(); return; }
+    for(const r of lbRows){ if(inBtn(p,r)){ try{ const u=r.profileUrl||(r.bobinaUsername?('https://bobina.moe/'+r.bobinaUsername):null)||(r.handle?('https://x.com/'+r.handle):null); if(u) window.open(u,'_blank','noopener'); }catch(e2){} return; } } advanceScreen(); return; }
   if(state==='stageclear' && scArsenalBtn && inBtn(p,scArsenalBtn)){ arsenalReturn='stageclear'; state='arsenal'; sfx('item'); return; }
   if(state==='intro'||state==='stageclear'){ advanceScreen(); }
 }
@@ -4273,7 +4286,7 @@ let titleBtns=[], shareBtn=null, menuBtn=null, scArsenalBtn=null;
 function drawMenuBtn(cx,y){ const w=150,h=28,x=cx-w/2; menuBtn={x,y,w,h};
   ctx.fillStyle='rgba(30,16,40,0.85)'; ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill(); ctx.strokeStyle='#8fd0ff'; ctx.lineWidth=1.5; ctx.stroke();
   ctx.fillStyle='#8fd0ff'; ctx.font='bold 13px "Trebuchet MS"'; ctx.textAlign='center'; ctx.fillText('⌂ MAIN MENU  [M]', cx, y+19); ctx.textAlign='left'; }
-const GAME_URL='https://build-66a68289df8f7c4dad8cd6fe.emblem.build/pub/web_development/bobina-blaster/';
+const GAME_URL='https://killallmumus.com/';
 function tweetResult(won){
   const rank=rankLetter();
   let handle=''; try{ handle=(localStorage.getItem('bobina_handle')||'').replace(/[^A-Za-z0-9_]/g,''); }catch(e){}
@@ -4299,7 +4312,7 @@ let endHandled=false, endWon=false, lastSubmit=null, lbCache=[], lbState='idle',
 let lbPage=0, lbPrevBtn=null, lbNextBtn=null; const LB_PER_PAGE=10;
 function lbPageCount(){ return Math.max(1, Math.ceil(lbCache.length/LB_PER_PAGE)); }
 function lbSetPage(n){ const pc=lbPageCount(); lbPage=Math.max(0,Math.min(pc-1,n)); }
-function fetchLB(){ lbPage=0; lbState='loading'; fetch('api/scores').then(r=>r.json()).then(d=>{ lbCache=Array.isArray(d)?d:[]; lbState='ok'; }).catch(()=>{ lbState='error'; }); }
+function fetchLB(){ lbPage=0; lbState='loading'; fetch('api/scores',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{ lbCache=Array.isArray(d)?d:[]; lbState='ok'; }).catch(()=>{ lbState='error'; }); }
 function submitScore(handle){
   handle=(handle||'').trim().replace(/[<>@\s]/g,'').slice(0,15);
   try{ localStorage.setItem('bobina_handle',handle); }catch(e){}
@@ -4307,7 +4320,7 @@ function submitScore(handle){
   lastSubmit={ handle, score:sessionScore, kills:totalKills };
   const payload={ name, handle, score:sessionScore, kills:totalKills, rank:rankLetter(), mode:modeTag(), won:endWon?1:0, outfit:selectedOutfit };
   lbState='loading';
-  fetch('api/scores',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+  fetch('api/scores',{ method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
     .then(r=>r.json()).then(d=>{ lbCache=(d&&d.scores)||[]; lbState='ok'; })
     .catch(()=>{ lbState='error'; });
 }
@@ -4989,5 +5002,35 @@ document.addEventListener('fullscreenchange', onFsChange); document.addEventList
 addEventListener('keydown', e=>{ if((e.key==='f'||e.key==='F') && !nameEntryOpen){ toggleFullscreen(); } });
 </script>
 <script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+(function(){
+  const el = document.getElementById('bobinaAuth');
+  if(!el) return;
+  function paint(me){
+    if(!me || !me.authenticated){
+      const ready = me && me.bobinaConfigured;
+      el.innerHTML = ready
+        ? '<a href="/auth/bobina">Sign in with Bobina</a>'
+        : '<a href="/auth/bobina" title="OAuth app credentials needed on server">Sign in with Bobina</a>';
+      return;
+    }
+    const name = me.username ? '@'+me.username : 'Bobina player';
+    const img = me.avatar ? '<img src="'+me.avatar.replace(/"/g,'')+'" alt="">' : '🐻';
+    const link = me.profileUrl || 'https://bobina.moe';
+    el.innerHTML = '<span class="who">'+img+' <a href="'+link+'" target="_blank" rel="noopener" style="background:none;box-shadow:none;padding:0;color:#ffd0e4">'+name+'</a></span>'
+      + '<button type="button" class="ghost" id="bobinaLogout">Sign out</button>';
+    const b = document.getElementById('bobinaLogout');
+    if(b) b.onclick = function(){
+      fetch('/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){ location.reload(); });
+    };
+  }
+  fetch('/api/me',{credentials:'same-origin'})
+    .then(function(r){ return r.json(); })
+    .then(paint)
+    .catch(function(){ paint({authenticated:false,bobinaConfigured:false}); });
+})();
+</script>
+
 </body>
 </html>

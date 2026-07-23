@@ -1,11 +1,13 @@
 /**
  * Bobina: Kill All Mumus — production server
- * Express static game + Postgres-backed leaderboard
+ * Express static game + Postgres leaderboard + Bobina.moe OIDC
  */
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
-const { Pool } = require('pg');
+const cookieParser = require('cookie-parser');
+const { createPool, migrate } = require('./lib/db');
+const { mountBobinaAuth, sessionPlayer, configured: bobinaConfigured } = require('./lib/bobina-auth');
 
 let sharp = null;
 try {
@@ -26,20 +28,11 @@ if (!process.env.DATABASE_URL && !process.env.PGPASSWORD) {
   process.exit(1);
 }
 
-const pool = new Pool(
-  process.env.DATABASE_URL
-    ? { connectionString: process.env.DATABASE_URL, max: 10 }
-    : {
-        host: process.env.PGHOST || '127.0.0.1',
-        port: Number(process.env.PGPORT) || 5433,
-        user: process.env.PGUSER || 'killallmumus',
-        password: process.env.PGPASSWORD,
-        database: process.env.PGDATABASE || 'killallmumus',
-        max: 10,
-      }
-);
+const pool = createPool();
 
 app.use(express.json({ limit: '32kb' }));
+app.use(cookieParser());
+app.set('trust proxy', 1);
 
 function clean(s, max) {
   return String(s == null ? '' : s)
@@ -74,20 +67,38 @@ const OUTFIT_KEYS = [
 async function topScores(limit) {
   const n = Math.max(1, Math.min(200, Number(limit) || 100));
   const rows = await dbQuery(
-    `SELECT name, handle, score, kills, rank, mode, won, outfit
+    `SELECT name, handle, score, kills, rank, mode, won, outfit,
+            bc_id, bobina_username, x_id, avatar
      FROM bobina_scores
      ORDER BY score DESC
      LIMIT $1`,
     [n]
   );
-  // pg returns BIGINT as string — coerce for the game client
   return rows.map((r) => ({
-    ...r,
+    name: r.name,
+    handle: r.handle,
     score: Number(r.score),
     kills: Number(r.kills),
+    rank: r.rank,
+    mode: r.mode,
     won: Number(r.won),
+    outfit: r.outfit,
+    bcId: r.bc_id || null,
+    bobinaUsername: r.bobina_username || null,
+    xId: r.x_id || null,
+    avatar: r.avatar || null,
+    profileUrl: r.bobina_username
+      ? `https://bobina.moe/${r.bobina_username}`
+      : r.bc_id
+        ? `https://bobina.moe/api/user/${r.bc_id}/mini`
+        : r.handle
+          ? `https://x.com/${r.handle}`
+          : null,
   }));
 }
+
+// Bobina.moe OIDC routes (/auth/bobina, /api/me, …)
+mountBobinaAuth(app, pool);
 
 app.get('/api/scores', async (req, res) => {
   try {
@@ -108,6 +119,9 @@ app.post('/api/scores', async (req, res) => {
       return res.status(429).json({ ok: false, error: 'slow down' });
     }
     lastPost[ip] = now;
+
+    const player = await sessionPlayer(pool, req);
+
     let { name, handle, score, kills, rank, mode, won, outfit } = req.body || {};
     handle = clean(handle, 16).replace(/^@+/, '');
     name = clean(name, 16) || (handle ? '@' + handle : 'Anon');
@@ -117,6 +131,25 @@ app.post('/api/scores', async (req, res) => {
     mode = /^(NORMAL|HARD|HELL)(\+\d{1,2})?$/.test(mode) ? mode : 'NORMAL';
     won = won ? 1 : 0;
     outfit = OUTFIT_KEYS.includes(outfit) ? outfit : 'og';
+
+    // Prefer Bobina identity when signed in
+    let bcId = null;
+    let bobinaUsername = null;
+    let xId = null;
+    let avatar = null;
+    if (player) {
+      bcId = player.bc_id;
+      bobinaUsername = player.cached_username || null;
+      xId = player.cached_x_id || null;
+      avatar = player.cached_avatar || null;
+      if (bobinaUsername) {
+        name = clean('@' + bobinaUsername, 16);
+      }
+      if (player.cached_x_username) {
+        handle = clean(player.cached_x_username, 16).replace(/^@+/, '');
+      }
+    }
+
     const BLOCKED = [
       'test', 'testuser', 'tester', 'testing', 'admin', 'anon', 'anonymous',
       'null', 'undefined',
@@ -124,8 +157,19 @@ app.post('/api/scores', async (req, res) => {
     if (handle && BLOCKED.includes(handle.toLowerCase())) {
       return res.json({ ok: true, updated: false, scores: await topScores(100) });
     }
-    // dedup by X handle — keep only the player's best run
-    if (handle) {
+
+    // Dedup: by bc_id when present, else by X handle
+    if (bcId) {
+      const rows = await dbQuery(
+        'SELECT MAX(score) AS best FROM bobina_scores WHERE bc_id = $1',
+        [bcId]
+      );
+      const best = rows[0] && rows[0].best != null ? Number(rows[0].best) : -1;
+      if (score <= best) {
+        return res.json({ ok: true, updated: false, scores: await topScores(100) });
+      }
+      await dbExec('DELETE FROM bobina_scores WHERE bc_id = $1', [bcId]);
+    } else if (handle) {
       const rows = await dbQuery(
         'SELECT MAX(score) AS best FROM bobina_scores WHERE handle = $1',
         [handle]
@@ -136,11 +180,26 @@ app.post('/api/scores', async (req, res) => {
       }
       await dbExec('DELETE FROM bobina_scores WHERE handle = $1', [handle]);
     }
+
     await dbExec(
-      `INSERT INTO bobina_scores (name, handle, score, kills, rank, mode, won, outfit)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [name, handle, score, kills, rank, mode, won, outfit]
+      `INSERT INTO bobina_scores
+         (name, handle, score, kills, rank, mode, won, outfit, bc_id, bobina_username, x_id, avatar)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+      [name, handle, score, kills, rank, mode, won, outfit, bcId, bobinaUsername, xId, avatar]
     );
+
+    if (bcId) {
+      await dbExec(
+        `UPDATE players SET
+           high_score = GREATEST(high_score, $2),
+           kills = GREATEST(kills, $3),
+           games_played = games_played + 1,
+           updated_at = NOW()
+         WHERE bc_id = $1`,
+        [bcId, score, kills]
+      );
+    }
+
     res.json({ ok: true, updated: true, scores: await topScores(100) });
   } catch (e) {
     console.error('POST /api/scores', e.message);
@@ -148,7 +207,27 @@ app.post('/api/scores', async (req, res) => {
   }
 });
 
-// Themed share page that unfurls on X/social
+// Resolve a leaderboard bc_id → fresh bobina.moe profile (proxy to avoid CORS)
+app.get('/api/bobina/mini/:bcId', async (req, res) => {
+  try {
+    const bcId = clean(req.params.bcId, 80);
+    if (!bcId.startsWith('bc_') && !/^[a-zA-Z0-9_.-]+$/.test(bcId)) {
+      return res.status(400).json({ error: 'invalid id' });
+    }
+    const r = await fetch(`https://bobina.moe/api/user/${encodeURIComponent(bcId)}/mini`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (r.status === 404) return res.status(404).json({ error: 'not found' });
+    if (!r.ok) return res.status(502).json({ error: 'upstream' });
+    const data = await r.json();
+    res.set('Cache-Control', 'public, max-age=120');
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
+// Themed share page
 app.get('/share/:type', (req, res) => {
   const won = req.params.type === 'win';
   const score = clean(req.query.s, 12) || '0';
@@ -234,6 +313,7 @@ app.get('/api/health', async (req, res) => {
       sharp: !!sharp,
       db: 'postgres',
       scores: r.rows[0].n,
+      bobinaAuth: bobinaConfigured(),
     });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
@@ -242,19 +322,28 @@ app.get('/api/health', async (req, res) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const server = app.listen(PORT, HOST, () => {
-  console.log(`bobina-blaster listening on http://${HOST}:${PORT}`);
-});
+async function main() {
+  await migrate(pool);
+  const server = app.listen(PORT, HOST, () => {
+    console.log(`bobina-blaster listening on http://${HOST}:${PORT}`);
+    console.log(`bobina OAuth configured: ${bobinaConfigured()}`);
+  });
 
-async function shutdown(signal) {
-  console.log(`${signal} received, shutting down…`);
-  server.close();
-  try {
-    await pool.end();
-  } catch (_) {
-    /* ignore */
+  async function shutdown(signal) {
+    console.log(`${signal} received, shutting down…`);
+    server.close();
+    try {
+      await pool.end();
+    } catch (_) {
+      /* ignore */
+    }
+    process.exit(0);
   }
-  process.exit(0);
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+
+main().catch((e) => {
+  console.error('startup failed', e);
+  process.exit(1);
+});
