@@ -1,0 +1,78 @@
+#!/usr/bin/env node
+/** Phase 3 — Exhaustive visual systems structure (files + drawers wired) */
+import fs from "fs";
+import path from "path";
+import { createGate, ROOT, read, exists } from "./gate_lib.mjs";
+
+const g = createGate("Phase 3 — Visual systems structure");
+
+// Data tables
+for (const f of [
+  "godot/data/weapons.json",
+  "godot/data/specials.json",
+  "godot/data/melee.json",
+  "godot/data/outfits.json",
+  "godot/data/emblems.json",
+  "godot/data/stages.json",
+  "godot/data/consumables.json",
+]) {
+  g.ok(exists(f), f);
+}
+
+const weapons = JSON.parse(read("godot/data/weapons.json"));
+const wkeys = Object.keys(weapons.weapons || weapons);
+g.ok(wkeys.length >= 10, `weapons >= 10 (got ${wkeys.length})`);
+for (const w of ["laser", "homing", "gatling", "voidripper", "lotus", "shock", "spread", "wave", "scatter", "grenade"]) {
+  g.soft(wkeys.includes(w) || JSON.stringify(weapons).includes(w), `weapon key ${w}`);
+}
+
+const specials = JSON.parse(read("godot/data/specials.json"));
+const slist = Array.isArray(specials) ? specials : specials.specials || [];
+g.ok(slist.length >= 10, `specials >= 10 (got ${slist.length})`);
+
+const melee = JSON.parse(read("godot/data/melee.json"));
+const mlist = Array.isArray(melee) ? melee : melee.melee || [];
+g.ok(mlist.length >= 5, `melee >= 5 (got ${mlist.length})`);
+
+// Drawers
+const drawers = [
+  "drawBobina.gd",
+  "drawMumu.gd",
+  "drawElite.gd",
+  "drawPShot.gd",
+  "drawBullet.gd",
+  "drawCombatFx.gd",
+  "drawItem.gd",
+  "drawBoss.gd",
+  "drawHoneyBadger.gd",
+  "drawTitle.gd",
+];
+for (const d of drawers) {
+  g.ok(exists(`godot/scripts/render/drawers/${d}`), `drawer ${d}`);
+}
+
+const world = read("godot/scripts/html_parity/WorldDraw.gd");
+g.ok(world.includes("ported") || world.includes("PortedDraw") || world.includes("drawBobina"), "WorldDraw presents entities");
+g.ok(world.includes("combat_fx") || world.includes("drawCombatFx"), "WorldDraw combat FX");
+
+const fx = read("godot/scripts/render/drawers/drawCombatFx.gd");
+for (const f of ["draw_power_aura", "draw_dash_comet", "draw_power_radiance", "draw_melee_weapon"]) {
+  g.ok(fx.includes(`func ${f}`), `drawCombatFx.${f}`);
+}
+
+// AssetBank keys vs HTML load()
+const bankPath = exists("godot/scripts/html_parity/AssetBank.gd")
+  ? "godot/scripts/html_parity/AssetBank.gd"
+  : "godot/autoload/AssetBank.gd";
+if (exists(bankPath)) {
+  const bank = read(bankPath);
+  const html = read("public/index.html");
+  const loadKeys = [...html.matchAll(/load\(\s*'([^']+)'\s*,\s*'assets\/([^']+)'\s*\)/g)];
+  g.ok(loadKeys.length >= 12, `HTML load keys >= 12 (got ${loadKeys.length})`);
+  for (const m of loadKeys.slice(0, 20)) {
+    g.ok(bank.includes(`"${m[1]}"`), `AssetBank key ${m[1]}`);
+    g.soft(fs.existsSync(path.join(ROOT, "godot/assets/textures", m[2])), `texture ${m[2]}`);
+  }
+}
+
+g.finish();

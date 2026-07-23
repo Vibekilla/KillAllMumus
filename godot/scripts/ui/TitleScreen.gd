@@ -65,8 +65,14 @@ func _ready() -> void:
 	title_drawer = load("res://scripts/render/drawers/drawTitle.gd").new()
 	title_drawer.setup(ctx)
 	title_drawer.set_bobina(bobina)
+	# Phase 1: cache full drawBobina for expensive outfit previews
+	var bob_cache = get_node_or_null("BobinaDrawCache")
+	if bob_cache == null:
+		bob_cache = load("res://scripts/render/BobinaDrawCache.gd").new()
+		bob_cache.name = "BobinaDrawCache"
+		add_child(bob_cache)
 	menus = load("res://scripts/ui/menu/draw_menus.gd").new()
-	menus.setup(ctx, model, bobina)
+	menus.setup(ctx, model, bobina, bob_cache)
 
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_process(true)

@@ -16,9 +16,9 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 
 ## Phase 1 — Performance
 
-- [ ] Menu / outfit preview: cache full `drawBobina` (SubViewport / bake on state change)
+- [x] Menu / outfit preview: cache full `drawBobina` (SubViewport bake — `BobinaDrawCache`)
 - [ ] In-game Bobina cache (outfit + expression + pose)
-- [ ] World / HUD / FX redraw throttle + CanvasCompat hot paths
+- [x] World / HUD / FX redraw throttle + CanvasCompat hot paths (partial — tick gates)
 - [ ] 60 FPS desktop target met
 - [ ] ≥30–45 FPS web target met
 

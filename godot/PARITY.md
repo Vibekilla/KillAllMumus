@@ -108,16 +108,30 @@ godot/
 | --- | --- | --- |
 | 0.1 | Mandate in this file: HTML + assets only; no shortcuts | active |
 | 0.2 | Dual report is the living checklist | active |
-| 0.3 | Profile Godot desktop + web; document FPS root cause | open |
+| 0.3 | Profile Godot desktop + web; document FPS root cause | **partial** — see FPS notes below |
 
 ### Phase 1 — Performance (blocks all visual polish work)
 
 | # | Requirement | Status |
 | --- | --- | --- |
-| 1.1 | Menus / outfit previews: cache complex drawers (esp. full `drawBobina`) into SubViewport / bake on state change | open |
+| 1.1 | Menus / outfit previews: cache complex drawers (esp. full `drawBobina`) into SubViewport / bake on state change | **started** — `BobinaDrawCache` + outfit stage bake |
 | 1.2 | In-game Bobina: same caching for outfit + expression + pose | open |
-| 1.3 | World / HUD / FX: throttle redraws; keep CanvasCompat hot paths | open |
+| 1.3 | World / HUD / FX: throttle redraws; keep CanvasCompat hot paths | partial (WorldDraw tick gate, title 30 Hz) |
 | 1.4 | Target: 60 FPS desktop, ≥30–45 FPS web | open |
+
+### FPS root cause notes (Phase 0.3 / 1)
+
+Measured / code-path analysis (desktop headless + dual Xvfb; web still TBD):
+
+1. **Full `drawBobina` every redraw** — outfits menu at ×4.7 and title idle re-run the entire HTML port path (thousands of CanvasCompat ops). Primary cost.
+2. **WorldDraw single pass** — every SimClock tick redraws full field (mumus, bullets, FX, Bobina). Correct for parity; needs throttle + cache, not art cuts.
+3. **Title** — already tick-throttled (~30 Hz for idle) in `TitleScreen.gd`.
+4. **Mitigation in progress** — `BobinaDrawCache` bakes menu/outfit previews to `ImageTexture` on state/tick-bucket change; live vector fallback until bake ready.
+
+```bash
+npm run port:gates          # structure Phases 0–8
+npm run port:dual -- --full # product gate after cache changes
+```
 
 ### Phase 2 — Core character animation (Bobina)
 

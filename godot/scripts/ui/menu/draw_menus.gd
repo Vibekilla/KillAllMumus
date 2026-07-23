@@ -7,14 +7,18 @@ var ctx
 var model
 var bobina
 var combat_fx  # drawCombatFx for pose_params / pose props
+var bobina_cache = null  # BobinaDrawCache Node (Phase 1)
 var tick: int = 0
 var W: float = 960.0
 var H: float = 540.0
+## Use texture cache for large previews (outfit stage ×4.7); live vector fallback if miss
+const CACHE_SCALE_MIN := 2.0
 
-func setup(c, m, bob = null) -> void:
+func setup(c, m, bob = null, cache = null) -> void:
 	ctx = c
 	model = m
 	bobina = bob
+	bobina_cache = cache
 	W = Config.W
 	H = Config.H
 	combat_fx = load("res://scripts/render/drawers/drawCombatFx.gd").new()
@@ -50,11 +54,6 @@ func _back_btn(label: String = "") -> Dictionary:
 	return b
 
 func _draw_bobina_at(x: float, y: float, scale: float, outfit: String, extras: Dictionary = {}) -> void:
-	if bobina == null:
-		return
-	ctx.save()
-	ctx.translate(x, y)
-	ctx.scale(scale, scale)
 	var st = {
 		"x": 0, "y": 0, "iframe": 0, "focus": false, "walk": 0, "bombFx": 0,
 		"face": float(extras.get("face", -PI / 2.0)),
@@ -67,6 +66,22 @@ func _draw_bobina_at(x: float, y: float, scale: float, outfit: String, extras: D
 		st["lean"] = extras["lean"]
 	if extras.has("hold"):
 		st["hold"] = extras["hold"]
+	# Phase 1: large previews use BobinaDrawCache (full drawBobina bake)
+	var pose_i := int(extras.get("pose", model.outfit_pose if model else 0))
+	var expr = extras.get("expr", null)
+	if bobina_cache and scale >= CACHE_SCALE_MIN and bobina_cache.has_method("get_texture"):
+		var tex: Texture2D = bobina_cache.get_texture(outfit, expr, pose_i, tick, scale, st)
+		if tex != null and ctx.has_method("draw_image"):
+			var tw := float(tex.get_width())
+			var th := float(tex.get_height())
+			ctx.draw_image(tex, x - tw * 0.5, y - th * 0.5, tw, th)
+			return
+		# miss: fall through to live draw while bake queues
+	if bobina == null:
+		return
+	ctx.save()
+	ctx.translate(x, y)
+	ctx.scale(scale, scale)
 	if bobina.has_method("set_outfit"):
 		bobina.set_outfit(outfit)
 	if bobina.has_method("set_tick"):
@@ -87,21 +102,45 @@ func _draw_posed_figure(cx: float, cy: float, scale: float, pose: int, outfit: S
 	var pcx := -sin(rr) * 16.0
 	var pcy := -16.0 + cos(rr) * 16.0
 	var ms := 1.0
-	ctx.save()
-	ctx.translate(cx + float(P.get("sway", 0)) * ms, cy - float(P.get("bounce", 0)) * ms)
-	ctx.scale(scale, scale * float(P.get("sq", 1.0)))
-	ctx.translate(pcx, pcy)
-	ctx.rotate(float(P.get("rot", 0)))
-	ctx.translate(-pcx, -pcy)
 	var extras := {
 		"vx": float(P.get("vx", 0)),
 		"vy": float(P.get("vy", 0)),
 		"lean": float(P.get("lean", 0)),
 		"expr": expr,
 		"face": face,
+		"pose": pose,
 	}
 	if pose == 5 and combat_fx and combat_fx.has_method("coffee_hold"):
 		extras["hold"] = combat_fx.coffee_hold(t)
+	# Phase 1: bake full drawBobina at outer scale (outfit stage is ×4.7) — pose prop still live
+	if bobina_cache and scale >= CACHE_SCALE_MIN and bobina_cache.has_method("get_texture"):
+		var tex: Texture2D = bobina_cache.get_texture(outfit, expr, pose, tick, scale, extras)
+		if tex != null and ctx.has_method("draw_image"):
+			var tw := float(tex.get_width())
+			var th := float(tex.get_height())
+			ctx.save()
+			ctx.translate(cx + float(P.get("sway", 0)) * ms, cy - float(P.get("bounce", 0)) * ms)
+			var sq := float(P.get("sq", 1.0))
+			if absf(sq - 1.0) > 0.001:
+				ctx.scale(1.0, sq)
+			# Approximate body-centre spin for texture blit
+			var rot := float(P.get("rot", 0))
+			if absf(rot) > 0.001:
+				ctx.translate(0, -16.0 * scale)
+				ctx.rotate(rot)
+				ctx.translate(0, 16.0 * scale)
+			ctx.draw_image(tex, -tw * 0.5, -th * 0.5, tw, th)
+			ctx.scale(scale, scale)
+			if combat_fx and combat_fx.has_method("draw_pose_prop"):
+				combat_fx.draw_pose_prop(pose, t)
+			ctx.restore()
+			return
+	ctx.save()
+	ctx.translate(cx + float(P.get("sway", 0)) * ms, cy - float(P.get("bounce", 0)) * ms)
+	ctx.scale(scale, scale * float(P.get("sq", 1.0)))
+	ctx.translate(pcx, pcy)
+	ctx.rotate(float(P.get("rot", 0)))
+	ctx.translate(-pcx, -pcy)
 	_draw_bobina_at(0, 0, 1.0, outfit, extras)
 	if combat_fx and combat_fx.has_method("draw_pose_prop"):
 		combat_fx.draw_pose_prop(pose, t)
