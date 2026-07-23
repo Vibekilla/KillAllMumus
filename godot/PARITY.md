@@ -87,3 +87,33 @@ npm run port:dual -- --fast   # / --full
 
 Work on **`dev`** (`/var/www/dev`), promote with `./scripts/promote-to-live.sh`.  
 Do **not** enable `USE_GODOT=1` until P9 sign-off.
+
+
+## Cutover checklist (USE_GODOT)
+
+Do **not** flip until every box is checked:
+
+- [ ] Dual report reviewed: `tools/port/playtest_out/index.html` (title, menus, play, shop, stage clear, combat)
+- [ ] Web export fresh: `godot --export-debug Web public_godot/index.html` + `./scripts/patch-godot-music.sh`
+- [ ] `/godot/` or `?test` smoke on staging (load, title, start, fire, pause, settings)
+- [ ] Music: soundgate → lofi plays; mute gate → silent; volume slider works
+- [ ] All 16 SFX types fire without console spam
+- [ ] Progress / arsenal / shop buy persist across refresh
+- [ ] Written sign-off in this file (date + reviewer)
+
+### Flip live
+
+```bash
+# on server env for killallmumus.com
+export USE_GODOT=1
+# restart node service
+# health must report "client":"godot"
+curl -sS http://127.0.0.1:3000/api/health
+```
+
+Rollback: `USE_GODOT=0` (or unset) + restart → html-legacy.
+
+### Steam
+
+Desktop export after web parity. No `public/index.html` runtime dependency.
+Music: desktop may use silence or a shipped track until a licensed asset is chosen.

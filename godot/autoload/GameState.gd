@@ -88,6 +88,9 @@ func rank_letter() -> String:
 
 func start_run() -> void:
 	## HTML newRun / startRun parity
+	# HTML: if(lofiOn) musicPlay()
+	if MusicBridge and MusicBridge.enabled:
+		MusicBridge.play()
 	apply_difficulty()
 	stage_index = 0
 	session_score = 0

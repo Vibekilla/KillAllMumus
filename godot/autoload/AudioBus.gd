@@ -25,3 +25,6 @@ func set_music_volume(v: float) -> void:
 	music_volume = clampf(v, 0.0, 1.0)
 	if _synth and _synth.has_method("set_music_volume"):
 		_synth.set_music_volume(music_volume)
+	# HTML applyMusicVol → YT player volume
+	if MusicBridge:
+		MusicBridge.set_volume(music_volume)

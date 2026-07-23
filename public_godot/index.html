@@ -79,7 +79,63 @@ body {
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
-	</head>
+	<!-- HTML lofi stream (same YT ID as public/index.html) — music only, not the game -->
+<div id="ytmusic" style="position:fixed;width:2px;height:2px;left:0;bottom:0;opacity:0;pointer-events:none;overflow:hidden"></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+(function () {
+  var YT_ID = "rPjez8z61rI";
+  var ytPlayer = null, ytReady = false, ytWant = false, ytVol = 100;
+  window.onYouTubeIframeAPIReady = function () {
+    try {
+      ytPlayer = new YT.Player("ytmusic", {
+        videoId: YT_ID,
+        playerVars: {
+          autoplay: 0, controls: 0, disablekb: 1, loop: 1, playlist: YT_ID,
+          modestbranding: 1, playsinline: 1, rel: 0, fs: 0
+        },
+        events: {
+          onReady: function () {
+            ytReady = true;
+            try { ytPlayer.setVolume(ytVol); ytPlayer.unMute(); } catch (e) {}
+            if (ytWant) { try { ytPlayer.playVideo(); } catch (e2) {} }
+          },
+          onStateChange: function (e) {
+            if (e.data === YT.PlayerState.ENDED) {
+              try { ytPlayer.playVideo(); } catch (e3) {}
+            }
+          }
+        }
+      });
+    } catch (e) { console.warn("[kamMusic]", e); }
+  };
+  window.kamMusicPlay = function (vol01) {
+    ytWant = true;
+    if (typeof vol01 === "number") ytVol = Math.round(Math.max(0, Math.min(1, vol01)) * 100);
+    if (ytReady && ytPlayer) {
+      try {
+        ytPlayer.setVolume(ytVol);
+        ytPlayer.unMute();
+        ytPlayer.playVideo();
+      } catch (e) {}
+    }
+  };
+  window.kamMusicPause = function () {
+    ytWant = false;
+    if (ytReady && ytPlayer) {
+      try { ytPlayer.pauseVideo(); } catch (e) {}
+    }
+  };
+  window.kamMusicVol = function (vol01) {
+    ytVol = Math.round(Math.max(0, Math.min(1, Number(vol01) || 0)) * 100);
+    if (ytReady && ytPlayer) {
+      try { ytPlayer.setVolume(ytVol); } catch (e) {}
+    }
+  };
+})();
+</script>
+
+</head>
 	<body>
 		<canvas id="canvas">
 			Your browser does not support the canvas tag.
@@ -97,7 +153,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":26934304,"index.wasm":43016933},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":26935440,"index.wasm":43016933},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 

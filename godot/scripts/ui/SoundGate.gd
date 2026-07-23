@@ -105,12 +105,17 @@ func _dismiss(with_sound: bool) -> void:
 		if AudioBus:
 			AudioBus.set_sfx_volume(AudioBus.sfx_volume)
 			AudioBus.set_music_volume(1.0)
+		# HTML: lofiOn=true; musicPlay()
+		if MusicBridge:
+			MusicBridge.play()
 		# Best-effort fullscreen (web/desktop)
 		if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
 		if AudioBus:
 			AudioBus.set_music_volume(0.0)
+		if MusicBridge:
+			MusicBridge.pause()
 		if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	if AudioBus:
