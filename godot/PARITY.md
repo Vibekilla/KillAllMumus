@@ -72,5 +72,5 @@ Nothing different from `public/`:
 ## Do not
 
 - Ship approximate Godot as default while draw/audio/UI diverge
-- Delete or replace `public/index.html` until GDScript is proven identical
+- Delete or replace `public/index.html` at all until explicitly instructed.
 - Enable `USE_GODOT=1` without running the full visual checklist on all 7 stages
