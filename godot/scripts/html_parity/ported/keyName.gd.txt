@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function keyName — review required
+func keyName(code):
+	 if(!code) return '—'; var m={Space:'SPACE',ArrowLeft:'←',ArrowRight:'→',ArrowUp:'↑',ArrowDown:'↓',ShiftLeft:'SHIFT',ShiftRight:'SHIFT',Enter:'ENTER',Escape:'ESC'}; if(m[code])return m[code]; if(code.find('Key')==0)return code.slice(3); if(code.find('Digit')==0)return code.slice(5); return code; 

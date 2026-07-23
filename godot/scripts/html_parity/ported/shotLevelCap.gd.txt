@@ -1,0 +1,4 @@
+## AUTO-PORTED from HTML function shotLevelCap — review required
+func shotLevelCap():
+	 return maxf(1,minf(5,floorf(powerCap()))); }   // highest shot level reachable at this difficulty
+

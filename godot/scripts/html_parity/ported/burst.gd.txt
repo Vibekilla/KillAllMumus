@@ -1,0 +1,7 @@
+## AUTO-PORTED from HTML function burst — review required
+func burst(x, y, c):
+	 for i in range(int(0), int(16)) particles.append({x,y,vx:(randf()-.5)*7,vy:(randf()-.5)*7,life:26,c}); }
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 Emblems  -= 1 -= 1 -= 1 -= 1 -= 1 */
+	var emblems=[];
+

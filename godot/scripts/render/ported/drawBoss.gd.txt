@@ -1,0 +1,15 @@
+# AUTO-PORTED from public/index.html — needs manual polish
+# Original: drawBoss
+extends RefCounted
+# expects `ctx` CanvasCompat and game globals
+
+func drawBoss(b) -> void:
+ var d=b.data, flash=b.flash>0;
+  if (b.hell) drawHellPortal(b);   // fiery portal opens beneath James Wynn
+  ctx.save(); ctx.translate(b.x+(b.hell?(b.hellShake or 0):0), b.y);
+  if (b.hell): # { ctx.rotate(b.hellSpin or 0); var s=(b.hellScale!=null?b.hellScale:1); ctx.scale(s,s); # }
+  else : # { ctx.save(); ctx.shadow_color(d.color); ctx.shadow_blur(30); ctx.global_alpha(0.35); ctx.fill_style(d.color); ctx.begin_path(); ctx.arc(0,0,b.r*1.2,0,7); ctx.fill(); ctx.restore();
+    ctx.rotate((b.face!=null?b.face:Math.PI/2)-Math.PI/2); # }  // face travel direction (360)
+  if (d.portrait=='ape') drawApe(b,flash); else if (d.portrait=='robotnik') drawRobotnik(b,flash); else if (d.portrait=='mumina') drawMumina(b,flash); else if (d.portrait=='lily') drawLily(b,flash); else if (d.portrait=='police') drawPolice(b,flash); else if (d.portrait=='bogdanoff') drawBogdanoff(b,flash); else drawWynn(b,flash);
+  ctx.restore();
+  if (b.dead  and  not b.hell): # { ctx.save(); ctx.global_alpha(0.5+0.5*Math.sin(tick*0.3)); ctx.fill_style(Color.html("#fff")); ctx.begin_path(); ctx.arc(b.x,b.y,b.r*(1+b.deadT*0.02),0,7); ctx.fill(); ctx.restore(); # }

@@ -1,0 +1,173 @@
+## AUTO-PORTED from HTML function update — review required
+func update():
+
+	  tick += 1;
+	  if(flashMsg){ flashMsg.t -= 1; if(flashMsg.t<=0)flashMsg=null; }
+	  if(state=='intro'){ if(introTimer>0)introTimer -= 1; return; }
+	  if(state=='win'){ winTimer += 1; return; }
+	  if(state!='play') return;
+	  if(paused) return;
+	  var p=player;
+	  if(p.dead){ p.respawn -= 1; if(p.respawn<=0 && run.lives>=0) initPlayer(); updateItems(); return; }
+	  if(run.cleared){ if(clearMsgT>0)clearMsgT -= 1; }   // free-roam prep: press [E] at the portal to leave, [E] at the shop to buy — no auto-enter
+	  // consumables: [Switch Item] cycles the selection (keyPress); HOLD [Use Item] 0.8s to consume, then a 3s cooldown before the next use (no spamming)
+	  if(!paused){ if(p._eCd>0) p._eCd -= 1;
+	    if(keys.item_use){ if(!p._eHeld){ p._eHeld=true; p._eT=0; p._eUsed=false; } p._eT += 1;
+	      if(p._eT>=48 && !p._eUsed){ p._eUsed=true;   // 0.8s hold reached — fire once per hold
+	        if(p._eCd>0){ sfx('hit'); flashMsg={t:60,txt:'⌛ Item cooling down — '+ceilf(p._eCd/60)+'s'}; }
+	        else if(consumeSelected()){ p._eCd=180; } } }   // a successful use starts the 3s cooldown
+	    else if(p._eHeld){ p._eHeld=false; } }   // consumables work during the cleared prep too, so you can stock up and heal before the portal
+	  if(p.iframe>0)p.iframe -= 1; if(p.bombFx>0)p.bombFx -= 1; if(hurtPortrait>0)hurtPortrait -= 1; if(p.shieldT>0)p.shieldT -= 1; if(p.rapidT>0)p.rapidT -= 1; if(p.dashCd>0)p.dashCd -= 1;
+	  if(p.vialT>0){ p.vialT -= 1; if(p.vialT<=0) p.vialHits=0; } if(p.phaseT>0)p.phaseT -= 1;   // Unholy Vial window / Wormhole phase
+	  p.offx=(p.offx||0)*0.95; p.offy=(p.offy||0)*0.95;   // a dash's displacement decays away → she eases back under the cursor over ~1s
+	  p.focus=!!keys.focus && !(p.dash>0);
+	  if(mouse.moveT>0)mouse.moveT -= 1;
+	  //  -= 1 -= 1 movement: keyboard = momentum; cursor = ONE smooth damped follow (identical whether you click or hover, so click-to-fire never jerks her)  -= 1 -= 1
+	  var spd=(p.focus?3.5:6.6)*MOUSE.speed; var mvx=0,mvy=0;
+	  if(keys.left)mvx -= 1; if(keys.right)mvx += 1; if(keys.up)mvy -= 1; if(keys.down)mvy += 1;
+	  if(p.dash>0){ p.dash -= 1; var ds=18; p.vx=cos(p.dashAng)*ds; p.vy=sin(p.dashAng)*ds;   // Shift-double-tap dash — a fast lunge toward the cursor
+	    var _oc=outfitColors(); particles.append({x:p.x,y:p.y,vx:(randf()-.5)*2.4,vy:(randf()-.5)*2.4,life:16,c:randf()<0.5?_oc[0]:_oc[1]});
+	    if(p.dash==0) p._land=true;   // dash just finished → trigger the landing burst after her position settles
+	  } else if(p.knock>0){ p.knock -= 1; p.vx*=0.9; p.vy*=0.9;   // boss knockback in progress — ignore input, var momentum carry her back
+	  } else if(joy.active && (joy.vx||joy.vy)){       // virtual joystick (analog) — highest priority on touch
+	    var jx=joy.vx*spd, jy=joy.vy*spd; var jl=sqrt_sum_sq(jx,jy); if(jl>spd){ jx*=spd/jl; jy*=spd/jl; }
+	    p.vx+=(jx-p.vx)*0.5; p.vy+=(jy-p.vy)*0.5;
+	  } else if(mvx||mvy){                            // keyboard takes priority — no fighting with the mouse
+	    var l=sqrt_sum_sq(mvx,mvy), tvx=mvx/l*spd, tvy=mvy/l*spd;
+	    p.vx+=(tvx-p.vx)*0.5; p.vy+=(tvy-p.vy)*0.5;
+	  } else {
+	    var pOK = pointer.down && !isTouch;         // desktop drag-to-move (touch is driven by the joystick)
+	    var mOK = mouse.moveT>0 && !isTouch && mouse.x>PF.x-40 && mouse.x<PF.x+PF.w+40 && mouse.y>PF.y-40 && mouse.y<PF.y+PF.h+40;
+	    if(pOK||mOK){ var tx=(pOK?pointer.x:mouse.x)+(p.offx||0), ty=(pOK?pointer.y:mouse.y)+(p.offy||0);   // target = cursor + the decaying dash offset (relative, so a dash isn't yanked back)
+	      tx=maxf(PF.x+8,minf(PF.x+PF.w-8,tx)); ty=maxf(PF.y+8,minf(PF.y+PF.h-8,ty));
+	      // ease toward the target — MOUSE.follow<1 gives a slight drag behind the cursor; Focus (Shift) damps it further for micro-dodging
+	      var f = p.focus ? maxf(0.28, 0.5*MOUSE.follow) : MOUSE.follow;
+	      p.vx=(tx-p.x)*f; p.vy=(ty-p.y)*f;
+	    } else { p.vx*=0.8; p.vy*=0.8; }              // glide to a stop
+	  }
+	  if(absf(p.vx)<0.03)p.vx=0; if(absf(p.vy)<0.03)p.vy=0;
+	  p.x+=p.vx; p.y+=p.vy;
+	  if(p.x<PF.x+8){p.x=PF.x+8; p.vx=0;} if(p.x>PF.x+PF.w-8){p.x=PF.x+PF.w-8; p.vx=0;}
+	  if(p.y<PF.y+8){p.y=PF.y+8; p.vy=0;} if(p.y>PF.y+PF.h-8){p.y=PF.y+PF.h-8; p.vy=0;}
+	  // dash plows through Mumus, killing them (she's i-framed for the lunge). A SLASH DASH cuts a wider swath.
+	  if(p.dash>0){ var rad=p.slashDash?26:16;
+	    var hit=false; for e in enemies){ if(e.hp>0 && sqrt_sum_sq(e.x-p.x,e.y-p.y)<e.r+rad){ e.hp=0; killEnemy(e); hit=true; } } if(hit) enemies=enemies.filter(func(e): return e.hp>0);
+	    if(boss && !boss.dead && boss.intro<=0 && sqrt_sum_sq(boss.x-p.x,boss.y-p.y)<boss.r+(p.slashDash?18:14)){ boss.hp-=(p.slashDash?5:2); boss.flash=4; }
+	    if(p.slashDash){ bullets=bullets.filter(func(b): return { if(sqrt_sum_sq(b.x-p.x,b.y-p.y)<34){ floaters.append({x:b.x,y:b.y,life:12,vy:-0.5,scale:0.32}); return false; } return true; });   // cut through bullets
+	      if(p.dash%4==0){ var m=MELEE[p.melee||0]||MELEE[0]; meleeFx.append({x:p.x,y:p.y,dir:p.dashAng,reach:m.reach*0.9,half:m.arc/2,col:m.col,key:m.key,life:12,t:0,charge:1}); } }   // slash arcs along the path
+	  }
+	  if(p._land){ p._land=false; dashLandExplosion(p); p.slashDash=false; }   // rainbow burst where she touches down
+	  // dash comet trail: record positions while dashing, then var the tail retract to nothing
+	  if(p.dash>0){ p.trail.unshift({x:p.x,y:p.y}); if(p.trail.size()>16) p.trail.pop_back();
+	    p.offx=p.x-mouse.x; p.offy=p.y-mouse.y;   // lock the displacement as an offset so control resumes from HERE, then it decays away
+	  } else if(p.trail && p.trail.size()){ p.trail.pop_back(); }
+	  p.prevx=p.x; p.walk+=0.2;
+	  //  -= 1 -= 1 360° facing: her model turns toward her travel direction and HOLDS that heading when she stops,
+	  //      instead of snapping back to 'up' when you quit moving the mouse. Shots follow where she's pointed.  -= 1 -= 1
+	  var sp2=sqrt_sum_sq(p.vx,p.vy);
+	  if(sp2>0.35){ var faceT=atan2(p.vy,p.vx); p.face=lerpAngle(p.face==null?-PI/2:p.face, faceT, 0.26); }
+	  p.aim = (p.face!=null?p.face:-PI/2);  // shots & specials follow where she's pointed
+	  // power slowly bleeds off over time — keep collecting P to hold your level (frozen during dialogue so cutscenes don't cost you)
+	  if(run.power>1 && !dialog && !run.cleared) run.power=maxf(1, run.power-0.00085);   // power holds steady during the cleared prep so you can gear up in peace
+	  if(run.special<100) run.special=minf(100, run.special+0.012); // slow trickle — earn your special
+	  // fire while holding Z / clicking; touch devices auto-fire (toggleable via the FIRE button so you can choose to hold fire)
+	  var firing = keys.shoot || (isTouch ? autoFire : pointer.down);
+	  if(p.cd>0)p.cd -= 1;
+	  if(firing && p.cd<=0){ var wcd=(run&&run.weapon=='grenade')?3.2:1; p.cd=(p.focus?4:6)*(p.rapidT>0?0.5:1)*wcd; fire(); }   // grenade launcher fires far slower — deliberate lobs, not a stream
+	  //  -= 1 -= 1 melee: hold SPACE to charge, release to swipe (knocks enemies + bullets back for breathing room) · D switches  -= 1 -= 1
+	  if(p.meleeCd>0)p.meleeCd -= 1;
+	  if(keys.melee && !p.dead){ if(p.meleeCd<=0){ p.meleeChg=minf(1,(p.meleeChg||0)+1/48); p.meleeHeld=true; } }
+	  else { if(p.meleeHeld) doMeleeSwipe(p.meleeChg||0); p.meleeHeld=false; p.meleeChg=0; }
+	  // Badger Claws thousand-strike flurry: mow everything in a forward cone for a short burst
+	  if(p.flurry>0){ p.flurry -= 1;
+	    if(p.flurry%2==0 && !p.dead){ var dir=(p.aim!=null?p.aim:-PI/2), reach=118, half=1.0, fdmg=p.flurryDmg||2;   // follows her live rotation — turn to mow a new direction
+	      for e in enemies){ var dx=e.x-p.x,dy=e.y-p.y,d=sqrt_sum_sq(dx,dy); if(d<reach+e.r && angDiff(atan2(dy,dx),dir)<half){ e.hp-=fdmg; e.flash=5; var nx=d>0.5?dx/d:0,ny=d>0.5?dy/d:-1; e.x+=nx*3; e.y+=ny*3; if(e.hp<=0){ estats.mkills=(estats.mkills||0)+1; killEnemy(e); } } }
+	      enemies=enemies.filter(func(e): return e.hp>0);
+	      if(boss && !boss.dead && boss.intro<=0){ var dx=boss.x-p.x,dy=boss.y-p.y,d=sqrt_sum_sq(dx,dy); if(d<reach+boss.r && angDiff(atan2(dy,dx),dir)<half){ boss.hp-=fdmg; boss.flash=3; } }
+	      var m=MELEE[p.melee||0]||MELEE[0]; meleeFx.append({x:p.x,y:p.y,dir:dir+(randf()-.5)*0.55,reach:reach*0.9,half:0.9,col:m.col,key:m.key,life:8,t:0,charge:0.5}); sfx('claw'); }
+	  }
+	  for f in meleeFx) f.t += 1; meleeFx=meleeFx.filter(func(f): return f.t<f.life);
+
+	  if(stagePhase=='waves'){ stageTime += 1; spawnWaves(); if(stageTime>=STAGES[run.stageIdx].waveDur){ stagePhase='boss'; spawnBoss(); } }
+
+	  // pshots move + homing
+	  for s in pshots){ if(s.home){ var t=nearestTarget(s.x,s.y); if(t){ var a=atan2(t.y-s.y,t.x-s.x); s.vx+=cos(a)*0.8; s.vy+=sin(a)*0.8; var sp=sqrt_sum_sq(s.vx,s.vy); var m=12/sp; s.vx*=m; s.vy*=m; } }
+	    if(s.curl){ var c=cos(s.curl), sn=sin(s.curl), nx=s.vx*c-s.vy*sn, ny=s.vx*sn+s.vy*c; s.vx=nx; s.vy=ny; }   // Lotus Petals spiral outward — a curling bloom, not a homing seeker
+	    if(s.wv){ s.wph+=0.34; var m=sqrt_sum_sq(s.vx,s.vy)||1, px=-s.vy/m, py=s.vx/m, o=cos(s.wph)*s.wv; s.x+=s.vx+px*o; s.y+=s.vy+py*o; }
+	    else { s.x+=s.vx; s.y+=s.vy; }
+	    if(s.life!=null &&  -= 1s.life<=0) s.dead=true;
+	    if(s.y<PF.y-30||s.x<PF.x-30||s.x>PF.x+PF.w+30||s.y>PF.y+PF.h+30) s.dead=true; }
+	  // pshot vs enemies
+	  for e in enemies){ if(e.flash>0)e.flash -= 1;
+	    for s in pshots){ if(s.dead)continue; if(s.pierce && s.hit && s.hit.has(e)) continue; var dx=s.x-e.x,dy=s.y-e.y; if(dx*dx+dy*dy<(e.r+4)*(e.r+4)){
+	      if(s.zap) chainLightning(e.x,e.y,2,3,'#8fd0ff');           // Shock & Awe arcs to nearby Mumus
+	      if(s.pierce){ s.hit[e); } else { s.dead=true; }        // Voidripper tears straight through
+	      e.hp-=s.dmg; e.flash=5; sparks(s.x,s.y, s.zap?'#cfe8ff':'#ffd0ec'); if(e.hp<=0){ killEnemy(e); } } } }
+	  // pshots destroy ANY enemy projectile (shoot down enemy fire) — pierce/grenade shots pass through instead of dying
+	  for b in bullets){ if(b._dead)continue;
+	    for s in pshots){ if(s.dead)continue; var dx=s.x-b.x,dy=s.y-b.y; if(dx*dx+dy*dy<(b.r+5)*(b.r+5)){
+	      if(b.hp>0){ b.hp-=s.dmg; sparks(s.x,s.y,'#ffd27a'); if(b.hp<=0){ b._dead=true; dropItem(b.x,b.y,'point'); burst(b.x,b.y,'#ffd27a'); sessionScore+=floorf(80*scoreMult()); } }
+	      else { b._dead=true; sparks(b.x,b.y,b.col); sessionScore+=floorf(5*scoreMult()); }
+	      if(!s.pierce && !s.nade) s.dead=true;
+	      break; } } }
+	  for s in pshots){ if(s.nade && s.dead && !s._boomed){ s._boomed=true; nadeBoom(s.x,s.y); } }   // Grrnade bursts on death (contact or fuse)
+	  bullets=bullets.filter(func(b): return !b._dead);
+	  pshots=pshots.filter(func(s): return !s.dead); enemies=enemies.filter(func(e): return e.hp>0);
+
+	  // Sixth Sense time-warp — Bobina stays full speed while the world crawls, but tougher foes resist the dilation:
+	  //   regular Mumus + bullets → 0.4x · elites → 0.5x · bosses → 0.75x (only 25% slower)
+	  var _mobW=true, _eliteW=true, _bossW=true;
+	  if(slowmoT>0){ slowmoT -= 1;
+	    slowAcc+=0.4;  if(slowAcc>=1)  slowAcc-=1;  else _mobW=false;
+	    slowAccE+=0.5; if(slowAccE>=1) slowAccE-=1; else _eliteW=false;
+	    slowAccB+=0.75;if(slowAccB>=1) slowAccB-=1; else _bossW=false; }
+	  // enemies move + fire
+	  for e in enemies){ if(!(e.kind=='elite'?_eliteW:_mobW)) continue; e.t += 1;
+	    // Kiss Me — charmed Mumus turn on their brethren (AoE damage), then burst when the charm expires (~3s)
+	    if(e.charm>0){ e.charm -= 1;
+	      if(e.t%8==0){ for o in enemies){ if(o!=e && !(o.charm>0) && o.hp>0 && sqrt_sum_sq(o.x-e.x,o.y-e.y)<54){ o.hp-=3; o.flash=4; if(o.hp<=0) killEnemy(o); } } }
+	      if(e.charm<=0) enemyExplode(e);
+	      continue;   // charmed: won't fire at you or damage you — they serve Bobina now
+	    }
+	    // hammer-flung Mumus fly until they hit a wall, then detonate
+	    if(e.flung>0){ e.flung -= 1; e.x+=e.vx; e.y+=e.vy; e.vx*=0.92; e.vy*=0.92;
+	      if(e.x<=PF.x+12||e.x>=PF.x+PF.w-12||e.y<=PF.y+10||e.y>=PF.y+PF.h-10){ enemyExplode(e); continue; }
+	      if(!p.dead){ var dx=e.x-p.x,dy=e.y-p.y; if(dx*dx+dy*dy<(e.r+p.r+2)*(e.r+p.r+2)) hitPlayer(e.kind=='elite'?eliteHearts():1); } continue; }
+	    // stunned Mumus freeze (no move, no fire)
+	    if(e.stun>0){ e.stun -= 1; if(!p.dead){ var dx=e.x-p.x,dy=e.y-p.y; if(dx*dx+dy*dy<(e.r+p.r+2)*(e.r+p.r+2)) hitPlayer(e.kind=='elite'?eliteHearts():1); } continue; }
+	    var sfr=1-(run.stageIdx*0.13);  // later stages fire more often
+	    if(e.kind=='lil'){ e.x+=e.vx; e.y+=e.vy; e.vx+=sin(e.t*0.06+e.x*0.01)*0.05; // stronger weave
+	      if(e.y<PF.y+PF.h*0.6) e.vx+=sign(p.x-e.x)*0.012;                              // light drift toward player
+	      e.vx=maxf(-2.4,minf(2.4,e.vx*0.99));
+	      if(e.x<PF.x+12){e.x=PF.x+12;e.vx=absf(e.vx);} if(e.x>PF.x+PF.w-12){e.x=PF.x+PF.w-12;e.vx=-absf(e.vx);} // bounce off walls
+	      if(e.t%maxf(70,roundf((hardMode?150:190)*sfr))==0 && !p.dead && e.y<PF.y+PF.h*0.7) fanAt(e.x,e.y,p.x,p.y,e.icy?2+run.stageIdx:1+run.stageIdx,0.5+run.stageIdx*0.12,e.icy?2.4:2.8,6,e.icy?'#9fe0ff':'#ff7ad1');
+	    } else { if(e.y<e.hover) e.y+=e.vy; else { e.y=e.hover+sin(e.t*0.05)*8; e.x+=sin(e.t*0.02)*0.9 + sign(p.x-e.x)*0.4; e.x=maxf(PF.x+30,minf(PF.x+PF.w-30,e.x)); }
+	      if(e.t%maxf(40,roundf((hardMode?70:95)*sfr))==0 && !p.dead) ring(e.x,e.y,(e.icy?9:7)+run.stageIdx*2,1.7,6,e.bcol||(e.icy?'#8fd0ff':'#ff8ac0'),e.t*0.1);
+	      if(e.t%maxf(90,roundf((hardMode?150:200)*sfr))==0 && !p.dead) heavyShell(e.x,e.y,p.x,p.y,2.5);
+	    }
+	    if(!p.dead){ var dx=e.x-p.x,dy=e.y-p.y; if(dx*dx+dy*dy<(e.r+p.r+2)*(e.r+p.r+2)) hitPlayer(e.kind=='elite'?eliteHearts():1); }
+	  }
+	  enemies=enemies.filter(func(e): return e.hp>0 && e.y<PF.y+PF.h+50 && e.x>PF.x-60 && e.x<PF.x+PF.w+60);
+	  updateBurns();
+
+	  if(boss && _bossW) updateBoss();
+
+	  // bullets
+	  var hitR=p.focus?2.2:4.2;
+	  for b in bullets){ if(_mobW){ b.x+=b.vx; b.y+=b.vy; }
+	    if(!p.dead){ var dx=b.x-p.x,dy=b.y-p.y,d2=dx*dx+dy*dy,rr=b.r+hitR;
+	      if(p.phaseT>0){ continue; }   // Wormhole — bullets pass harmlessly through the phased Bobina
+	      if(d2<rr*rr){ hitPlayer(); b._dead=true; continue; }
+	      else if(!b.grazed && d2<(rr+8)*(rr+8)){ b.grazed=true; graze += 1; estats.graze += 1; if(estats.graze>=1000)unlockEmblem('graze_1000'); if(estats.graze>=5000)unlockEmblem('graze_5000'); if(estats.graze>=10000)unlockEmblem('graze_10000'); sessionScore+=floorf(12*scoreMult()); if(run.special<100)run.special=minf(100,run.special+0.2); sfx('graze'); for i in range(int(0), int(2)) particles.append({x:b.x,y:b.y,vx:(randf()-.5)*3,vy:(randf()-.5)*3,life:10,c:'#fff'}); }
+	    }
+	  }
+	  bullets=bullets.filter(func(b): return !b._dead && b.x>PF.x-40&&b.x<PF.x+PF.w+40&&b.y>PF.y-40&&b.y<PF.y+PF.h+40);
+
+	  updateItems();
+	  for q in particles){ q.x+=q.vx; q.y+=q.vy; q.vy+=0.12; q.life -= 1; } particles=particles.filter(func(q): return q.life>0);
+	  for f in floaters){ f.y+=f.vy; f.life -= 1; } floaters=floaters.filter(func(f): return f.life>0);
+	  for st in scoreTexts){ st.y-=0.6; st.life -= 1; } scoreTexts=scoreTexts.filter(func(s): return s.life>0);
+	  for em in emotes){ em.t += 1; em.life -= 1; if(player&&!player.dead){ em.x+=(player.x-em.x)*0.3; em.y+=((player.y-26)-em.y)*0.3; } } emotes=emotes.filter(func(e): return e.life>0);
+	  if(dialog){ dialog.timer -= 1; if(dialog.timer<=0){ dialog.i += 1; if(dialog.i>=dialog.queue.size()) dialog=null; else dialog.timer=lineTime(dialog.queue[dialog.i]); } }
+	  updateFx();
+

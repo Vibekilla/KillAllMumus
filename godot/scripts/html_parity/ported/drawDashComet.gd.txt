@@ -1,0 +1,33 @@
+## AUTO-PORTED from HTML function drawDashComet — review required
+func drawDashComet(p):
+	 var active = p.dash>0 || (p.trail && p.trail.size());
+	  if(!active) return;
+	  var slash=!!p.slashDash, t=tick, hue0=(t*4)%360;
+	  ctx.save(); ctx.globalCompositeOperation='lighter';
+	  //  -= 1- rainbow tail (each trail point a shifting hue) — head is about as wide as her body  -= 1-
+	  if(p.trail && p.trail.size()>1){ var n=p.trail.size();
+	    for(var i=n-1;i>=0;i -= 1){ var q=p.trail[i], f=1-i/n, r=(4+f*(slash?26:20)), hue=(hue0+i*22)%360;
+	      var g=ctx.createRadialGradient(q.x,q.y,0,q.x,q.y,r);
+	      g.addColorStop(0,"hsla(" + str(hue) + ",100%,74%,1)"); g.addColorStop(0.5,"hsla(" + str((hue+45)%360) + ",100%,56%,0.55)"); g.addColorStop(1,'hsla(0,0%,0%,0)');
+	      ctx.globalAlpha=0.14+f*0.55; ctx.fillStyle=g; ctx.beginPath(); ctx.arc(q.x,q.y,r,0,7); ctx.fill(); }
+	    // bright white motion streak down the centre of the tail
+	    ctx.globalAlpha=slash?0.85:0.55; ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=slash?2.6:1.5; ctx.lineCap='round'; ctx.lineJoin='round';
+	    ctx.beginPath(); for i in range(int(0), int(n)){ var q=p.trail[i]; if(i==0)ctx.moveTo(q.x,q.y); else ctx.lineTo(q.x,q.y);} ctx.stroke(); ctx.globalAlpha=1;
+	  }
+	  //  -= 1- comet head: a mini psychedelic bubble that follows her (rotating rainbow rim + glow)  -= 1-
+	  var aura = p.dash>0 ? 1 : minf(1, (p.trail?p.trail.size():0)/16);
+	  if(aura>0.02){ var ar=(slash?26:19)+4*sin(t*0.5);
+	    var gg=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,ar+12);
+	    gg.addColorStop(0,"hsla(" + str(hue0) + ",100%,74%," + str((slash?0.7:0.5)*aura) + ")"); gg.addColorStop(0.4,"hsla(" + str((hue0+60)%360) + ",100%,56%," + str(0.32*aura) + ")"); gg.addColorStop(1,'hsla(0,0%,0%,0)');
+	    ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(p.x,p.y,ar+12,0,7); ctx.fill();
+	    ctx.save(); ctx.translate(p.x,p.y); var rim=18; ctx.lineWidth=slash?2.6:1.7; ctx.globalAlpha=aura;
+	    for i in range(int(0), int(rim)){ var a0=i/rim*6.283+t*0.05, a1=(i+1)/rim*6.283+t*0.05, hue=(hue0+i/rim*360)%360; ctx.strokeStyle="hsla(" + str(hue) + ",100%,66%,0.7)"; ctx.beginPath(); ctx.arc(0,0,ar*0.7,a0,a1); ctx.stroke(); }
+	    ctx.restore();
+	  }
+	  ctx.restore(); ctx.globalAlpha=1;
+	  //  -= 1- trailing psychedelic sparkles flung out behind her  -= 1-
+	  if(p.dash>0 && !paused){ var hue=(hue0+randf()*60)%360, n=slash?2:1;
+	    for k in range(int(0), int(n)) particles.append({x:p.x+(randf()-.5)*12, y:p.y+(randf()-.5)*12, vx:-cos(p.dashAng)*(1+randf()*2)+(randf()-.5)*2, vy:-sin(p.dashAng)*(1+randf()*2)+(randf()-.5)*2, life:16+((randf()*12)|0), c:"hsl(" + str(hue|0) + ",100%,70%)"}); }
+	}
+	// a drawn weapon model, along +x from Bobina's hand (origin), length "len"
+

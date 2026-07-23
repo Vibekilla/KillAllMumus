@@ -1,0 +1,20 @@
+function drawPanelTouch(){ const x=PANEL.x, y=PANEL.y, w=PANEL.w;
+  ctx.fillStyle='rgba(18,10,24,0.6)'; ctx.beginPath(); ctx.roundRect(x,y,w,196,10); ctx.fill(); ctx.strokeStyle='rgba(255,120,190,0.25)'; ctx.lineWidth=1; ctx.stroke();
+  if(!run) return;
+  let cy=y+20; ctx.textAlign='left';
+  ctx.fillStyle='#8fd0ff'; ctx.font='bold 11px monospace'; ctx.fillText((STAGES[run.stageIdx].title+' — '+STAGES[run.stageIdx].name).slice(0,30), x+14, cy); cy+=20;
+  ctx.fillStyle='#e8d6f0'; ctx.font='10px monospace'; ctx.fillText('SCORE', x+14, cy); ctx.textAlign='right'; ctx.fillStyle='#fff'; ctx.font='bold 17px monospace'; ctx.fillText(fmtScore(sessionScore), x+w-14, cy+2); ctx.textAlign='left'; cy+=24;
+  ctx.fillStyle='#ff9ab0'; ctx.font='bold 11px monospace'; ctx.fillText('MUMUS  '+totalKills, x+14, cy);
+  ctx.textAlign='right'; ctx.fillStyle='#c8b0c4'; ctx.font='9px monospace'; ctx.fillText('×'+scoreMult().toFixed(1), x+w-42, cy); ctx.fillStyle='#ffd27a'; ctx.font='900 22px "Trebuchet MS"'; ctx.fillText(rankLetter(), x+w-14, cy+3); ctx.textAlign='left'; cy+=22;
+  ctx.fillStyle='#e8d6f0'; ctx.font='10px monospace'; ctx.fillText('POWER Lv'+shotLevel(), x+14, cy); ctx.textAlign='right'; ctx.fillStyle='#8fd0ff'; ctx.fillText('GRAZE '+graze, x+w-14, cy); ctx.textAlign='left'; cy+=5;
+  ctx.fillStyle='#2a1a30'; ctx.beginPath(); ctx.roundRect(x+14,cy,w-28,7,3); ctx.fill();
+  const pfrac=Math.max(0,Math.min(1,(run.power-1)/5)); const pg=ctx.createLinearGradient(x+14,0,x+w-14,0); pg.addColorStop(0,'#ff6ec7'); pg.addColorStop(1,'#ffd27a'); ctx.fillStyle=pg; ctx.beginPath(); ctx.roundRect(x+14,cy,(w-28)*pfrac,7,3); ctx.fill(); cy+=18;
+  ctx.fillStyle='#e8d6f0'; ctx.font='10px monospace'; ctx.fillText('LIVES', x+14, cy); for(let i=0;i<Math.max(0,run.lives);i++){ drawHeart(x+50+i*14, cy-4, 5); }
+  ctx.fillStyle='#ff8ad6'; ctx.font='12px monospace'; ctx.textAlign='right'; let bs=''; for(let i=0;i<run.bombs;i++) bs+='✸'; ctx.fillText(bs||'—', x+w-14, cy); ctx.textAlign='left'; cy+=18;
+  if(boss && !boss.dead && boss.intro<=0){ ctx.fillStyle=boss.data.color; ctx.font='bold 11px "Trebuchet MS"'; ctx.fillText((boss.hudName||boss.data.name).slice(0,24), x+14, cy); cy+=5;
+    ctx.fillStyle='#3a1020'; ctx.beginPath(); ctx.roundRect(x+14,cy,w-28,9,3); ctx.fill();
+    const g=ctx.createLinearGradient(x+14,0,x+w-14,0); g.addColorStop(0,'#ff3b30'); g.addColorStop(1,boss.data.color); ctx.fillStyle=g; ctx.beginPath(); ctx.roundRect(x+14,cy,(w-28)*Math.max(0,boss.hp/boss.maxhp),9,3); ctx.fill();
+    if(boss.twin){ const o=boss.active==='igor'?'grichka':'igor', of=boss.tw[o].done?0:boss.tw[o].hp/boss.tw[o].max; cy+=12; ctx.fillStyle='#241633'; ctx.beginPath(); ctx.roundRect(x+14,cy,w-28,5,2); ctx.fill(); ctx.fillStyle=boss.tw[o].done?'#4a4a55':'#9d6bff'; ctx.beginPath(); ctx.roundRect(x+14,cy,(w-28)*of,5,2); ctx.fill(); ctx.fillStyle='#b8a0d0'; ctx.font='8px monospace'; ctx.textAlign='right'; ctx.fillText((o==='igor'?'Igor':'Grichka')+(boss.tw[o].done?' ✕':''), x+w-14, cy-1); ctx.textAlign='left'; } }
+  else { const prog=Math.min(1,stageTime/STAGES[run.stageIdx].waveDur); ctx.fillStyle='#c8b0c4'; ctx.font='10px monospace'; ctx.fillText('STAGE PROGRESS', x+14, cy); cy+=5; ctx.fillStyle='#2a1a30'; ctx.beginPath(); ctx.roundRect(x+14,cy,w-28,6,3); ctx.fill(); ctx.fillStyle='#8fd35a'; ctx.beginPath(); ctx.roundRect(x+14,cy,(w-28)*prog,6,3); ctx.fill(); }
+  if(difficulty>0||ngPlus>0){ ctx.fillStyle=difficulty>=2?'#ff2a2a':'#ff5b6e'; ctx.font='bold 9px monospace'; ctx.textAlign='right'; ctx.fillText('★'+modeTag(), x+w-14, y+14); ctx.textAlign='left'; }
+}

@@ -1,0 +1,156 @@
+# AUTO-PORTED from public/index.html — needs manual polish
+# Original: drawLily
+extends RefCounted
+# expects `ctx` CanvasCompat and game globals
+
+func drawLily(b,flash) -> void:
+ var R=b.r;
+  var fur=flash?'#fff':'#f5f2ec', furSh=flash?'#fff':'#dcd6c9', pink='#e8b8c0';
+  // fluffy body with tufted outline
+  ctx.fill_style(furSh); for i in range(int(-4), int(=4)):
+	 ctx.begin_path(); ctx.arc(i*R*0.2, R*0.92, R*0.17,0,7); ctx.fill(); # }
+  ctx.fill_style(fur); ctx.begin_path(); ctx.ellipse(0,R*0.52,R*0.82,R*0.6,0,0,7); ctx.fill();
+  ctx.fill_style(fur); for i in range(int(-4), int(=4)):
+	 ctx.begin_path(); ctx.arc(i*R*0.2, R*0.82, R*0.15,0,7); ctx.fill(); # }
+  // Solana collar (purple→teal) with ◎ tag
+  var cg=ctx.create_linear_gradient(-R*0.5,0,R*0.5,0); cg.addColorStop(0,'#9945ff'); cg.addColorStop(1,'#14f195');
+  ctx.stroke_style(cg); ctx.line_width(R*0.15); ctx.line_cap('round'); ctx.begin_path(); ctx.arc(0,R*0.28,R*0.52,Math.PI*0.16,Math.PI*0.84); ctx.stroke();
+  ctx.fill_style(Color.html("#14f195")); circle(0,R*0.55,R*0.11,'#14f195'); ctx.fill_style(Color.html("#0a2e1a")); ctx.font('bold '+(R*0.15)+'px monospace'); ctx.text_align('center'); ctx.fill_text('◎',0,R*0.6); ctx.text_align('left');
+  // pointy ears (with pink inner)
+  ctx.fill_style(fur); ctx.begin_path(); ctx.move_to(-R*0.5,-R*0.55); ctx.line_to(-R*0.66,-R*1.16); ctx.line_to(-R*0.16,-R*0.7); ctx.close_path(); ctx.fill();
+  ctx.begin_path(); ctx.move_to(R*0.5,-R*0.55); ctx.line_to(R*0.66,-R*1.16); ctx.line_to(R*0.16,-R*0.7); ctx.close_path(); ctx.fill();
+  ctx.fill_style(pink); ctx.begin_path(); ctx.move_to(-R*0.44,-R*0.64); ctx.line_to(-R*0.55,-R*1.0); ctx.line_to(-R*0.26,-R*0.72); ctx.close_path(); ctx.fill();
+  ctx.begin_path(); ctx.move_to(R*0.44,-R*0.64); ctx.line_to(R*0.55,-R*1.0); ctx.line_to(R*0.26,-R*0.72); ctx.close_path(); ctx.fill();
+  // head — big fluffy round with cheek tufts
+  ctx.fill_style(furSh); for a in range(int(0), int(14)):
+	 var ang=a/14*Math.PI*2; ctx.begin_path(); ctx.arc(Math.cos(ang)*R*0.7, -R*0.12+Math.sin(ang)*R*0.66, R*0.14,0,7); ctx.fill(); # }
+  ctx.fill_style(fur); ctx.begin_path(); ctx.arc(0,-R*0.12,R*0.68,0,7); ctx.fill();
+  // sleepy dark eyes
+  ctx.fill_style(Color.html("#1a1410")); ctx.begin_path(); ctx.ellipse(-R*0.25,-R*0.14,R*0.1,R*0.11,0,0,7); ctx.ellipse(R*0.25,-R*0.14,R*0.1,R*0.11,0,0,7); ctx.fill();
+  ctx.fill_style(Color.html("#fff")); circle(-R*0.28,-R*0.17,R*0.03,'#fff'); circle(R*0.22,-R*0.17,R*0.03,'#fff');
+  // muzzle + black nose
+  ctx.fill_style(furSh); ctx.begin_path(); ctx.ellipse(0,R*0.12,R*0.28,R*0.22,0,0,7); ctx.fill();
+  ctx.fill_style(fur); ctx.begin_path(); ctx.ellipse(0,R*0.16,R*0.2,R*0.15,0,0,7); ctx.fill();
+  ctx.fill_style(flash?'#888':'#141014'); ctx.begin_path(); ctx.ellipse(0,R*0.02,R*0.12,R*0.09,0,0,7); ctx.fill();
+  ctx.fill_style(Color.html("rgba(255,255,255,0.5)")); circle(-R*0.03,-R*0.01,R*0.03,'rgba(255,255,255,0.5)');
+  // little frown mouth
+  ctx.stroke_style(Color.html("#3a2e28")); ctx.line_width(2); ctx.line_cap('round'); ctx.begin_path(); ctx.move_to(0,R*0.1); ctx.line_to(0,R*0.2); ctx.move_to(0,R*0.2); ctx.quadratic_curve_to(-R*0.12,R*0.28,-R*0.2,R*0.2); ctx.move_to(0,R*0.2); ctx.quadratic_curve_to(R*0.12,R*0.28,R*0.2,R*0.2); ctx.stroke();
+  // cross forehead crease (she's grumpy at ETH)
+  ctx.stroke_style(Color.html("rgba(80,60,50,0.5)")); ctx.line_width(1.4); ctx.begin_path(); ctx.move_to(-R*0.06,-R*0.4); ctx.line_to(-R*0.02,-R*0.28); ctx.move_to(R*0.06,-R*0.4); ctx.line_to(R*0.02,-R*0.28); ctx.stroke();
+# }
+function drawPolice(b,flash): # { var R=b.r;
+  var khaki='#b59a4a', khakiD='#8a742e', skin='#7a4a28', skinSh='#5f3820', cap='#2a2a30', gold='#ffd24a', saff='#e08a2a';
+  // khaki uniform shoulders
+  ctx.fill_style(flash?'#fff':khaki); ctx.begin_path(); ctx.ellipse(0,R*0.55,R*0.92,R*0.6,0,0,7); ctx.fill();
+  ctx.fill_style(gold); ctx.begin_path(); ctx.roundRect(-R*0.86,R*0.28,R*0.3,R*0.12,2); ctx.roundRect(R*0.56,R*0.28,R*0.3,R*0.12,2); ctx.fill();   // epaulettes
+  ctx.fill_style(khakiD); ctx.begin_path(); ctx.move_to(-R*0.25,R*0.1); ctx.line_to(R*0.25,R*0.1); ctx.line_to(0,R*0.52); ctx.close_path(); ctx.fill();
+  ctx.fill_style(skinSh); ctx.fill_rect(-R*0.16,0,R*0.32,R*0.18);   // neck
+  // face
+  ctx.fill_style(flash?'#fff':skin); ctx.begin_path(); ctx.ellipse(0,-R*0.12,R*0.5,R*0.55,0,0,7); ctx.fill();
+  ctx.fill_style(skinSh); ctx.begin_path(); ctx.ellipse(0,R*0.18,R*0.28,R*0.14,0,0,Math.PI); ctx.fill();
+  // angry brows
+  ctx.stroke_style(Color.html("#1a1008")); ctx.line_width(R*0.07); ctx.line_cap('round'); ctx.begin_path(); ctx.move_to(-R*0.32,-R*0.18); ctx.line_to(-R*0.08,-R*0.06); ctx.move_to(R*0.32,-R*0.18); ctx.line_to(R*0.08,-R*0.06); ctx.stroke();
+  // corrupted glowing saffron eyes
+  ctx.save(); ctx.shadow_color(saff); ctx.shadow_blur(8); circle(-R*0.18,-R*0.02,R*0.09,flash?'#fff':saff); circle(R*0.18,-R*0.02,R*0.09,flash?'#fff':saff); ctx.restore();
+  ctx.fill_style(Color.html("#2a1500")); circle(-R*0.18,-R*0.02,R*0.04,'#2a1500'); circle(R*0.18,-R*0.02,R*0.04,'#2a1500');
+  // big mustache
+  ctx.fill_style(flash?'#eee':'#1a1008'); ctx.begin_path(); ctx.move_to(0,R*0.12); ctx.quadratic_curve_to(-R*0.28,R*0.06,-R*0.34,R*0.2); ctx.quadratic_curve_to(-R*0.2,R*0.16,0,R*0.18); ctx.quadratic_curve_to(R*0.2,R*0.16,R*0.34,R*0.2); ctx.quadratic_curve_to(R*0.28,R*0.06,0,R*0.12); ctx.fill();
+  ctx.fill_style(Color.html("#3a1414")); ctx.begin_path(); ctx.ellipse(0,R*0.26,R*0.12,R*0.05,0,0,7); ctx.fill();   // snarl
+  // peaked police cap
+  ctx.fill_style(flash?'#fff':cap); ctx.begin_path(); ctx.ellipse(0,-R*0.5,R*0.6,R*0.3,0,Math.PI,0); ctx.fill();
+  ctx.fill_style(cap); ctx.begin_path(); ctx.ellipse(0,-R*0.42,R*0.64,R*0.16,0,0,7); ctx.fill();
+  ctx.fill_style(Color.html("#12121a")); ctx.begin_path(); ctx.ellipse(0,-R*0.34,R*0.66,R*0.12,0,0,Math.PI); ctx.fill();   // brim
+  ctx.fill_style(gold); ctx.begin_path(); ctx.arc(0,-R*0.5,R*0.11,0,7); ctx.fill(); ctx.fill_style(saff); ctx.begin_path(); ctx.arc(0,-R*0.5,R*0.05,0,7); ctx.fill();   // badge
+  // call-center headset
+  ctx.stroke_style(Color.html("#20202a")); ctx.line_width(R*0.05); ctx.begin_path(); ctx.arc(0,-R*0.5,R*0.6,Math.PI*1.12,Math.PI*1.88); ctx.stroke();
+  ctx.fill_style(Color.html("#20202a")); ctx.begin_path(); ctx.ellipse(R*0.56,-R*0.26,R*0.09,R*0.13,0,0,7); ctx.fill();
+  ctx.stroke_style(Color.html("#20202a")); ctx.line_width(R*0.035); ctx.begin_path(); ctx.move_to(R*0.56,-R*0.16); ctx.quadratic_curve_to(R*0.42,R*0.12,R*0.14,R*0.22); ctx.stroke();
+  ctx.fill_style(saff); ctx.begin_path(); ctx.arc(R*0.14,R*0.22,R*0.045,0,7); ctx.fill();
+# }
+function drawBogdanoff(b,flash): # { var R=b.r;
+  // which twin is on the strings? (fake bust passes no active → reflect the live boss, else default Igor)
+  var igor = (b.active!=null)? b.active=='igor' : (boss and boss.twin and boss.active? boss.active=='igor' : true);
+  var skin=flash?'#fff':'#c99a6a', skinSh='#a2764c', hair=flash?'#fff':'#e8dcc4', tux='#20202a', accent=igor?'#b48ce0':'#e0b84a';
+  var bust=(b.t==null);   // the dialogue-box portrait passes a fake with no .t → draw a STATIC astral glow (no per-frame pulse)
+  // astral aura behind him (pulses on the field, static in the dialogue picture)
+  ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.global_alpha(bust?0.34:(0.32+0.16*Math.sin(tick*0.1))); ctx.fill_style(accent); ctx.begin_path(); ctx.arc(0,-R*0.05,R*1.05,0,7); ctx.fill(); ctx.restore();
+  // faint puppet strings descending from above
+  ctx.stroke_style(_hexA(accent,0.35)); ctx.line_width(1); ctx.begin_path(); ctx.move_to(-R*0.5,R*0.2); ctx.line_to(-R*0.72,-R*1.4); ctx.move_to(R*0.5,R*0.2); ctx.line_to(R*0.72,-R*1.4); ctx.stroke();
+  // tuxedo shoulders + shirt + bow tie
+  ctx.fill_style(tux); ctx.begin_path(); ctx.ellipse(0,R*0.72,R*0.95,R*0.5,0,0,7); ctx.fill();
+  ctx.fill_style(Color.html("#f4efe6")); ctx.begin_path(); ctx.move_to(0,R*0.3); ctx.line_to(-R*0.15,R*0.72); ctx.line_to(R*0.15,R*0.72); ctx.close_path(); ctx.fill();
+  ctx.fill_style(accent); ctx.begin_path(); ctx.move_to(0,R*0.32); ctx.line_to(-R*0.08,R*0.5); ctx.line_to(0,R*0.62); ctx.line_to(R*0.08,R*0.5); ctx.close_path(); ctx.fill();
+  // long gaunt face with the signature jutting chin + high cheekbones
+  ctx.fill_style(skin); ctx.begin_path();
+  ctx.move_to(-R*0.42,-R*0.34);
+  ctx.quadratic_curve_to(-R*0.54,R*0.04,-R*0.34,R*0.3);
+  ctx.quadratic_curve_to(-R*0.2,R*0.64,0,R*0.68);
+  ctx.quadratic_curve_to(R*0.2,R*0.64,R*0.34,R*0.3);
+  ctx.quadratic_curve_to(R*0.54,R*0.04,R*0.42,-R*0.34);
+  ctx.quadratic_curve_to(0,-R*0.5,-R*0.42,-R*0.34); ctx.close_path(); ctx.fill();
+  // cheekbone + jaw shadows (over-sculpted look)
+  ctx.fill_style(skinSh); ctx.begin_path(); ctx.ellipse(-R*0.3,R*0.14,R*0.1,R*0.2,0.3,0,7); ctx.ellipse(R*0.3,R*0.14,R*0.1,R*0.2,-0.3,0,7); ctx.fill();
+  ctx.begin_path(); ctx.ellipse(0,R*0.5,R*0.16,R*0.12,0,0,7); ctx.fill();   // chin shadow
+  // huge swept-back hair
+  ctx.fill_style(hair); ctx.begin_path();
+  ctx.move_to(-R*0.44,-R*0.26);
+  ctx.quadratic_curve_to(-R*0.62,-R*0.92,-R*0.08,-R*0.82);
+  ctx.quadratic_curve_to(R*0.12,-R*1.08,R*0.52,-R*0.76);
+  ctx.quadratic_curve_to(R*0.72,-R*0.48,R*0.44,-R*0.26);
+  ctx.quadratic_curve_to(R*0.2,-R*0.48,0,-R*0.44);
+  ctx.quadratic_curve_to(-R*0.2,-R*0.48,-R*0.44,-R*0.26); ctx.close_path(); ctx.fill();
+  // hair sweep lines
+  ctx.stroke_style(_hexA('#c9bfa2',0.6)); ctx.line_width(1.2); ctx.begin_path(); for i in range(int(-2), int(=3)):
+	 ctx.move_to(i*R*0.16,-R*0.4); ctx.quadratic_curve_to(i*R*0.16-R*0.2,-R*0.75,i*R*0.16-R*0.05,-R*0.9); # } ctx.stroke();
+  // heavy brow + deep-set glowing eyes
+  ctx.stroke_style(Color.html("#3a2a1a")); ctx.line_width(R*0.06); ctx.line_cap('round'); ctx.begin_path(); ctx.move_to(-R*0.32,-R*0.12); ctx.line_to(-R*0.08,-R*0.05); ctx.move_to(R*0.32,-R*0.12); ctx.line_to(R*0.08,-R*0.05); ctx.stroke();
+  ctx.save(); ctx.shadow_color(accent); ctx.shadow_blur(8); circle(-R*0.2,0.02*R,R*0.07,flash?'#fff':accent); circle(R*0.2,0.02*R,R*0.07,flash?'#fff':accent); ctx.restore();
+  ctx.fill_style(Color.html("#1a1008")); circle(-R*0.2,0.02*R,R*0.03,'#1a1008'); circle(R*0.2,0.02*R,R*0.03,'#1a1008');
+  // long nose + thin flat mouth
+  ctx.stroke_style(skinSh); ctx.line_width(2); ctx.line_cap('round'); ctx.begin_path(); ctx.move_to(0,-R*0.02); ctx.line_to(-R*0.05,R*0.2); ctx.line_to(R*0.04,R*0.22); ctx.stroke();
+  ctx.stroke_style(Color.html("#7a4a3a")); ctx.begin_path(); ctx.move_to(-R*0.13,R*0.38); ctx.quadratic_curve_to(0,R*0.34,R*0.13,R*0.38); ctx.stroke();
+  // initial floating above (I / G)
+  ctx.fill_style(accent); ctx.font('bold '+(R*0.32)+'px "Trebuchet MS"'); ctx.text_align('center'); ctx.save(); ctx.shadow_color(accent); ctx.shadow_blur(8); ctx.fill_text(igor?'I':'G', 0, -R*0.62); ctx.restore(); ctx.text_align('left');
+# }
+function drawPortraitBust(px,py,size,type,color): # { ctx.save(); ctx.translate(px,py); var R=size*0.5;
+  ctx.fill_style(Color.html("rgba(10,6,14,0.7)")); ctx.begin_path(); ctx.arc(0,0,R+4,0,7); ctx.fill(); ctx.stroke_style(color); ctx.line_width(2); ctx.begin_path(); ctx.arc(0,0,R+4,0,7); ctx.stroke();
+  ctx.save(); ctx.begin_path(); ctx.arc(0,0,R,0,7); ctx.clip();
+  if (type=='mumina'  and  imgOK(IMG.mumina)): # { var img=IMG.mumina, iw=img.naturalWidth, ih=img.naturalHeight, s=Math.max(2*R/iw,2*R/ih)*1.06, dw=iw*s, dh=ih*s; ctx.draw_image(img, -0.5*dw, -0.46*dh, dw, dh); # }
+  else if (type=='lily'  and  imgOK(IMG.lily)): # { var img=IMG.lily, iw=img.naturalWidth, ih=img.naturalHeight, s=Math.max(2*R/iw,2*R/ih)*1.04, dw=iw*s, dh=ih*s; ctx.draw_image(img, -0.5*dw, -0.5*dh, dw, dh); # }
+  else if (type=='bobina'): # { ctx.fill_style(Color.html("#2a1830")); ctx.fill_rect(-R,-R,2*R,2*R); # }  // interior filled by the live #talk gif overlay
+  else : # { var fake=: # {r:R*1.1,data:: # {color# }# }; if (type=='ape') drawApe(fake,false); else if (type=='robotnik') drawRobotnik(fake,false); else if (type=='mumina') drawMumina(fake,false); else if (type=='lily') drawLily(fake,false); else if (type=='police') drawPolice(fake,false); else if (type=='bogdanoff') drawBogdanoff(fake,false); else if (type=='devil') drawDevil(fake,false); else drawWynn(fake,false); # }
+  ctx.restore(); ctx.restore();
+# }
+function drawDevil(b,flash): # { var R=b.r;
+  ctx.fill_style(flash?'#fff':'#7a1420'); ctx.begin_path(); ctx.ellipse(0,R*0.55,R*0.82,R*0.6,0,0,7); ctx.fill();
+  ctx.fill_style(flash?'#fff':'#c0202a'); ctx.begin_path(); ctx.arc(0,-R*0.08,R*0.62,0,7); ctx.fill();
+  // horns
+  ctx.fill_style(flash?'#eee':'#2a0a10');
+  ctx.begin_path(); ctx.move_to(-R*0.4,-R*0.48); ctx.quadratic_curve_to(-R*0.72,-R*1.02,-R*0.34,-R*1.06); ctx.quadratic_curve_to(-R*0.44,-R*0.7,-R*0.18,-R*0.54); ctx.close_path(); ctx.fill();
+  ctx.begin_path(); ctx.move_to(R*0.4,-R*0.48); ctx.quadratic_curve_to(R*0.72,-R*1.02,R*0.34,-R*1.06); ctx.quadratic_curve_to(R*0.44,-R*0.7,R*0.18,-R*0.54); ctx.close_path(); ctx.fill();
+  // glowing eyes
+  ctx.save(); ctx.shadow_color('#ffd000'); ctx.shadow_blur(10); ctx.fill_style(Color.html("#ffe23a"));
+  ctx.begin_path(); ctx.move_to(-R*0.34,-R*0.2); ctx.line_to(-R*0.08,-R*0.1); ctx.line_to(-R*0.34,-R*0.01); ctx.close_path(); ctx.fill();
+  ctx.begin_path(); ctx.move_to(R*0.34,-R*0.2); ctx.line_to(R*0.08,-R*0.1); ctx.line_to(R*0.34,-R*0.01); ctx.close_path(); ctx.fill(); ctx.restore();
+  ctx.fill_style(Color.html("#1a0000")); circle(-R*0.2,-R*0.1,R*0.045,'#1a0000'); circle(R*0.2,-R*0.1,R*0.045,'#1a0000');
+  // fanged grin
+  ctx.stroke_style(Color.html("#3a0000")); ctx.line_width(2.5); ctx.begin_path(); ctx.arc(0,R*0.04,R*0.34,0.18,Math.PI-0.18); ctx.stroke();
+  ctx.fill_style(Color.html("#fff")); for i in range(int(-2), int(=2)):
+	 var fx=i*R*0.14; ctx.begin_path(); ctx.move_to(fx-R*0.05,R*0.2); ctx.line_to(fx+R*0.02,R*0.2); ctx.line_to(fx-R*0.02,R*0.32); ctx.close_path(); ctx.fill(); # }
+  // goatee
+  ctx.fill_style(Color.html("#2a0a10")); ctx.begin_path(); ctx.move_to(-R*0.1,R*0.42); ctx.line_to(R*0.1,R*0.42); ctx.line_to(0,R*0.64); ctx.close_path(); ctx.fill();
+# }
+/* ---- native GIF overlays (mapped from canvas coords → screen) ---- */
+var leekRect=null;
+function overlayShow(el, cxC, cyC, wC, hC): # { var rect=cv.getBoundingClientRect(); var sx=rect.width/W, sy=rect.height/H;
+  el.style.left=(rect.left+(cxC-wC/2)*sx)+'px'; el.style.top=(rect.top+(cyC-hC/2)*sy)+'px';
+  el.style.width=(wC*sx)+'px'; el.style.height=(hC*sy)+'px';
+  if (el._shown!=true): # { el.style.display='block'; el._shown=true; # } # }
+function overlayHide(el): # { if (el._shown!=false): # { el.style.display='none'; el._shown=false; # } # }
+function manageGifOverlays(): # {
+  // Bobina's talking gif — only while HER dialog line is on screen
+  var showTalk=false, cur=null;
+  if ((state=='play' or state=='intro')  and  dialog): # { cur=dialog.queue[dialog.i]; if (cur  and  cur.w==1) showTalk=true; # }
+  if (showTalk): # { var y=PF.y+PF.h-96; overlayShow(talkEl, PF.x+8+40, y+44, 56, 56); # } else overlayHide(talkEl);
+  // leek-spin celebration gif — only on the stage-clear screen
+  if (state=='stageclear'  and  leekRect): # { overlayShow(leekEl, leekRect.cx, leekRect.cy, leekRect.w, leekRect.h); # } else overlayHide(leekEl);

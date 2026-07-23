@@ -1,0 +1,26 @@
+## AUTO-PORTED from HTML function tweetResult — review required
+func tweetResult(won):
+
+	  var rank=rankLetter();
+	  var handle=''; try{ handle=(HtmlBridge.storage_get('bobina_handle')||'').replace(/[^A-Za-z0-9_]/g,''); }catch(e){}
+	  var head = won ? '🐻 BOBO IS SAVED! 🎀' : '🐂 The Mumu horde got me...';
+	  var body = won
+	    ? "I exterminated the WHOLE Mumu army and beat James Wynn!"
+	    : "I went down swinging against the Mumu army.";
+	  var stats = "📊 " + str(totalKills) + " Mumus · Rank " + str(rank) + " · " + str(fmtScore(sessionScore)) + " pts" + str((difficulty>0||ngPlus>0)?(' · '+modeTag()):'');
+	  var text = [
+	    str(head) + " 🎮 Bobina: KILL ALL MUMUS!!", "",
+	    body, stats, "",
+	    won ? "Think you can top me? 👇" : "Bet you can’t do better. 👇",
+	    "@Bobina_Council @EmblemVault @bobocouncil",
+	    "#KillAllMumus #EmblemAI $EMBLEM"
+	  ].join('\n');
+	  // share page unfurls with a themed card + your stats
+	  var sp = str(GAME_URL) + "share/" + str(won?'win':'over') + "?s=" + str(sessionScore) + "&k=" + str(totalKills) + "&r=" + str(rank) + str(handle?('&h='+encodeURIComponent(handle)):'');
+	  var u='https://twitter.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(sp);
+	  try{ HtmlBridge.win.open(u,'_blank','noopener'); }catch(e){}
+	}
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 Global leaderboard (server-backed)  -= 1 -= 1 -= 1 -= 1 -= 1 */
+	var endHandled=false, endWon=false, lastSubmit=null, lbCache=[], lbState='idle', lbRows=[], justSavedScore=false;
+	var lbPage=0, lbPrevBtn=null, lbNextBtn=null; var LB_PER_PAGE=10;
+

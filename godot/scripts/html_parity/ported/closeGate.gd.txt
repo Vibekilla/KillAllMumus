@@ -1,0 +1,10 @@
+## AUTO-PORTED from HTML function closeGate — review required
+func closeGate(goFs):
+	 if(soundGate) soundGate.classList['hidden'); if(goFs) goFullscreenMobile(); }
+	HtmlBridge.doc.getElementById('sg-enable').addEventListenerfunc('click', (): # arrow
+	 lofiOn=true; try{ initMaster(); }catch(e){} musicPlay(); closeGate(true); });
+	HtmlBridge.doc.getElementById('sg-mute').addEventListenerfunc('click', (): # arrow
+	 lofiOn=false; closeGate(true); });
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 draw helpers  -= 1 -= 1 -= 1 -= 1 -= 1 */
+

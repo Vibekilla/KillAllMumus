@@ -1,0 +1,10 @@
+## AUTO-PORTED from HTML function syncDisplayUI — review required
+func syncDisplayUI():
+
+	  setDisplayScale(roundf((displayScale||1)*100));
+	  setRefreshRate(refreshRate||60);
+	  setDebugLayer(!!debugLayer);
+	  var fsOn=!!(HtmlBridge.doc.fullscreenElement||HtmlBridge.doc.webkitFullscreenElement);
+	  var fv=HtmlBridge.doc.getElementById('disp-fs-v'); if(fv) fv.textContent=fsOn?'Fullscreen':'Windowed';
+	  var fb=HtmlBridge.doc.getElementById('disp-fs'); if(fb) fb.classList.toggle('on', fsOn);
+

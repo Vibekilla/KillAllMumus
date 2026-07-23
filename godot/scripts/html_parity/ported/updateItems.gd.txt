@@ -1,0 +1,20 @@
+## AUTO-PORTED from HTML function updateItems — review required
+func updateItems():
+
+	  var p=player, autoAll = p && !p.dead && p.y<COLLECT_LINE;
+	  var magnet = p&&p.focus?150:70;
+	  for it in items){ it.t += 1;
+	    if(p && !p.dead){ var dx=p.x-it.x, dy=p.y-it.y, d=sqrt_sum_sq(dx,dy);
+	      if(autoAll || d<magnet){ it.homing=true; }
+	      if(it.homing){ var sp=minf(9, 3+it.t*0.1); it.vx+=dx/d*1.2; it.vy+=dy/d*1.2; var s=sqrt_sum_sq(it.vx,it.vy); if(s>sp){ it.vx*=sp/s; it.vy*=sp/s; } }
+	      if(d<14){ collectItem(it); it._got=true; continue; }
+	    }
+	    if(!it.homing){ it.vy+=0.12; if(it.vy>3)it.vy=3; it.vx*=0.96; }
+	    it.x+=it.vx; it.y+=it.vy;
+	    if(it.y>PF.y+PF.h+30) it._got=true;
+	  }
+	  items=items.filter(func(i): return !i._got);
+	}
+
+	/* ======== RENDER ======== */
+

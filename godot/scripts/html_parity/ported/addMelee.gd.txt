@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function addMelee — review required
+func addMelee(def):
+	 MELEE.append(def); return MELEE.size()-1; 

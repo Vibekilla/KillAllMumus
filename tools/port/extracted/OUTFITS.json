@@ -1,0 +1,115 @@
+[
+  {
+    "key": "og",
+    "name": "OG"
+  },
+  {
+    "key": "maid",
+    "name": "Maid"
+  },
+  {
+    "key": "nanosuit",
+    "name": "Nanosuit"
+  },
+  {
+    "key": "badger",
+    "name": "Badger"
+  },
+  {
+    "key": "viking",
+    "name": "Viking"
+  },
+  {
+    "key": "ourbit",
+    "name": "Ourbit"
+  },
+  {
+    "key": "bullbina",
+    "name": "Bullbina"
+  },
+  {
+    "key": "monke",
+    "name": "Monke"
+  },
+  {
+    "key": "pickle",
+    "name": "Pickle"
+  },
+  {
+    "key": "emblem",
+    "name": "Emblem"
+  },
+  {
+    "key": "labrat",
+    "name": "Labrat"
+  },
+  {
+    "key": "neko",
+    "name": "Neko"
+  },
+  {
+    "key": "kigurumi",
+    "name": "Bear"
+  },
+  {
+    "key": "cheese",
+    "name": "Mouse"
+  },
+  {
+    "key": "business",
+    "name": "Business"
+  },
+  {
+    "key": "jester",
+    "name": "Jester"
+  },
+  {
+    "key": "samurai",
+    "name": "Samurai"
+  },
+  {
+    "key": "bride",
+    "name": "Bride"
+  },
+  {
+    "key": "angel",
+    "name": "Angel"
+  },
+  {
+    "key": "golden",
+    "name": "Golden"
+  },
+  {
+    "key": "succubus",
+    "name": "Succubus"
+  },
+  {
+    "key": "voidling",
+    "name": "Voidling"
+  },
+  {
+    "key": "honeybee",
+    "name": "Bobeena"
+  },
+  {
+    "key": "banana",
+    "name": "Banana"
+  },
+  {
+    "key": "squirrely",
+    "name": "Squirrely"
+  },
+  {
+    "key": "honeypot",
+    "name": "Honeypot"
+  },
+  {
+    "key": "empress",
+    "name": "Empress"
+  },
+  {
+    "key": "cabal",
+    "name": "Cabal ☠",
+    "locked": true
+  }
+]

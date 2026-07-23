@@ -1,0 +1,1155 @@
+{
+  "applyLayout": {
+    "lines": 14,
+    "bytes": 737
+  },
+  "load": {
+    "lines": 1,
+    "bytes": 65
+  },
+  "imgOK": {
+    "lines": 1,
+    "bytes": 58
+  },
+  "rebuildKMAP": {
+    "lines": 1,
+    "bytes": 117
+  },
+  "saveBinds": {
+    "lines": 1,
+    "bytes": 101
+  },
+  "setBind": {
+    "lines": 1,
+    "bytes": 139
+  },
+  "keyName": {
+    "lines": 1,
+    "bytes": 331
+  },
+  "kb": {
+    "lines": 1,
+    "bytes": 43
+  },
+  "canvasPos": {
+    "lines": 1,
+    "bytes": 171
+  },
+  "inBtn": {
+    "lines": 1,
+    "bytes": 82
+  },
+  "pdown": {
+    "lines": 4185,
+    "bytes": 432215
+  },
+  "pmove": {
+    "lines": 2,
+    "bytes": 314
+  },
+  "pup": {
+    "lines": 13,
+    "bytes": 852
+  },
+  "readUiOverride": {
+    "lines": 3,
+    "bytes": 315
+  },
+  "updateTouchButtons": {
+    "lines": 8,
+    "bytes": 1240
+  },
+  "resumeGame": {
+    "lines": 1,
+    "bytes": 108
+  },
+  "pauseReturnMenu": {
+    "lines": 1,
+    "bytes": 189
+  },
+  "syncPauseUI": {
+    "lines": 6,
+    "bytes": 549
+  },
+  "openShoutouts": {
+    "lines": 1,
+    "bytes": 68
+  },
+  "closeShoutouts": {
+    "lines": 1,
+    "bytes": 72
+  },
+  "joyHomePos": {
+    "lines": 3,
+    "bytes": 256
+  },
+  "joyShowHome": {
+    "lines": 2,
+    "bytes": 285
+  },
+  "joyApply": {
+    "lines": 2,
+    "bytes": 254
+  },
+  "joyStart": {
+    "lines": 3,
+    "bytes": 318
+  },
+  "joyMove": {
+    "lines": 1,
+    "bytes": 234
+  },
+  "joyEnd": {
+    "lines": 1,
+    "bytes": 184
+  },
+  "joyReset": {
+    "lines": 3,
+    "bytes": 268
+  },
+  "manageTouchUI": {
+    "lines": 6,
+    "bytes": 385
+  },
+  "updatePortrait": {
+    "lines": 1,
+    "bytes": 133
+  },
+  "bobinaSay": {
+    "lines": 1,
+    "bytes": 154
+  },
+  "keyPress": {
+    "lines": 29,
+    "bytes": 2949
+  },
+  "applySfxVol": {
+    "lines": 1,
+    "bytes": 90
+  },
+  "applyMusicVol": {
+    "lines": 1,
+    "bytes": 115
+  },
+  "actx": {
+    "lines": 1,
+    "bytes": 115
+  },
+  "initMaster": {
+    "lines": 1,
+    "bytes": 158
+  },
+  "sfx": {
+    "lines": 23,
+    "bytes": 3631
+  },
+  "musicPlay": {
+    "lines": 1,
+    "bytes": 165
+  },
+  "musicPause": {
+    "lines": 1,
+    "bytes": 103
+  },
+  "goFullscreenMobile": {
+    "lines": 5,
+    "bytes": 409
+  },
+  "closeGate": {
+    "lines": 1,
+    "bytes": 107
+  },
+  "limb": {
+    "lines": 1,
+    "bytes": 142
+  },
+  "circle": {
+    "lines": 1,
+    "bytes": 165
+  },
+  "lerpAngle": {
+    "lines": 1,
+    "bytes": 123
+  },
+  "pOrb": {
+    "lines": 1,
+    "bytes": 235
+  },
+  "outfitColors": {
+    "lines": 1,
+    "bytes": 84
+  },
+  "saveArsenal": {
+    "lines": 1,
+    "bytes": 145
+  },
+  "arsenalCount": {
+    "lines": 1,
+    "bytes": 66
+  },
+  "meleeIdxList": {
+    "lines": 1,
+    "bytes": 97
+  },
+  "armedSpec": {
+    "lines": 1,
+    "bytes": 166
+  },
+  "applyArsenalToRun": {
+    "lines": 2,
+    "bytes": 359
+  },
+  "addWeapon": {
+    "lines": 1,
+    "bytes": 117
+  },
+  "addSpecial": {
+    "lines": 1,
+    "bytes": 73
+  },
+  "addMelee": {
+    "lines": 1,
+    "bytes": 65
+  },
+  "addBomb": {
+    "lines": 1,
+    "bytes": 64
+  },
+  "angDiff": {
+    "lines": 1,
+    "bytes": 124
+  },
+  "saveNgPrefs": {
+    "lines": 1,
+    "bytes": 159
+  },
+  "applyDiff": {
+    "lines": 1,
+    "bytes": 75
+  },
+  "diffName": {
+    "lines": 1,
+    "bytes": 77
+  },
+  "modeTag": {
+    "lines": 1,
+    "bytes": 67
+  },
+  "fmtScore": {
+    "lines": 3,
+    "bytes": 345
+  },
+  "threatMul": {
+    "lines": 1,
+    "bytes": 69
+  },
+  "hasEmblem": {
+    "lines": 1,
+    "bytes": 50
+  },
+  "emblemDef": {
+    "lines": 1,
+    "bytes": 60
+  },
+  "emblemCount": {
+    "lines": 1,
+    "bytes": 76
+  },
+  "saveEmblems": {
+    "lines": 1,
+    "bytes": 110
+  },
+  "saveEstats": {
+    "lines": 1,
+    "bytes": 104
+  },
+  "unlockEmblem": {
+    "lines": 2,
+    "bytes": 191
+  },
+  "emblemTick": {
+    "lines": 9,
+    "bytes": 576
+  },
+  "cabalUnlocked": {
+    "lines": 1,
+    "bytes": 59
+  },
+  "outfitUnlocked": {
+    "lines": 1,
+    "bytes": 88
+  },
+  "onGameCleared": {
+    "lines": 16,
+    "bytes": 1052
+  },
+  "syncSettingsUI": {
+    "lines": 7,
+    "bytes": 882
+  },
+  "openSettings": {
+    "lines": 1,
+    "bytes": 81
+  },
+  "closeSettings": {
+    "lines": 1,
+    "bytes": 67
+  },
+  "anyModalOpen": {
+    "lines": 1,
+    "bytes": 429
+  },
+  "_hEsc": {
+    "lines": 1,
+    "bytes": 100
+  },
+  "controlsHtml": {
+    "lines": 1,
+    "bytes": 167
+  },
+  "renderKeybinds": {
+    "lines": 7,
+    "bytes": 530
+  },
+  "openKeybinds": {
+    "lines": 1,
+    "bytes": 175
+  },
+  "closeKeybinds": {
+    "lines": 1,
+    "bytes": 126
+  },
+  "_hItem": {
+    "lines": 1,
+    "bytes": 186
+  },
+  "_hSec": {
+    "lines": 1,
+    "bytes": 84
+  },
+  "buildHelp": {
+    "lines": 40,
+    "bytes": 5562
+  },
+  "openHelp": {
+    "lines": 1,
+    "bytes": 74
+  },
+  "closeHelp": {
+    "lines": 1,
+    "bytes": 65
+  },
+  "saveHeads": {
+    "lines": 1,
+    "bytes": 97
+  },
+  "saveShopUnlocks": {
+    "lines": 1,
+    "bytes": 119
+  },
+  "contentUnlocked": {
+    "lines": 3,
+    "bytes": 318
+  },
+  "lockCost": {
+    "lines": 1,
+    "bytes": 132
+  },
+  "saveConsum": {
+    "lines": 1,
+    "bytes": 107
+  },
+  "cloudLinked": {
+    "lines": 4,
+    "bytes": 156
+  },
+  "buildProgressSnapshot": {
+    "lines": 39,
+    "bytes": 2180
+  },
+  "applyProgressSnapshot": {
+    "lines": 68,
+    "bytes": 5566
+  },
+  "scheduleCloudSave": {
+    "lines": 21,
+    "bytes": 816
+  },
+  "cloudPullAndMerge": {
+    "lines": 26,
+    "bytes": 1255
+  },
+  "consumQty": {
+    "lines": 1,
+    "bytes": 48
+  },
+  "resetInventory": {
+    "lines": 8,
+    "bytes": 597
+  },
+  "consumById": {
+    "lines": 1,
+    "bytes": 64
+  },
+  "selConsumObj": {
+    "lines": 1,
+    "bytes": 110
+  },
+  "cycleConsumable": {
+    "lines": 1,
+    "bytes": 289
+  },
+  "consumeSelected": {
+    "lines": 6,
+    "bytes": 889
+  },
+  "shopList": {
+    "lines": 5,
+    "bytes": 531
+  },
+  "shopBuySelected": {
+    "lines": 7,
+    "bytes": 906
+  },
+  "spawnClearGate": {
+    "lines": 7,
+    "bytes": 478
+  },
+  "enterShop": {
+    "lines": 1,
+    "bytes": 99
+  },
+  "neutralizeInputs": {
+    "error": "unbalanced"
+  },
+  "leaveShop": {
+    "lines": 1,
+    "bytes": 70
+  },
+  "enterPortal": {
+    "lines": 1,
+    "bytes": 56
+  },
+  "newRun": {
+    "lines": 6,
+    "bytes": 559
+  },
+  "loadStage": {
+    "lines": 11,
+    "bytes": 975
+  },
+  "initPlayer": {
+    "lines": 1,
+    "bytes": 500
+  },
+  "startRun": {
+    "lines": 1,
+    "bytes": 69
+  },
+  "eb": {
+    "lines": 1,
+    "bytes": 157
+  },
+  "ring": {
+    "lines": 1,
+    "bytes": 104
+  },
+  "fanAt": {
+    "lines": 1,
+    "bytes": 170
+  },
+  "heavyShell": {
+    "lines": 1,
+    "bytes": 185
+  },
+  "spawnLil": {
+    "lines": 1,
+    "bytes": 211
+  },
+  "spawnBig": {
+    "lines": 1,
+    "bytes": 205
+  },
+  "spawnElite": {
+    "lines": 1,
+    "bytes": 299
+  },
+  "spawnWaves": {
+    "lines": 19,
+    "bytes": 1295
+  },
+  "dropItem": {
+    "lines": 1,
+    "bytes": 121
+  },
+  "dropWeapon": {
+    "lines": 1,
+    "bytes": 54
+  },
+  "dropLoot": {
+    "lines": 19,
+    "bytes": 1144
+  },
+  "emote": {
+    "lines": 1,
+    "bytes": 55
+  },
+  "collectItem": {
+    "lines": 12,
+    "bytes": 1610
+  },
+  "drawEmote": {
+    "lines": 15,
+    "bytes": 1626
+  },
+  "powerCap": {
+    "lines": 1,
+    "bytes": 61
+  },
+  "powerGainMul": {
+    "lines": 1,
+    "bytes": 65
+  },
+  "addPower": {
+    "lines": 1,
+    "bytes": 283
+  },
+  "shotLevelCap": {
+    "lines": 1,
+    "bytes": 81
+  },
+  "gainLife": {
+    "lines": 1,
+    "bytes": 178
+  },
+  "pop": {
+    "lines": 1,
+    "bytes": 72
+  },
+  "shotLevel": {
+    "lines": 1,
+    "bytes": 77
+  },
+  "bossDmgMul": {
+    "lines": 1,
+    "bytes": 83
+  },
+  "bossWepMul": {
+    "lines": 1,
+    "bytes": 106
+  },
+  "nearestTarget": {
+    "lines": 1,
+    "bytes": 248
+  },
+  "aimAngle": {
+    "lines": 1,
+    "bytes": 91
+  },
+  "optionShot": {
+    "lines": 12,
+    "bytes": 1258
+  },
+  "fire": {
+    "error": "unbalanced"
+  },
+  "swapWeapon": {
+    "lines": 1,
+    "bytes": 217
+  },
+  "cycleSpecial": {
+    "lines": 1,
+    "bytes": 211
+  },
+  "useSpecial": {
+    "lines": 20,
+    "bytes": 2346
+  },
+  "specialButton": {
+    "lines": 1,
+    "bytes": 41
+  },
+  "spawnBubbles": {
+    "lines": 5,
+    "bytes": 392
+  },
+  "spawnStardust": {
+    "lines": 3,
+    "bytes": 230
+  },
+  "updateFx": {
+    "lines": 99,
+    "bytes": 10811
+  },
+  "drawFx": {
+    "lines": 99,
+    "bytes": 11286
+  },
+  "drawMech": {
+    "lines": 29,
+    "bytes": 2257
+  },
+  "optionOffsets": {
+    "lines": 3,
+    "bytes": 265
+  },
+  "optionPos": {
+    "lines": 2,
+    "bytes": 194
+  },
+  "lineTime": {
+    "lines": 1,
+    "bytes": 66
+  },
+  "startDialog": {
+    "lines": 2,
+    "bytes": 205
+  },
+  "spawnBoss": {
+    "lines": 13,
+    "bytes": 976
+  },
+  "bossSpecial": {
+    "lines": 7,
+    "bytes": 791
+  },
+  "twinSwap": {
+    "lines": 11,
+    "bytes": 846
+  },
+  "updateBoss": {
+    "lines": 1870,
+    "bytes": 193300
+  },
+  "startWynnHell": {
+    "lines": 8,
+    "bytes": 516
+  },
+  "updateWynnHell": {
+    "lines": 7,
+    "bytes": 577
+  },
+  "drawHellPortal": {
+    "lines": 9,
+    "bytes": 884
+  },
+  "onBossDefeated": {
+    "lines": 7,
+    "bytes": 484
+  },
+  "doBomb": {
+    "lines": 9,
+    "bytes": 786
+  },
+  "doDash": {
+    "lines": 11,
+    "bytes": 1169
+  },
+  "dashLandExplosion": {
+    "lines": 6,
+    "bytes": 569
+  },
+  "doMeleeSwipe": {
+    "lines": 31,
+    "bytes": 2817
+  },
+  "meleeChargeFx": {
+    "lines": 1591,
+    "bytes": 166128
+  },
+  "chainLightning": {
+    "lines": 7,
+    "bytes": 695
+  },
+  "nadeBoom": {
+    "lines": 6,
+    "bytes": 715
+  },
+  "enemyExplode": {
+    "lines": 5,
+    "bytes": 591
+  },
+  "updateBurns": {
+    "lines": 11,
+    "bytes": 1143
+  },
+  "drawBurns": {
+    "lines": 5,
+    "bytes": 523
+  },
+  "drawStunStars": {
+    "lines": 2,
+    "bytes": 297
+  },
+  "bulletCancelAll": {
+    "lines": 1,
+    "bytes": 184
+  },
+  "clearWaveMobs": {
+    "lines": 1,
+    "bytes": 169
+  },
+  "bulletCancelNear": {
+    "lines": 1,
+    "bytes": 301
+  },
+  "killEnemy": {
+    "lines": 15,
+    "bytes": 1199
+  },
+  "killExtend": {
+    "lines": 1,
+    "bytes": 368
+  },
+  "checkExtend": {
+    "lines": 1,
+    "bytes": 142
+  },
+  "diffScoreMul": {
+    "lines": 1,
+    "bytes": 65
+  },
+  "scoreMult": {
+    "lines": 1,
+    "bytes": 85
+  },
+  "rankIndex": {
+    "lines": 1,
+    "bytes": 112
+  },
+  "rankLetter": {
+    "lines": 1,
+    "bytes": 53
+  },
+  "eliteHearts": {
+    "lines": 1,
+    "bytes": 70
+  },
+  "hitPlayer": {
+    "lines": 14,
+    "bytes": 1611
+  },
+  "sparks": {
+    "lines": 1,
+    "bytes": 127
+  },
+  "burst": {
+    "lines": 1,
+    "bytes": 127
+  },
+  "computeEmblems": {
+    "lines": 6,
+    "bytes": 459
+  },
+  "update": {
+    "lines": 44,
+    "bytes": 3847
+  },
+  "updateItems": {
+    "lines": 15,
+    "bytes": 684
+  },
+  "draw": {
+    "lines": 63,
+    "bytes": 6585
+  },
+  "drawStageBg": {
+    "lines": 17,
+    "bytes": 2485
+  },
+  "drawStageBgFx": {
+    "error": "unbalanced"
+  },
+  "drawOptions": {
+    "lines": 1,
+    "bytes": 372
+  },
+  "_hexRgb": {
+    "lines": 1,
+    "bytes": 168
+  },
+  "_hexA": {
+    "lines": 1,
+    "bytes": 87
+  },
+  "bodyCtr": {
+    "lines": 1,
+    "bytes": 140
+  },
+  "drawPhaseVeil": {
+    "lines": 15,
+    "bytes": 1541
+  },
+  "drawSlowmoFx": {
+    "lines": 13,
+    "bytes": 1091
+  },
+  "drawPowerAura": {
+    "lines": 182,
+    "bytes": 16924
+  },
+  "drawPowerRadiance": {
+    "lines": 13,
+    "bytes": 994
+  },
+  "_rgbHue": {
+    "lines": 1,
+    "bytes": 222
+  },
+  "drawBossAmbience": {
+    "lines": 24,
+    "bytes": 2154
+  },
+  "drawDashComet": {
+    "lines": 29,
+    "bytes": 2525
+  },
+  "drawMeleeWeapon": {
+    "error": "unbalanced"
+  },
+  "drawMeleeFx": {
+    "lines": 26,
+    "bytes": 2988
+  },
+  "drawBobina": {
+    "lines": 259,
+    "bytes": 26450
+  },
+  "drawElite": {
+    "lines": 140,
+    "bytes": 16058
+  },
+  "drawMumu": {
+    "lines": 21,
+    "bytes": 2408
+  },
+  "drawBullet": {
+    "lines": 1,
+    "bytes": 431
+  },
+  "drawPShot": {
+    "lines": 562,
+    "bytes": 60615
+  },
+  "drawItem": {
+    "lines": 22,
+    "bytes": 2011
+  },
+  "drawFloater": {
+    "lines": 1,
+    "bytes": 263
+  },
+  "drawBobo": {
+    "lines": 27,
+    "bytes": 2245
+  },
+  "drawBoss": {
+    "lines": 10,
+    "bytes": 1127
+  },
+  "drawApe": {
+    "lines": 10,
+    "bytes": 935
+  },
+  "drawRobotnik": {
+    "lines": 8,
+    "bytes": 1018
+  },
+  "drawWynn": {
+    "lines": 13,
+    "bytes": 1380
+  },
+  "drawMumina": {
+    "lines": 29,
+    "bytes": 2999
+  },
+  "drawLily": {
+    "lines": 146,
+    "bytes": 14140
+  },
+  "drawPolice": {
+    "lines": 29,
+    "bytes": 2885
+  },
+  "drawBogdanoff": {
+    "lines": 44,
+    "bytes": 4005
+  },
+  "drawPortraitBust": {
+    "lines": 9,
+    "bytes": 1336
+  },
+  "drawDevil": {
+    "lines": 18,
+    "bytes": 1662
+  },
+  "overlayShow": {
+    "lines": 4,
+    "bytes": 346
+  },
+  "overlayHide": {
+    "lines": 1,
+    "bytes": 94
+  },
+  "manageGifOverlays": {
+    "lines": 27,
+    "bytes": 2645
+  },
+  "wrapLines": {
+    "lines": 1,
+    "bytes": 298
+  },
+  "drawDialog": {
+    "error": "unbalanced"
+  },
+  "measureLines": {
+    "lines": 1,
+    "bytes": 232
+  },
+  "wrapText": {
+    "lines": 1,
+    "bytes": 242
+  },
+  "drawPanelTouch": {
+    "lines": 20,
+    "bytes": 3576
+  },
+  "drawPanelPortrait": {
+    "lines": 57,
+    "bytes": 5486
+  },
+  "drawPanel": {
+    "lines": 108,
+    "bytes": 13450
+  },
+  "drawHeart": {
+    "lines": 1,
+    "bytes": 309
+  },
+  "drawTitle": {
+    "error": "unbalanced"
+  },
+  "drawMaidDance": {
+    "lines": 27,
+    "bytes": 2019
+  },
+  "drawMenuBtn": {
+    "lines": 3,
+    "bytes": 383
+  },
+  "tweetResult": {
+    "lines": 20,
+    "bytes": 1134
+  },
+  "lbPageCount": {
+    "lines": 1,
+    "bytes": 84
+  },
+  "lbSetPage": {
+    "lines": 1,
+    "bytes": 85
+  },
+  "fetchLB": {
+    "lines": 1,
+    "bytes": 207
+  },
+  "submitScore": {
+    "lines": 11,
+    "bytes": 867
+  },
+  "showNameEntry": {
+    "lines": 14,
+    "bytes": 948
+  },
+  "hideNameEntry": {
+    "lines": 1,
+    "bytes": 111
+  },
+  "doSaveScore": {
+    "lines": 1,
+    "bytes": 128
+  },
+  "drawShareBtn": {
+    "lines": 7,
+    "bytes": 675
+  },
+  "drawTitleBtn": {
+    "lines": 1,
+    "bytes": 375
+  },
+  "handleTitleClick": {
+    "lines": 9,
+    "bytes": 910
+  },
+  "drawIntro": {
+    "lines": 5,
+    "bytes": 693
+  },
+  "drawClearGate": {
+    "lines": 47,
+    "bytes": 5103
+  },
+  "drawHoneyBadger": {
+    "lines": 68,
+    "bytes": 6143
+  },
+  "drawShop": {
+    "lines": 213,
+    "bytes": 24214
+  },
+  "drawStageClear": {
+    "lines": 17,
+    "bytes": 2760
+  },
+  "drawGameOver": {
+    "lines": 13,
+    "bytes": 1416
+  },
+  "drawWin": {
+    "lines": 34,
+    "bytes": 3941
+  },
+  "drawPause": {
+    "lines": 1,
+    "bytes": 318
+  },
+  "lbIsMine": {
+    "lines": 1,
+    "bytes": 233
+  },
+  "drawLeaderboard": {
+    "lines": 46,
+    "bytes": 5759
+  },
+  "advanceScreen": {
+    "lines": 10,
+    "bytes": 526
+  },
+  "drawEmblemToasts": {
+    "lines": 15,
+    "bytes": 1036
+  },
+  "exitArsenal": {
+    "lines": 1,
+    "bytes": 90
+  },
+  "dropToSlot": {
+    "lines": 5,
+    "bytes": 589
+  },
+  "unequipArsenal": {
+    "lines": 1,
+    "bytes": 287
+  },
+  "arsArr": {
+    "lines": 1,
+    "bytes": 107
+  },
+  "toggleArsenal": {
+    "lines": 7,
+    "bytes": 438
+  },
+  "moveArsenal": {
+    "lines": 8,
+    "bytes": 922
+  },
+  "arsItemByKey": {
+    "lines": 1,
+    "bytes": 221
+  },
+  "arsPool": {
+    "error": "unbalanced"
+  },
+  "drawArsenal": {
+    "lines": 59,
+    "bytes": 7377
+  },
+  "emPageCount": {
+    "lines": 1,
+    "bytes": 84
+  },
+  "drawEmblems": {
+    "lines": 30,
+    "bytes": 3217
+  },
+  "poseParams": {
+    "lines": 16,
+    "bytes": 1217
+  },
+  "coffeeHold": {
+    "lines": 1,
+    "bytes": 92
+  },
+  "drawPoseProp": {
+    "lines": 16,
+    "bytes": 1810
+  },
+  "drawPosedFigure": {
+    "lines": 316,
+    "bytes": 21175
+  },
+  "drawOutfitFigure": {
+    "lines": 3,
+    "bytes": 313
+  },
+  "drawNgSelect": {
+    "lines": 26,
+    "bytes": 2693
+  },
+  "drawOutfits": {
+    "lines": 56,
+    "bytes": 5535
+  },
+  "simStep": {
+    "lines": 4,
+    "bytes": 102
+  },
+  "loop": {
+    "lines": 160,
+    "bytes": 9273
+  },
+  "fit": {
+    "lines": 7,
+    "bytes": 734
+  },
+  "saveDisplayPrefs": {
+    "lines": 8,
+    "bytes": 339
+  },
+  "setDisplayScale": {
+    "lines": 9,
+    "bytes": 506
+  },
+  "setRefreshRate": {
+    "lines": 7,
+    "bytes": 340
+  },
+  "setDebugLayer": {
+    "lines": 7,
+    "bytes": 253
+  },
+  "syncDisplayUI": {
+    "lines": 8,
+    "bytes": 414
+  },
+  "openDisplay": {
+    "lines": 1,
+    "bytes": 115
+  },
+  "closeDisplay": {
+    "lines": 1,
+    "bytes": 102
+  },
+  "drawDebugLayer": {
+    "lines": 19,
+    "bytes": 987
+  },
+  "toggleFullscreen": {
+    "lines": 6,
+    "bytes": 322
+  },
+  "onFsChange": {
+    "lines": 1,
+    "bytes": 159
+  }
+}

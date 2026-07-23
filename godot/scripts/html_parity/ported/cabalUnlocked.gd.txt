@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function cabalUnlocked — review required
+func cabalUnlocked():
+	 return hasEmblem('clear_hell'); 

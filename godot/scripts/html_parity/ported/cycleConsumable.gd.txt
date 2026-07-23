@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function cycleConsumable — review required
+func cycleConsumable():
+	 if(!arsenalI.size()){ sfx('hit'); flashMsg={t:75,txt:'No items equipped — set them in the Arsenal'}; return; } selConsum=(selConsum+1)%arsenalI.size(); var c=selConsumObj(); if(c){ sfx('item'); flashMsg={t:75,txt:c.icon+' '+c.name+'  ×'+consumQty(c.key)}; } 

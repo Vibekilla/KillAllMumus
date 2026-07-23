@@ -1,0 +1,90 @@
+## AUTO-PORTED from HTML drawElite — hand-fixed where needed
+func drawElite(e) -> void:
+	 var R=e.r, fl=e.flash>0, bob=sin(e.t*0.14)*1.6, ln="#2a1a12"; ctx.save(); ctx.translate(e.x,e.y);
+	  ctx.fill_style="rgba(0,0,0,0.2)"; ctx.begin_path(); ctx.ellipse(0,R*0.98,R*0.72,4,0,0,7); ctx.fill();
+	  ctx.translate(0,bob); var K=e.elite;
+	  if(K=="cheer"){
+	    // Mini Mumina — a bear-girl like Bobina in a green cheer kit, waving pom-poms
+	    var skin=fl._STR3__:"#7c4c31", hair=fl._STR5__:"#181320", dress=fl._STR7__:"#7ed957", trim=fl._STR9__:"#eafff0";
+	    var pw=sin(e.t*0.3)*R*0.12;   // pom shake
+	    ctx.stroke_style=skin; ctx.line_width=R*0.15; ctx.line_cap="round"; ctx.begin_path(); ctx.move_to(-R*0.3,-R*0.05); ctx.line_to(-R*0.7,-R*0.42); ctx.move_to(R*0.3,-R*0.05); ctx.line_to(R*0.7,-R*0.42); ctx.stroke();
+	    ctx.fill_style=fl._STR12__:"#c8ff9a"; for sx in [-1,1]){ for k in range(int(0), int(8)){ var a=k/8*6.28; ctx.begin_path(); ctx.arc(sx*R*0.72+pw*sx+cos(a)*R*0.17,-R*0.5+sin(a)*R*0.17,R*0.11,0,7); ctx.fill(); } }   // pom-poms
+	    ctx.fill_style=dress; ctx.begin_path(); ctx.move_to(-R*0.4,-R*0.08); ctx.line_to(-R*0.6,R*0.62); ctx.line_to(R*0.6,R*0.62); ctx.line_to(R*0.4,-R*0.08); ctx.close_path(); ctx.fill();   // flared skirt
+	    ctx.fill_style=trim; for(var i=-R*0.55;i<R*0.5;i+=R*0.24){ ctx.begin_path(); ctx.arc(i+R*0.12,R*0.62,R*0.12,0,PI); ctx.fill(); }
+	    ctx.fill_style=dress; ctx.begin_path(); ctx.round_rect(-R*0.42,-R*0.28,R*0.84,R*0.42,R*0.12); ctx.fill();   // top
+	    ctx.fill_style=trim; ctx.fill_rect(-R*0.42,-R*0.02,R*0.84,R*0.09);   // midriff trim
+	    ctx.stroke_style=skin; ctx.line_width=R*0.15; ctx.begin_path(); ctx.move_to(-R*0.2,R*0.58); ctx.line_to(-R*0.24,R*0.88); ctx.move_to(R*0.2,R*0.58); ctx.line_to(R*0.24,R*0.88); ctx.stroke();   // legs
+	    ctx.fill_style=hair; ctx.begin_path(); ctx.arc(0,-R*0.5,R*0.5,PI*0.9,PI*2.1); ctx.fill();   // hair back
+	    circle(-R*0.52,-R*0.46,R*0.17,hair); circle(R*0.52,-R*0.46,R*0.17,hair);   // pigtails
+	    ctx.fill_style=skin; ctx.begin_path(); ctx.arc(0,-R*0.5,R*0.42,0,7); ctx.fill();   // face
+	    circle(-R*0.32,-R*0.86,R*0.15,hair); circle(R*0.32,-R*0.86,R*0.15,hair); circle(-R*0.32,-R*0.86,R*0.07,fl._STR14__:"#5f3823"); circle(R*0.32,-R*0.86,R*0.07,fl._STR16__:"#5f3823");   // bear ears
+	    ctx.fill_style=hair; ctx.begin_path(); ctx.move_to(-R*0.42,-R*0.62); ctx.quadratic_curve_to(0,-R*0.98,R*0.42,-R*0.62); ctx.line_to(R*0.3,-R*0.5); ctx.quadratic_curve_to(0,-R*0.72,-R*0.3,-R*0.5); ctx.close_path(); ctx.fill();   // bangs
+	    circle(-R*0.16,-R*0.46,R*0.1,"#fff"); circle(R*0.16,-R*0.46,R*0.1,"#fff"); ctx.fill_style="#3a2018"; circle(-R*0.16,-R*0.44,R*0.05,"#3a2018"); circle(R*0.16,-R*0.44,R*0.05,"#3a2018");
+	    ctx.fill_style="rgba(255,120,150,0.5)"; circle(-R*0.29,-R*0.33,R*0.07,"rgba(255,120,150,0.5)"); circle(R*0.29,-R*0.33,R*0.07,"rgba(255,120,150,0.5)");
+	    ctx.stroke_style=ln; ctx.line_width=1.2; ctx.begin_path(); ctx.arc(0,-R*0.37,R*0.1,0.15*PI,0.85*PI); ctx.stroke();   // smile
+	  }
+	  else if(K=="ape"){
+	    var fur=fl._STR27__:"#a9743e", face=fl._STR29__:"#e8c9a0";
+	    ctx.fill_style=fur; circle(-R*0.7,-R*0.15,R*0.28,fur); circle(R*0.7,-R*0.15,R*0.28,fur);   // ears
+	    ctx.fill_style=fur; ctx.begin_path(); ctx.arc(0,0,R*0.8,0,7); ctx.fill();
+	    ctx.fill_style=face; ctx.begin_path(); ctx.ellipse(0,R*0.14,R*0.5,R*0.56,0,0,7); ctx.fill();
+	    ctx.fill_style="#3a2410"; ctx.fill_rect(-R*0.4,-R*0.16,R*0.8,R*0.13);   // heavy brow (bored ape)
+	    circle(-R*0.2,0.02*R,R*0.09,"#fff"); circle(R*0.2,0.02*R,R*0.09,"#fff"); ctx.fill_style="#150a0a"; circle(-R*0.2,R*0.03,R*0.045,"#150a0a"); circle(R*0.2,R*0.03,R*0.045,"#150a0a");
+	    ctx.fill_style="#7a2c2c"; ctx.begin_path(); ctx.ellipse(0,R*0.36,R*0.24,R*0.13,0,0,7); ctx.fill(); ctx.fill_style="#ffd24a"; ctx.fill_rect(-R*0.14,R*0.31,R*0.28,R*0.06);   // gold grill
+	    ctx.stroke_style="#ffd24a"; ctx.line_width=2.2; ctx.begin_path(); ctx.arc(0,R*0.72,R*0.42,0.16*PI,0.84*PI); ctx.stroke();   // jeet chain
+	  }
+	  else if(K=="badnik"){
+	    var metal=fl._STR41__:"#c2c8ce", sh="#8a929a", pink=fl._STR44__:"#e05a86";
+	    ctx.fill_style=metal; ctx.begin_path(); ctx.ellipse(0,0,R*0.62,R*0.82,0,0,7); ctx.fill();
+	    ctx.fill_style=sh; ctx.begin_path(); ctx.ellipse(R*0.22,R*0.05,R*0.2,R*0.7,0,0,7); ctx.fill();
+	    ctx.fill_style=pink; ctx.begin_path(); ctx.arc(0,-R*0.12,R*0.26,0,7); ctx.fill(); circle(0,-R*0.12,R*0.16,"#fff"); ctx.fill_style="#150a0a"; circle(0,-R*0.1,R*0.08,"#150a0a");
+	    ctx.stroke_style=sh; ctx.line_width=1.6; ctx.begin_path(); ctx.move_to(0,-R*0.8); ctx.line_to(0,-R*1.06); ctx.stroke(); circle(0,-R*1.12,R*0.1,pink);
+	    ctx.fill_style=sh; for a in [0.4,1.2,2.0,2.7]){ circle(cos(a)*R*0.5,sin(a)*R*0.5+R*0.25,R*0.05,sh); }   // rivets
+	  }
+	  else if(K=="pup"){
+	    var fur=fl._STR50__:"#d8b48a", sh=fl._STR52__:"#b48a5e", purp=fl._STR54__:"#9945ff";
+	    ctx.fill_style=fur; ctx.begin_path(); ctx.ellipse(0,R*0.12,R*0.6,R*0.55,0,0,7); ctx.fill();
+	    ctx.fill_style=sh; ctx.begin_path(); ctx.move_to(-R*0.4,-R*0.5); ctx.line_to(-R*0.56,-R*0.95); ctx.line_to(-R*0.12,-R*0.55); ctx.fill(); ctx.begin_path(); ctx.move_to(R*0.4,-R*0.5); ctx.line_to(R*0.56,-R*0.95); ctx.line_to(R*0.12,-R*0.55); ctx.fill();   // pointy ears
+	    ctx.fill_style=fur; ctx.begin_path(); ctx.arc(0,-R*0.32,R*0.44,0,7); ctx.fill();
+	    ctx.fill_style=fl._STR56__:"#f0dcc4"; ctx.begin_path(); ctx.ellipse(0,-R*0.16,R*0.22,R*0.18,0,0,7); ctx.fill(); ctx.fill_style="#150a0a"; circle(0,-R*0.26,R*0.08,"#150a0a");
+	    circle(-R*0.16,-R*0.4,R*0.06,"#150a0a"); circle(R*0.16,-R*0.4,R*0.06,"#150a0a");
+	    ctx.fill_style="#ff7a9c"; ctx.begin_path(); ctx.ellipse(0,-R*0.04,R*0.07,R*0.14,0,0,7); ctx.fill();   // tongue
+	    ctx.fill_style=purp; ctx.fill_rect(-R*0.4,R*0.02,R*0.8,R*0.13); circle(0,R*0.09,R*0.09,"#14f195");   // SOL collar + tag
+	  }
+	  else if(K=="scammer"){
+	    var skin=fl._STR65__:"#c9a06a", shirt=fl._STR67__:"#e08a2a", hs="#222";
+	    ctx.fill_style=shirt; ctx.begin_path(); ctx.round_rect(-R*0.5,0,R*1.0,R*0.72,R*0.14); ctx.fill();
+	    ctx.fill_style=skin; ctx.begin_path(); ctx.arc(0,-R*0.4,R*0.4,0,7); ctx.fill();
+	    ctx.fill_style="#241810"; ctx.begin_path(); ctx.arc(0,-R*0.52,R*0.4,PI,0); ctx.fill();
+	    ctx.stroke_style=hs; ctx.line_width=R*0.08; ctx.begin_path(); ctx.arc(0,-R*0.42,R*0.44,PI*1.12,PI*1.88); ctx.stroke(); circle(-R*0.44,-R*0.4,R*0.1,hs);
+	    ctx.stroke_style=hs; ctx.line_width=R*0.05; ctx.begin_path(); ctx.move_to(-R*0.44,-R*0.34); ctx.quadratic_curve_to(-R*0.24,-R*0.16,-R*0.1,-R*0.22); ctx.stroke();   // mic boom
+	    circle(-R*0.14,-R*0.42,R*0.05,"#150a0a"); circle(R*0.14,-R*0.42,R*0.05,"#150a0a");
+	    ctx.stroke_style="#7a2c2c"; ctx.line_width=1.4; ctx.begin_path(); ctx.move_to(-R*0.12,-R*0.24); ctx.line_to(R*0.12,-R*0.24); ctx.stroke();
+	    ctx.fill_style="#111"; ctx.begin_path(); ctx.round_rect(R*0.42,R*0.12,R*0.15,R*0.3,R*0.04); ctx.fill();   // phone
+	  }
+	  else if(K=="voideye"){ // AKASHIC EYE — an ornate all-seeing GOLD eye in a rune frame; reads the Records
+	    // (deliberately distinct from Call of the Void"s purple, tentacle-spoked servitors — no confusion)
+	    const gold=fl?"#fff":"#e0b84a", goldD="#9a7a2a", vio=fl?"#fff":"#b48ce0", dark="#140e22"; const rot=e.t*0.02;
+	    ctx.save(); ctx.rotate(rot);   // rotating gold rune ring + tick marks (a cosmic ledger, not tentacles)
+	    ctx.strokeStyle=_hexA(gold,0.7); ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,R*0.92,0,7); ctx.stroke();
+	    for(let i=0;i<12;i++){ const a=i/12*6.283; ctx.beginPath(); ctx.moveTo(Math.cos(a)*R*0.92,Math.sin(a)*R*0.92); ctx.lineTo(Math.cos(a)*R*1.04,Math.sin(a)*R*1.04); ctx.stroke(); } ctx.restore();
+	    ctx.save(); ctx.rotate(-rot*0.6); ctx.strokeStyle=_hexA(vio,0.5); ctx.lineWidth=1.6;   // counter-rotating violet triangle
+	    ctx.beginPath(); for(let i=0;i<=3;i++){ const a=i/3*6.283; const x=Math.cos(a)*R*0.78, y=Math.sin(a)*R*0.78; i?ctx.lineTo(x,y):ctx.moveTo(x,y);} ctx.closePath(); ctx.stroke(); ctx.restore();
+	    ctx.fillStyle=gold; ctx.beginPath(); ctx.moveTo(-R*0.72,0); ctx.quadraticCurveTo(0,-R*0.5,R*0.72,0); ctx.quadraticCurveTo(0,R*0.5,-R*0.72,0); ctx.closePath(); ctx.fill();   // gold almond eye
+	    ctx.strokeStyle=goldD; ctx.lineWidth=2; ctx.stroke();
+	    ctx.fillStyle=dark; ctx.beginPath(); ctx.arc(0,0,R*0.34,0,7); ctx.fill();   // dark cosmic iris
+	    ctx.save(); ctx.shadowColor=vio; ctx.shadowBlur=8; ctx.fillStyle=vio; ctx.beginPath(); ctx.ellipse(0,0,R*0.12,R*0.28,0,0,7); ctx.fill(); ctx.restore();   // vertical violet slit pupil
+	    ctx.fillStyle="#f4ecff"; ctx.beginPath(); ctx.ellipse(-R*0.06,-R*0.08,R*0.04,R*0.09,0,0,7); ctx.fill();   // glint
+	    for(let i=0;i<3;i++){ const a=rot*2+i*2.1, rr=R*0.2; circle(Math.cos(a)*rr,Math.sin(a)*rr,R*0.02,_hexA("#fff",0.8)); }   // record-sparkles
+	  }
+	  else { // goon — cabal suit
+	    const suit=fl?"#fff":"#2a2f3a", skin=fl?"#fff":"#c9a06a", tie=fl?"#fff":"#ff5b3c";
+	    ctx.fillStyle=suit; ctx.beginPath(); ctx.moveTo(-R*0.55,R*0.62); ctx.lineTo(-R*0.5,-R*0.06); ctx.lineTo(R*0.5,-R*0.06); ctx.lineTo(R*0.55,R*0.62); ctx.closePath(); ctx.fill();
+	    ctx.fillStyle="#f2f4f8"; ctx.beginPath(); ctx.moveTo(-R*0.14,-R*0.06); ctx.lineTo(0,R*0.5); ctx.lineTo(R*0.14,-R*0.06); ctx.closePath(); ctx.fill();
+	    ctx.fillStyle=tie; ctx.beginPath(); ctx.moveTo(-R*0.06,0); ctx.lineTo(R*0.06,0); ctx.lineTo(R*0.09,R*0.4); ctx.lineTo(0,R*0.5); ctx.lineTo(-R*0.09,R*0.4); ctx.closePath(); ctx.fill();
+	    ctx.fillStyle=skin; ctx.beginPath(); ctx.arc(0,-R*0.4,R*0.38,0,7); ctx.fill();
+	    ctx.fillStyle="#161616"; ctx.beginPath(); ctx.arc(0,-R*0.54,R*0.38,Math.PI,0); ctx.fill();
+	    ctx.fillStyle="#111'; ctx.begin_path(); ctx.round_rect(-R*0.28,-R*0.46,R*0.56,R*0.16,R*0.05); ctx.fill(); ctx.fill_style=tie; ctx.fill_rect(-R*0.02,-R*0.44,R*0.04,R*0.1);   // shades
+	  }
+	  ctx.restore();
+	

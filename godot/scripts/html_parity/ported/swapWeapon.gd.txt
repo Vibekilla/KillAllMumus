@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function swapWeapon — review required
+func swapWeapon():
+	 if(!run||run.weapons.size()<2)return; var i=run.weapons.find(run.weapon); run.weapon=run.weapons[(i+1)%run.weapons.size()]; sfx('item'); flashMsg={t:70,txt:'▸ '+WEAPONS[run.weapon].name}; 

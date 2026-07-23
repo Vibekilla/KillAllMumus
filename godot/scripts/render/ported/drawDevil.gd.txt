@@ -1,0 +1,24 @@
+# AUTO-PORTED from public/index.html — needs manual polish
+# Original: drawDevil
+extends RefCounted
+# expects `ctx` CanvasCompat and game globals
+
+func drawDevil(b,flash) -> void:
+ var R=b.r;
+  ctx.fill_style(flash?'#fff':'#7a1420'); ctx.begin_path(); ctx.ellipse(0,R*0.55,R*0.82,R*0.6,0,0,7); ctx.fill();
+  ctx.fill_style(flash?'#fff':'#c0202a'); ctx.begin_path(); ctx.arc(0,-R*0.08,R*0.62,0,7); ctx.fill();
+  // horns
+  ctx.fill_style(flash?'#eee':'#2a0a10');
+  ctx.begin_path(); ctx.move_to(-R*0.4,-R*0.48); ctx.quadratic_curve_to(-R*0.72,-R*1.02,-R*0.34,-R*1.06); ctx.quadratic_curve_to(-R*0.44,-R*0.7,-R*0.18,-R*0.54); ctx.close_path(); ctx.fill();
+  ctx.begin_path(); ctx.move_to(R*0.4,-R*0.48); ctx.quadratic_curve_to(R*0.72,-R*1.02,R*0.34,-R*1.06); ctx.quadratic_curve_to(R*0.44,-R*0.7,R*0.18,-R*0.54); ctx.close_path(); ctx.fill();
+  // glowing eyes
+  ctx.save(); ctx.shadow_color('#ffd000'); ctx.shadow_blur(10); ctx.fill_style(Color.html("#ffe23a"));
+  ctx.begin_path(); ctx.move_to(-R*0.34,-R*0.2); ctx.line_to(-R*0.08,-R*0.1); ctx.line_to(-R*0.34,-R*0.01); ctx.close_path(); ctx.fill();
+  ctx.begin_path(); ctx.move_to(R*0.34,-R*0.2); ctx.line_to(R*0.08,-R*0.1); ctx.line_to(R*0.34,-R*0.01); ctx.close_path(); ctx.fill(); ctx.restore();
+  ctx.fill_style(Color.html("#1a0000")); circle(-R*0.2,-R*0.1,R*0.045,'#1a0000'); circle(R*0.2,-R*0.1,R*0.045,'#1a0000');
+  // fanged grin
+  ctx.stroke_style(Color.html("#3a0000")); ctx.line_width(2.5); ctx.begin_path(); ctx.arc(0,R*0.04,R*0.34,0.18,Math.PI-0.18); ctx.stroke();
+  ctx.fill_style(Color.html("#fff")); for i in range(int(-2), int(=2)):
+	 var fx=i*R*0.14; ctx.begin_path(); ctx.move_to(fx-R*0.05,R*0.2); ctx.line_to(fx+R*0.02,R*0.2); ctx.line_to(fx-R*0.02,R*0.32); ctx.close_path(); ctx.fill(); # }
+  // goatee
+  ctx.fill_style(Color.html("#2a0a10")); ctx.begin_path(); ctx.move_to(-R*0.1,R*0.42); ctx.line_to(R*0.1,R*0.42); ctx.line_to(0,R*0.64); ctx.close_path(); ctx.fill();

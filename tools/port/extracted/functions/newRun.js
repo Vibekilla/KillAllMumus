@@ -1,0 +1,6 @@
+function newRun(){
+  totalKills=0; sessionScore=0; graze=0; endHandled=false; justSavedScore=false; winCabalUnlock=false; winNgLv=0; newEmblems=[];
+  SPD = (hardMode?1.0:0.8)*threatMul();   // slower bullets on Normal = a bit easier; HELL + NG+ speed them up
+  run={ stageIdx:0, lives:6, bombs:3, power:1.0, lifeFrags:0, bombFrags:0, extendIdx:0, weapon:(arsenalW[0]||'spread'), weapons:arsenalW.slice(), special:15, armed:0, specials:arsenalS.slice(), melees:meleeIdxList(), runNoDeath:true, runNoBomb:true };
+  loadStage(0); state='intro'; introTimer=140;
+}

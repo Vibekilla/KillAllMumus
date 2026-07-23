@@ -1,0 +1,17 @@
+## AUTO-PORTED from HTML function showNameEntry — review required
+func showNameEntry():
+
+	  // Linked Bobina players skip the X prompt — progress saves under bc_id
+	  var _me2 = HtmlBridge.win.bobinaMe || bobinaMe;
+	  if(_me2 && _me2.authenticated){
+	    submitScore(_me2.xUsername || HtmlBridge.storage_get('bobina_handle') || '');
+	    justSavedScore=true;
+	    state = endWon ? 'win' : 'gameover';
+	    return;
+	  }
+	  nameEntryOpen=true; NE.classList['on');
+	  HtmlBridge.doc.getElementById('ne-score').innerHTML = (endWon?'BOBO SAVED! ':'')+'Score '+fmtScore(sessionScore)+' · '+totalKills+' Mumus · Rank '+rankLetter()+((difficulty>0||ngPlus>0)?(' · '+modeTag()):'')+'<br><span style="font-size:12px;color:#c8b0d0">Save your <b>X handle</b> for credit — or <a href="/auth/bobina" style="color:#ff9ecb">Sign in with Bobina</a> to sync forever</span>';
+	  try{ NEinput.value=HtmlBridge.storage_get('bobina_handle')||''; }catch(e){ NEinput.value=''; }
+	  setTimeoutfunc((): # arrow
+	 try{ NEinput.focus(); NEinput.select(); }catch(e){} },30);
+

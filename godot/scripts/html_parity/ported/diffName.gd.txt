@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function diffName — review required
+func diffName():
+	 return ['NORMAL','HARD','HELL'][difficulty]||'NORMAL'; 

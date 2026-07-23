@@ -1,0 +1,89 @@
+## AUTO-PORTED from HTML function onFsChange — review required
+func onFsChange():
+	 var on=!!(HtmlBridge.doc.fullscreenElement||HtmlBridge.doc.webkitFullscreenElement); if(fsBtn) fsBtn.textContent=on?'🗕':'⛶'; setTimeout(fit,60); }
+	HtmlBridge.doc.HtmlBridge.add_listener('fullscreenchange', onFsChange); HtmlBridge.doc.HtmlBridge.add_listener('webkitfullscreenchange', onFsChange);
+	HtmlBridge.add_listener('keydown', func(e): return { if((e.key=='f'||e.key=='F') && !nameEntryOpen){ toggleFullscreen(); } });
+	</script>
+	<script src="https://www.youtube.com/iframe_api"></script>
+
+	<script>
+	(function(){
+	  var el = HtmlBridge.doc.getElementById('bobinaAuth');
+	  if(!el) return;
+
+	  function loginHref(){
+	    var h='';
+	    try{ h=(HtmlBridge.storage_get('bobina_handle')||'').replace(/[^A-Za-z0-9_]/g,''); }catch(e){}
+	    return h ? ('/auth/bobina?claim_handle='+encodeURIComponent(h)) : '/auth/bobina';
+	  }
+
+	  function applyMe(me){
+	    HtmlBridge.win.bobinaMe = (me && me.authenticated) ? me : null;
+	    if(typeof HtmlBridge.win.__setBobinaMe == 'function'){
+	      try{ HtmlBridge.win.__setBobinaMe(me); }catch(e){}
+	    }
+	  }
+
+	  function paint(me){
+	    applyMe(me);
+	    if(!me || !me.authenticated){
+	      el.innerHTML = '<a href="'+loginHref()+'">Sign in with Bobina</a>';
+	      return;
+	    }
+	    var name = me.username ? '@'+me.username : 'Bobina player';
+	    var img = me.avatar ? '<img src="'+String(me.avatar).replace(/"/g,'')+'" alt="">' : '🐻';
+	    var link = me.profileUrl || 'https://bobina.moe';
+	    var linkedN = me.linkedScores|0;
+	    var linked = linkedN > 0
+	      ? (' · '+linkedN+' run'+(linkedN==1?'':'s')+' on board')
+	      : ' · account linked';
+	    el.innerHTML = '<span class="who">'+img+' <a href="'+link+'" target="_blank" rel="noopener" style="background:none;box-shadow:none;padding:0;color:#ffd0e4">'+name+'</a><span style="opacity:.7;font-size:11px">'+linked+'</span></span>'
+	      + '<button type="button" class="ghost" id="bobinaLogout">Sign out</button>';
+	    var b = HtmlBridge.doc.getElementById('bobinaLogout');
+	    if(b) b.onclick = function(){
+	      fetch('/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){ location.href='/'; });
+	    };
+	  }
+
+	  function loadMe(){
+	    return fetch('/api/me',{credentials:'same-origin'})
+	      .then(function(r){ return r.json(); })
+	      .then(paint)
+	      .catch(function(){ paint({authenticated:false,bobinaConfigured:false}); });
+	  }
+
+	  function syncAccount(){
+	    return fetch('/api/sync',{method:'POST',credentials:'same-origin'})
+	      .then(function(r){ return r.json(); })
+	      .then(function(d){
+	        return loadMe().then(function(){
+	          // Pull emblems/arsenal/stats/shop into this device, then push merged snapshot
+	          var pull = (typeof HtmlBridge.win.cloudPullAndMerge=='function')
+	            ? HtmlBridge.win.cloudPullAndMerge()
+	            : Promise.resolve(null);
+	          return pull.then(function(){
+	            if(typeof fetchLB == 'function'){ try{ fetchLB(); }catch(e){} }
+	            return d;
+	          });
+	        });
+	      })
+	      .catch(function(e){ print('sync failed', e); return loadMe(); });
+	  }
+
+	  try{
+	    var sp = new URLSearchParams(location.search);
+	    if(sp.get('bobina') == '1'){
+	      // OAuth just finished — force DB claim + profile resolve
+	      syncAccount().finally(function(){
+	        try{ history.replaceState(null,'',location.pathname); }catch(e){}
+	      });
+	    } else {
+	      loadMe().then(function(){
+	        if(HtmlBridge.win.bobinaMe && HtmlBridge.win.bobinaMe.authenticated){
+	          syncAccount(); // includes full game-progress merge
+	        }
+	      });
+	    }
+	  }catch(e){ loadMe(); }
+	})();
+

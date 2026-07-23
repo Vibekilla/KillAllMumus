@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML lerpAngle — hand-fixed where needed
+func lerpAngle(a, b, t) -> void:
+	 var d=(b-a)%(PI*2); if(d> PI)d-=PI*2; if(d<-PI)d+=PI*2; return a+d*t; 

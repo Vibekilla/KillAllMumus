@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function measureLines — review required
+func measureLines(t, maxw):
+	 ctx.font='bold 14px "Trebuchet MS"'; var words=t.split(' '); var line='',n=1; for wd in words){ if(ctx.measureText(line+wd+' ').width>maxw){ line=wd+' '; n += 1; } else line+=wd+' '; } return n; 

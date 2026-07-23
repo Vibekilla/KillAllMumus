@@ -1,0 +1,14 @@
+## AUTO-PORTED from HTML function optionShot — review required
+func optionShot(x, y, aim, wep):
+	 var s={x,y,dead:false,dmg:1};
+	  if(wep=='laser'){ s.vx=cos(aim)*17; s.vy=sin(aim)*17; s.laser=true; }
+	  else if(wep=='homing'){ s.vx=cos(aim)*6; s.vy=sin(aim)*6; s.home=true; }
+	  else if(wep=='wave'){ s.vx=cos(aim)*11; s.vy=sin(aim)*11; s.wv=3.2; s.wph=tick*0.4; }
+	  else if(wep=='scatter'){ var off=(randf()-0.5)*0.14, sp=10+randf()*3; s.vx=cos(aim+off)*sp; s.vy=sin(aim+off)*sp; s.life=22; }
+	  else if(wep=='gatling'){ s.vx=cos(aim)*19; s.vy=sin(aim)*19; s.gat=true; s.dmg=2; }
+	  else if(wep=='grenade'){ s.vx=cos(aim)*8; s.vy=sin(aim)*8; s.nade=true; s.life=32; s.dmg=3; }
+	  else if(wep=='voidripper'){ s.vx=cos(aim)*15; s.vy=sin(aim)*15; s.vrip=true; s.pierce=true; s.hit={}; s.dmg=2; }
+	  else if(wep=='lotus'){ var off=(randf()-0.5)*0.7; s.vx=cos(aim+off)*7; s.vy=sin(aim+off)*7; s.petal=true; s.curl=(off<0?-1:1)*0.035; s.life=58; }
+	  else if(wep=='shock'){ var j=(randf()-0.5)*0.5; s.vx=cos(aim+j)*(13+randf()*4); s.vy=sin(aim+j)*(13+randf()*4); s.zap=true; s.dmg=2; }
+	  else { s.vx=cos(aim)*13; s.vy=sin(aim)*13; }   // spread / default
+	  pshots.append(s); 

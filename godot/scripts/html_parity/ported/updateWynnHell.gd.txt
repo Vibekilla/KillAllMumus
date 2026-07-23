@@ -1,0 +1,9 @@
+## AUTO-PORTED from HTML function updateWynnHell — review required
+func updateWynnHell(b):
+	 b.hellT += 1;
+	  b.hellR = minf(82, b.hellT*0.7);
+	  if(b.hellT%2==0) particles.append({ x:b.x+(randf()-.5)*b.hellR*1.5, y:(b.hy||b.y)+ (randf()-.4)*b.hellR, vx:(randf()-.5)*2, vy:-1-randf()*2.4, life:26, c:['#ff3b1a','#ff7a2a','#ffc030'][(randf()*3)|0] });
+	  b.hellShake = (b.hellT<210)? sin(b.hellT*0.7)*minf(3.5, b.hellT*0.03) : 0;
+	  if(!dialog){ b.hellDone += 1; b.hellSpin += 0.42; b.y = (b.hy||b.y) + b.hellDone*0.5; b.hellScale = maxf(0, 1 - b.hellDone/74);
+	    if(b.hellDone>96){ onBossDefeated(); } }
+

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function saveNgPrefs — review required
+func saveNgPrefs():
+	 try{ HtmlBridge.storage_set('bobina_difficulty',String(difficulty)); HtmlBridge.storage_set('bobina_nglevel',String(ngPlus)); }catch(e){} 

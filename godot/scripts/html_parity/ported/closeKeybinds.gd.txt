@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function closeKeybinds — review required
+func closeKeybinds():
+	 var m=HtmlBridge.doc.getElementById('keybinds'); if(m){ rebindAction=null; m.classList.remove('on'); } 

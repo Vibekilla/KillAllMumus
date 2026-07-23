@@ -1,0 +1,13 @@
+## AUTO-PORTED from HTML function doBomb — review required
+func doBomb():
+
+	  if(run.bombs<=0 || player.dead) return;
+	  run.bombs -= 1; run.stageNoBomb=false; run.runNoBomb=false; player.iframe=maxf(player.iframe,140); player.bombFx=46; sfx('bomb'); flashMsg={t:50,txt:'BOBINA BLAST!'};
+	  estats.bombs=(estats.bombs||0)+1; if(estats.bombs>=50) unlockEmblem('bomb_50'); saveEstats();
+	  bulletCancelAll();
+	  for e in enemies){ e.hp-=8; e.flash=6; if(e.hp<=0){ killEnemy(e,true);} } enemies=enemies.filter(func(e): return e.hp>0);
+	  if(boss && !boss.dead && boss.intro<=0){ boss.hp-=floorf(boss.maxhp*0.09); boss.flash=6; if(boss.hp<=0){boss.dead=true;boss.hp=0;bullets=[];sfx('win');} }
+	  for i in range(int(0), int(60)) particles.append({x:player.x,y:player.y,vx:(randf()-.5)*14,vy:(randf()-.5)*14,life:40,c:['#ff6ec7','#ffd27a','#fff'][i%3]});
+	}
+	// double-tap Shift → a quick i-framed dash toward the mouse pointer that kills any Mumu it passes through
+

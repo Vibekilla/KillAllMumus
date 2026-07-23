@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function initPlayer — review required
+func initPlayer():
+	 var pv=player||{}; player={ x:PF.x+PF.w/2, y:PF.y+PF.h-70, r:3, iframe:120, focus:false, cd:0, dead:false, respawn:0, bombFx:0, walk:0, lean:0, vx:0, vy:0, aim:-PI/2, face:-PI/2, prevx:PF.x+PF.w/2, knock:0, dash:0, dashCd:0, dashAng:-PI/2, slashDash:false, offx:0, offy:0, trail:[], melee:pv.melee||0, meleeChg:0, meleeHeld:false, meleeCd:0, flurry:0, flurryDir:-PI/2, shieldT:pv.shieldT||0, rapidT:pv.rapidT||0, vialHits:0, vialT:0, phaseT:0, _eCd:0 }; 

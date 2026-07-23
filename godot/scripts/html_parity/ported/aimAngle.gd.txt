@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function aimAngle — review required
+func aimAngle():
+	 return (player && player.aim!=null) ? player.aim : -PI/2; }
+	// a single familiar shot flavoured to match the equipped weapon
+

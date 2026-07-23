@@ -1,0 +1,9 @@
+## AUTO-PORTED from HTML function spawnBig — review required
+func spawnBig(x, y, icy):
+	 var d=run?run.stageIdx:0; enemies.append({kind:'big',x,y,vx:0,vy:0.55+d*0.08,r:30,hp:roundf((icy?26:16)*(1+d*0.45)),icy:!!icy,t:0,flash:0,hover:PF.y+90+randf()*60}); }
+	//  -= 1 -= 1 themed ELITE mobs — one flavour per stage, matched to that stage's boss  -= 1 -= 1
+	var ELITE_KIND=['ape','badnik','cheer','pup','scammer','voideye','goon'];   // Jeet Ape · Egg Badnik · Mini-Mumina Cheerleader · Solana Pup · Scam Caller · Akashic Eye · Cabal Goon
+	var ELITE_NAME=['Jeet Ape','Egg Badnik','Mini Mumina','Solana Pup','Scam Caller','Akashic Eye','Cabal Goon'];
+	var ELITE_BCOL=['#ffd24a','#ff9ecb','#a6f06a','#c79bff','#ffb347','#e0b84a','#ff7a6a'];
+	var ELITE_HP=[9,11,15,17,20,22,24];
+

@@ -1,0 +1,9 @@
+## AUTO-PORTED from HTML function syncSettingsUI — review required
+func syncSettingsUI():
+	 var f=HtmlBridge.doc.getElementById('set-follow'), s=HtmlBridge.doc.getElementById('set-speed'); if(!f||!s)return;
+	  f.value=roundf(MOUSE.follow*100); HtmlBridge.doc.getElementById('set-follow-v').textContent=roundf(MOUSE.follow*100)+'%';
+	  s.value=roundf(MOUSE.speed*100); HtmlBridge.doc.getElementById('set-speed-v').textContent=MOUSE.speed.toFixed(2)+'×';
+	  var mu=HtmlBridge.doc.getElementById('set-music'), sx=HtmlBridge.doc.getElementById('set-sfx'), sr=HtmlBridge.doc.getElementById('set-speedrun');
+	  if(mu){ mu.value=roundf(musicVol*100); HtmlBridge.doc.getElementById('set-music-v').textContent=roundf(musicVol*100)+'%'; }
+	  if(sx){ sx.value=roundf(sfxVol*100); HtmlBridge.doc.getElementById('set-sfx-v').textContent=roundf(sfxVol*100)+'%'; }
+	  if(sr){ sr.classList.toggle('on',speedrun); HtmlBridge.doc.getElementById('set-speedrun-v').textContent=speedrun?'ON':'OFF'; } 

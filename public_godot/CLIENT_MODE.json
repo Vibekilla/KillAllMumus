@@ -1,0 +1,6 @@
+{
+  "mode": "godot-web",
+  "engine": "4.3.stable",
+  "note": "Full Godot web export with fixed 1:1 drawers (drawBoss/Fx/MeleeFx/StageBg/fire). Production default remains html-legacy.",
+  "testUrls": ["/?test", "/?godot", "/?client=godot", "/godot/"]
+}

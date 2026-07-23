@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function emote — review required
+func emote(kind):
+	 /* emotes removed by request */ 

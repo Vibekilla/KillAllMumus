@@ -1,0 +1,31 @@
+## AUTO-PORTED from HTML drawPolice — hand-fixed where needed
+func drawPolice(b, flash) -> void:
+	 var R=b.r;
+	  var khaki="#b59a4a", khakiD="#8a742e", skin="#7a4a28", skinSh="#5f3820", cap="#2a2a30", gold="#ffd24a", saff="#e08a2a";
+	  // khaki uniform shoulders
+	  ctx.fill_style=flash._STR7__:khaki; ctx.begin_path(); ctx.ellipse(0,R*0.55,R*0.92,R*0.6,0,0,7); ctx.fill();
+	  ctx.fill_style=gold; ctx.begin_path(); ctx.round_rect(-R*0.86,R*0.28,R*0.3,R*0.12,2); ctx.round_rect(R*0.56,R*0.28,R*0.3,R*0.12,2); ctx.fill();   // epaulettes
+	  ctx.fill_style=khakiD; ctx.begin_path(); ctx.move_to(-R*0.25,R*0.1); ctx.line_to(R*0.25,R*0.1); ctx.line_to(0,R*0.52); ctx.close_path(); ctx.fill();
+	  ctx.fill_style=skinSh; ctx.fill_rect(-R*0.16,0,R*0.32,R*0.18);   // neck
+	  // face
+	  ctx.fill_style=flash._STR8__:skin; ctx.begin_path(); ctx.ellipse(0,-R*0.12,R*0.5,R*0.55,0,0,7); ctx.fill();
+	  ctx.fill_style=skinSh; ctx.begin_path(); ctx.ellipse(0,R*0.18,R*0.28,R*0.14,0,0,PI); ctx.fill();
+	  // angry brows
+	  ctx.stroke_style="#1a1008"; ctx.line_width=R*0.07; ctx.line_cap="round"; ctx.begin_path(); ctx.move_to(-R*0.32,-R*0.18); ctx.line_to(-R*0.08,-R*0.06); ctx.move_to(R*0.32,-R*0.18); ctx.line_to(R*0.08,-R*0.06); ctx.stroke();
+	  // corrupted glowing saffron eyes
+	  ctx.save(); ctx.shadow_color=saff; ctx.shadow_blur=8; circle(-R*0.18,-R*0.02,R*0.09,flash._STR11__:saff); circle(R*0.18,-R*0.02,R*0.09,flash._STR12__:saff); ctx.restore();
+	  ctx.fill_style="#2a1500"; circle(-R*0.18,-R*0.02,R*0.04,"#2a1500"); circle(R*0.18,-R*0.02,R*0.04,"#2a1500");
+	  // big mustache
+	  ctx.fill_style=flash._STR16__:"#1a1008"; ctx.begin_path(); ctx.move_to(0,R*0.12); ctx.quadratic_curve_to(-R*0.28,R*0.06,-R*0.34,R*0.2); ctx.quadratic_curve_to(-R*0.2,R*0.16,0,R*0.18); ctx.quadratic_curve_to(R*0.2,R*0.16,R*0.34,R*0.2); ctx.quadratic_curve_to(R*0.28,R*0.06,0,R*0.12); ctx.fill();
+	  ctx.fill_style="#3a1414"; ctx.begin_path(); ctx.ellipse(0,R*0.26,R*0.12,R*0.05,0,0,7); ctx.fill();   // snarl
+	  // peaked police cap
+	  ctx.fill_style=flash._STR19__:cap; ctx.begin_path(); ctx.ellipse(0,-R*0.5,R*0.6,R*0.3,0,PI,0); ctx.fill();
+	  ctx.fill_style=cap; ctx.begin_path(); ctx.ellipse(0,-R*0.42,R*0.64,R*0.16,0,0,7); ctx.fill();
+	  ctx.fill_style="#12121a"; ctx.begin_path(); ctx.ellipse(0,-R*0.34,R*0.66,R*0.12,0,0,PI); ctx.fill();   // brim
+	  ctx.fill_style=gold; ctx.begin_path(); ctx.arc(0,-R*0.5,R*0.11,0,7); ctx.fill(); ctx.fill_style=saff; ctx.begin_path(); ctx.arc(0,-R*0.5,R*0.05,0,7); ctx.fill();   // badge
+	  // call-center headset
+	  ctx.stroke_style="#20202a"; ctx.line_width=R*0.05; ctx.begin_path(); ctx.arc(0,-R*0.5,R*0.6,PI*1.12,PI*1.88); ctx.stroke();
+	  ctx.fill_style="#20202a"; ctx.begin_path(); ctx.ellipse(R*0.56,-R*0.26,R*0.09,R*0.13,0,0,7); ctx.fill();
+	  ctx.stroke_style="#20202a"; ctx.line_width=R*0.035; ctx.begin_path(); ctx.move_to(R*0.56,-R*0.16); ctx.quadratic_curve_to(R*0.42,R*0.12,R*0.14,R*0.22); ctx.stroke();
+	  ctx.fill_style=saff; ctx.begin_path(); ctx.arc(R*0.14,R*0.22,R*0.045,0,7); ctx.fill();
+	

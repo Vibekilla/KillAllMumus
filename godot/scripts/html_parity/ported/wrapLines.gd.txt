@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function wrapLines — review required
+func wrapLines(t, maxw):
+	 ctx.font='bold 14px "Trebuchet MS"'; var words=t.split(' '); var line='',out=[]; for wd in words){ if(ctx.measureText(line+wd+' ').width>maxw && line){ out.append(line.trim()); line=wd+' '; } else line+=wd+' '; } if(line.trim())out.append(line.trim()); return out; 

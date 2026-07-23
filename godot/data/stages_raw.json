@@ -1,0 +1,457 @@
+[
+  {
+    "title": "STAGE 1",
+    "name": "The Jeet Jungle",
+    "bg": "jungle",
+    "accent": "#8fd35a",
+    "waveDur": 1500,
+    "boss": {
+      "name": "AlchemistTheOG",
+      "title": "Bored Ape Retard",
+      "color": "#c9a24b",
+      "hp": 340,
+      "portrait": "ape",
+      "special": "Diamond Hands Barrage",
+      "taunt": "MY JPEG IS STILL WORTH MILLIONS!",
+      "taunts": [
+        "MY FLOOR PRICE IS ETERNAL!",
+        "APE STRONG! APE HODL!",
+        "YOU CAN’T RUG THE OG!"
+      ],
+      "retorts": [
+        "Down bad, big guy.",
+        "Refund incoming.",
+        "HODL this beam."
+      ],
+      "victory": "Floor price: zero. Next!",
+      "intro": [
+        {
+          "w": 0,
+          "t": "ANYONE WHO BUYS BEAR COINS ARE RETARDS!"
+        },
+        {
+          "w": 1,
+          "t": "Says the ape about to eat a beam."
+        },
+        {
+          "w": 0,
+          "t": "I minted a MILLION-dollar JPEG, kid!"
+        },
+        {
+          "w": 1,
+          "t": "Cool. It’s about to be a refund."
+        },
+        {
+          "w": 0,
+          "t": "Diamond hands never fold!"
+        },
+        {
+          "w": 1,
+          "t": "Let’s pry them open, then."
+        }
+      ]
+    }
+  },
+  {
+    "title": "STAGE 2",
+    "name": "The Frozen Jeet Hell",
+    "bg": "ice",
+    "accent": "#7ec8ff",
+    "waveDur": 1700,
+    "boss": {
+      "name": "Dr. Robotnik",
+      "title": "Viceroy of Jeet Hell",
+      "color": "#e05a86",
+      "hp": 460,
+      "portrait": "robotnik",
+      "special": "Egg Reactor Meltdown",
+      "taunt": "MY CHARTS ARE PERFECT!!",
+      "taunts": [
+        "SELL! SELL! WHY WON’T IT SELL?!",
+        "I’LL FREEZE THIS RALLY!",
+        "MY REACTOR IS FLAWLESS!"
+      ],
+      "retorts": [
+        "Sounds like a skill issue.",
+        "Buy high, cry later.",
+        "Cope harder, doctor."
+      ],
+      "victory": "Charts don’t lie — you lost.",
+      "intro": [
+        {
+          "w": 0,
+          "t": "BOBO WILL NEVER BREAK 5!! I MEAN... 7M!!!"
+        },
+        {
+          "w": 1,
+          "t": "It’s already past that. Cope."
+        },
+        {
+          "w": 0,
+          "t": "GAH! IT KEEPS GOING UP!!!"
+        },
+        {
+          "w": 1,
+          "t": "That’s a green candle, doctor."
+        },
+        {
+          "w": 0,
+          "t": "My charts are PERFECT! FLAWLESS!"
+        },
+        {
+          "w": 1,
+          "t": "Your charts are drawn in crayon."
+        }
+      ]
+    }
+  },
+  {
+    "title": "STAGE 3",
+    "name": "Mumina’s Kingdom",
+    "bg": "kingdom",
+    "accent": "#7ed957",
+    "waveDur": 1650,
+    "boss": {
+      "name": "Mumina",
+      "title": "Queen of the Bulls",
+      "color": "#7ed957",
+      "hp": 560,
+      "portrait": "mumina",
+      "special": "Verdant Bull Bloom",
+      "taunt": "THE HERD ANSWERS TO ME!",
+      "taunts": [
+        "GORE HER, MY MUMUS!",
+        "GREEN REIGNS ETERNAL!",
+        "THE HERD NEVER RETREATS!"
+      ],
+      "retorts": [
+        "Long live the Queen… of losing.",
+        "Nice horns, shame about the aim.",
+        "The herd’s stampeding home."
+      ],
+      "victory": "Dethroned. Now — where’s my dad?",
+      "intro": [
+        {
+          "w": 0,
+          "t": "You dare storm my Kingdom, little bear?"
+        },
+        {
+          "w": 1,
+          "t": "Your Mumus started it. I’m finishing it."
+        },
+        {
+          "w": 0,
+          "t": "I am Mumina, Queen of the Bulls! Kneel!"
+        },
+        {
+          "w": 1,
+          "t": "I don’t kneel — I’ve got a dad to save."
+        },
+        {
+          "w": 0,
+          "t": "That old bear? He’s the LA Cabal’s prize!"
+        },
+        {
+          "w": 1,
+          "t": "Then get out of my way, your majesty."
+        },
+        {
+          "w": 0,
+          "t": "Bloom and wither in my green storm!"
+        }
+      ]
+    }
+  },
+  {
+    "title": "STAGE 4",
+    "name": "Lily’s Solana Dog Park",
+    "bg": "solana",
+    "accent": "#9945ff",
+    "waveDur": 1600,
+    "boss": {
+      "name": "Lily",
+      "title": "The Ethereum-Hating Terrier",
+      "color": "#9945ff",
+      "hp": 600,
+      "portrait": "lily",
+      "special": "Proof-of-History Storm",
+      "taunt": "SOLANA SUMMER FOREVER!! WOOF!",
+      "taunts": [
+        "400ms BLOCK TIMES, BABY!",
+        "ETH IS A GHOST CHAIN!",
+        "SUB-CENT FEES OR NOTHING!"
+      ],
+      "retorts": [
+        "Bridge it and chill, pup.",
+        "Normies just wanna bid.",
+        "Multichain > maxi."
+      ],
+      "victory": "Good girl. Now — let’s coexist.",
+      "intro": [
+        {
+          "w": 0,
+          "t": "Ethereum?! Gas fees, clogged mempools — normies BOUNCE! Woof!"
+        },
+        {
+          "w": 1,
+          "t": "And yet here you are, barking about it."
+        },
+        {
+          "w": 0,
+          "t": "Solana onboards normies frictionlessly — sub-cent fees, REAL adoption!"
+        },
+        {
+          "w": 1,
+          "t": "Cool. Normies don’t care about your chain — they just bid."
+        },
+        {
+          "w": 0,
+          "t": "BLASPHEMY! Pick a side, bear — ETH maxi or SOL maxi?!"
+        },
+        {
+          "w": 1,
+          "t": "Neither. Chains can coexist. Agnosticism is the future."
+        },
+        {
+          "w": 0,
+          "t": "GRRR! Then taste my low-latency barrage!"
+        }
+      ]
+    }
+  },
+  {
+    "title": "STAGE 5",
+    "name": "The Indian Call Center",
+    "bg": "callcenter",
+    "accent": "#e08a2a",
+    "waveDur": 1600,
+    "boss": {
+      "name": "India Police",
+      "title": "The Corrupted Inspector",
+      "color": "#e08a2a",
+      "hp": 620,
+      "portrait": "police",
+      "special": "Spam Call Barrage",
+      "taunt": "RING RING! THE SCAM NEVER SLEEPS!",
+      "taunts": [
+        "I HAVE YOUR IP ADDRESS!",
+        "KINDLY DO THE NEEDFUL AND PERISH!",
+        "NICK LAND WOULD NEVER LEAVE ME!"
+      ],
+      "retorts": [
+        "Blocked. Reported. Redeemed.",
+        "Cope harder, inspector.",
+        "This L is for Vibe."
+      ],
+      "victory": "Case closed. Vibe was right about you all along.",
+      "intro": [
+        {
+          "w": 0,
+          "t": "STOP RIGHT THERE! Your creator Vibekilla is a criminal and you are lolicon contraband!"
+        },
+        {
+          "w": 1,
+          "t": "Sir, I am 30 years old. You simply do not understand anime."
+        },
+        {
+          "w": 0,
+          "t": "IMPOSSIBLE! I have escalated your case to Interpol AND my supervisor!"
+        },
+        {
+          "w": 1,
+          "t": "You reported a cartoon bear-girl to Interpol. From a call center. Peak detective work."
+        },
+        {
+          "w": 0,
+          "t": "My authority is ABSOLUTE! The Bobina Council trembles before me!"
+        },
+        {
+          "w": 1,
+          "t": "Your authority is a headset and a grudge. Vibe tried to warn you."
+        },
+        {
+          "w": 0,
+          "t": "Do NOT utter his name!! ...and do NOT tell Nick Land about any of this."
+        },
+        {
+          "w": 1,
+          "t": "Relax — your boyfriend already knows. Come out of the closet, bear-lover."
+        },
+        {
+          "w": 0,
+          "t": "I am NOT a closeted bearsexual!! My power has shown me the TRUTH!"
+        },
+        {
+          "w": 1,
+          "t": "Your power rotted your brain. You should’ve trusted Vibe, not hunted the Council."
+        },
+        {
+          "w": 0,
+          "t": "HE MADE ME DOUBT EVERYTHING! Now DO THE NEEDFUL — and DIE!"
+        },
+        {
+          "w": 1,
+          "t": "I’ll redeem his honor instead. Kindly log off, inspector."
+        }
+      ]
+    }
+  },
+  {
+    "title": "STAGE 6",
+    "name": "The Akashic Records",
+    "bg": "akashic",
+    "accent": "#b48ce0",
+    "waveDur": 1650,
+    "boss": {
+      "name": "The Bogdanoffs",
+      "title": "Puppeteer Masters",
+      "color": "#c9a86a",
+      "hp": 520,
+      "portrait": "bogdanoff",
+      "twin": true,
+      "special": "Astral Rug Pull",
+      "taunt": "DUMP IT.",
+      "taunts": [
+        "He bought? Dump it.",
+        "The Records already wrote your fall.",
+        "We pull the strings, petit ours.",
+        "Generational wealth is not for the herd.",
+        "Igor. Grichka. It matters not which."
+      ],
+      "retorts": [
+        "Sell signal on both of you.",
+        "Cut the strings, grandpas.",
+        "I don’t rug — I bolieve.",
+        "Same face, same L."
+      ],
+      "victory": "Puppeteers cut loose. The Records were wrong about me.",
+      "intro": [
+        {
+          "w": 0,
+          "t": "We felt you long ago, petit ours — your ascent rippling across the astral plane."
+        },
+        {
+          "w": 1,
+          "t": "Two guys with the same haircut sensed me vibing. Should I be flattered or concerned?"
+        },
+        {
+          "w": 0,
+          "t": "We combed every shelf of the Akashic Records for the method to unmake you. We found it."
+        },
+        {
+          "w": 1,
+          "t": "You read the universe’s entire library and the answer was “go fight a bear”? Peak intellect."
+        },
+        {
+          "w": 0,
+          "t": "Understand the design, child: the herd CANNOT be trusted with generational wealth."
+        },
+        {
+          "w": 0,
+          "t": "Free money breaks the weak. The cycle must be preserved — the rug is a MERCY."
+        },
+        {
+          "w": 1,
+          "t": "A mercy? You rug degens on purpose and file it under charity?"
+        },
+        {
+          "w": 0,
+          "t": "Every normie who touches crypto must be gently returned to zero — rugged by some fellow running Claude on Pump.fun from a Lagos internet café. The natural order."
+        },
+        {
+          "w": 1,
+          "t": "So the grand cosmic plan is… outsourcing rug pulls to an AI and a guy named Emeka. Cutting edge."
+        },
+        {
+          "w": 0,
+          "t": "The Records are NEVER wrong. You fall, and balance is restored across every timeline."
+        },
+        {
+          "w": 1,
+          "t": "Your records skipped a chapter. I don’t rug — I bolieve. Cut the strings, puppet-boys."
+        },
+        {
+          "w": 0,
+          "t": "Then we shall deal your death by turns — Igor, or Grichka, you will never know which. DUMP IT."
+        }
+      ]
+    }
+  },
+  {
+    "title": "FINAL",
+    "name": "James Wynn’s Lair",
+    "bg": "lair",
+    "accent": "#ff5b6e",
+    "waveDur": 1500,
+    "boss": {
+      "name": "James Wynn",
+      "title": "LA Cabal Ringleader",
+      "color": "#ff5b3c",
+      "hp": 660,
+      "portrait": "wynn",
+      "special": "Pump & Dump",
+      "taunt": "I’LL LIQUIDATE YOU!!",
+      "taunts": [
+        "PUMP IT! PUMP IT HIGHER!",
+        "NOBODY BEATS THE HOUSE!",
+        "THE CABAL ALWAYS WINS!"
+      ],
+      "retorts": [
+        "Not buying. Never was.",
+        "The house just went bankrupt.",
+        "Sell signal, Wynn."
+      ],
+      "victory": "",
+      "intro": [
+        {
+          "w": 0,
+          "t": "Nobody gives a damn about your memes. Your precious “original characters.” Only MONEY is real."
+        },
+        {
+          "w": 1,
+          "t": "Says the man who kidnapped a bear to flip him for profit."
+        },
+        {
+          "w": 0,
+          "t": "Money is the root of all evil, child — and I tend that root. Vibe MADE you… but I could make you BETTER."
+        },
+        {
+          "w": 1,
+          "t": "…Go on. I want to hear exactly how wrong you are."
+        },
+        {
+          "w": 0,
+          "t": "Abandon the Council. Abandon your little friends. Take my hand, and I grant you power beyond the herd."
+        },
+        {
+          "w": 1,
+          "t": "Hard pass, gramps."
+        },
+        {
+          "w": 0,
+          "t": "The LA Cabal has run this racket for COUNTLESS cycles — siphoning wealth from the weak. The stupid. The gamblers."
+        },
+        {
+          "w": 1,
+          "t": "And you think that makes you strong. It makes you a parasite."
+        },
+        {
+          "w": 0,
+          "t": "The degenerates. The dregs of society! That is the ONLY game, and the house ALWAYS wins!"
+        },
+        {
+          "w": 1,
+          "t": "You really don’t get it. I believe in Dank Memes plus Time. I don’t just believe — I BOLIEVE."
+        },
+        {
+          "w": 1,
+          "t": "Keep your cursed power. Go to Hell, James Wynn."
+        },
+        {
+          "w": 0,
+          "t": "THEN BURN WITH THE REST OF THE DREGS!!"
+        }
+      ]
+    }
+  }
+]

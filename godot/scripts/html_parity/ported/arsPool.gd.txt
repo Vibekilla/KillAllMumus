@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function arsPool — review required
+func arsPool(type):
+	 if(type=='i') return CONSUMABLES.map(func(c): return {}.merge(c,{locked:false}));   // consumables aren't shop-locked (you buy quantities), so all are equippable
+	  var all = type=='w' ? WEAPON_ORDER.map(func(k): return {key:k}.merge(WEAPONS[k])) : type=='s' ? SPECIALS : MELEE; return all.map(func(it): return {}.merge(it,{locked:!contentUnlocked(type,it.key)})); }   // show ALL gear; locked ones are visible but must be bought at the shop before they can be equipped
+

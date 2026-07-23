@@ -1,143 +1,401 @@
-[
-  {
-    "key": "og",
-    "name": "OG",
-    "emoji": "\ud83d\udc3b"
+{
+  "outfits": [
+    {
+      "key": "og",
+      "name": "OG",
+      "emoji": "🐻",
+      "colors": [
+        "#ff5b8d",
+        "#ffd6f2"
+      ]
+    },
+    {
+      "key": "maid",
+      "name": "Maid",
+      "emoji": "🎀",
+      "colors": [
+        "#f4efe6",
+        "#d23a44"
+      ]
+    },
+    {
+      "key": "nanosuit",
+      "name": "Nanosuit",
+      "emoji": "🤖",
+      "colors": [
+        "#3ad84a",
+        "#e8324a"
+      ]
+    },
+    {
+      "key": "badger",
+      "name": "Badger",
+      "emoji": "🦡",
+      "colors": [
+        "#f0b030",
+        "#f6efe0"
+      ]
+    },
+    {
+      "key": "viking",
+      "name": "Viking",
+      "emoji": "⚔️",
+      "colors": [
+        "#cfd6df",
+        "#e8dcc0"
+      ]
+    },
+    {
+      "key": "ourbit",
+      "name": "Ourbit",
+      "emoji": "🟢",
+      "colors": [
+        "#5cb23a",
+        "#7cc255"
+      ]
+    },
+    {
+      "key": "bullbina",
+      "name": "Bullbina",
+      "emoji": "🐂",
+      "colors": [
+        "#f0ead6",
+        "#ffd24a"
+      ]
+    },
+    {
+      "key": "monke",
+      "name": "Monke",
+      "emoji": "🐵",
+      "colors": [
+        "#e0b060",
+        "#ffd23a"
+      ]
+    },
+    {
+      "key": "pickle",
+      "name": "Pickle",
+      "emoji": "🥒",
+      "colors": [
+        "#7ac040",
+        "#6aa832"
+      ]
+    },
+    {
+      "key": "emblem",
+      "name": "Emblem",
+      "emoji": "💎",
+      "colors": [
+        "#ffd27a",
+        "#fff8e0"
+      ]
+    },
+    {
+      "key": "labrat",
+      "name": "Labrat",
+      "emoji": "🥽",
+      "colors": [
+        "#8fd0ff",
+        "#eef1f4"
+      ]
+    },
+    {
+      "key": "neko",
+      "name": "Neko",
+      "emoji": "🐱",
+      "colors": [
+        "#ff8ac0",
+        "#ffd6ea"
+      ]
+    },
+    {
+      "key": "kigurumi",
+      "name": "Bear",
+      "emoji": "🧸",
+      "colors": [
+        "#d8b47a",
+        "#f0dcc0"
+      ]
+    },
+    {
+      "key": "cheese",
+      "name": "Mouse",
+      "emoji": "🧀",
+      "colors": [
+        "#c9c9d4",
+        "#ffe08a"
+      ]
+    },
+    {
+      "key": "business",
+      "name": "Business",
+      "emoji": "💼",
+      "colors": [
+        "#6a84c0",
+        "#c02a3a"
+      ]
+    },
+    {
+      "key": "jester",
+      "name": "Jester",
+      "emoji": "🤡",
+      "colors": [
+        "#5a6ee0",
+        "#d8354a"
+      ]
+    },
+    {
+      "key": "samurai",
+      "name": "Samurai",
+      "emoji": "🥷",
+      "colors": [
+        "#c33346",
+        "#d8a72e"
+      ]
+    },
+    {
+      "key": "bride",
+      "name": "Bride",
+      "emoji": "👰",
+      "colors": [
+        "#f7f2ec",
+        "#ffd6e6"
+      ]
+    },
+    {
+      "key": "angel",
+      "name": "Angel",
+      "emoji": "👼",
+      "colors": [
+        "#fbf6e8",
+        "#ffe38a"
+      ]
+    },
+    {
+      "key": "golden",
+      "name": "Golden",
+      "emoji": "✨",
+      "colors": [
+        "#ffcf3a",
+        "#fff1a8"
+      ]
+    },
+    {
+      "key": "succubus",
+      "name": "Succubus",
+      "emoji": "😈",
+      "colors": [
+        "#c81e4a",
+        "#8a1866"
+      ]
+    },
+    {
+      "key": "voidling",
+      "name": "Voidling",
+      "emoji": "🌌",
+      "colors": [
+        "#9d6bff",
+        "#e0d0ff"
+      ]
+    },
+    {
+      "key": "honeybee",
+      "name": "Bobeena",
+      "emoji": "🐝",
+      "colors": [
+        "#ffd23a",
+        "#fff3b0"
+      ]
+    },
+    {
+      "key": "banana",
+      "name": "Banana",
+      "emoji": "🍌",
+      "colors": [
+        "#ffcf3a",
+        "#ffe89a"
+      ]
+    },
+    {
+      "key": "squirrely",
+      "name": "Squirrely",
+      "emoji": "🐿️",
+      "colors": [
+        "#a5642e",
+        "#e6cfa0"
+      ]
+    },
+    {
+      "key": "honeypot",
+      "name": "Honeypot",
+      "emoji": "🍯",
+      "colors": [
+        "#e0972a",
+        "#ffcf5a"
+      ]
+    },
+    {
+      "key": "empress",
+      "name": "Empress",
+      "emoji": "👑",
+      "colors": [
+        "#3a2464",
+        "#e8c063"
+      ]
+    },
+    {
+      "key": "cabal",
+      "name": "Cabal ☠",
+      "locked": true,
+      "emoji": "☠",
+      "colors": [
+        "#ff3b1a",
+        "#ffcf5a"
+      ]
+    }
+  ],
+  "emoji": {
+    "og": "🐻",
+    "maid": "🎀",
+    "nanosuit": "🤖",
+    "badger": "🦡",
+    "viking": "⚔️",
+    "ourbit": "🟢",
+    "bullbina": "🐂",
+    "monke": "🐵",
+    "pickle": "🥒",
+    "emblem": "💎",
+    "labrat": "🥽",
+    "neko": "🐱",
+    "kigurumi": "🧸",
+    "cheese": "🧀",
+    "business": "💼",
+    "jester": "🤡",
+    "samurai": "🥷",
+    "bride": "👰",
+    "angel": "👼",
+    "golden": "✨",
+    "succubus": "😈",
+    "voidling": "🌌",
+    "honeybee": "🐝",
+    "banana": "🍌",
+    "squirrely": "🐿️",
+    "honeypot": "🍯",
+    "empress": "👑",
+    "cabal": "☠"
   },
-  {
-    "key": "maid",
-    "name": "Maid",
-    "emoji": "\ud83c\udf80"
-  },
-  {
-    "key": "nanosuit",
-    "name": "Nanosuit",
-    "emoji": "\ud83e\udd16"
-  },
-  {
-    "key": "badger",
-    "name": "Badger",
-    "emoji": "\ud83e\udda1"
-  },
-  {
-    "key": "viking",
-    "name": "Viking",
-    "emoji": "\u2694\ufe0f"
-  },
-  {
-    "key": "ourbit",
-    "name": "Ourbit",
-    "emoji": "\ud83d\udfe2"
-  },
-  {
-    "key": "bullbina",
-    "name": "Bullbina",
-    "emoji": "\ud83d\udc02"
-  },
-  {
-    "key": "monke",
-    "name": "Monke",
-    "emoji": "\ud83d\udc35"
-  },
-  {
-    "key": "pickle",
-    "name": "Pickle",
-    "emoji": "\ud83e\udd52"
-  },
-  {
-    "key": "emblem",
-    "name": "Emblem",
-    "emoji": "\ud83d\udc8e"
-  },
-  {
-    "key": "labrat",
-    "name": "Labrat",
-    "emoji": "\ud83e\udd7d"
-  },
-  {
-    "key": "neko",
-    "name": "Neko",
-    "emoji": "\ud83d\udc31"
-  },
-  {
-    "key": "kigurumi",
-    "name": "Bear",
-    "emoji": "\ud83e\uddf8"
-  },
-  {
-    "key": "cheese",
-    "name": "Mouse",
-    "emoji": "\ud83e\uddc0"
-  },
-  {
-    "key": "business",
-    "name": "Business",
-    "emoji": "\ud83d\udcbc"
-  },
-  {
-    "key": "jester",
-    "name": "Jester",
-    "emoji": "\ud83e\udd21"
-  },
-  {
-    "key": "samurai",
-    "name": "Samurai",
-    "emoji": "\ud83e\udd77"
-  },
-  {
-    "key": "bride",
-    "name": "Bride",
-    "emoji": "\ud83d\udc70"
-  },
-  {
-    "key": "angel",
-    "name": "Angel",
-    "emoji": "\ud83d\udc7c"
-  },
-  {
-    "key": "golden",
-    "name": "Golden",
-    "emoji": "\u2728"
-  },
-  {
-    "key": "succubus",
-    "name": "Succubus",
-    "emoji": "\ud83d\ude08"
-  },
-  {
-    "key": "voidling",
-    "name": "Voidling",
-    "emoji": "\ud83c\udf0c"
-  },
-  {
-    "key": "honeybee",
-    "name": "Bobeena",
-    "emoji": "\ud83d\udc1d"
-  },
-  {
-    "key": "banana",
-    "name": "Banana",
-    "emoji": "\ud83c\udf4c"
-  },
-  {
-    "key": "squirrely",
-    "name": "Squirrely",
-    "emoji": "\ud83d\udc3f\ufe0f"
-  },
-  {
-    "key": "honeypot",
-    "name": "Honeypot",
-    "emoji": "\ud83c\udf6f"
-  },
-  {
-    "key": "empress",
-    "name": "Empress",
-    "emoji": "\ud83d\udc51"
-  },
-  {
-    "key": "cabal",
-    "name": "Cabal",
-    "emoji": "\u2620",
-    "locked": true
+  "colors": {
+    "og": [
+      "#ff5b8d",
+      "#ffd6f2"
+    ],
+    "maid": [
+      "#f4efe6",
+      "#d23a44"
+    ],
+    "nanosuit": [
+      "#3ad84a",
+      "#e8324a"
+    ],
+    "badger": [
+      "#f0b030",
+      "#f6efe0"
+    ],
+    "viking": [
+      "#cfd6df",
+      "#e8dcc0"
+    ],
+    "ourbit": [
+      "#5cb23a",
+      "#7cc255"
+    ],
+    "bullbina": [
+      "#f0ead6",
+      "#ffd24a"
+    ],
+    "monke": [
+      "#e0b060",
+      "#ffd23a"
+    ],
+    "pickle": [
+      "#7ac040",
+      "#6aa832"
+    ],
+    "emblem": [
+      "#ffd27a",
+      "#fff8e0"
+    ],
+    "labrat": [
+      "#8fd0ff",
+      "#eef1f4"
+    ],
+    "neko": [
+      "#ff8ac0",
+      "#ffd6ea"
+    ],
+    "kigurumi": [
+      "#d8b47a",
+      "#f0dcc0"
+    ],
+    "cheese": [
+      "#c9c9d4",
+      "#ffe08a"
+    ],
+    "business": [
+      "#6a84c0",
+      "#c02a3a"
+    ],
+    "jester": [
+      "#5a6ee0",
+      "#d8354a"
+    ],
+    "samurai": [
+      "#c33346",
+      "#d8a72e"
+    ],
+    "bride": [
+      "#f7f2ec",
+      "#ffd6e6"
+    ],
+    "angel": [
+      "#fbf6e8",
+      "#ffe38a"
+    ],
+    "golden": [
+      "#ffcf3a",
+      "#fff1a8"
+    ],
+    "succubus": [
+      "#c81e4a",
+      "#8a1866"
+    ],
+    "voidling": [
+      "#9d6bff",
+      "#e0d0ff"
+    ],
+    "honeybee": [
+      "#ffd23a",
+      "#fff3b0"
+    ],
+    "banana": [
+      "#ffcf3a",
+      "#ffe89a"
+    ],
+    "squirrely": [
+      "#a5642e",
+      "#e6cfa0"
+    ],
+    "honeypot": [
+      "#e0972a",
+      "#ffcf5a"
+    ],
+    "empress": [
+      "#3a2464",
+      "#e8c063"
+    ],
+    "cabal": [
+      "#ff3b1a",
+      "#ffcf5a"
+    ]
   }
-]
+}

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function emblemDef — review required
+func emblemDef(id):
+	 return EMBLEMS.find(func(e): return e.id==id); 

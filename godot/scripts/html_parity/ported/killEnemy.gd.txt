@@ -1,0 +1,17 @@
+## AUTO-PORTED from HTML function killEnemy — review required
+func killEnemy(e, silent):
+
+	  totalKills += 1; killsThisStage += 1;
+	  if(randf()<0.06){ dropItem(e.x,e.y,'skull'); var _sk=items[items.size()-1]; if(_sk) _sk.val=(e.kind=='big'?30:10); }   // ~6% of Mumu kills drop a collectible 💀 skull (scarcer — heads are worth more now)
+	  estats.kills += 1; if(!hasEmblem('first_mumu'))unlockEmblem('first_mumu'); if(estats.kills>=500)unlockEmblem('kills_500'); if(estats.kills>=2500)unlockEmblem('kills_2500'); if(estats.kills>=5000)unlockEmblem('kills_5000'); if(estats.kills>=10000)unlockEmblem('kills_10000');
+	  sessionScore += floorf((e.kind=='big'?500:100)*scoreMult());
+	  burst(e.x,e.y, e.icy?'#9fe0ff':'#ff9ecb');
+	  floaters.append({x:e.x,y:e.y,life:30,vy:-0.7,scale:e.kind=='big'?1:0.62});
+	  dropLoot(e);
+	  if(e.kind=='elite'){ addPower(1.5); pop(e.x,e.y-24,'ELITE DOWN — POWER +','#ffd27a'); }   // elite bounty: ~30% of the power bar (was effectively a free full fill) — takes a few elites to max now
+	  if(e.kind=='big') bulletCancelNear(e.x,e.y,80);
+	  if(run) run.special=minf(100, run.special + (e.kind=='big'?4:1.4));  // harder to charge
+	  if(!silent) sfx('kill');
+	  if(totalKills % KILL_EXTEND == 0) killExtend();
+	  checkExtend();
+

@@ -1,0 +1,10 @@
+## AUTO-PORTED from HTML function resetInventory — review required
+func resetInventory():
+	   // wipe bought gear + carried items + skulls back to the starter kit; KEEP emblems, outfits & NG+
+	  for k in shopUnlocks) delete shopUnlocks[k]; saveShopUnlocks();
+	  for k in consumInv) delete consumInv[k]; saveConsum();
+	  mumuHeads=0; saveHeads();
+	  arsenalW=['laser']; arsenalS=['mech','bearzooka']; arsenalM=['katana']; arsenalI=['honeycomb','bulltears','bullsouls']; selConsum=0; saveArsenal();
+	  try{ HtmlBridge.storage_set('bobina_invmigrated','1'); }catch(e){}   // stay "migrated" so the wipe sticks (no auto-regrant)
+	  if(run) applyArsenalToRun();
+

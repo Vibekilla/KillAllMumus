@@ -434,9 +434,117 @@ app.get('/share-img/:type.png', async (req, res) => {
 const GODOT_DIR = path.join(__dirname, 'public_godot');
 const LEGACY_DIR = path.join(__dirname, 'public');
 const fs = require('fs');
-const useGodot =
-  process.env.USE_GODOT !== '0' &&
-  fs.existsSync(path.join(GODOT_DIR, 'index.html'));
+
+// HTML client (public/) is the production source of truth.
+// Godot web export lives at public_godot/ and is testable without flipping production.
+const godotExportReady =
+  fs.existsSync(path.join(GODOT_DIR, 'index.html')) &&
+  (fs.existsSync(path.join(GODOT_DIR, 'index.wasm')) ||
+    fs.existsSync(path.join(GODOT_DIR, 'index.pck')));
+// Full cutover only when USE_GODOT=1 AND export is present
+const useGodotDefault = process.env.USE_GODOT === '1' && godotExportReady;
+
+/** Query/path flags that select the Godot test client (does not change production default). */
+function wantsGodotTest(req) {
+  const q = req.query || {};
+  const flag = (v) => {
+    if (v == null) return false;
+    const s = String(v).toLowerCase();
+    return s === '' || s === '1' || s === 'true' || s === 'yes' || s === 'godot' || s === 'on';
+  };
+  if (flag(q.test) || flag(q.godot)) return true;
+  // ?client=godot
+  if (String(q.client || '').toLowerCase() === 'godot') return true;
+  return false;
+}
+
+function setGodotHeaders(res, filePath) {
+  // Threaded WASM builds need COOP/COEP; safe on /godot/* only
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  if (filePath && filePath.endsWith('.wasm')) {
+    res.setHeader('Content-Type', 'application/wasm');
+  }
+  if (
+    filePath &&
+    (filePath.endsWith('.js') || filePath.endsWith('.wasm') || filePath.endsWith('.pck'))
+  ) {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+  }
+}
+
+// Godot HTML5 needs correct WASM MIME
+express.static.mime.define({ 'application/wasm': ['wasm'] });
+
+// ── Test entry: /?test  /?godot  /?client=godot  →  /godot/ ──────────────
+app.get(['/', '/index.html'], (req, res, next) => {
+  if (!godotExportReady) return next();
+  if (wantsGodotTest(req) && !useGodotDefault) {
+    // Preserve any other query params when redirecting
+    const qs = new URLSearchParams(req.query);
+    qs.delete('test');
+    qs.delete('godot');
+    if (String(qs.get('client') || '').toLowerCase() === 'godot') qs.delete('client');
+    const rest = qs.toString();
+    return res.redirect(302, '/godot/' + (rest ? '?' + rest : ''));
+  }
+  return next();
+});
+
+// ── Always mount Godot export under /godot/ when present (test / preview) ─
+if (godotExportReady) {
+  app.use(
+    '/godot',
+    express.static(GODOT_DIR, {
+      setHeaders(res, filePath) {
+        setGodotHeaders(res, filePath);
+      },
+      index: 'index.html',
+    })
+  );
+  // SPA fallback under /godot/*
+  app.get('/godot/*', (req, res, next) => {
+    if (
+      req.path.startsWith('/api') ||
+      req.path.startsWith('/auth') ||
+      req.path.startsWith('/share')
+    ) {
+      return next();
+    }
+    setGodotHeaders(res, 'index.html');
+    res.sendFile(path.join(GODOT_DIR, 'index.html'));
+  });
+  console.log('Godot test client mounted at /godot/  (try /?test or /godot/)');
+}
+
+// ── Default client ───────────────────────────────────────────────────────
+if (useGodotDefault) {
+  app.use(
+    express.static(GODOT_DIR, {
+      setHeaders(res, filePath) {
+        setGodotHeaders(res, filePath);
+      },
+    })
+  );
+  app.get('*', (req, res, next) => {
+    if (
+      req.path.startsWith('/api') ||
+      req.path.startsWith('/auth') ||
+      req.path.startsWith('/share') ||
+      req.path.startsWith('/godot')
+    ) {
+      return next();
+    }
+    setGodotHeaders(res, 'index.html');
+    res.sendFile(path.join(GODOT_DIR, 'index.html'));
+  });
+  // HTML legacy still available during cutover
+  app.use('/legacy', express.static(LEGACY_DIR));
+  console.log('Serving Godot as DEFAULT (USE_GODOT=1); HTML at /legacy/');
+} else {
+  app.use(express.static(LEGACY_DIR));
+  console.log('Serving legacy HTML client from public/ (default)');
+}
 
 app.get('/api/health', async (req, res) => {
   try {
@@ -448,50 +556,16 @@ app.get('/api/health', async (req, res) => {
       db: 'postgres',
       scores: r.rows[0].n,
       bobinaAuth: bobinaConfigured(),
-      client: useGodot ? 'godot' : 'html-legacy',
+      client: useGodotDefault ? 'godot' : 'html-legacy',
+      godotExport: godotExportReady,
+      godotTestUrl: godotExportReady ? '/godot/' : null,
+      godotTestFlags: ['?test', '?godot', '?client=godot', '/godot/'],
+      useGodotEnv: process.env.USE_GODOT === '1',
     });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
-
-// Godot HTML5 needs correct WASM MIME + COOP/COEP for threaded builds
-express.static.mime.define({ 'application/wasm': ['wasm'] });
-
-if (useGodot) {
-  app.use(
-    express.static(GODOT_DIR, {
-      setHeaders(res, filePath) {
-        // COOP/COEP only on game assets (not /api or OAuth) so external avatars still work
-        res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-        res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-        if (filePath.endsWith('.wasm')) {
-          res.setHeader('Content-Type', 'application/wasm');
-        }
-        if (filePath.endsWith('.js') || filePath.endsWith('.wasm') || filePath.endsWith('.pck')) {
-          res.setHeader('Cache-Control', 'public, max-age=3600');
-        }
-      },
-    })
-  );
-  // SPA-style fallback for client routes
-  app.get('*', (req, res, next) => {
-    if (
-      req.path.startsWith('/api') ||
-      req.path.startsWith('/auth') ||
-      req.path.startsWith('/share')
-    ) {
-      return next();
-    }
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-    res.sendFile(path.join(GODOT_DIR, 'index.html'));
-  });
-  console.log('Serving Godot web export from public_godot/');
-} else {
-  app.use(express.static(LEGACY_DIR));
-  console.log('Serving legacy HTML client from public/');
-}
 
 async function main() {
   await migrate(pool);
@@ -499,7 +573,10 @@ async function main() {
   const server = app.listen(PORT, HOST, () => {
     console.log(`bobina-blaster listening on http://${HOST}:${PORT}`);
     console.log(`bobina OAuth configured: ${bobinaConfigured()}`);
-    console.log(`client: ${useGodot ? 'godot' : 'html-legacy'}`);
+    console.log(`client default: ${useGodotDefault ? 'godot' : 'html-legacy'}`);
+    if (godotExportReady && !useGodotDefault) {
+      console.log(`godot test: http://${HOST}:${PORT}/?test  or  /godot/`);
+    }
   });
 
   async function shutdown(signal) {

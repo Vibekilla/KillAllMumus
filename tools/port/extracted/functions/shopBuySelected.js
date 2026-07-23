@@ -1,0 +1,7 @@
+function shopBuySelected(){ const list=shopList(shopTab), it=list[shopSel]; if(!it) return;
+  if(it.kind==='consumable'){ if(mumuHeads<it.cost){ shopMsg='Not enough heads.'; shopMsgT=110; sfx('hit'); return; } mumuHeads-=it.cost; saveHeads(); consumInv[it.key]=(consumInv[it.key]||0)+1; saveConsum(); shopMsg='Bought '+it.name+'  (now ×'+consumInv[it.key]+')'; shopMsgT=120; sfx('extend'); return; }
+  if(it.owned){ shopMsg='Already in your arsenal.'; shopMsgT=90; sfx('hit'); return; }
+  if(it.cost<=0){ shopMsg='Earn its Emblem to unlock this one.'; shopMsgT=110; sfx('hit'); return; }
+  if(mumuHeads<it.cost){ shopMsg='Not enough heads — go bag more Mumus.'; shopMsgT=120; sfx('hit'); return; }
+  mumuHeads-=it.cost; saveHeads(); shopUnlocks[it.type+':'+it.key]=true; saveShopUnlocks(); if(run) applyArsenalToRun(); shopMsg='Unlocked '+it.name+' — equip it in your Arsenal!'; shopMsgT=160; sfx('win');
+}

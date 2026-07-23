@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function eb — review required
+func eb(x, y, ang, spd, r, col, hp):
+	 spd*=SPD; bullets.append({x,y,vx:cos(ang)*spd,vy:sin(ang)*spd,r:r||6,col:col||'#ff6ec7',grazed:false,hp:hp||0}); 

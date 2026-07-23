@@ -1,0 +1,1 @@
+function bulletCancelNear(x,y,rad){ const r2=rad*rad; let pts=0; bullets=bullets.filter(b=>{ if(b.hp>0) return true; const dx=b.x-x,dy=b.y-y; if(dx*dx+dy*dy<r2){ if(pts<10){ dropItem(b.x,b.y,'point'); pts++; } floaters.push({x:b.x,y:b.y,life:18,vy:-0.5,scale:0.36}); return false; } return true; }); }

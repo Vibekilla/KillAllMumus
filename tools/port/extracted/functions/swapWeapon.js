@@ -1,0 +1,1 @@
+function swapWeapon(){ if(!run||run.weapons.length<2)return; const i=run.weapons.indexOf(run.weapon); run.weapon=run.weapons[(i+1)%run.weapons.length]; sfx('item'); flashMsg={t:70,txt:'▸ '+WEAPONS[run.weapon].name}; }

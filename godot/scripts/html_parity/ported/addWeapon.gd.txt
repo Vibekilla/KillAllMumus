@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function addWeapon — review required
+func addWeapon(key, def):
+	 WEAPONS[key]=def; if(!WEAPON_ORDER.has(key)) WEAPON_ORDER.append(key); return key; 

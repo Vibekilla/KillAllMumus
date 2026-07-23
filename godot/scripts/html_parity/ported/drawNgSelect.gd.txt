@@ -1,0 +1,28 @@
+## AUTO-PORTED from HTML function drawNgSelect — review required
+func drawNgSelect():
+	 ngTiles=[]; ngBackBtn=null;
+	  var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#1a1226'); g.addColorStop(1,'#241018'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+	  ctx.textAlign='center';
+	  ctx.save(); ctx.shadowColor='#ffd27a'; ctx.shadowBlur=16; ctx.fillStyle='#ffe6b0'; ctx.font='900 30px "Trebuchet MS"'; ctx.fillText('🔁 NEW GAME+', W/2, 38); ctx.restore();
+	  ctx.fillStyle='#c8b0a0'; ctx.font='12px monospace'; ctx.fillText('Pick your cycle — higher levels mean tougher Mumus & bigger score. Unlocked up to Lv'+ngUnlocked+' of '+MAX_NG+'.', W/2, 58);
+	  ctx.fillStyle='#9a8aa2'; ctx.font='11px monospace'; ctx.fillText('★ Milestone wins unlock skins:  25 🍌 Banana · 50 🐿️ Squirrely · 75 🍯 Honeypot · 100 👑 Empress', W/2, 76);
+	  var mile={25:'🍌',50:'🐿️',75:'🍯',100:'👑'};
+	  var cols=10, gx=40, gyTop=94, gap=6, cellW=(W-2*gx-(cols-1)*gap)/cols, cellH=29, rg=5;
+	  for L in range(int(0), int(MAX_NG)){ var col=L%cols, row=floorf(L/cols), cx=gx+col*(cellW+gap), cy=gyTop+row*(cellH+rg);
+	    var unl=L<=ngUnlocked, sel=L==ngPlus, m=mile[L];
+	    ctx.fillStyle=sel?'rgba(255,210,120,0.24)':unl?'rgba(255,255,255,0.05)':'rgba(255,255,255,0.02)'; ctx.beginPath(); ctx.roundRect(cx,cy,cellW,cellH,7); ctx.fill();
+	    ctx.strokeStyle=sel?'#ffd27a':(m&&unl)?'#ff9ecb':unl?'rgba(255,210,150,0.3)':'rgba(255,255,255,0.07)'; ctx.lineWidth=sel?2.4:(m?1.6:1); ctx.stroke();
+	    ctx.fillStyle=sel?'#ffe6b0':unl?(m?'#ffd0e4':'#e6d8c8'):'#6a5a72'; ctx.font='bold 12px monospace'; ctx.textAlign='center';
+	    ctx.fillText(L==0?'OFF':(''+L), cx+cellW/2, cy+cellH/2+4);
+	    if(m){ ctx.font='10px serif'; ctx.fillText(m, cx+cellW-9, cy+11); }
+	    else if(!unl){ ctx.font='9px serif'; ctx.fillText('🔒', cx+9, cy+11); }
+	    ngTiles.append({x:cx,y:cy,w:cellW,h:cellH,lvl:L,unlocked:unl}); }
+	  var iy=gyTop+11*(cellH+rg)+14;
+	  ctx.textAlign='center'; ctx.font='bold 13px monospace'; ctx.fillStyle='#ffd27a';
+	  if(ngPlus>0) ctx.fillText('▶ Selected: NG+ Lv'+ngPlus+'   ·   ×'+(1+ngPlus)+' base score   ·   +'+roundf(ngPlus*16)+'% threat', W/2, iy);
+	  else ctx.fillText('▶ Selected: NG+ OFF   ·   standard run', W/2, iy);
+	  ctx.fillStyle='#7a6a82'; ctx.font='10px monospace'; ctx.fillText('tap a level to select · '+kb('shoot')+' / BACK returns to the menu', W/2, iy+16);
+	  { var bw=180,bh=30,bx=20,by=H-42; ngBackBtn={x:bx,y:by,w:bw,h:bh};
+	    ctx.fillStyle='rgba(30,16,40,0.85)'; ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,8); ctx.fill(); ctx.strokeStyle='#8fd0ff'; ctx.lineWidth=1.5; ctx.stroke();
+	    ctx.fillStyle='#8fd0ff'; ctx.font='bold 13px "Trebuchet MS"'; ctx.textAlign='center'; ctx.fillText('⌂ BACK  ['+kb('shoot')+']', bx+bw/2, by+20); ctx.textAlign='left'; }
+

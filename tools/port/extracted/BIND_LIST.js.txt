@@ -1,0 +1,1 @@
+[ ['shoot','Fire'],['focus','Focus / Dash'],['melee','Melee (hold=charge)'],['meleeswap','Switch Melee'],['bomb','Bomb'],['swap','Swap Weapon'],['special','Use Special'],['cycle','Cycle Special'],['item_switch','Switch Item'],['item_use','Use Item (hold)'],['interact','Interact / Shop'],['pause','Pause'] ]

@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function fmtScore — review required
+func fmtScore(n):
+	 n=maxf(0,floorf(float(n)||0)); if(n<1000) return String(n);
+	  var U=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc']; var u=0, v=n; while(v>=1000 && u<U.size()-1){ v/=1000; u += 1; }
+	  var s=v>=100?v.toFixed(0):v>=10?v.toFixed(1):v.toFixed(2); if(s.find('.')>=0) s=s.replace(/\.?0+$/,''); return s+U[u]; 

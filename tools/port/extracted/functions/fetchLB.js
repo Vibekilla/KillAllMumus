@@ -1,0 +1,1 @@
+function fetchLB(){ lbPage=0; lbState='loading'; fetch('api/scores',{credentials:'same-origin'}).then(r=>r.json()).then(d=>{ lbCache=Array.isArray(d)?d:[]; lbState='ok'; }).catch(()=>{ lbState='error'; }); }

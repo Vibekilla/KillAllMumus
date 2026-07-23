@@ -1,0 +1,11 @@
+## AUTO-PORTED from HTML function setDisplayScale — review required
+func setDisplayScale(pct):
+
+	  displayScale=maxf(0.5, minf(1, (float(pct)||100)/100));
+	  var el=HtmlBridge.doc.getElementById('disp-scale'); if(el) el.value=roundf(displayScale*100);
+	  var v=HtmlBridge.doc.getElementById('disp-scale-v'); if(v) v.textContent=roundf(displayScale*100)+'%';
+	  HtmlBridge.doc.querySelectorAll('.disp-preset') # forEach func(b): return {
+	    b.classList.toggle('on', float(b.dataset.scale)==roundf(displayScale*100));
+	  });
+	  saveDisplayPrefs(); if(typeof fit=='function') fit();
+

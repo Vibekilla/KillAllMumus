@@ -1,0 +1,1 @@
+function nearestTarget(x,y){ let best=null,bd=1e9; for(const e of enemies){ const d=(e.x-x)**2+(e.y-y)**2; if(d<bd){bd=d;best=e;} } if(boss&&!boss.dead&&boss.intro<=0){ const d=(boss.x-x)**2+(boss.y-y)**2; if(d<bd){bd=d;best=boss;} } return best; }

@@ -1,0 +1,6 @@
+## AUTO-PORTED from HTML function pop — review required
+func pop(x, y, txt, color):
+	 scoreTexts.append({x,y,txt,color,life:44}); }
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 Power / shot  -= 1 -= 1 -= 1 -= 1 -= 1 */
+

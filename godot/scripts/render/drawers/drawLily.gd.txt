@@ -1,0 +1,33 @@
+## AUTO-PORTED from HTML drawLily — hand-fixed where needed
+func drawLily(b, flash) -> void:
+	 var R=b.r;
+	  var fur=flash._STR0__:"#f5f2ec", furSh=flash._STR2__:"#dcd6c9", pink="#e8b8c0";
+	  // fluffy body with tufted outline
+	  ctx.fill_style=furSh; for i in range(int(-4), int(=4)){ ctx.begin_path(); ctx.arc(i*R*0.2, R*0.92, R*0.17,0,7); ctx.fill(); }
+	  ctx.fill_style=fur; ctx.begin_path(); ctx.ellipse(0,R*0.52,R*0.82,R*0.6,0,0,7); ctx.fill();
+	  ctx.fill_style=fur; for i in range(int(-4), int(=4)){ ctx.begin_path(); ctx.arc(i*R*0.2, R*0.82, R*0.15,0,7); ctx.fill(); }
+	  // Solana collar (purple→teal) with ◎ tag
+	  var cg=ctx.createLinearGradient(-R*0.5,0,R*0.5,0); cg.addColorStop(0,"#9945ff"); cg.addColorStop(1,"#14f195");
+	  ctx.stroke_style=cg; ctx.line_width=R*0.15; ctx.line_cap="round"; ctx.begin_path(); ctx.arc(0,R*0.28,R*0.52,PI*0.16,PI*0.84); ctx.stroke();
+	  ctx.fill_style="#14f195"; circle(0,R*0.55,R*0.11,"#14f195"); ctx.fill_style="#0a2e1a"; ctx.font="bold "+(R*0.15)+"px monospace"; ctx.text_align="center"; ctx.fill_text("◎",0,R*0.6); ctx.text_align="left";
+	  // pointy ears (with pink inner)
+	  ctx.fill_style=fur; ctx.begin_path(); ctx.move_to(-R*0.5,-R*0.55); ctx.line_to(-R*0.66,-R*1.16); ctx.line_to(-R*0.16,-R*0.7); ctx.close_path(); ctx.fill();
+	  ctx.begin_path(); ctx.move_to(R*0.5,-R*0.55); ctx.line_to(R*0.66,-R*1.16); ctx.line_to(R*0.16,-R*0.7); ctx.close_path(); ctx.fill();
+	  ctx.fill_style=pink; ctx.begin_path(); ctx.move_to(-R*0.44,-R*0.64); ctx.line_to(-R*0.55,-R*1.0); ctx.line_to(-R*0.26,-R*0.72); ctx.close_path(); ctx.fill();
+	  ctx.begin_path(); ctx.move_to(R*0.44,-R*0.64); ctx.line_to(R*0.55,-R*1.0); ctx.line_to(R*0.26,-R*0.72); ctx.close_path(); ctx.fill();
+	  // head — big fluffy round with cheek tufts
+	  ctx.fill_style=furSh; for a in range(int(0), int(14)){ var ang=a/14*PI*2; ctx.begin_path(); ctx.arc(cos(ang)*R*0.7, -R*0.12+sin(ang)*R*0.66, R*0.14,0,7); ctx.fill(); }
+	  ctx.fill_style=fur; ctx.begin_path(); ctx.arc(0,-R*0.12,R*0.68,0,7); ctx.fill();
+	  // sleepy dark eyes
+	  ctx.fill_style="#1a1410"; ctx.begin_path(); ctx.ellipse(-R*0.25,-R*0.14,R*0.1,R*0.11,0,0,7); ctx.ellipse(R*0.25,-R*0.14,R*0.1,R*0.11,0,0,7); ctx.fill();
+	  ctx.fill_style="#fff"; circle(-R*0.28,-R*0.17,R*0.03,"#fff"); circle(R*0.22,-R*0.17,R*0.03,"#fff");
+	  // muzzle + black nose
+	  ctx.fill_style=furSh; ctx.begin_path(); ctx.ellipse(0,R*0.12,R*0.28,R*0.22,0,0,7); ctx.fill();
+	  ctx.fill_style=fur; ctx.begin_path(); ctx.ellipse(0,R*0.16,R*0.2,R*0.15,0,0,7); ctx.fill();
+	  ctx.fill_style=flash._STR20__:"#141014"; ctx.begin_path(); ctx.ellipse(0,R*0.02,R*0.12,R*0.09,0,0,7); ctx.fill();
+	  ctx.fill_style="rgba(255,255,255,0.5)"; circle(-R*0.03,-R*0.01,R*0.03,"rgba(255,255,255,0.5)");
+	  // little frown mouth
+	  ctx.stroke_style="#3a2e28"; ctx.line_width=2; ctx.line_cap="round"; ctx.begin_path(); ctx.move_to(0,R*0.1); ctx.line_to(0,R*0.2); ctx.move_to(0,R*0.2); ctx.quadratic_curve_to(-R*0.12,R*0.28,-R*0.2,R*0.2); ctx.move_to(0,R*0.2); ctx.quadratic_curve_to(R*0.12,R*0.28,R*0.2,R*0.2); ctx.stroke();
+	  // cross forehead crease (she"s grumpy at ETH)
+	  ctx.strokeStyle="rgba(80,60,50,0.5)'; ctx.line_width=1.4; ctx.begin_path(); ctx.move_to(-R*0.06,-R*0.4); ctx.line_to(-R*0.02,-R*0.28); ctx.move_to(R*0.06,-R*0.4); ctx.line_to(R*0.02,-R*0.28); ctx.stroke();
+	

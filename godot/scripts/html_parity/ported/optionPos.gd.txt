@@ -1,0 +1,7 @@
+## AUTO-PORTED from HTML function optionPos — review required
+func optionPos(p, o):
+	 var rot=(p&&p.face!=null?p.face:-PI/2)+PI/2, c=cos(rot), s=sin(rot), ly=o.y+16;
+	  return { x:p.x + c*o.x - s*ly, y:p.y-16 + s*o.x + c*ly }; }
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 Boss dialogue  -= 1 -= 1 -= 1 -= 1 -= 1 */
+

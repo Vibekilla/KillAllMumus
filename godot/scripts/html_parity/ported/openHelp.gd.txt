@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function openHelp — review required
+func openHelp():
+	 buildHelp(); if(helpEl) helpEl.classList['on'); 

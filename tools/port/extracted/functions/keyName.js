@@ -1,0 +1,1 @@
+function keyName(code){ if(!code) return '—'; const m={Space:'SPACE',ArrowLeft:'←',ArrowRight:'→',ArrowUp:'↑',ArrowDown:'↓',ShiftLeft:'SHIFT',ShiftRight:'SHIFT',Enter:'ENTER',Escape:'ESC'}; if(m[code])return m[code]; if(code.indexOf('Key')===0)return code.slice(3); if(code.indexOf('Digit')===0)return code.slice(5); return code; }

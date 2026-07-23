@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function closeSettings — review required
+func closeSettings():
+	 if(setEl) setEl.classList.remove('on'); 

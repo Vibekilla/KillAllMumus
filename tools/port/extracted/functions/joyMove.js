@@ -1,0 +1,1 @@
+function joyMove(e){ if(!joy.active)return; let t=null; if(e.changedTouches){ for(const tt of e.changedTouches){ if(tt.identifier===joy.id){ t=tt; break; } } if(!t)return; } else t=e; joyApply(t); if(e.cancelable)e.preventDefault(); }

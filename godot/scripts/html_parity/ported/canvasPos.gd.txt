@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function canvasPos — review required
+func canvasPos(e):
+	 var r=cv.getBoundingClientRect(); var t=e.touches?e.touches[0]:e; return {x:(t.clientX-r.left)*(W/r.width), y:(t.clientY-r.top)*(H/r.height)}; 

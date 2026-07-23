@@ -1,0 +1,41 @@
+## AUTO-PORTED from HTML function buildProgressSnapshot — review required
+func buildProgressSnapshot():
+
+	  var handle=''; try{ handle=(HtmlBridge.storage_get('bobina_handle')||''); }catch(e){}
+	  var bindsSnap=null; try{ bindsSnap = (typeof binds!='null') ? binds : JSON.parse(HtmlBridge.storage_get('bobina_binds')||'null'); }catch(e){}
+	  return {
+	    v:1,
+	    emblems: (typeof emblemsGot!='null' && emblemsGot) ? emblemsGot : {},
+	    estats: (typeof estats!='null' && estats) ? estats : {},
+	    arsenal: {
+	      w: (typeof arsenalW!='null') ? arsenalW.slice() : [],
+	      s: (typeof arsenalS!='null') ? arsenalS.slice() : [],
+	      m: (typeof arsenalM!='null') ? arsenalM.slice() : [],
+	      i: (typeof arsenalI!='null') ? arsenalI.slice() : []
+	    },
+	    heads: (typeof mumuHeads!='null') ? mumuHeads : 0,
+	    shopUnlocks: (typeof shopUnlocks!='null' && shopUnlocks) ? shopUnlocks : {},
+	    consum: (typeof consumInv!='null' && consumInv) ? consumInv : {},
+	    ngUnlocked: (typeof ngUnlocked!='null') ? ngUnlocked : 0,
+	    hellCleared: !!(typeof hellCleared!='null' && hellCleared),
+	    difficulty: (typeof difficulty!='null') ? difficulty : 0,
+	    ngPlus: (typeof ngPlus!='null') ? ngPlus : 0,
+	    outfit: (typeof selectedOutfit!='null') ? selectedOutfit : 'og',
+	    pose: (typeof outfitPose!='null') ? outfitPose : 0,
+	    face: (typeof victoryFace!='null') ? victoryFace : 0,
+	    handle: handle,
+	    binds: bindsSnap,
+	    settings: {
+	      musicVol: (typeof musicVol!='null') ? musicVol : null,
+	      sfxVol: (typeof sfxVol!='null') ? sfxVol : null,
+	      follow: (typeof MOUSE!='null') ? MOUSE.follow : null,
+	      mspeed: (typeof MOUSE!='null') ? MOUSE.speed : null,
+	      speedrun: !!(typeof speedrun!='null' && speedrun),
+	      autofire: (typeof autoFire=='null') ? true : !!autoFire,
+	      ui: (function(){ try{ return HtmlBridge.storage_get('bobina_ui'); }catch(e){ return null; } })(),
+	      displayScale: (typeof displayScale!='null')?displayScale:1,
+	      refreshRate: (typeof refreshRate!='null')?refreshRate:60,
+	      debugLayer: !!(typeof debugLayer!='null' && debugLayer)
+	    }
+	  };
+

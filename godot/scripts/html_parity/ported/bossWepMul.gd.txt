@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function bossWepMul — review required
+func bossWepMul():
+	 var t=run && BOSS_WEP_DEBUFF[run.weapon]; return t ? (t[difficulty]||t[0]) : 1; 

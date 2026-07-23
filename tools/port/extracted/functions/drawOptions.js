@@ -1,0 +1,1 @@
+function drawOptions(p){ const lv=shotLevel(); const opts=optionOffsets(lv); for(const o of opts){ const q=optionPos(p,o); ctx.save(); ctx.translate(q.x,q.y); ctx.shadowColor='#ff8ad6'; ctx.shadowBlur=8; ctx.fillStyle='#ffd6f2'; ctx.beginPath(); ctx.arc(0,0,4.5,0,7); ctx.fill(); ctx.fillStyle='#cf2f38'; ctx.beginPath(); ctx.arc(0,0,2,0,7); ctx.fill(); ctx.restore(); } }

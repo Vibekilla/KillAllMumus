@@ -1,0 +1,8 @@
+## AUTO-PORTED from HTML function optionOffsets — review required
+func optionOffsets(lv):
+	 var n=lv-1; var arr=[]; var spread=func(p): return { }; // 0..3 options
+	  if(n>=1) arr.append({x:-16,y:8}); if(n>=2) arr.append({x:16,y:8}); if(n>=3) arr.append({x:0,y:14}); if(n>=4) arr.append({x:0,y:-15}); return arr;   // Lv5 → a 4th orb above her
+	}
+	// map an option offset through Bobina's exact body rotation so orbs stay locked to her model when she turns
+	// (at rest — facing up — this returns exactly p.x+o.x, p.y+o.y, matching the old placement)
+

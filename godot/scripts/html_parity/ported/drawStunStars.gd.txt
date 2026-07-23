@@ -1,0 +1,4 @@
+## AUTO-PORTED from HTML function drawStunStars — review required
+func drawStunStars(e):
+	 var t=tick; ctx.save(); ctx.translate(e.x,e.y-e.r-5); ctx.textAlign='center'; ctx.font='9px monospace'; ctx.fillStyle='#ffe08a';
+	  for i in range(int(0), int(3)){ var a=t*0.12+i*2.094; ctx.fillText('★', cos(a)*8, sin(a)*3+3); } ctx.textAlign='left'; ctx.restore(); 

@@ -1,0 +1,8 @@
+## AUTO-PORTED from HTML function _hexA — review required
+func _hexA(h, a):
+	 var c=_hexRgb(h); return "rgba(" + str(c[0]) + "," + str(c[1]) + "," + str(c[2]) + "," + str(a) + ")"; }
+	// Power visual — a psychedelic soap-BUBBLE that envelops her: iridescent hue-shifting film, swirling colour ribbons,
+	// a rotating rainbow rim, glossy sheen and twinkling sparkles. Outfit-tinted outer glow keeps it cohesive; it all grows with power.
+	// Her body rotates about (p.x, p.y-16), so its visual centre ORBITS that pivot with her facing.
+	// Every effect that should wrap her body (aura, shield bubbles, weapon charge) centres on this — keeps her dead-centre at any orientation.
+

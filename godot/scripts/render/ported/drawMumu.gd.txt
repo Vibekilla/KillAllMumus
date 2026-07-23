@@ -1,0 +1,26 @@
+# AUTO-PORTED from public/index.html — needs manual polish
+# Original: drawMumu
+extends RefCounted
+# expects `ctx` CanvasCompat and game globals
+
+func drawMumu(e) -> void:
+
+  if (e.kind=='elite'): # { drawElite(e); return; # }
+  var flash=e.flash>0, R=e.r; ctx.save(); ctx.translate(e.x,e.y);
+  var body=flash?'#fff':(e.icy?'#bfe6ff':'#d9a487'), bodySh=e.icy?'#8fc4ee':'#b07a5e', belly=flash?'#fff':(e.icy?'#eaf6ff':'#f4e0d2'), horn='#efe6d2', ln='#3a2018'; var bob=Math.sin(e.t*0.14)*1.5;
+  ctx.fill_style(Color.html("rgba(0,0,0,0.18)")); ctx.begin_path(); ctx.ellipse(0,R*0.9,R*0.7,4,0,0,7); ctx.fill();
+  ctx.begin_path(); ctx.ellipse(0,bob,R*0.8,R*0.78,0,0,7); ctx.stroke_style(ln); ctx.line_width(2); ctx.stroke(); ctx.fill_style(body); ctx.fill();
+  ctx.fill_style(belly); ctx.begin_path(); ctx.ellipse(0,bob+R*0.28,R*0.4,R*0.42,0,0,7); ctx.fill();
+  ctx.fill_style(flash?'#fff':bodySh); circle(-R*0.7,bob+R*0.3,R*0.2,flash?'#fff':bodySh); circle(R*0.7,bob+R*0.3,R*0.2,flash?'#fff':bodySh);
+  ctx.begin_path(); ctx.ellipse(-R*0.72,bob-R*0.5,R*0.22,R*0.15,-0.6,0,7); ctx.fill(); ctx.begin_path(); ctx.ellipse(R*0.72,bob-R*0.5,R*0.22,R*0.15,0.6,0,7); ctx.fill();
+  ctx.fill_style(flash?'#fff':horn);
+  ctx.begin_path(); ctx.move_to(-R*0.5,bob-R*0.55); ctx.quadratic_curve_to(-R*0.95,bob-R*0.95,-R*0.5,bob-R*1.05); ctx.quadratic_curve_to(-R*0.4,bob-R*0.75,-R*0.3,bob-R*0.6); ctx.fill();
+  ctx.begin_path(); ctx.move_to(R*0.5,bob-R*0.55); ctx.quadratic_curve_to(R*0.95,bob-R*0.95,R*0.5,bob-R*1.05); ctx.quadratic_curve_to(R*0.4,bob-R*0.75,R*0.3,bob-R*0.6); ctx.fill();
+  ctx.fill_style(flash?'#fff':belly); ctx.begin_path(); ctx.ellipse(0,bob+R*0.18,R*0.34,R*0.26,0,0,7); ctx.fill(); ctx.stroke_style(ln); ctx.line_width(1); ctx.stroke();
+  ctx.fill_style(bodySh); circle(-R*0.14,bob+R*0.14,R*0.06,bodySh); circle(R*0.14,bob+R*0.14,R*0.06,bodySh);
+  ctx.fill_style(Color.html("#fff")); circle(-R*0.28,bob-R*0.08,R*0.18,'#fff'); circle(R*0.28,bob-R*0.08,R*0.18,'#fff');
+  ctx.fill_style(Color.html("#c0202a")); circle(-R*0.28,bob-R*0.05,R*0.09,'#c0202a'); circle(R*0.28,bob-R*0.05,R*0.09,'#c0202a');
+  ctx.fill_style(Color.html("#150a0a")); circle(-R*0.28,bob-R*0.05,R*0.04,'#150a0a'); circle(R*0.28,bob-R*0.05,R*0.04,'#150a0a');
+  ctx.stroke_style(ln); ctx.line_width(1.6); ctx.begin_path(); ctx.move_to(-R*0.45,bob-R*0.3); ctx.line_to(-R*0.14,bob-R*0.16); ctx.move_to(R*0.45,bob-R*0.3); ctx.line_to(R*0.14,bob-R*0.16); ctx.stroke();
+  if (e.icy): # { ctx.stroke_style(Color.html("rgba(255,255,255,0.6)")); ctx.line_width(1); ctx.begin_path(); ctx.move_to(-R*0.5,-R*0.2); ctx.line_to(R*0.5,R*0.2); ctx.move_to(R*0.4,-R*0.4); ctx.line_to(-R*0.3,R*0.4); ctx.stroke(); # }
+  ctx.restore();

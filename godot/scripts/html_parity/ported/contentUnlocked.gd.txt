@@ -1,0 +1,6 @@
+## AUTO-PORTED from HTML function contentUnlocked — review required
+func contentUnlocked(type, key):
+	 if(FREE_CONTENT[type+':'+key]) return true;   // free from the start
+	  if(shopUnlocks[type+':'+key]) return true;                                        // bought at the shop
+	  var arr = type=='w'?arsenalW : type=='s'?arsenalS : arsenalM; return !!(arr && arr.has(key)); }   // grandfather anything already equipped
+

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function openDisplay — review required
+func openDisplay():
+	 syncDisplayUI(); var d=HtmlBridge.doc.getElementById('display'); if(d) d.classList['on'); 

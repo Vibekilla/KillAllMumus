@@ -1,0 +1,1 @@
+{ ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', KeyM:'menu', KeyT:'tweet', Enter:'start' }

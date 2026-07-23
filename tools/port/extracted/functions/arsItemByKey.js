@@ -1,0 +1,1 @@
+function arsItemByKey(type,k){ return type==='w' ? (WEAPONS[k]?Object.assign({key:k},WEAPONS[k]):null) : type==='s' ? SPECIALS.find(s=>s.key===k) : type==='m' ? MELEE.find(m=>m.key===k) : CONSUMABLES.find(c=>c.key===k); }

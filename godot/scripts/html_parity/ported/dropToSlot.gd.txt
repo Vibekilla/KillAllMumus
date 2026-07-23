@@ -1,0 +1,7 @@
+## AUTO-PORTED from HTML function dropToSlot — review required
+func dropToSlot(type, key, slot):
+	 var arr=arsArr(type), cap=ARS_CAP[type], was=arr.find(key);   // drop an item into a hotbar slot (reorder if already equipped, else equip at that position)
+	  if(was>=0){ arr.splice(was,1); slot=maxf(0,minf(arr.size(),slot)); arr.splice(slot,0,key); }
+	  else if(arr.size()<cap){ slot=maxf(0,minf(arr.size(),slot)); arr.splice(slot,0,key); }
+	  else { var s=maxf(0,minf(arr.size()-1,slot)); arr.splice(s,1,key); }   // full → replace the item sitting in that slot
+	  saveArsenal(); if(run) applyArsenalToRun(); sfx('power'); 
