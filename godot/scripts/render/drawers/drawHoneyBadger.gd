@@ -103,8 +103,11 @@ func drawHoneyBadger(cx, cy, s) -> void:
 	ctx.begin_path()
 	ctx.ellipse(0, 26, 26, 20, 0, 0, 7)
 	ctx.fill()
+	# feet — separate subpaths (CanvasCompat fills one poly; multi-ellipse paths self-intersect)
 	ctx.begin_path()
 	ctx.ellipse(-13, 40, 8, 6, 0, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.ellipse(13, 40, 8, 6, 0, 0, 7)
 	ctx.fill()
 	ctx.stroke_style("rgba(0,0,0,0.4)")
@@ -119,6 +122,8 @@ func drawHoneyBadger(cx, cy, s) -> void:
 	ctx.fill_style(furD)
 	ctx.begin_path()
 	ctx.arc(-31, -38, 9, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.arc(31, -38, 9, 0, 7)
 	ctx.fill()
 	# --- wide furry head + drooping jowls/cheeks ---
@@ -128,6 +133,8 @@ func drawHoneyBadger(cx, cy, s) -> void:
 	ctx.fill()
 	ctx.begin_path()
 	ctx.ellipse(-27, 3, 15, 19, 0.22, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.ellipse(27, 3, 15, 19, -0.22, 0, 7)
 	ctx.fill()
 	ctx.begin_path()
@@ -136,6 +143,8 @@ func drawHoneyBadger(cx, cy, s) -> void:
 	ctx.fill_style(cheek)
 	ctx.begin_path()
 	ctx.ellipse(-21, 3, 11, 12, 0, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.ellipse(21, 3, 11, 12, 0, 0, 7)
 	ctx.fill()
 	# --- fuzzy fur tufts around the lower silhouette ---
@@ -147,11 +156,14 @@ func drawHoneyBadger(cx, cy, s) -> void:
 	for i in range(int(0), int(tufts.size() - 1)):
 		var p = tufts[i]
 		var nx = tufts[i + 1]
-		var mx = (p[0] + nx[0]) / 2
-		var my = (p[1] + nx[1]) / 2
+		var mx: float = (float(p[0]) + float(nx[0])) / 2.0
+		var my: float = (float(p[1]) + float(nx[1])) / 2.0
+		# push outward from origin for bulk (not along mid→origin which collapses near axes)
+		var ox: float = mx * 0.12
+		var oy: float = my * 0.12
 		ctx.begin_path()
 		ctx.move_to(p[0], p[1])
-		ctx.line_to(mx + mx * 0.12, my + my * 0.12)
+		ctx.line_to(mx + ox, my + oy)
 		ctx.line_to(nx[0], nx[1])
 		ctx.close_path()
 		ctx.fill()
@@ -222,42 +234,56 @@ func drawHoneyBadger(cx, cy, s) -> void:
 	var ey = -19
 	var erx = 8.2
 	var ery = 9.6
-	# soft reddish glow under the eyes
+	# soft reddish glow under the eyes (separate fills — one path per disc)
 	ctx.fill_style("rgba(180,70,80,0.38)")
 	ctx.begin_path()
 	ctx.ellipse(-ex, ey + 6, 7, 5, 0, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.ellipse(ex, ey + 6, 7, 5, 0, 0, 7)
 	ctx.fill()
 	# eye sockets seat the big glossy eyes
 	ctx.fill_style(furD)
 	ctx.begin_path()
 	ctx.ellipse(-ex, ey, erx + 1.4, ery + 1.4, 0, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.ellipse(ex, ey, erx + 1.4, ery + 1.4, 0, 0, 7)
 	ctx.fill()
 	ctx.fill_style("#0c0b10")
 	ctx.begin_path()
 	ctx.ellipse(-ex, ey, erx, ery, 0, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.ellipse(ex, ey, erx, ery, 0, 0, 7)
 	ctx.fill()
 	# reddish inner-lower reflection
 	ctx.fill_style("rgba(150,50,60,0.5)")
 	ctx.begin_path()
 	ctx.ellipse(-ex, ey + 3.6, erx * 0.6, ery * 0.42, 0, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.ellipse(ex, ey + 3.6, erx * 0.6, ery * 0.42, 0, 0, 7)
 	ctx.fill()
 	# big catchlight + small sparkle + tiny top glint
 	ctx.fill_style("#fff")
 	ctx.begin_path()
 	ctx.arc(-ex - 2.6, ey - 3.6, 3.0, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.arc(ex - 2.6, ey - 3.6, 3.0, 0, 7)
 	ctx.fill()
 	ctx.fill_style("rgba(255,255,255,0.9)")
 	ctx.begin_path()
 	ctx.arc(-ex + 3.4, ey + 3.8, 1.5, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.arc(ex + 3.4, ey + 3.8, 1.5, 0, 7)
 	ctx.fill()
 	ctx.begin_path()
 	ctx.arc(-ex + 1.7, ey - 4.8, 0.9, 0, 7)
+	ctx.fill()
+	ctx.begin_path()
 	ctx.arc(ex + 1.7, ey - 4.8, 0.9, 0, 7)
 	ctx.fill()
 	# blush (stronger on the right cheek, like the ref)

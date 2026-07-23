@@ -129,15 +129,57 @@ async function captureHtml() {
   await page.keyboard.press("KeyZ");
   await page.waitForTimeout(fast ? 300 : 500);
 
-  // Start pill center ~ y=444
+  // Start pill center ~ y=444 → intro then play
   await clickCanvas(480, 444);
-  await page.waitForTimeout(fast ? 200 : 400);
+  await page.waitForTimeout(fast ? 250 : 400);
+  // Intro screen (PRESS Z to begin)
+  await page.screenshot({ path: path.join(htmlDir, "html_flow_intro.png") });
+  console.log("[HTML] flow_intro");
   await page.keyboard.press("KeyZ");
   await page.waitForTimeout(fast ? 600 : 1200);
   await page.keyboard.press("KeyZ");
   await page.waitForTimeout(fast ? 900 : 1800);
   await page.screenshot({ path: path.join(htmlDir, "html_play.png") });
   console.log("[HTML] play");
+
+  // Force shop + stageclear via page.evaluate (HTML globals)
+  try {
+    await page.evaluate(() => {
+      // @ts-ignore
+      if (typeof enterShop === "function") enterShop();
+      // @ts-ignore
+      else if (typeof state !== "undefined") { state = "shop"; shopTab = "w"; shopSel = 0; }
+    });
+    await page.waitForTimeout(fast ? 400 : 700);
+    await page.screenshot({ path: path.join(htmlDir, "html_flow_shop.png") });
+    console.log("[HTML] flow_shop");
+    await page.evaluate(() => {
+      // @ts-ignore
+      if (typeof leaveShop === "function") leaveShop();
+      // @ts-ignore
+      else state = "play";
+    });
+    await page.waitForTimeout(200);
+  } catch (e) {
+    console.log("[HTML] shop eval skip", e.message || e);
+  }
+  try {
+    await page.evaluate(() => {
+      // @ts-ignore
+      state = "stageclear";
+      // @ts-ignore
+      if (typeof clearMsgT !== "undefined") clearMsgT = 200;
+    });
+    await page.waitForTimeout(fast ? 400 : 700);
+    await page.screenshot({ path: path.join(htmlDir, "html_flow_stageclear.png") });
+    console.log("[HTML] flow_stageclear");
+    await page.evaluate(() => {
+      // @ts-ignore
+      state = "title";
+    });
+  } catch (e) {
+    console.log("[HTML] stageclear eval skip", e.message || e);
+  }
 
   if (!fast) {
     if (box) {

@@ -108,6 +108,8 @@ var _gco: String = "source-over"
 var _clip: Dictionary = {}
 ## Last full-circle arc in world space (for high-quality circular clip of images)
 var _last_full_arc: Dictionary = {}
+## Last full ellipse (HTML arc 0..7) for native scaled-circle fill
+var _last_full_ellipse: Dictionary = {}
 
 func bind(n: CanvasItem) -> void:
 	node = n
@@ -120,6 +122,7 @@ func begin_frame() -> void:
 	_gco = "source-over"
 	_clip = {}
 	_last_full_arc = {}
+	_last_full_ellipse = {}
 
 func _c(col: Color) -> Color:
 	var c := col
@@ -297,6 +300,7 @@ func begin_path() -> void:
 	_path = PackedVector2Array()
 	_path_closed = false
 	_last_full_arc = {}
+	_last_full_ellipse = {}
 
 func close_path() -> void:
 	_path_closed = true
@@ -353,17 +357,33 @@ func ellipse(x, y, rx, ry, rot, a0, a1, ccw: bool = false) -> void:
 	var a0f: float = float(a0)
 	var a1f: float = float(a1)
 	# HTML often uses 0..7 as a full-circle stand-in for 2π
-	if a1f >= 6.0 and a0f == 0.0:
+	if a1f >= 6.0 and is_equal_approx(a0f, 0.0):
 		a1f = TAU
 	var rxf: float = float(rx)
 	var ryf: float = float(ry)
 	var rotf: float = float(rot)
-	var steps := 24
+	# Track full ellipses for fill() → scaled draw_circle (same solid disc look, no ear-clip)
+	var da := a1f - a0f
+	if ccw and da > 0.0:
+		da -= TAU
+	elif not ccw and da < 0.0:
+		da += TAU
+	if absf(da) >= TAU * 0.92 and rxf > 0.05 and ryf > 0.05:
+		var c_local := Vector2(float(x), float(y))
+		var c_world := _xform * c_local
+		# average semi-axis in world space (uniform scale approx)
+		var ex := _xform * (c_local + Vector2(rxf, 0).rotated(rotf))
+		var ey := _xform * (c_local + Vector2(0, ryf).rotated(rotf))
+		_last_full_ellipse = {
+			"c": c_world,
+			"rx": c_world.distance_to(ex),
+			"ry": c_world.distance_to(ey),
+			"rot": rotf + _xform.get_rotation(),
+		}
+	var steps := 28
 	for i in range(steps + 1):
 		var t := float(i) / float(steps)
-		var ang: float = a0f + (a1f - a0f) * t
-		if ccw:
-			ang = a0f - (a1f - a0f) * t
+		var ang: float = a0f + da * t
 		var lp := Vector2(cos(ang) * rxf, sin(ang) * ryf).rotated(rotf) + Vector2(float(x), float(y))
 		_path.append(_xform * lp)
 
@@ -416,6 +436,19 @@ func fill() -> void:
 			var col_c := _c(_fill)
 			_draw_shadow_circle(c, r, col_c)
 			node.draw_circle(c, r, col_c)
+			return
+	# Full ellipse (portal / honey badger body) — scaled circle, solid fill like HTML
+	if not _last_full_ellipse.is_empty() and _fill_grad == null and pts.size() >= 16:
+		var ec: Vector2 = _last_full_ellipse.get("c", Vector2.ZERO)
+		var erx: float = float(_last_full_ellipse.get("rx", 0.0))
+		var ery: float = float(_last_full_ellipse.get("ry", 0.0))
+		var erot: float = float(_last_full_ellipse.get("rot", 0.0))
+		if erx > 0.05 and ery > 0.05 and _point_in_clip(ec):
+			var col_e := _c(_fill)
+			# CanvasItem local xform: position, rotation, scale (ellipse = scaled unit circle)
+			node.draw_set_transform(ec, erot, Vector2(erx, ery))
+			node.draw_circle(Vector2.ZERO, 1.0, col_e)
+			node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			return
 	pts = _clip_poly(pts)
 	if pts.size() < 3:
