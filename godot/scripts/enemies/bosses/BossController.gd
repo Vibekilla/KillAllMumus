@@ -79,7 +79,6 @@ func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 	mty = pf.position.y + 100
 	add_to_group("enemies")
 	add_to_group("bosses")
-	_want_redraw()
 
 var _draw_age: int = 0
 
@@ -191,7 +190,6 @@ func _physics_process(delta: float) -> void:
 			bullet_pool.clear_enemy()
 		flash = 8.0
 
-	_want_redraw()
 
 func _patterns(s: int, ph: int, hm: float, cx: float, cy: float, p: Node2D) -> void:
 	if p == null:
@@ -472,43 +470,6 @@ func _update_wynn_hell(delta: float) -> void:
 			queue_free()
 
 func _draw() -> void:
-	if ctx == null or ported == null:
-		ctx = load("res://scripts/render/CanvasCompat.gd").new()
-		ctx.bind(self)
-		ported = load("res://scripts/render/PortedDraw.gd").new()
-		ported.setup(ctx)
-	ctx.begin_frame()
-	if SimClock and ported.has_method("set_tick"):
-		ported.set_tick(SimClock.tick)
-	var d := data.duplicate() if typeof(data) == TYPE_DICTIONARY else {}
-	if not d.has("portrait"):
-		d["portrait"] = portrait
-	if not d.has("color"):
-		d["color"] = "#%02x%02x%02x" % [int(color.r * 255), int(color.g * 255), int(color.b * 255)]
-	var st := {
-		"x": hell_shake if hell else 0.0,
-		"y": 0.0,
-		"r": radius * hell_scale if hell else radius,
-		"flash": flash,
-		"face": face,
-		"dead": dead,
-		"deadT": dead_t,
-		"hell": hell,
-		"hellT": hell_t,
-		"hellR": hell_r,
-		"hellSpin": hell_spin,
-		"hellScale": hell_scale,
-		"hellShake": hell_shake,
-		"data": d,
-		"portrait": portrait,
-		"active": active_twin if twin else "",
-		"t": t,
-	}
-	ported.draw_boss(st)
-	# HP bar (UI overlay)
-	var w := 80.0
-	var ratio := clampf(hp / maxf(1.0, max_hp), 0.0, 1.0)
-	draw_rect(Rect2(-w / 2, -48, w, 6), Color(0.15, 0.08, 0.12))
-	draw_rect(Rect2(-w / 2, -48, w * ratio, 6), Color(1.0, 0.35, 0.55))
-	if special_t > 0.0:
-		draw_arc(Vector2.ZERO, 40 + sin(float(t) * 0.2) * 4.0, 0, TAU, 32, Color(1, 1, 1, 0.35), 2.0)
+	## Visuals owned by WorldDraw.draw_boss — AI/collision only here.
+	pass
+

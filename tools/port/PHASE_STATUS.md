@@ -1,33 +1,29 @@
-# Phase status — HTML → Godot 1:1 port
+# Phase status — HTML → Godot true 1:1 port
 
-| Phase | Gate | Status |
+| Phase | Scope | Status |
 | --- | --- | --- |
-| P0–P9 | `npm run port:gates` | **ALL PASS** |
-| function_map | 290 / 290 | **ported** |
-| Live cutover | `USE_GODOT=1` | **not flipped** — remains **html-legacy** |
+| P0 | Policy / ban shortcuts / docs | **in progress** — ban greps + docs rewrite |
+| P1 | WorldDraw single pass | **in progress** — modular orchestrator + empty entity draws |
+| P2 | CanvasCompat + Trebuchet | **in progress** — Trebuchet shipped; circle fill hot path |
+| P3–P8 | Menus / combat / flow / audio / meta | structure on disk; dual not signed |
+| P9 | Dual QA | **open** |
+| P10 | Cutover | **blocked** on P9 |
 
-## What shipped this session
+`function_map.json` entries on disk ≠ dual_ok.  
+`npm run port:gates` = structure smoke only.
 
-### P8 — progress / emblems / inventory / consumables
-- ProgressStore: emblems, estats, heads, consum, shop unlocks, `reset_inventory`, `on_game_cleared` (cabal + speedrun_hell), `compute_emblems`, `content_unlocked` / `lock_cost`
-- EmblemSystem full `emblemTick` (score, power, lives, weapons, bride, live best)
-- ConsumableSystem: arsenalI cycle, hold 0.8s use, 3s CD, full-check, honeycomb_100
-- Inputs: `item_switch` (Q) / `item_use` (E); Settings **R** → reset inventory
-- Shop uses lockCost; EndScreen cabal toast; end_run → computeEmblems + saveEstats
+## Live
 
-### P9 — cloud / residual combat / cutover readiness
-- Cloud: `build_progress_snapshot` / `apply_progress_snapshot` / `cloud_linked` / `schedule_cloud_save` / `cloud_pull_and_merge`
-- Wynn hell portal sequence on final boss
-- Dash land rainbow explosion; clear_wave_mobs; boss mul helpers
-- JoyPad touch/virtual stick bridge (remaining P1 DOM helpers)
-- Live server still defaults to **html-legacy**
+`USE_GODOT` **off** — client remains **html-legacy** until sign-off.
+
+## Modular structure (do not collapse)
+
+- `WorldDraw.gd` orchestrates one shared `CanvasCompat`
+- Full art stays in `scripts/render/drawers/*`
+- Systems in `scripts/systems/*`, combat in `scripts/combat/*`
+- Performance via shared ctx + tick redraw + circle fill — never art shortcuts
 
 ```bash
 npm run port:gates
-# Gate P0…P9: PASS  ·  residual non-ported: 0
+npm run port:dual -- --fast
 ```
-
-## Explicit live cutover (do **not** run until export QA)
-1. Export Godot web build into the deploy path (`public_godot/` / export pipeline).
-2. Smoke-test with `USE_GODOT=1` on staging only.
-3. Promote production env with `USE_GODOT=1` only after sign-off.

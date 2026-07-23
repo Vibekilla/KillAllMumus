@@ -1,48 +1,69 @@
 # HTML → Godot full port checklist
 
-Source of truth: `public/index.html` (~5430 lines).  
-Gates: `npm run port:gates` (P0–P9 all must PASS).
+Source of truth: `public/index.html` (~5430 lines) + `public/assets/`.  
+Structure smoke: `npm run port:gates`. Product gate: dual QA + sign-off in `PARITY.md`.
 
-## Data
+## Policy
 
-- [x] stages (7) + boss metadata  
-- [x] weapons (10) · specials (11) · melee (5)  
-- [x] outfits · emblems (44) · consumables (11)  
-- [x] ranks / bombs / balance / weapon_order  
+- [x] Modular Godot layout (drawers / systems / WorldDraw orchestrator) — keep forever
+- [x] No iframe / HTML shell for gameplay
+- [x] Entity `_draw` empty; presentation via WorldDraw
+- [x] Trebuchet MS shipped under `godot/assets/fonts/`
+- [ ] Dual QA sign-off (title + play + menus)
+- [ ] `USE_GODOT=1` only after sign-off
 
-## Combat
+## A. Assets
 
-- [x] fire (10 weapons, power 1–5, focus, options)  
-- [x] pshot flags · enemy spawn packs · boss phases  
-- [x] specials · melee charge · bomb · dash  
+- [x] Static textures mirrored (`campfire`, clears, portraits, maid, peephole, …)
+- [x] GIF frame sequences (`confused`, `talk`, `leekspin`) in AssetBank
+- [ ] Every live draw site uses AssetBank (floaters = confused.gif, etc.) — verify dual
+- [x] Trebuchet MS + Bold (no silent Noto UI swap)
+- [x] Emoji fallback (Noto Color Emoji)
 
-## Rendering
+## B. Audio
 
-- [x] CanvasCompat + FontBank (cached fonts for FPS)  
-- [x] WorldCanvas stage bg under entities  
-- [x] HudCanvas panel landscape/portrait/touch  
-- [x] Title menu 1:1 button rows (no extra HELP wrap row)  
-- [x] drawBobina / PShot / bosses / stage bg drawers  
-- [ ] Pixel-diff polish vs dual HTML screenshots  
-- [ ] Peephole true circular clip quality  
+- [x] SfxSynth WAV bake path
+- [ ] All 16 sfx envelopes match HTML
+- [ ] Music volume + stream bridge (no game iframe)
 
-## Systems / meta
+## C. Rendering
 
-- [x] ProgressStore · emblems · consumables hold-to-use  
-- [x] StageFlow intro / clear gate / shop / dialog  
-- [x] ApiClient absolute web URLs  
-- [x] SfxSynth Web-safe WAV  
-- [x] 60 FPS cap + tick-throttled redraw  
+- [x] CanvasCompat + FontBank
+- [x] WorldDraw single-pass (HTML draw order)
+- [x] Full-circle `fill()` → native disc (same look, less thrash)
+- [x] drawBobina / drawMumu / drawElite / drawPShot / drawBullet / bosses on disk
+- [x] Title uses full drawBobina (outfit + maid dance)
+- [ ] Pixel dual match title/play/shop
+- [ ] Peephole circular clip quality
 
-## Cutover (not done)
+## D. Data tables
 
-- [ ] Dual playtest sign-off (title + play + outfits)  
-- [ ] `USE_GODOT=1` only after sign-off  
-- [ ] Steam desktop export after web parity  
+- [x] stages · weapons · specials · melee · outfits · emblems · consumables · ranks/bombs
 
-## Stale notes (removed)
+## E. Combat / systems
 
-- ~~Feature-branch / ship-feature only commits~~ → direct `dev`/`main`  
-- ~~HudCanvas draws stage bg~~ → WorldCanvas only  
-- ~~AudioStreamGenerator on web~~ → AudioStreamWAV  
-- ~~P7 “HudCanvas wires panel+bg”~~ → panel-only + WorldCanvas  
+- [x] Fire / spawn / melee / bomb / dash / specials (structure)
+- [ ] Number parity pass vs HTML (power bleed, graze, extends, boss phases)
+- [x] Items / burns / floaters systems
+- [x] ProgressStore · emblems · consumables hold-to-use
+- [x] StageFlow intro / clear / shop / dialog
+- [x] ApiClient absolute web URLs
+
+## F. Menus & overlays
+
+- [x] Canvas title button rows (structure)
+- [ ] Dual-perfect outfits / arsenal / emblems / NG+ / leaderboard
+- [ ] Godot ports of settings / display / keybinds / help / pause / name entry / shoutouts / soundgate
+
+## G. Cutover
+
+- [ ] Dual playtest sign-off
+- [ ] Web export smoke
+- [ ] `USE_GODOT=1` after approval
+- [ ] Steam desktop export (no `public/` runtime dependency)
+
+## Explicit bans (must stay clean)
+
+- `_draw_fast`, `_draw_mini_bobina`, “Fast path: native” entity art
+- Gameplay iframe of `public/index.html`
+- Claiming port complete from gate file-presence alone

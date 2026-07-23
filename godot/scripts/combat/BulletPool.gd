@@ -46,6 +46,14 @@ func clear_all() -> void:
 		if b.active:
 			b.deactivate()
 
+func iter_active() -> Array:
+	## Active bullets for WorldDraw single-pass (HTML bullets/pshots arrays)
+	var out: Array = []
+	for b in _pool:
+		if b.active:
+			out.append(b)
+	return out
+
 func melee_deflect(origin: Vector2, dir: float, reach: float, half: float, cancel: bool) -> void:
 	for b in _pool:
 		if not b.active or int(b.team) != 1:

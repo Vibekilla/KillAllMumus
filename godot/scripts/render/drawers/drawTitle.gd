@@ -68,45 +68,6 @@ func _kb_shoot() -> String:
 			return OS.get_keycode_string((e as InputEventKey).keycode)
 	return "Z"
 
-func _draw_mini_bobina(cx: float, cy: float, outfit: String) -> void:
-	## Cheap stand-in for title-row mascot (HTML uses full drawBobina; we keep outfit tint only)
-	var col := Color(1.0, 0.75, 0.85)
-	if DataRegistry and DataRegistry.outfit_colors.has(outfit):
-		var oc = DataRegistry.outfit_colors[outfit]
-		if oc is String:
-			col = Color.html(str(oc))
-		elif oc is Array and oc.size() >= 1:
-			col = Color.html(str(oc[0])) if str(oc[0]).begins_with("#") else col
-	ctx.save()
-	ctx.translate(cx, cy)
-	# body
-	ctx.fill_style(col)
-	ctx.begin_path()
-	ctx.arc(0, 2, 9, 0, TAU)
-	ctx.fill()
-	# head
-	ctx.fill_style(col.lightened(0.08))
-	ctx.begin_path()
-	ctx.arc(0, -8, 7.5, 0, TAU)
-	ctx.fill()
-	# eyes
-	ctx.fill_style("#1a1020")
-	ctx.begin_path()
-	ctx.arc(-2.5, -8.5, 1.2, 0, TAU)
-	ctx.fill()
-	ctx.begin_path()
-	ctx.arc(2.5, -8.5, 1.2, 0, TAU)
-	ctx.fill()
-	# ears
-	ctx.fill_style(col.darkened(0.1))
-	ctx.begin_path()
-	ctx.arc(-5.5, -13, 3.2, 0, TAU)
-	ctx.fill()
-	ctx.begin_path()
-	ctx.arc(5.5, -13, 3.2, 0, TAU)
-	ctx.fill()
-	ctx.restore()
-
 func drawTitleBtn(x, y, w, h, label, color, id) -> void:
 	## HTML drawTitleBtn — single-line label, no wrap (shrink font if wider than pad)
 	title_btns.append({"x": float(x), "y": float(y), "w": float(w), "h": float(h), "id": str(id if id != null else "mode")})
@@ -223,8 +184,18 @@ func drawTitle() -> void:
 	if not ProgressStore.outfit_unlocked(selected_outfit):
 		selected_outfit = "og"
 		GameState.selected_outfit = "og"
-	# Mini Bobina next to outfit button — FAST silhouette (full drawBobina is ~4k ops = title FPS death)
-	_draw_mini_bobina(ox - 26.0, oy + bh / 2.0, selected_outfit)
+	# Mini Bobina next to outfit button — HTML full drawBobina
+	if _bobina:
+		ctx.save()
+		ctx.translate(ox - 26.0, oy + bh / 2.0)
+		ctx.scale(1.15, 1.15)
+		_bobina.set_outfit(selected_outfit)
+		_bobina.set_tick(tick)
+		_bobina.drawBobina({
+			"x": 0, "y": 0, "iframe": 0, "focus": false, "walk": 0, "bombFx": 0,
+			"face": -PI / 2.0, "vx": 0, "vy": 0, "outfit": selected_outfit, "tick": tick,
+		})
+		ctx.restore()
 	drawTitleBtn(ox, oy, oW, bh, "👗 OUTFIT: " + _outfit_name(selected_outfit) + "  ▸", "#ff9ecb", "outfit")
 	var mW := 250.0 if is_touch else 232.0
 	var lW := 150.0 if is_touch else 126.0
@@ -323,8 +294,7 @@ func drawTitle() -> void:
 		drawMaidDance()
 
 func drawMaidDance() -> void:
-	## Idle easter egg — use mini bobina at large scale (full drawBobina freezes web at ~4fps)
-	## HTML: idle 30s on title → maid-dance easter egg
+	## HTML: idle 30s on title → maid-dance easter egg (full drawBobina)
 	if ProgressStore.has_method("unlock_emblem"):
 		ProgressStore.unlock_emblem("afk_dance")
 	var t := float(tick)
@@ -363,13 +333,24 @@ func drawMaidDance() -> void:
 	var bounce := absf(sin(t * 0.15)) * 11.0
 	var sway := sin(t * 0.11) * 16.0
 	var tilt := sin(t * 0.11) * 0.13
-	# Large cheap mascot (full drawBobina at 4.6× freezes Web)
-	ctx.save()
-	ctx.translate(W / 2.0 + sway, 340.0 - bounce)
-	ctx.rotate(tilt)
-	ctx.scale(4.6, 4.6)
-	_draw_mini_bobina(0.0, 0.0, selected_outfit)
-	ctx.restore()
+	if _bobina:
+		ctx.save()
+		ctx.translate(W / 2.0 + sway, 340.0 - bounce)
+		ctx.rotate(tilt)
+		ctx.scale(4.6, 4.6)
+		_bobina.set_outfit(selected_outfit)
+		_bobina.set_tick(tick)
+		_bobina.drawBobina({
+			"x": 0, "y": 0, "iframe": 0, "focus": false, "walk": 0, "bombFx": 0,
+			"face": -PI / 2.0,
+			"vx": sin(t * 0.3) * 3.6,
+			"vy": cos(t * 0.42) * 1.6,
+			"lean": sin(t * 0.11) * 0.5,
+			"outfit": selected_outfit,
+			"expr": "uwu",
+			"tick": tick,
+		})
+		ctx.restore()
 	ctx.fill_style("#fff" if (int(floorf(t / 24.0)) % 2) != 0 else "#ff9ecb")
 	ctx.font("900 27px Trebuchet MS")
 	ctx.shadow_color("#ff2b6e")

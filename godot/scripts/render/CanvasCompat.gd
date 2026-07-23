@@ -399,12 +399,23 @@ func rect(x, y, w, h) -> void:
 	move_to(x,y); line_to(x+w,y); line_to(x+w,y+h); line_to(x,y+h); close_path()
 
 func fill() -> void:
-	## HTML CanvasRenderingContext2D.fill — evenodd not used; nonzero fill via triangulation
+	## HTML CanvasRenderingContext2D.fill — evenodd not used; nonzero fill via triangulation.
+	## Full-circle paths (HTML arc 0..2π / 0..7) use native draw_circle — same solid disc pixels,
+	## without ear-clip thrash (performance only; not a visual stand-in for complex shapes).
 	if node == null or _path.size() < 3:
 		return
 	var pts := _closed_path_pts(_path)
 	if pts.size() < 3:
 		return
+	# Prefer tracked full-circle arc before clip/ear-clip (hot path for bullets/orbs)
+	if not _last_full_arc.is_empty() and _fill_grad == null and _is_path_full_circle(pts):
+		var c: Vector2 = _last_full_arc.get("c", Vector2.ZERO)
+		var r: float = float(_last_full_arc.get("r", 0.0))
+		if r > 0.05 and _point_in_clip(c):
+			var col_c := _c(_fill)
+			_draw_shadow_circle(c, r, col_c)
+			node.draw_circle(c, r, col_c)
+			return
 	pts = _clip_poly(pts)
 	if pts.size() < 3:
 		return
@@ -417,6 +428,47 @@ func fill() -> void:
 	var col := _c(_fill_grad.mid_color() if _fill_grad != null else _fill)
 	_draw_shadow_poly(poly, col)
 	_fill_triangulated(poly, col)
+
+func _is_path_full_circle(pts: PackedVector2Array) -> bool:
+	## True when path is a closed disc (many points near constant radius from center).
+	if pts.size() < 12:
+		return false
+	if _last_full_arc.is_empty():
+		return false
+	var c: Vector2 = _last_full_arc.get("c", Vector2.ZERO)
+	var r: float = float(_last_full_arc.get("r", 0.0))
+	if r < 0.05:
+		return false
+	var tol := maxf(1.5, r * 0.12)
+	var ok_n := 0
+	var n := pts.size()
+	# ignore possible closing duplicate
+	if n >= 2 and pts[0].distance_to(pts[n - 1]) < 0.05:
+		n -= 1
+	for i in range(n):
+		if absf(pts[i].distance_to(c) - r) <= tol:
+			ok_n += 1
+	return ok_n >= int(float(n) * 0.85)
+
+func _point_in_clip(p: Vector2) -> bool:
+	if _clip.is_empty():
+		return true
+	match str(_clip.get("kind", "")):
+		"rect":
+			var rr: Rect2 = _clip.get("rect", Rect2())
+			return rr.has_point(p)
+		"circle":
+			return p.distance_to(_clip.get("c", Vector2.ZERO)) <= float(_clip.get("r", 0.0)) + 0.5
+		_:
+			return true
+
+func _draw_shadow_circle(c: Vector2, r: float, col: Color) -> void:
+	if _shadow_blur <= 0.1 or _shadow_col.a <= 0.01:
+		return
+	var sc := _shadow_col
+	sc.a *= _alpha * 0.35
+	var o := maxf(1.0, _shadow_blur * 0.35)
+	node.draw_circle(c + Vector2(o * 0.3, o * 0.3), r + o * 0.15, sc)
 
 func _closed_path_pts(src: PackedVector2Array) -> PackedVector2Array:
 	var pts := _dedupe_path(src)

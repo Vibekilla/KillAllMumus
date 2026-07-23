@@ -31,10 +31,7 @@ func _ready() -> void:
 	z_index = 15
 	z_as_relative = false
 	hp = max_hp
-	ctx = load("res://scripts/render/CanvasCompat.gd").new()
-	ctx.bind(self)
-	ported = load("res://scripts/render/PortedDraw.gd").new()
-	ported.setup(ctx)
+	# Drawing moved to WorldDraw (shared CanvasCompat) — no per-enemy ctx
 
 func setup(pool: Node, pos: Vector2, opts: Dictionary = {}) -> void:
 	bullet_pool = pool
@@ -52,7 +49,6 @@ func setup(pool: Node, pos: Vector2, opts: Dictionary = {}) -> void:
 	if kind == "elite":
 		bcol = Color("7ed957")
 	age_frames = randf() * 100.0
-	queue_redraw()
 
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
@@ -126,8 +122,6 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 		return
 	# Redraw ~15 Hz unless flash hit-flash (was every physics frame → major FPS sink)
-	if flash > 0.0 or int(age_frames) % 4 == 0:
-		queue_redraw()
 
 func _touch_player(p: Node2D) -> void:
 	if p == null or not p.has_method("take_hit"):
@@ -158,33 +152,6 @@ func _die(charmed: bool = false) -> void:
 	queue_free()
 
 func _draw() -> void:
-	# Fast native sprites for wave mumus (ported path is CanvasCompat-heavy)
-	var c := bcol
-	if flash > 0.0:
-		c = Color.WHITE
-	if kind == "lil":
-		draw_circle(Vector2(0, 2), radius * 0.95, c.darkened(0.25))
-		draw_circle(Vector2.ZERO, radius * 0.85, c)
-		draw_circle(Vector2(-radius * 0.25, -radius * 0.2), radius * 0.22, Color(1, 1, 1, 0.7))
-		draw_circle(Vector2(-radius * 0.2, -radius * 0.05), radius * 0.12, Color(0.1, 0.05, 0.12))
-		draw_circle(Vector2(radius * 0.2, -radius * 0.05), radius * 0.12, Color(0.1, 0.05, 0.12))
-		return
-	if kind == "big":
-		draw_circle(Vector2(0, 3), radius * 1.05, c.darkened(0.3))
-		draw_circle(Vector2.ZERO, radius, c)
-		draw_circle(Vector2(-radius * 0.3, -radius * 0.15), radius * 0.18, Color(1, 1, 1, 0.65))
-		draw_circle(Vector2(-radius * 0.25, 0), radius * 0.1, Color(0.1, 0.05, 0.12))
-		draw_circle(Vector2(radius * 0.25, 0), radius * 0.1, Color(0.1, 0.05, 0.12))
-		return
-	# elite / themed — keep ported when available
-	if ctx == null or ported == null:
-		draw_circle(Vector2.ZERO, radius, c)
-		return
-	ctx.begin_frame()
-	if SimClock and ported.has_method("set_tick"):
-		ported.set_tick(SimClock.tick)
-	var st := {
-		"x": 0.0, "y": 0.0, "r": radius, "t": age_frames,
-		"flash": flash, "icy": icy, "kind": kind, "elite": elite_type,
-	}
-	ported.draw_elite(st)
+	## Visuals owned by WorldDraw (full drawMumu/drawElite). This node is sim/collision only.
+	pass
+

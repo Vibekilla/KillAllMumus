@@ -1,82 +1,89 @@
-# HTML → Godot parity (Steam-bound full port)
+# HTML → Godot parity (true 1:1 full port)
 
-## Goal
+## Mandate
 
-A **complete** Godot 4 port of Bobina: Kill All Mumus — same game as
-`public/index.html` (assets, audio, draw, combat, UI, input, meta).
+Port **`public/index.html` + `public/assets/**`** into Godot **as the same game**.
 
-| Phase | Runtime | Flags |
-| --- | --- | --- |
-| **Now (porting)** | Live = HTML; Godot at `/godot/` / `?test` | `USE_GODOT` **off** by default |
-| **Cutover** | Live = Godot WASM | `USE_GODOT=1` only after sign-off |
-| **Steam** | Desktop Godot export | No `public/` runtime dependency |
+| Rule | |
+| --- | --- |
+| Source of truth | HTML + assets only |
+| No placeholders | Full drawers for Bobina, mumus, bullets, bosses, menus |
+| No “fast” art | No `_draw_fast`, mini-Bobina stand-ins, native-only entity blobs |
+| No wrappers | No iframe/WebView of `index.html` for gameplay |
+| Same font | **Trebuchet MS** shipped (`godot/assets/fonts/TrebuchetMS*.ttf`) |
+| Same assets / SFX | All IMG keys, GIF frame anims, 16 `sfx()` types |
+| Same menus + overlays | Canvas states **and** DOM overlays (settings, pause, help, …) |
+| Live | HTML until dual QA sign-off (`USE_GODOT` off) |
 
-Do **not** remove dual-client routing or `public/index.html` until cutover is intentional.
+**File exists ≠ ported.** Real status = **wired into draw path + same behavior + dual QA**.
 
-## Source of truth (during port)
+## Modular Godot structure (keep this)
 
-**`public/index.html`** + **`public/assets/`**. No stubs / simplified stand-ins.
+HTML is one file; Godot stays **modular** for updates and performance:
 
-```bash
-npm run port:inventory   # 68 draw* must stay mapped
-npm run port:gates       # P0–P9
-npm run port:dual -- --fast
+```
+godot/
+  autoload/          # Config, GameState, FontBank, ProgressStore, …
+  scripts/
+    html_parity/     # SimClock, AssetBank, WorldDraw (orchestrator)
+    render/
+      CanvasCompat.gd
+      PortedDraw.gd  # facade over modular drawers
+      drawers/       # drawBobina, drawMumu, drawPShot, drawTitle, … (1:1 modules)
+    combat/ enemies/ player/ systems/ ui/ audio/
+  data/              # JSON tables from HTML constants
+  assets/textures + fonts
 ```
 
-## Architecture (current — keep)
+- **WorldDraw** = single presentation pass (HTML `draw()` playfield body), one shared `CanvasCompat`.
+- **Entity nodes** = simulation + collision only (`_draw` empty).
+- **Drawers** stay separate modules — never collapse into one megascript; never replace a drawer with a circle.
+- Performance comes from **structure** (shared ctx, full-circle fill hot path, tick-throttled redraw), not art downgrade.
 
-| Layer | Node | Draws |
+## Architecture
+
+| Layer | Owner | Role |
 | --- | --- | --- |
-| Stage bg + ambience | **WorldCanvas** (under playfield) | `draw_stage_bg`, boss ambience, veil, slowmo |
-| Entities | Playfield / BulletPool | Bobina, mumus, bullets |
-| FX | FxLayer | particles, melee arcs |
-| HUD chrome | **HudCanvas** | panel, toasts, pause, touch — **not** stage bg |
-| Menus | TitleScreen / FlowUI / EndScreen | title, outfits, arsenal, intro, shop |
+| World presentation | **WorldDraw** | Full HTML field draw order |
+| Menus | Title / FlowUI + drawer modules | Full canvas menu ports |
+| HUD panel | HudCanvas | `drawPanel*` only (not stage bg) |
+| Overlays | Control UIs | settings, pause, help, soundgate, … |
+| Sim | SimClock 60 Hz | HTML `simStep` |
 
-Never put full-field stage bg on a high CanvasLayer (hid entities).
+## Phases (full port)
 
-## Performance targets
-
-- **60 FPS** sim + display (`run/max_fps=60`, vsync on).
-- Redraw only when **SimClock tick** advances (title / HUD / world / Bobina).
-- CanvasCompat: **cache font + FontBank**; avoid RegEx per `fill_text`.
-- SFX: **AudioStreamWAV** bake (Web-safe), not live Generator push.
-
-## Title menu 1:1 (HTML `drawTitle`)
-
-Buttons (desktop):
-
-1. Outfit row  
-2. Mode + Leaderboard  
-3. Arsenal · Emblems · Settings (+ NG+ if unlocked)  
-4. Start pill  
-5. Single-line control/info text (**no wrap**)
-
-No HELP chip on the third row (HTML keeps help out of that row). Labels are single-line; button font shrinks to fit width.
-
-## Phase gates (P0–P9) — status
-
-| Gate | Scope | Status |
+| Phase | Scope | Done when |
 | --- | --- | --- |
-| P0 | Inventory + HTML presence | PASS |
-| P1 | Assets, layout 960×540, sfx types, input | PASS |
-| P2 | Canvas menus + P2Meta | PASS |
-| P3–P4 | Combat / specials | PASS |
-| P5 | Items / FX | PASS |
-| P6 | Stage flow / shop / portal | PASS |
-| P7 | HUD panel + WorldCanvas bg split | PASS |
-| P8 | Progress / emblems / consumables | PASS |
-| P9 | Cloud + residual + USE_GODOT opt-in | PASS |
+| P0 | Policy, ban shortcuts, docs | Ban greps clean; docs match this file |
+| P1 | WorldDraw single pass | Full drawers wired; dual play not blobs |
+| P2 | CanvasCompat + Trebuchet | Dual title/HUD fonts; circle fill fidelity |
+| P3 | Title + meta menus | Dual screenshots per menu |
+| P4 | DOM overlays in Godot | Every settings/pause/help control |
+| P5 | Combat draw + logic | Dual combat + playtest |
+| P6 | Stage flow / shop / dialog | Stage 0 clear path |
+| P7 | Audio + assets | 16 sfx + all keys + GIF anim |
+| P8 | Meta mechanics | Emblems/consumables/NG+ |
+| P9 | Dual QA hard gate | Written sign-off below |
+| P10 | Cutover / Steam | Only after sign-off |
 
-Gates assert **on-disk structure**. Visual/pixel QA still uses `port:dual`.
+Structure smoke (`npm run port:gates`) ≠ visual parity. Dual QA is the real product gate.
 
-## Residual polish (not “unmapped functions”)
+## Dual QA sign-off
 
-- Pixel-diff title/play vs HTML screenshots (fonts, spacing, peephole clip)
-- Boss/elite pose polish under dual shots
-- BGM if HTML adds music later
-- Dual report copy Godot shots from app_userdata into `tools/port/playtest_out/`
+- [ ] Title
+- [ ] Play (full Bobina / mumus / bullets)
+- [ ] Outfits / arsenal / shop
+- [ ] Boss / stage clear / win / game over
+- [ ] Settings / pause overlays
+- [ ] FPS acceptable on Web without art cuts
+
+```bash
+npm run port:inventory
+npm run port:gates
+npm run port:dual -- --fast   # / --full
+```
 
 ## Git
 
-Work on **`dev`** (`/var/www/dev`), promote with `./scripts/promote-to-live.sh`.
+Work on **`dev`** (`/var/www/dev`), promote with `./scripts/promote-to-live.sh`.  
+Do **not** enable `USE_GODOT=1` until P9 sign-off.

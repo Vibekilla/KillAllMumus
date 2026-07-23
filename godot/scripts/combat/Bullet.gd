@@ -74,8 +74,7 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, col: Color, t: Team) -> vo
 	# Never toggle monitoring inside area signals — deferred avoids Godot spam
 	set_deferred("monitoring", true)
 	set_deferred("monitorable", true)
-	queue_redraw()
-
+	
 func _reset_flags() -> void:
 	pshot = false
 	home = false
@@ -145,8 +144,7 @@ func set_props(props: Dictionary) -> void:
 		radius = 5.0
 	elif shell:
 		radius = 12.0
-	queue_redraw()
-
+	
 func deactivate() -> void:
 	if nade and not _boomed and pshot:
 		_boomed = true
@@ -270,32 +268,9 @@ func _nearest_target() -> Vector2:
 	return best if found else Vector2.ZERO
 
 func _draw() -> void:
-	if not active:
-		return
-	# Fast path: native CanvasItem draws (CanvasCompat/PortedDraw was ~4fps with 50+ bullets)
-	var r := radius
-	if team == Team.PLAYER and pshot:
-		if laser or foc:
-			draw_line(Vector2(0, r * 2.0), Vector2(0, -r * 4.0), color, maxf(2.0, r), true)
-			draw_circle(Vector2.ZERO, r * 0.7, color.lightened(0.3))
-		elif gat:
-			draw_circle(Vector2.ZERO, r * 0.85, color)
-			draw_circle(Vector2(-r * 0.3, -r * 0.2), r * 0.35, color.lightened(0.4))
-		elif nade:
-			draw_circle(Vector2.ZERO, r * 1.15, color.darkened(0.15))
-			draw_circle(Vector2(-r * 0.25, -r * 0.25), r * 0.35, Color(1, 1, 0.7, 0.9))
-		elif home:
-			draw_circle(Vector2.ZERO, r, color)
-			draw_circle(Vector2.ZERO, r * 0.45, color.lightened(0.5))
-		else:
-			draw_circle(Vector2.ZERO, r, color)
-			draw_circle(Vector2(-r * 0.25, -r * 0.25), r * 0.3, Color(1, 1, 1, 0.55))
-		return
-	# Enemy bullets
-	draw_circle(Vector2.ZERO, r, color)
-	draw_circle(Vector2.ZERO, r * 0.55, color.lightened(0.35))
-	if hp > 0.0:
-		draw_arc(Vector2.ZERO, r + 1.5, 0.0, TAU, 12, color.darkened(0.2), 1.0, true)
+	## Visuals owned by WorldDraw single-pass (HTML one ctx). Collision-only node.
+	pass
+
 
 func _ready() -> void:
 	area_entered.connect(_on_area)
