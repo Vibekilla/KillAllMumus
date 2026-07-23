@@ -18,11 +18,12 @@ func _ready() -> void:
 	GameState.state_changed.connect(func(_s): queue_redraw())
 	visible = true
 
+var _last_tick: int = -1
+
 func _process(delta: float) -> void:
 	if StageFlow:
 		StageFlow.tick(delta)
-	if SimClock:
-		tick = SimClock.tick
+	var nt := SimClock.tick if SimClock else tick + 1
 	# show for flow states or when field portal is active
 	var show := GameState.state in [
 		GameState.State.INTRO, GameState.State.STAGE_CLEAR, GameState.State.SHOP
@@ -32,6 +33,12 @@ func _process(delta: float) -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 	else:
 		mouse_filter = Control.MOUSE_FILTER_STOP
+	if not show:
+		return
+	if nt == _last_tick:
+		return
+	_last_tick = nt
+	tick = nt
 	queue_redraw()
 
 func _draw() -> void:

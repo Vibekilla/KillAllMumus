@@ -208,7 +208,9 @@ func _physics_process(delta: float) -> void:
 	# HTML graze ring: near player, not hit yet
 	if team == Team.ENEMY and grazeable and not grazed:
 		_try_graze()
-	queue_redraw()
+	# Only re-draw when motion changes look (home/wave/curl); static shots keep last draw
+	if home or wv > 0.0 or absf(curl) > 0.0001:
+		queue_redraw()
 
 func _try_graze() -> void:
 	var tree := get_tree()

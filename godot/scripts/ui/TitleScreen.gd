@@ -28,6 +28,7 @@ var menus: RefCounted
 var model
 var bobina
 var title_idle_t: float = 0.0
+var _last_draw_tick: int = -1
 var _login_btn: Button
 var _auth_label: Label
 var _pointer_down = false
@@ -42,12 +43,17 @@ func _ready() -> void:
 	_auth_label.add_theme_font_size_override("font_size", 11)
 	_auth_label.add_theme_color_override("font_color", Color(1, 0.82, 0.9))
 	_auth_label.position = Vector2(12, Config.H - 48)
-	_auth_label.size = Vector2(360, 18)
+	_auth_label.size = Vector2(420, 18)
+	_auth_label.clip_text = true
+	_auth_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_auth_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	add_child(_auth_label)
 	_login_btn = Button.new()
 	_login_btn.name = "CanvasLoginBtn"
 	_login_btn.position = Vector2(12, Config.H - 28)
-	_login_btn.size = Vector2(200, 22)
+	_login_btn.size = Vector2(220, 22)
+	_login_btn.clip_text = true
+	_login_btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_login_btn.pressed.connect(_on_login_pressed)
 	add_child(_login_btn)
 
@@ -127,6 +133,13 @@ func _process(delta: float) -> void:
 	if ctx == null or title_drawer == null or menus == null:
 		return
 	var t: int = int(SimClock.tick) if SimClock else int(title_drawer.tick) + 1
+	# Throttle full-canvas redraws to sim tick (~60 Hz) — was redrawing every render frame
+	if t == _last_draw_tick and GameState.state != GameState.State.TITLE:
+		return
+	# Title still needs idle animation, but only when tick advances
+	if t == _last_draw_tick:
+		return
+	_last_draw_tick = t
 	if title_drawer.has_method("set_tick"):
 		title_drawer.set_tick(t)
 	if menus.has_method("set_tick"):

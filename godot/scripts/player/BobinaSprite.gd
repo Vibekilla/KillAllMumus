@@ -35,9 +35,14 @@ func set_state(st: Dictionary) -> void:
 		outfit_key = str(st["outfit"])
 	queue_redraw()
 
+var _last_tick: int = -1
+
 func _process(_delta: float) -> void:
-	if SimClock:
-		player_state["tick"] = SimClock.tick
+	var nt := int(SimClock.tick) if SimClock else _last_tick + 1
+	if nt == _last_tick:
+		return
+	_last_tick = nt
+	player_state["tick"] = nt
 	queue_redraw()
 
 func _draw() -> void:

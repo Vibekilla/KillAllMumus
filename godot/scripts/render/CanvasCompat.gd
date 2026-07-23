@@ -90,6 +90,11 @@ var _lw: float = 1.0
 var _alpha: float = 1.0
 var _font_size: int = 12
 var _font_css: String = "12px sans-serif"
+## Font cache — RegEx + FontBank lookup once per css string (FPS)
+var _font_regex: RegEx = null
+var _font_bank = null
+var _cached_font: Font = null
+var _cached_font_key: String = ""
 var _align: String = "left"
 var _path: PackedVector2Array = PackedVector2Array()
 var _path_closed: bool = false
@@ -197,23 +202,36 @@ func shadow_blur(b: float) -> void:
 func font(f) -> void:
 	# e.g. 'bold 12px monospace' / '900 18px "Trebuchet MS"' — HTML ctx.font
 	var s := str(f)
+	if s == _font_css:
+		return
 	_font_css = s
-	var m := RegEx.new()
-	m.compile("(\\d+)px")
-	var r := m.search(s)
+	_cached_font_key = ""
+	if _font_regex == null:
+		_font_regex = RegEx.new()
+		_font_regex.compile("(\\d+)px")
+	var r := _font_regex.search(s)
 	if r:
 		_font_size = int(r.get_string(1))
 
 func _active_font() -> Font:
-	## Resolve FontBank via node path — avoid bare autoload id at parse time
-	var tree := Engine.get_main_loop() as SceneTree
-	if tree:
-		var fb = tree.root.get_node_or_null("/root/FontBank")
-		if fb != null and fb.has_method("font_for"):
-			return fb.font_for(_font_css)
-		if fb != null and fb.get("ui") != null:
-			return fb.ui as Font
-	return ThemeDB.fallback_font
+	## Cached FontBank pick — avoid get_node every fill_text
+	var key := "%s|%d" % [_font_css, _font_size]
+	if _cached_font != null and key == _cached_font_key:
+		return _cached_font
+	if _font_bank == null:
+		var tree := Engine.get_main_loop() as SceneTree
+		if tree:
+			_font_bank = tree.root.get_node_or_null("/root/FontBank")
+	var f: Font = null
+	if _font_bank != null and _font_bank.has_method("font_for"):
+		f = _font_bank.font_for(_font_css)
+	elif _font_bank != null and _font_bank.get("ui") != null:
+		f = _font_bank.ui as Font
+	if f == null:
+		f = ThemeDB.fallback_font
+	_cached_font = f
+	_cached_font_key = key
+	return f
 
 func text_align(a) -> void:
 	_align = str(a).replace("'","").replace('"','')
@@ -695,9 +713,12 @@ func stroke_text(text, x, y) -> void:
 		p.x -= w
 	p.y -= sz * 0.15
 	var col := _c(_stroke)
-	# HTML strokeText — outline via offset fills (canvas stroke of glyphs)
+	# HTML strokeText — outline via offset fills (4-cardinal + diagonals only when thick)
 	var o := maxf(1.0, _lw * 0.35)
-	for d in [Vector2(-o, 0), Vector2(o, 0), Vector2(0, -o), Vector2(0, o), Vector2(-o, -o), Vector2(o, -o), Vector2(-o, o), Vector2(o, o)]:
+	var offs: Array = [Vector2(-o, 0), Vector2(o, 0), Vector2(0, -o), Vector2(0, o)]
+	if _lw >= 3.0:
+		offs.append_array([Vector2(-o, -o), Vector2(o, -o), Vector2(-o, o), Vector2(o, o)])
+	for d in offs:
 		node.draw_string(f, p + d, str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
 
 func clip() -> void:

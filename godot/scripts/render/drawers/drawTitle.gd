@@ -69,6 +69,7 @@ func _kb_shoot() -> String:
 	return "Z"
 
 func drawTitleBtn(x, y, w, h, label, color, id) -> void:
+	## HTML drawTitleBtn — single-line label, no wrap (shrink font if wider than pad)
 	title_btns.append({"x": float(x), "y": float(y), "w": float(w), "h": float(h), "id": str(id if id != null else "mode")})
 	ctx.fill_style("rgba(20,10,28,0.7)")
 	ctx.begin_path()
@@ -78,9 +79,18 @@ func drawTitleBtn(x, y, w, h, label, color, id) -> void:
 	ctx.line_width(2)
 	ctx.stroke()
 	ctx.fill_style(str(color))
-	ctx.font("bold 14px Trebuchet MS")
+	var lbl := str(label)
+	var fsz := 14
+	ctx.font("bold %dpx Trebuchet MS" % fsz)
+	var tw := float(ctx.measure_text(lbl).get("width", 0))
+	var max_w := float(w) - 12.0
+	while tw > max_w and fsz > 9:
+		fsz -= 1
+		ctx.font("bold %dpx Trebuchet MS" % fsz)
+		tw = float(ctx.measure_text(lbl).get("width", 0))
 	ctx.text_align("center")
-	ctx.fill_text(str(label), float(x) + float(w) / 2.0, float(y) + float(h) / 2.0 + 5.0)
+	# Single-line only — never multi-line wrap inside button
+	ctx.fill_text(lbl, float(x) + float(w) / 2.0, float(y) + float(h) / 2.0 + float(fsz) * 0.35)
 	ctx.text_align("left")
 
 func drawMenuBtn(cx, y) -> Dictionary:
@@ -107,13 +117,13 @@ func drawTitle() -> void:
 	title_btns = []
 	var W := _W
 	var H := _H
-	# Background gradient approximation (HTML linear stops)
-	ctx.fill_style("#1a0e26")
-	ctx.fill_rect(0, 0, W, H * 0.55)
-	ctx.fill_style("#3a1030")
-	ctx.fill_rect(0, H * 0.35, W, H * 0.35)
-	ctx.fill_style("#12060c")
-	ctx.fill_rect(0, H * 0.65, W, H * 0.35)
+	# HTML: linearGradient 0→0.6→1 #1a0e26 / #3a1030 / #12060c
+	var bg = ctx.create_linear_gradient(0, 0, 0, H)
+	bg.addColorStop(0, "#1a0e26")
+	bg.addColorStop(0.6, "#3a1030")
+	bg.addColorStop(1, "#12060c")
+	ctx.fill_style(bg)
+	ctx.fill_rect(0, 0, W, H)
 	# Floating particles
 	var cols := ["#ff6ec7", "#ffd27a", "#8fd0ff"]
 	for i in range(40):
@@ -199,10 +209,11 @@ func drawTitle() -> void:
 	drawTitleBtn(rx, ry, mW, bh, mode_lbls[di], mode_cols[di], "mode")
 	drawTitleBtn(rx + mW + gap, ry, lW, bh, "🏆 LEADERBOARD", "#ffd27a", "lb")
 	var ny := ry + bh + (10.0 if is_touch else 12.0)
+	# HTML row3: ARSENAL · EMBLEMS · SETTINGS (+ NG+ if unlocked) (+ SHOUTOUTS on touch)
+	# No HELP here — HTML keeps help in top chrome / settings, not this row
 	var row3: Array = [
 		{"l": "🎒 ARSENAL", "c": "#7fdfff", "id": "arsenal"},
 		{"l": "🏅 EMBLEMS %d/%d" % [_emblem_count(), _emblem_total()], "c": "#ffd27a", "id": "emblems"},
-		{"l": "📖 HELP", "c": "#8fd0a0", "id": "help"},
 		{"l": "⚙ SETTINGS", "c": "#b0a0d8", "id": "settings"},
 	]
 	if ng_unlocked > 0:
@@ -211,8 +222,14 @@ func drawTitle() -> void:
 		row3.append({"l": ng_l, "c": ng_c, "id": "ngplus"})
 	if is_touch:
 		row3.append({"l": "📣 SHOUTOUTS", "c": "#8fd0a0", "id": "shoutouts"})
+	# Fit single row within 960 — never wrap buttons to a second line
 	var bw := 150.0
-	var tot := float(row3.size()) * bw + float(row3.size() - 1) * gap
+	var nbtn := float(row3.size())
+	var tot := nbtn * bw + maxf(0.0, nbtn - 1.0) * gap
+	var max_row := W - 24.0
+	if tot > max_row and nbtn > 0.0:
+		bw = (max_row - maxf(0.0, nbtn - 1.0) * gap) / nbtn
+		tot = max_row
 	var sx0 := W / 2.0 - tot / 2.0
 	for i in range(row3.size()):
 		var r: Dictionary = row3[i]

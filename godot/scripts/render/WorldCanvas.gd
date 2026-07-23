@@ -16,9 +16,14 @@ func _ready() -> void:
 	hud.setup(ctx)
 	add_to_group("world_canvas")
 
+var _last_tick: int = -1
+
 func _process(_d: float) -> void:
-	if SimClock:
-		tick = SimClock.tick
+	var nt := SimClock.tick if SimClock else tick + 1
+	if nt == _last_tick:
+		return
+	_last_tick = nt
+	tick = nt
 	var playish := GameState.state in [
 		GameState.State.PLAY, GameState.State.INTRO, GameState.State.PAUSED,
 		GameState.State.STAGE_CLEAR

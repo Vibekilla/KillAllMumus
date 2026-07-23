@@ -7,6 +7,7 @@ config_version=5
 config/name="Kill All Mumus"
 config/description="Bobina: Kill All Mumus!! — modular Godot port"
 run/main_scene="res://scenes/main/Main.tscn"
+run/max_fps=60
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://assets/textures/clear-0.png"
 
@@ -36,6 +37,7 @@ window/size/mode=0
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep"
 window/handheld/orientation=0
+window/vsync/vsync_mode=1
 
 [input]
 
@@ -131,3 +133,8 @@ environment/defaults/default_clear_color=Color(0.06, 0.03, 0.08, 1)
 gdscript/warnings/treat_warnings_as_errors=false
 gdscript/warnings/untyped_declaration=0
 gdscript/warnings/inferred_declaration=0
+
+[physics]
+
+common/physics_ticks_per_second=60
+common/max_physics_steps_per_frame=8
