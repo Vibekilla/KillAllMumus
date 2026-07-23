@@ -67,15 +67,20 @@ jobs:
           echo "Verify OK @ $(git rev-parse --short HEAD)"
 
   # ── Live deploy (main only, after Verify) ───────────────────────────
+  # Requires a registered self-hosted runner on the production host.
+  # If none is online, this job stays queued — promote-to-live.sh also
+  # restarts services locally so live is not blocked on CI.
   deploy-live:
     name: Restart live services (self-hosted)
     needs: [verify]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: self-hosted
+    # push to main OR manual workflow_dispatch on main
+    if: |
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 15
     # Do not mark the whole workflow failed if the box is down — Verify still passed
     continue-on-error: true
-    # Separate concurrency so a hung deploy can be cancelled by the next main push
-    # without blocking Verify on ubuntu-latest (that job already finished).
     concurrency:
       group: kam-deploy-live
       cancel-in-progress: true
@@ -86,9 +91,16 @@ jobs:
       - name: Install + restart
         run: |
           set -euo pipefail
-          export NVM_DIR="$HOME/.nvm"
+          export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
           # shellcheck disable=SC1091
           [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          # Prefer live tree if this runner is the production host
+          if [ -d /var/www/killallmumus.com ] && [ -f /var/www/killallmumus.com/package.json ]; then
+            cd /var/www/killallmumus.com
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main || git reset --hard origin/main
+          fi
           npm ci --omit=dev
           bash scripts/pg-start.sh
           if systemctl --user cat killallmumus.service >/dev/null 2>&1; then

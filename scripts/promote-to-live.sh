@@ -172,4 +172,46 @@ if [[ "$DO_PUSH" -eq 1 ]]; then
   sync_dev_with_main || true
 fi
 
-echo "  CI: Verify always runs on push; deploy only on main after Verify."
+# Restart live services on this box immediately (do not wait for CI runner).
+# CI deploy-live is a second path for the same host when the self-hosted runner is online.
+restart_live_local() {
+  local live="${MAIN_WT:-/var/www/killallmumus.com}"
+  if [[ ! -d "$live" ]]; then
+    return 0
+  fi
+  echo "==> Restart live services in $live"
+  (
+    set -euo pipefail
+    cd "$live"
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+    # shellcheck disable=SC1091
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    if [[ -f package-lock.json ]]; then
+      npm ci --omit=dev 2>/dev/null || npm ci --omit=dev
+    fi
+    bash scripts/pg-start.sh 2>/dev/null || true
+    if systemctl --user cat killallmumus.service >/dev/null 2>&1; then
+      systemctl --user restart killallmumus-pg.service || true
+      systemctl --user restart killallmumus.service
+    elif [[ -x scripts/install-user-services.sh ]]; then
+      bash scripts/install-user-services.sh
+    fi
+    for i in $(seq 1 20); do
+      if curl -fsS http://127.0.0.1:3000/api/health 2>/dev/null | grep -q '"ok":true'; then
+        curl -fsS http://127.0.0.1:3000/api/health
+        echo
+        echo "✓ health OK"
+        return 0
+      fi
+      sleep 1
+    done
+    echo "WARN: health check did not pass yet (service may still be starting)" >&2
+  ) || echo "WARN: local restart failed — CI deploy or manual restart still available" >&2
+}
+
+if [[ "$DO_PUSH" -eq 1 ]]; then
+  restart_live_local || true
+fi
+
+echo "  CI: Verify always runs on push; deploy-live needs self-hosted runner (online)."
+echo "  Local restart already attempted on this machine after promote."
