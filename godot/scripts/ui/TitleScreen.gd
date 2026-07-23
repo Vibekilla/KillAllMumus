@@ -47,12 +47,7 @@ func _on_mode_pressed() -> void:
 
 func _on_ng_pressed() -> void:
 	ng_pressed.emit()
-	# Cycle NG+ for scaffold
-	if ProgressStore.ng_unlocked > 0:
-		GameState.ng_plus = (GameState.ng_plus + 1) % (ProgressStore.ng_unlocked + 1)
-		ProgressStore.progress["ngPlus"] = GameState.ng_plus
-		ProgressStore.queue_save()
-		_refresh()
+	GameState.set_state(GameState.State.NG_SELECT)
 
 func _on_leaderboard_pressed() -> void:
 	leaderboard_pressed.emit()
@@ -69,9 +64,12 @@ func _on_login_pressed() -> void:
 
 func _on_outfits_pressed() -> void:
 	outfits_pressed.emit()
+	GameState.set_state(GameState.State.OUTFITS)
 
 func _on_emblems_pressed() -> void:
 	emblems_pressed.emit()
+	GameState.set_state(GameState.State.EMBLEMS)
 
 func _on_arsenal_pressed() -> void:
 	arsenal_pressed.emit()
+	GameState.set_state(GameState.State.ARSENAL)

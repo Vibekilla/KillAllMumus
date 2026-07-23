@@ -1,0 +1,41 @@
+{
+  "migrated": [
+    "stages data",
+    "weapons data",
+    "specials data",
+    "melee data",
+    "outfits data",
+    "emblems data",
+    "consumables data",
+    "ranks",
+    "GameState flow",
+    "ProgressStore cloud",
+    "ApiClient scores/auth/progress",
+    "Player move/shoot/bomb",
+    "Bullet pool",
+    "Enemy waves",
+    "Simple boss HP",
+    "Title UI",
+    "HUD",
+    "Pause",
+    "Display settings",
+    "Settings",
+    "Leaderboard",
+    "End screen"
+  ],
+  "ported_modules": [
+    "scripts/systems/SpecialSystem.gd",
+    "scripts/systems/MeleeSystem.gd",
+    "scripts/systems/ShopSystem.gd",
+    "scripts/systems/EmblemSystem.gd",
+    "scripts/systems/ConsumableSystem.gd",
+    "scripts/player/BobinaSprite.gd",
+    "scripts/enemies/BossController.gd",
+    "scenes/ui/ArsenalUI.tscn",
+    "scenes/ui/EmblemsUI.tscn",
+    "scenes/ui/OutfitsUI.tscn",
+    "scenes/ui/NgSelectUI.tscn",
+    "scenes/shop/ShopUI.tscn",
+    "scenes/ui/TouchControls.tscn"
+  ]
+}

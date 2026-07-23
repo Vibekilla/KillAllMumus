@@ -1,5 +1,5 @@
 extends Node
-## Intro → waves → boss → next stage.
+## Intro → waves → boss → next stage / shop.
 
 signal request_intro(stage: Dictionary)
 signal request_boss(stage: Dictionary)
@@ -7,7 +7,7 @@ signal request_boss(stage: Dictionary)
 var spawner: Node
 var bullet_pool: Node
 
-const EnemyScene := preload("res://scenes/enemies/Enemy.tscn")
+const BossScene := preload("res://scenes/enemies/Boss.tscn")
 
 func setup(s: Node, pool: Node) -> void:
 	spawner = s
@@ -30,22 +30,22 @@ func begin_current_stage() -> void:
 func _on_ready_boss() -> void:
 	var stage: Dictionary = DataRegistry.get_stage(GameState.stage_index)
 	request_boss.emit(stage)
-	await get_tree().create_timer(0.5).timeout
-	_spawn_simple_boss(stage)
+	await get_tree().create_timer(0.4).timeout
+	_spawn_boss(stage)
 
-func _spawn_simple_boss(stage: Dictionary) -> void:
-	var boss = EnemyScene.instantiate()
+func _spawn_boss(stage: Dictionary) -> void:
+	var boss = BossScene.instantiate()
 	var pf: Rect2 = Config.PLAYFIELD
+	var bid := str(stage.get("boss", {}).get("id", "boss"))
+	var hp := 100.0 + GameState.stage_index * 50.0 + GameState.ng_plus * 8.0
 	get_parent().get_node("Playfield").add_child(boss)
-	boss.setup(bullet_pool, Vector2(pf.get_center().x, pf.position.y + 80), {
-		"hp": 80.0 + GameState.stage_index * 40.0 + GameState.ng_plus * 5.0,
-		"speed": 10.0,
-		"score": 2000,
-		"kind": "boss",
-	})
-	boss.scale = Vector2(2.2, 2.2)
-	boss.killed.connect(func(_e):
-		ProgressStore.estats_add("bosses", 1)
-		GameState.add_score(int(5000 * GameState.score_mul()))
-		GameState.clear_stage()
+	boss.setup(bullet_pool, Vector2(pf.get_center().x, pf.position.y + 90), bid, hp)
+	boss.defeated.connect(func(_id):
+		# Award heads, open shop every stage except last
+		ProgressStore.progress["heads"] = int(ProgressStore.progress.get("heads", 0)) + 10 + GameState.stage_index * 5
+		ProgressStore.queue_save()
+		if GameState.stage_index >= DataRegistry.stages.size() - 1:
+			GameState.end_run(true)
+		else:
+			GameState.set_state(GameState.State.SHOP)
 	)

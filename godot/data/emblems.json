@@ -1,70 +1,276 @@
 [
   {
-    "id": "start",
-    "name": "Council Rookie",
-    "desc": "Join the Bobina Council.",
-    "icon": "\ud83d\udc3b",
-    "outfit": "og"
+    "id": "first_mumu",
+    "name": "First Blood",
+    "desc": "Exterminate your first Mumu.",
+    "icon": "\ud83e\ude78",
+    "outfit": "maid"
   },
   {
-    "id": "clear",
+    "id": "boss_first",
+    "name": "Meme Slayer",
+    "desc": "Defeat your first meme boss.",
+    "icon": "\ud83d\udc4a",
+    "outfit": "ourbit"
+  },
+  {
+    "id": "full_power",
+    "name": "Full-Power Bobina",
+    "desc": "Reach maximum shot power in a run.",
+    "icon": "\u26a1",
+    "outfit": "nanosuit"
+  },
+  {
+    "id": "flawless",
+    "name": "Untouchable",
+    "desc": "Clear a whole stage without dying.",
+    "icon": "\ud83d\udee1\ufe0f",
+    "outfit": "labrat"
+  },
+  {
+    "id": "graze_1000",
+    "name": "Cat Reflexes",
+    "desc": "Graze 1,000 bullets (lifetime).",
+    "icon": "\ud83d\udc31",
+    "outfit": "neko"
+  },
+  {
+    "id": "life_8",
+    "name": "Bear Necessities",
+    "desc": "Hold 8 lives at once.",
+    "icon": "\ud83e\uddf8",
+    "outfit": "kigurumi"
+  },
+  {
+    "id": "kills_500",
     "name": "Mumu Exterminator",
-    "desc": "Clear the game.",
-    "icon": "\ud83c\udfc6"
+    "desc": "Exterminate 500 Mumus (lifetime).",
+    "icon": "\ud83d\udc80",
+    "outfit": "badger"
   },
   {
-    "id": "clear_hard",
-    "name": "Hard Carry",
-    "desc": "Clear on HARD.",
-    "icon": "\ud83d\udd25"
-  },
-  {
-    "id": "clear_hell",
-    "name": "Hell Walker",
-    "desc": "Clear on HELL.",
-    "icon": "\u2620",
-    "outfit": "cabal"
+    "id": "kills_2500",
+    "name": "Total Annihilation",
+    "desc": "Exterminate 2,500 Mumus (lifetime).",
+    "icon": "\u2622\ufe0f",
+    "outfit": "bullbina"
   },
   {
     "id": "score_1m",
     "name": "Making Bank",
-    "desc": "Score 1,000,000.",
+    "desc": "Score 1,000,000 in a single run.",
     "icon": "\ud83d\udcbc",
     "outfit": "business"
   },
   {
+    "id": "clear",
+    "name": "Bobo is Saved",
+    "desc": "Beat the game and rescue Bobo.",
+    "icon": "\ud83d\udc3b"
+  },
+  {
+    "id": "clear_hard",
+    "name": "No Mercy",
+    "desc": "Beat the game on HARD or higher.",
+    "icon": "\ud83d\udd25",
+    "outfit": "viking"
+  },
+  {
+    "id": "speedrun",
+    "name": "Bobina Hates Monologues",
+    "desc": "Beat the game with Speedrun mode on.",
+    "icon": "\ud83c\udfc1",
+    "outfit": "jester"
+  },
+  {
+    "id": "ngplus",
+    "name": "Encore",
+    "desc": "Clear a New Game+ cycle.",
+    "icon": "\ud83d\udd01"
+  },
+  {
+    "id": "clear_hell",
+    "name": "Through Hell",
+    "desc": "Beat the game on HELL difficulty.",
+    "icon": "\u2620",
+    "outfit": "cabal"
+  },
+  {
+    "id": "kills_10000",
+    "name": "Mumu Genocide",
+    "desc": "Exterminate 10,000 Mumus (lifetime).",
+    "icon": "\ud83d\udca5"
+  },
+  {
+    "id": "graze_5000",
+    "name": "Bullet Ballet",
+    "desc": "Graze 5,000 bullets (lifetime).",
+    "icon": "\ud83e\ude70",
+    "outfit": "cheese"
+  },
+  {
+    "id": "max_lives",
+    "name": "Nine Lives",
+    "desc": "Hold the maximum 9 lives at once.",
+    "icon": "\ud83d\udc97",
+    "outfit": "emblem"
+  },
+  {
     "id": "score_5m",
     "name": "Diamond Hands",
-    "desc": "Score 5,000,000.",
+    "desc": "Score 5,000,000 in a single run.",
     "icon": "\ud83d\udcc8",
     "outfit": "golden"
   },
   {
+    "id": "no_miss_game",
+    "name": "Flawless Victory",
+    "desc": "Beat the whole game without dying once.",
+    "icon": "\u2728",
+    "outfit": "angel"
+  },
+  {
+    "id": "ngplus_3",
+    "name": "Glutton for Punishment",
+    "desc": "Clear New Game+ Lv3 or higher.",
+    "icon": "\ud83d\ude24"
+  },
+  {
+    "id": "speedrun_hell",
+    "name": "No Time to Talk",
+    "desc": "Speedrun-clear the game on HELL.",
+    "icon": "\u23f1\ufe0f"
+  },
+  {
+    "id": "melee_first",
+    "name": "First Cut",
+    "desc": "Slay a Mumu with a melee swipe.",
+    "icon": "\ud83d\udde1\ufe0f"
+  },
+  {
+    "id": "melee_slayer",
+    "name": "Blademaster",
+    "desc": "Slay 300 Mumus with melee (lifetime).",
+    "icon": "\u2694\ufe0f"
+  },
+  {
+    "id": "melee_shock",
+    "name": "Shockwave",
+    "desc": "Vaporize 20+ bullets with one full-charge swipe.",
+    "icon": "\ud83c\udf00"
+  },
+  {
+    "id": "melee_all",
+    "name": "Weapon Master",
+    "desc": "Land a hit with all 5 melee weapons.",
+    "icon": "\ud83c\udf8f"
+  },
+  {
+    "id": "slash_dash",
+    "name": "Ronin Rush",
+    "desc": "Unleash a fully-charged Slash Dash.",
+    "icon": "\u2726",
+    "outfit": "samurai"
+  },
+  {
+    "id": "dash_50",
+    "name": "Blink Step",
+    "desc": "Dash 50 times (lifetime).",
+    "icon": "\ud83d\udca8",
+    "outfit": "pickle"
+  },
+  {
+    "id": "special_25",
+    "name": "Overdrive",
+    "desc": "Unleash 25 specials (lifetime).",
+    "icon": "\ud83c\udf1f"
+  },
+  {
+    "id": "bomb_50",
+    "name": "Scorched Earth",
+    "desc": "Detonate 50 bombs (lifetime).",
+    "icon": "\ud83d\udca3"
+  },
+  {
+    "id": "weapon_all",
+    "name": "Full Arsenal",
+    "desc": "Run a full loadout of 5 weapons from the Arsenal.",
+    "icon": "\ud83c\udf92"
+  },
+  {
+    "id": "graze_10000",
+    "name": "Grazing God",
+    "desc": "Graze 10,000 bullets (lifetime).",
+    "icon": "\ud83d\udd4a\ufe0f"
+  },
+  {
+    "id": "boss_hunter",
+    "name": "Meme Massacre",
+    "desc": "Defeat 15 meme bosses (lifetime).",
+    "icon": "\ud83d\udc51",
+    "outfit": "monke"
+  },
+  {
+    "id": "kills_5000",
+    "name": "Soul Reaper",
+    "desc": "Exterminate 5,000 Mumus (lifetime).",
+    "icon": "\ud83d\ude08",
+    "outfit": "succubus"
+  },
+  {
+    "id": "bride",
+    "name": "Here Comes the Bride",
+    "desc": "Earn 20 Emblems.",
+    "icon": "\ud83d\udc70",
+    "outfit": "bride"
+  },
+  {
+    "id": "bog_slayer",
+    "name": "Cut the Strings",
+    "desc": "Sever both Bogdanoff twins.",
+    "icon": "\ud83c\udfad",
+    "outfit": "voidling"
+  },
+  {
+    "id": "honeycomb_100",
+    "name": "Sweet Tooth",
+    "desc": "Devour 100 Honeycombs (lifetime).",
+    "icon": "\ud83c\udf6f",
+    "outfit": "honeybee"
+  },
+  {
     "id": "ng25",
     "name": "Top Banana",
-    "desc": "Win NG+ Lv25.",
+    "desc": "Win a New Game+ Lv25 run.",
     "icon": "\ud83c\udf4c",
     "outfit": "banana"
   },
   {
     "id": "ng50",
     "name": "Squirrely",
-    "desc": "Win NG+ Lv50.",
+    "desc": "Win a New Game+ Lv50 run.",
     "icon": "\ud83d\udc3f\ufe0f",
     "outfit": "squirrely"
   },
   {
     "id": "ng75",
     "name": "Honeypot",
-    "desc": "Win NG+ Lv75.",
+    "desc": "Win a New Game+ Lv75 run.",
     "icon": "\ud83c\udf6f",
     "outfit": "honeypot"
   },
   {
     "id": "ng100",
     "name": "Cosmic Empress",
-    "desc": "Win NG+ Lv100.",
+    "desc": "Win a New Game+ Lv100 run.",
     "icon": "\ud83d\udc51",
     "outfit": "empress"
+  },
+  {
+    "id": "start",
+    "name": "Council Rookie",
+    "desc": "Answer the call \u2014 join the Bobina Council.",
+    "icon": "\ud83d\udc3b",
+    "outfit": "og"
   }
 ]
