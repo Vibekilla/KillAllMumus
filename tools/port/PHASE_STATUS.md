@@ -7,7 +7,7 @@
 | --- | --- | --- |
 | 0 | Foundation / docs / dual as living checklist | **active** — docs + `port:gates` 0–8 |
 | 1 | Performance (cache Bobina, throttle redraws) | **in progress** — Bobina cache + StageBg cache + particle batch; GPU/web FPS still open |
-| 2 | Bobina animation (breath, blink, expressions, outfits, poses) | **in progress** — faces/poses/blink/breath/coffee/outfit-anim/GIF dual; full wardrobe scale matrix open |
+| 2 | Bobina animation (breath, blink, expressions, outfits, poses) | **in progress** — wardrobe dual on outfits menu (×4.7); faces/poses/anim/GIF; play-scale dual still open |
 | 3 | Exhaustive visuals (weapons / specials / melee / auras / powerups / bosses / meta) | **open** |
 | 4 | Exhaustive mechanics + boss AI + stage flow + progress | **open** |
 | 5 | Audio (16 sfx + music bridge) | **open** |

@@ -169,22 +169,33 @@ func drawOutfits() -> void:
 	ctx.fill_style("#c8b0d0")
 	ctx.font("12px monospace")
 	ctx.fill_text("Wardrobe · %d / %d unlocked · tap a skin to equip · unlock more via 🏅 Emblems" % [unlocked_n, DataRegistry.outfits.size()], W / 2.0, 60)
-	# preview stage (right)
+	# preview stage (right) — HTML drawOutfits: gradient panel + clip + radial spotlight + ×4.7 figure
 	var pvX = W - 330.0
 	var pvY = 78.0
 	var pvW = 310.0
 	var pvH = H - 78.0 - 16.0
-	ctx.fill_style("#241033")
+	var pg = ctx.create_linear_gradient(0, pvY, 0, pvY + pvH)
+	pg.addColorStop(0, "#241033")
+	pg.addColorStop(1, "#140a1c")
+	ctx.fill_style(pg)
 	ctx.begin_path()
 	ctx.round_rect(pvX, pvY, pvW, pvH, 14)
 	ctx.fill()
 	ctx.stroke_style("rgba(255,150,205,0.45)")
 	ctx.line_width(2)
 	ctx.stroke()
+	# HTML: clip figure + notes inside rounded stage
+	ctx.save()
+	ctx.begin_path()
+	ctx.round_rect(pvX, pvY, pvW, pvH, 14)
+	ctx.clip()
 	var pcx = pvX + pvW / 2.0
 	var t = float(tick)
-	# spotlight
-	ctx.fill_style("rgba(255,190,235,0.18)")
+	# spotlight cone (HTML radial gradient fill of cone poly)
+	var spot = ctx.create_radial_gradient(pcx, pvY + 40.0, 10.0, pcx, pvY + 220.0, 220.0)
+	spot.addColorStop(0, "rgba(255,190,235,0.26)")
+	spot.addColorStop(1, "rgba(255,190,235,0)")
+	ctx.fill_style(spot)
 	ctx.begin_path()
 	ctx.move_to(pcx - 40, pvY + 10)
 	ctx.line_to(pcx + 40, pvY + 10)
@@ -192,6 +203,7 @@ func drawOutfits() -> void:
 	ctx.line_to(pcx - 150, pvY + pvH)
 	ctx.close_path()
 	ctx.fill()
+	# HTML fixed figScale=4.7 — outfit menu is the dual surface for wardrobe/pose/face
 	var fig_cy = pvY + pvH * 0.47
 	var fig_scale = 4.7
 	var feet_y = fig_cy + fig_scale * 22.0
@@ -211,12 +223,13 @@ func drawOutfits() -> void:
 		ctx.text_align("center")
 		ctx.fill_text(notes[i % 5], nx, ny)
 	ctx.global_alpha(1.0)
-	# posed preview — HTML drawOutfitFigure (full poseParams)
+	# HTML drawOutfitFigure → drawPosedFigure(pose, outfitPreview, VICTORY_FACES[face].expr)
 	var pose_i = clampi(model.outfit_pose, 0, MenuHelpers.OUTFIT_POSES.size() - 1)
 	var face_i = clampi(model.victory_face, 0, MenuHelpers.VICTORY_FACES.size() - 1)
 	var expr = MenuHelpers.VICTORY_FACES[face_i].get("expr")
 	_draw_posed_figure(pcx, fig_cy, fig_scale, pose_i, model.outfit_preview, expr)
-	# labels
+	ctx.restore()  # end stage clip
+	# labels (HTML draws these outside clip)
 	var po_name = model.outfit_preview
 	for o in DataRegistry.outfits:
 		if str(o.get("key")) == model.outfit_preview:

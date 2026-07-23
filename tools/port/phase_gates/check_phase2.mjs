@@ -19,7 +19,13 @@ g.ok(shot.includes("godot_bobina_face_") || shot.includes("bobina_face"), "dual 
 g.ok(shot.includes("godot_bobina_pose_") || shot.includes("bobina_pose"), "dual pose shots");
 g.ok(shot.includes("blink_open") && shot.includes("blink_closed"), "dual blink open/closed shots");
 g.ok(shot.includes("bobina_breath_") || shot.includes("breath_"), "dual breath ticks");
-g.ok(shot.includes("outfit_anim_") || shot.includes("godot_outfit_anim"), "dual continuous outfit anims");
+g.ok(shot.includes("menu_outfit_") || shot.includes("godot_menu_outfit_"), "dual full wardrobe via outfits menu");
+g.ok(shot.includes("menu_outfit_anim_") || shot.includes("outfit_anim_"), "dual continuous outfit anims in menu");
+const menus = read("godot/scripts/ui/menu/draw_menus.gd");
+g.ok(menus.includes("fig_scale = 4.7") || menus.includes("fig_scale=4.7"), "outfit menu fig_scale 4.7 (HTML)");
+g.ok(menus.includes("create_radial_gradient") || menus.includes("radial"), "outfit menu spotlight gradient");
+g.ok(menus.includes("clip()"), "outfit menu stage clip like HTML");
+g.ok(menus.includes("_draw_posed_figure") || menus.includes("draw_posed"), "outfit posed figure");
 g.ok(shot.includes("godot_gif_talk") || shot.includes("gif_talk"), "dual talk GIF");
 g.ok(shot.includes("godot_gif_confused") || shot.includes("gif_confused"), "dual confused GIF");
 g.ok(shot.includes("outfit_pose = 5") || shot.includes("pose_i in [2, 3, 5]"), "dual coffee / This Is Fine pose");
@@ -32,9 +38,6 @@ const fx = read("godot/scripts/render/drawers/drawCombatFx.gd");
 g.ok(fx.includes("func poseParams"), "poseParams");
 g.ok(fx.includes("func drawPoseProp"), "drawPoseProp");
 g.ok(fx.includes("func coffeeHold"), "coffeeHold");
-
-const menus = read("godot/scripts/ui/menu/draw_menus.gd");
-g.ok(menus.includes("_draw_posed_figure") || menus.includes("draw_posed"), "outfit posed figure");
 
 const html = read("public/index.html");
 g.ok(html.includes("function drawBobina"), "HTML drawBobina still source");

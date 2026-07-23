@@ -69,7 +69,7 @@ function servePublic() {
         if (!html.includes("window.__kamDual")) {
           html = html.replace(
             /function showNameEntry\(\)\{/,
-            `window.__kamDual={setState:function(s){state=s;},setScore:function(k,sc){totalKills=k;sessionScore=sc;},setClear:function(info){clearInfo=info||{stage:0,killsThisStage:0,total:totalKills||0,emblems:[]};},setPaused:function(p){paused=!!p;},setPower:function(v){power=v;},setEnd:function(w){endWon=!!w;endHandled=false;justSavedScore=false;nameEntryOpen=false;try{var n=document.getElementById("nameEntry");if(n)n.classList.remove("on");}catch(e){}}};function showNameEntry(){`
+            `window.__kamDual={setState:function(s){state=s;},setScore:function(k,sc){totalKills=k;sessionScore=sc;},setClear:function(info){clearInfo=info||{stage:0,killsThisStage:0,total:totalKills||0,emblems:[]};},setPaused:function(p){paused=!!p;},setPower:function(v){power=v;},setOutfit:function(o,pose,face){if(o!=null)outfitPreview=o;if(pose!=null)outfitPose=pose|0;if(face!=null)victoryFace=face|0;},setEnd:function(w){endWon=!!w;endHandled=false;justSavedScore=false;nameEntryOpen=false;try{var n=document.getElementById("nameEntry");if(n)n.classList.remove("on");}catch(e){}}};function showNameEntry(){`
           );
         }
         res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
@@ -118,6 +118,35 @@ async function captureHtml() {
   await clickCanvas(480, 318);
   await page.screenshot({ path: path.join(htmlDir, "html_menu_outfits.png") });
   console.log("[HTML] menu_outfits");
+  // Phase 2: outfit menu wardrobe dual — same surface as Godot (drawOutfits ×4.7 stage)
+  if (!fast) {
+    const wardrobe = [
+      "og","maid","nanosuit","badger","viking","ourbit","bullbina","monke",
+      "pickle","emblem","labrat","neko","kigurumi","cheese","business","jester",
+      "samurai","bride","angel","golden","succubus","voidling","honeybee","banana",
+      "squirrely","honeypot","empress","cabal",
+    ];
+    for (const key of wardrobe) {
+      await page.evaluate((k) => {
+        if (window.__kamDual && window.__kamDual.setOutfit) window.__kamDual.setOutfit(k, 0, 2);
+        if (window.__kamDual) window.__kamDual.setState("outfits");
+      }, key);
+      await page.waitForTimeout(120);
+      await page.screenshot({ path: path.join(htmlDir, `html_menu_outfit_${key}.png`) });
+    }
+    // continuous anim skins @ two ticks via pose face fixed, rely on browser draw loop
+    for (const key of ["angel","succubus","voidling","honeypot","bride","empress","cabal"]) {
+      await page.evaluate((k) => {
+        if (window.__kamDual && window.__kamDual.setOutfit) window.__kamDual.setOutfit(k, 0, 2);
+        if (window.__kamDual) window.__kamDual.setState("outfits");
+      }, key);
+      await page.waitForTimeout(80);
+      await page.screenshot({ path: path.join(htmlDir, `html_menu_outfit_anim_${key}_a.png`) });
+      await page.waitForTimeout(350);
+      await page.screenshot({ path: path.join(htmlDir, `html_menu_outfit_anim_${key}_b.png`) });
+    }
+    console.log("[HTML] menu_outfits wardrobe", wardrobe.length);
+  }
   await page.keyboard.press("KeyZ"); // back
   await page.waitForTimeout(fast ? 300 : 500);
 
@@ -394,6 +423,15 @@ function writeIndex() {
     ["html_end_win.png", "godot_end_win.png", "Win"],
   ];
   if (!fast) pairs.push(["html_play_firing.png", "godot_play_power6.png", "Combat"]);
+  // Outfit menu wardrobe (HTML drawOutfits vs Godot) — full dual when --full
+  if (!fast) {
+    for (const f of godotShots.filter((x) => x.startsWith("godot_menu_outfit_") && !x.includes("anim"))) {
+      const key = f.replace("godot_menu_outfit_", "").replace(".png", "");
+      const h = `html_menu_outfit_${key}.png`;
+      if (htmlShots.includes(h)) pairs.push([h, f, `Outfit menu · ${key}`]);
+    }
+  }
+
   let rows = "";
   for (const [h, g, label] of pairs) {
     const hasH = htmlShots.includes(h);
@@ -402,7 +440,7 @@ function writeIndex() {
       <td><div class="cap">HTML (source of truth)</div>${hasH ? `<img src="html/${h}" width="480"/>` : "<em>missing</em>"}</td>
       <td><div class="cap">Godot port</div>${hasG ? `<img src="godot/${g}" width="480"/>` : "<em>missing</em>"}</td></tr>`;
   }
-  for (const g of godotShots.filter((f) => (f.includes("outfit_") || f.includes("bobina_face_") || f.includes("bobina_pose_") || f.includes("bobina_breath_") || f.includes("bobina_blink_") || f.includes("gif_") || f.includes("outfit_anim_")) && !f.includes("menu"))) {
+  for (const g of godotShots.filter((f) => f.includes("bobina_") || f.includes("gif_") || f.includes("menu_outfit_anim_"))) {
     rows += `<tr><th colspan="2">${g}</th></tr><tr><td colspan="2"><img src="godot/${g}" width="480"/></td></tr>`;
   }
   fs.writeFileSync(

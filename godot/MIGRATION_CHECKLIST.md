@@ -35,10 +35,11 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [x] Blink formula ported: `(tick % 230) < 7 and not squee`
 - [x] Dual breath ticks (idle 0 vs 35)
 - [x] Dual all poses 0–5 (incl. coffee / This Is Fine hold + fire)
-- [x] Dual continuous outfit anims (angel / succubus / voidling / honeypot @ 8 & 48)
+- [x] Dual continuous outfit anims in **outfits menu** (angel/succubus/voidling/honeypot/bride/empress/cabal @ 8 & 48)
 - [x] GIF overlays: talk (dialog), confused (floater), leek (stage clear); AssetBank on SimClock
-- [ ] Multi-scale expression matrix dual (menu vs play vs HUD mini)
-- [ ] Remaining wardrobe continuous dual (all 28 outfits sign-off)
+- [x] Full wardrobe dual via **OUTFITS menu** (HTML `drawOutfits` ×4.7 stage — all 28 skins)
+- [x] Outfit menu chrome parity: gradient panel, radial spotlight, round-rect clip
+- [ ] Multi-scale expression matrix outside outfits menu (play ×1 / HUD mini) — separate from wardrobe dual
 
 ## Phase 3 — Exhaustive visuals
 

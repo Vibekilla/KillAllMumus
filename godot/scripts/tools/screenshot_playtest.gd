@@ -242,8 +242,34 @@ func _run() -> void:
 				await process_frame
 				title.queue_redraw()
 			await _save("godot_bobina_pose_%d" % pose_i)
-		# Continuous outfit anims (wings / tail / tendrils): two ticks per key skin
-		for outfit_key in ["angel", "succubus", "voidling", "honeypot"]:
+		# Full wardrobe via OUTFITS menu (HTML drawOutfits) — one stable tick per skin @ ×4.7 stage
+		title.model.outfit_pose = 0
+		title.model.victory_face = 2  # smile
+		if sc2:
+			sc2.sim_frame = 24
+		if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+			title.menus.set_tick(24)
+		var wardrobe: Array = []
+		var dr = _A("DataRegistry")
+		if dr and "outfits" in dr:
+			for o in dr.outfits:
+				wardrobe.append(str(o.get("key", "")))
+		if wardrobe.is_empty():
+			wardrobe = ["og", "maid", "nanosuit", "badger", "viking", "ourbit", "bullbina", "monke",
+				"pickle", "emblem", "labrat", "neko", "kigurumi", "cheese", "business", "jester",
+				"samurai", "bride", "angel", "golden", "succubus", "voidling", "honeybee", "banana",
+				"squirrely", "honeypot", "empress", "cabal"]
+		for outfit_key in wardrobe:
+			if outfit_key == "":
+				continue
+			title.model.outfit_preview = outfit_key
+			title.queue_redraw()
+			for _i in range(5):
+				await process_frame
+				title.queue_redraw()
+			await _save("godot_menu_outfit_%s" % outfit_key)
+		# Continuous-anim skins: second tick for wing/tail/veil motion dual inside same menu
+		for outfit_key in ["angel", "succubus", "voidling", "honeypot", "bride", "empress", "cabal"]:
 			title.model.outfit_preview = outfit_key
 			title.model.outfit_pose = 0
 			title.model.victory_face = 2
@@ -253,10 +279,10 @@ func _run() -> void:
 				if "menus" in title and title.menus and title.menus.has_method("set_tick"):
 					title.menus.set_tick(anim_tick)
 				title.queue_redraw()
-				for _i in range(8):
+				for _i in range(6):
 					await process_frame
 					title.queue_redraw()
-				await _save("godot_outfit_anim_%s_%d" % [outfit_key, anim_tick])
+				await _save("godot_menu_outfit_anim_%s_%d" % [outfit_key, anim_tick])
 		if sc2:
 			sc2.paused = false
 
