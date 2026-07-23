@@ -162,6 +162,20 @@ func _run() -> void:
 					await process_frame
 		await _save(str(st_name[1]))
 
+	# Phase 2: Bobina expression previews (HTML VICTORY_FACES indices)
+	if not fast and title and "model" in title and title.model:
+		GameState.set_state(GameState.State.OUTFITS)
+		_force_ui_size(_main)
+		# MenuHelpers.VICTORY_FACES: 0 Auto, 1 :3 uwu, 2 Smile, 3 >v< squee, 4 Giggle, 5 Annoyed
+		for face_i in [2, 1, 3, 5]:
+			title.model.victory_face = face_i
+			title.model.outfit_preview = "og"
+			title.model.outfit_pose = 0
+			title.queue_redraw()
+			for _i in range(8):
+				await process_frame
+			await _save("godot_bobina_face_%d" % face_i)
+
 	# Restore emblems for rest of dual (play may earn more)
 	if _ps:
 		_ps.emblems = _saved_emblems

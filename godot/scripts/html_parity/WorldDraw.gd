@@ -71,6 +71,16 @@ func _is_playish() -> bool:
 		GameState.State.STAGE_CLEAR, GameState.State.SHOP
 	]
 
+## Playfield cull (clip already hides; skip drawer cost when fully outside)
+func _in_pf(x: float, y: float, margin: float = 24.0) -> bool:
+	var pf: Rect2 = Config.playfield()
+	return (
+		x + margin >= pf.position.x
+		and x - margin <= pf.position.x + pf.size.x
+		and y + margin >= pf.position.y
+		and y - margin <= pf.position.y + pf.size.y
+	)
+
 func _draw() -> void:
 	if ctx == null or ported == null:
 		return
@@ -112,17 +122,23 @@ func _draw() -> void:
 	# --- floaters (confused.gif) ---
 	if ItemSystem:
 		for f in ItemSystem.floaters:
-			_draw_floater(f)
+			if _in_pf(float(f.get("x", 0)), float(f.get("y", 0)), 30.0):
+				_draw_floater(f)
 
 	# --- enemies then burns then bosses (HTML order) ---
 	if tree:
 		for e in tree.get_nodes_in_group("enemies"):
 			if not is_instance_valid(e) or e.is_in_group("bosses"):
 				continue
+			var er := float(e.get("radius")) if e.get("radius") != null else 15.0
+			if not _in_pf(e.global_position.x, e.global_position.y, er):
+				continue
 			_draw_enemy(e)
 	if ItemSystem:
 		for bn in ItemSystem.burns:
-			_draw_burn(bn)
+			var br := float(bn.get("reach", bn.get("r", 40)))
+			if _in_pf(float(bn.get("x", 0)), float(bn.get("y", 0)), br):
+				_draw_burn(bn)
 	if tree:
 		for b in tree.get_nodes_in_group("bosses"):
 			if is_instance_valid(b):
@@ -136,22 +152,29 @@ func _draw() -> void:
 	# --- items ---
 	if ItemSystem and item_draw:
 		for it in ItemSystem.items:
-			item_draw.drawItem(it)
+			if it is Dictionary and _in_pf(float(it.get("x", 0)), float(it.get("y", 0)), 20.0):
+				item_draw.drawItem(it)
 
-	# --- pshots then enemy bullets ---
+	# --- pshots then enemy bullets (one pool pass, HTML order) ---
 	if _bullet_pool == null:
 		_bind_pool()
 	if _bullet_pool and _bullet_pool.has_method("iter_active"):
+		var pshots: Array = []
+		var ebullets: Array = []
 		for b in _bullet_pool.iter_active():
 			if not is_instance_valid(b) or not b.active:
+				continue
+			var br2 := float(b.radius) if b.get("radius") != null else 4.0
+			if not _in_pf(b.global_position.x, b.global_position.y, br2):
 				continue
 			if int(b.team) == 0:
-				_draw_bullet_node(b)
-		for b in _bullet_pool.iter_active():
-			if not is_instance_valid(b) or not b.active:
-				continue
-			if int(b.team) != 0:
-				_draw_bullet_node(b)
+				pshots.append(b)
+			else:
+				ebullets.append(b)
+		for b in pshots:
+			_draw_bullet_node(b)
+		for b in ebullets:
+			_draw_bullet_node(b)
 
 	# --- phase veil under Bobina ---
 	if hud.has_method("drawPhaseVeil"):
