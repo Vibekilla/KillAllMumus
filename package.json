@@ -1,0 +1,31 @@
+{
+  "name": "killallmumus",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "start:prod": "node server.js",
+    "db:backup": "bash scripts/db-backup.sh",
+    "db:pg-start": "bash scripts/pg-start.sh",
+    "db:pg-stop": "bash scripts/pg-stop.sh",
+    "services:install": "bash scripts/install-user-services.sh"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.22.2",
+    "pg": "^8.22.0",
+    "sharp": "^0.35.3"
+  },
+  "emblem_build": {
+    "tables": [
+      {
+        "name": "bobina_scores",
+        "schema": "CREATE TABLE IF NOT EXISTS bobina_scores (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, handle TEXT, score INTEGER, kills INTEGER, rank TEXT, mode TEXT, won INTEGER, outfit TEXT DEFAULT 'og', created_at TEXT DEFAULT (datetime('now')))"
+      }
+    ]
+  },
+  "description": "Bobina: Kill All Mumus \u2014 killallmumus.com",
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

@@ -1,0 +1,118 @@
+# Live traffic always serves from `main`.
+#
+# Flow:
+#   • Push to `dev`  → verify → merge into `main` (promotion)
+#   • Push to `main` → verify → (optional self-hosted restart) → force-update
+#     `dev` to the live SHA as a codebase backup mirror
+name: Deploy & branch backup
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+concurrency:
+  group: killallmumus-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: node --check server.js
+      - name: Assert game assets
+        run: |
+          test -f public/index.html
+          test -f server.js
+          test -f scripts/db-backup.sh
+          test -f scripts/pg-start.sh
+
+  # Work lands on dev → after green verify, promote to main (live).
+  promote-dev-to-main:
+    name: Promote dev → main
+    needs: verify
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Merge verified dev into main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main || true
+          git checkout -B main origin/main 2>/dev/null || git checkout -B main
+          git merge --no-ff "${{ github.sha }}" -m "chore: promote verified dev → main (live ${{ github.sha }})"
+          git push origin main
+          echo "Promoted dev → main. main is live."
+
+  # On main: after successful verify (and optional deploy), mirror main → dev.
+  deploy-live:
+    name: Restart live services (self-hosted)
+    needs: verify
+    if: github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install + restart
+        run: |
+          set -euo pipefail
+          export NVM_DIR="$HOME/.nvm"
+          # shellcheck disable=SC1091
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          npm ci --omit=dev
+          bash scripts/pg-start.sh
+          if systemctl --user cat killallmumus.service >/dev/null 2>&1; then
+            systemctl --user restart killallmumus-pg.service || true
+            systemctl --user restart killallmumus.service
+          else
+            bash scripts/install-user-services.sh
+          fi
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/api/health | grep -q '"ok":true'; then
+              curl -fsS http://127.0.0.1:3000/api/health
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
+  backup-dev-branch:
+    name: Mirror main → dev (codebase backup)
+    needs: [verify, deploy-live]
+    # Run when verify is green and we're on main; deploy-live may be skipped/failed
+    # (no runner) — still snapshot main onto dev.
+    if: |
+      always() &&
+      needs.verify.result == 'success' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Point dev at live main commit
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          LIVE_SHA="$(git rev-parse HEAD)"
+          echo "Live SHA (main): $LIVE_SHA"
+          git branch -f dev "$LIVE_SHA"
+          git push -u origin dev --force-with-lease
+          echo "dev mirrors main @ $LIVE_SHA — codebase backup. Serve only from main."
