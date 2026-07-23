@@ -3,21 +3,77 @@
     "key": "honeycomb",
     "name": "Honeycomb",
     "icon": "\ud83c\udf6f",
-    "color": "#ffd23a",
-    "cost": 15
+    "color": "#ffcf5a",
+    "cost": 16
   },
   {
     "key": "bulltears",
     "name": "Bull Tears",
     "icon": "\ud83d\udca7",
     "color": "#8fd0ff",
-    "cost": 20
+    "cost": 12
   },
   {
     "key": "bullsouls",
     "name": "Bull Souls",
-    "icon": "\ud83d\udc7b",
-    "color": "#b06cff",
+    "icon": "\ud83d\udd2e",
+    "color": "#b98cff",
+    "cost": 28
+  },
+  {
+    "key": "galaxygas",
+    "name": "Galaxy Gas",
+    "icon": "\ud83c\udf0c",
+    "color": "#9d6bff",
+    "cost": 56
+  },
+  {
+    "key": "clover",
+    "name": "Clover",
+    "icon": "\ud83c\udf40",
+    "color": "#7ed957",
     "cost": 25
+  },
+  {
+    "key": "bubbles",
+    "name": "Bubbles",
+    "icon": "\ud83e\udee7",
+    "color": "#8fd0ff",
+    "cost": 30
+  },
+  {
+    "key": "wagyu",
+    "name": "Wagyu",
+    "icon": "\ud83e\udd69",
+    "color": "#ff8aa0",
+    "cost": 38
+  },
+  {
+    "key": "stardust",
+    "name": "Stardust",
+    "icon": "\u2728",
+    "color": "#ffe08a",
+    "cost": 35
+  },
+  {
+    "key": "vial",
+    "name": "Unholy Vial",
+    "icon": "\ud83e\uddea",
+    "color": "#9d6bff",
+    "cost": 32
+  },
+  {
+    "key": "banana",
+    "name": "Banana",
+    "icon": "\ud83c\udf4c",
+    "color": "#ffd23a",
+    "cost": 22
+  },
+  {
+    "key": "wormhole",
+    "name": "Wormhole",
+    "icon": "\ud83c\udf00",
+    "color": "#7fdfff",
+    "cost": 46
   }
 ]

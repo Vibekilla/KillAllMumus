@@ -1,5 +1,5 @@
 extends CharacterBody2D
-## Bobina — movement, shoot, bomb, focus.
+## Bobina — movement, shoot, bomb, focus, specials, melee.
 
 signal died
 signal bombed
@@ -13,12 +13,28 @@ const TEAM_PLAYER := 0
 
 var invuln: float = 0.0
 var fire_cd: float = 0.0
-var facing: float = -PI / 2
 var bullet_pool: Node
+var specials: Node
+var melee: Node
+var consumables: Node
+var emblems: Node
 
 func _ready() -> void:
 	add_to_group("player")
 	hurtbox.add_to_group("player_hurtbox")
+	specials = preload("res://scripts/systems/SpecialSystem.gd").new()
+	melee = preload("res://scripts/systems/MeleeSystem.gd").new()
+	consumables = preload("res://scripts/systems/ConsumableSystem.gd").new()
+	emblems = preload("res://scripts/systems/EmblemSystem.gd").new()
+	add_child(specials)
+	add_child(melee)
+	add_child(consumables)
+	add_child(emblems)
+	# Bobina sprite
+	var bob := preload("res://scripts/player/BobinaSprite.gd").new()
+	bob.name = "BobinaSprite"
+	sprite.add_child(bob)
+	bob.set_outfit(GameState.selected_outfit)
 
 func setup(pool: Node) -> void:
 	bullet_pool = pool
@@ -26,6 +42,13 @@ func setup(pool: Node) -> void:
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
+	if emblems:
+		emblems.tick_play()
+	if specials:
+		specials.tick(delta)
+	if melee:
+		melee.tick(delta)
+
 	if invuln > 0.0:
 		invuln -= delta
 		sprite.modulate.a = 0.4 + 0.6 * abs(sin(invuln * 20.0))
@@ -48,17 +71,27 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_clamp_to_playfield()
 
-	if dir.length() > 0.1:
-		facing = dir.angle()
-
 	fire_cd = maxf(0.0, fire_cd - delta)
-	if Input.is_action_pressed("shoot"):
-		_try_fire()
-	# Soft auto-fire when mouse held / always light fire for desktop feel
-	elif Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+	if Input.is_action_pressed("shoot") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_try_fire()
 	if Input.is_action_just_pressed("bomb"):
 		_try_bomb()
+	if Input.is_action_just_pressed("special") and GameState.specials.size():
+		var key := str(GameState.specials[0])
+		if specials.use(key, self, bullet_pool):
+			pass
+	if Input.is_action_pressed("melee"):
+		melee.begin_hold()
+	if Input.is_action_just_released("melee"):
+		var mk := "katana"
+		var ar: Dictionary = ProgressStore.progress.get("arsenal", {})
+		var ms: Array = ar.get("m", ["katana"])
+		if ms.size():
+			mk = str(ms[0])
+		melee.release(self, mk)
+	# build special meter slowly while shooting
+	if Input.is_action_pressed("shoot"):
+		GameState.special_meter = minf(100.0, GameState.special_meter + delta * 8.0)
 
 func _clamp_to_playfield() -> void:
 	var pf: Rect2 = Config.PLAYFIELD
@@ -83,8 +116,7 @@ func _try_fire() -> void:
 	var col := Color(1.0, 0.6, 0.8)
 	for off in shots:
 		var ang: float = base_ang + float(off)
-		var vel := Vector2.from_angle(ang) * 520.0
-		bullet_pool.spawn(global_position + Vector2(0, -10), vel, 1.0 + GameState.power * 0.2, col, TEAM_PLAYER)
+		bullet_pool.spawn(global_position + Vector2(0, -10), Vector2.from_angle(ang) * 520.0, 1.0 + GameState.power * 0.2, col, TEAM_PLAYER)
 	if GameState.current_weapon == "laser":
 		bullet_pool.spawn(global_position + Vector2(0, -14), Vector2(0, -700), 1.5, Color(0.5, 0.85, 1.0), TEAM_PLAYER)
 

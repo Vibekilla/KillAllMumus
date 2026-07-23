@@ -65,6 +65,10 @@ func take_damage(amount: float) -> void:
 func _die() -> void:
 	GameState.add_kill(1)
 	GameState.add_score(int(score_value * GameState.score_mul()))
+	# soft currency drip
+	if randf() < 0.15:
+		ProgressStore.progress["heads"] = int(ProgressStore.progress.get("heads", 0)) + 1
+		ProgressStore.queue_save()
 	killed.emit(self)
 	queue_free()
 

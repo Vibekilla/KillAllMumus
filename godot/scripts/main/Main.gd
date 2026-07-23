@@ -1,16 +1,16 @@
 extends Node2D
-## Root controller.
+## Root controller — wires playfield, UI, stage flow.
 
 @onready var playfield: Node2D = $Playfield
 @onready var player = $Playfield/Player
 @onready var bullet_pool: Node = $BulletPool
 @onready var spawner: Node = $EnemySpawner
 @onready var stages: Node = $StageController
-@onready var title: Control = $UI/TitleScreen
-@onready var pause_menu: Control = $UI/PauseMenu
 @onready var display_menu: Control = $UI/DisplayMenu
 @onready var intro_label: Label = $UI/IntroLabel
 @onready var debug_label: Label = $UI/DebugLabel
+
+var _last_state: StringName = &""
 
 func _ready() -> void:
 	player.setup(bullet_pool)
@@ -48,14 +48,22 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_state(s: StringName) -> void:
 	intro_label.visible = (s == &"INTRO")
+	# After shop back → advance_stage sets INTRO — start stage
+	if s == &"INTRO" and _last_state == &"SHOP":
+		stages.begin_current_stage()
 	if s == &"STAGE_CLEAR":
-		await get_tree().create_timer(1.0).timeout
-		GameState.advance_stage()
-		if GameState.state == GameState.State.INTRO:
-			stages.begin_current_stage()
+		await get_tree().create_timer(0.8).timeout
+		# Prefer shop between stages
+		if GameState.stage_index < DataRegistry.stages.size() - 1:
+			GameState.set_state(GameState.State.SHOP)
+		else:
+			GameState.advance_stage()
+	_last_state = s
 
 func _on_run_started() -> void:
 	player.global_position = Config.PLAYFIELD.get_center() + Vector2(0, 160)
+	if player.has_node("Sprite/BobinaSprite"):
+		player.get_node("Sprite/BobinaSprite").set_outfit(GameState.selected_outfit)
 	bullet_pool.clear_all()
 	spawner.clear()
 	stages.begin_current_stage()

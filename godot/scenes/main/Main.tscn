@@ -1,17 +1,22 @@
-[gd_scene load_steps=13 format=3 uid="uid://main001"]
+[gd_scene load_steps=18 format=3 uid="uid://main001"]
 
 [ext_resource type="Script" path="res://scripts/main/Main.gd" id="1"]
-[ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player/Player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2"]
 [ext_resource type="Script" path="res://scripts/combat/BulletPool.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/enemies/EnemySpawner.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/stages/StageController.gd" id="5"]
-[ext_resource type="PackedScene" uid="uid://title001" path="res://scenes/ui/TitleScreen.tscn" id="6"]
-[ext_resource type="PackedScene" uid="uid://hud001" path="res://scenes/ui/HUD.tscn" id="7"]
-[ext_resource type="PackedScene" uid="uid://pause001" path="res://scenes/ui/PauseMenu.tscn" id="8"]
-[ext_resource type="PackedScene" uid="uid://display001" path="res://scenes/ui/DisplayMenu.tscn" id="9"]
-[ext_resource type="PackedScene" uid="uid://settings001" path="res://scenes/ui/SettingsMenu.tscn" id="10"]
-[ext_resource type="PackedScene" uid="uid://lb001" path="res://scenes/ui/LeaderboardUI.tscn" id="11"]
-[ext_resource type="PackedScene" uid="uid://end001" path="res://scenes/ui/EndScreen.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/ui/TitleScreen.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PauseMenu.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DisplayMenu.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/ui/SettingsMenu.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/ui/LeaderboardUI.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/ui/EndScreen.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ArsenalUI.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://scenes/ui/EmblemsUI.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://scenes/ui/OutfitsUI.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://scenes/ui/NgSelectUI.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ShopUI.tscn" id="17"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1")
@@ -46,18 +51,17 @@ script = ExtResource("5")
 layer = 10
 
 [node name="TitleScreen" parent="UI" instance=ExtResource("6")]
-
 [node name="HUD" parent="UI" instance=ExtResource("7")]
-
 [node name="PauseMenu" parent="UI" instance=ExtResource("8")]
-
 [node name="DisplayMenu" parent="UI" instance=ExtResource("9")]
-
 [node name="SettingsMenu" parent="UI" instance=ExtResource("10")]
-
 [node name="LeaderboardUI" parent="UI" instance=ExtResource("11")]
-
 [node name="EndScreen" parent="UI" instance=ExtResource("12")]
+[node name="ArsenalUI" parent="UI" instance=ExtResource("13")]
+[node name="EmblemsUI" parent="UI" instance=ExtResource("14")]
+[node name="OutfitsUI" parent="UI" instance=ExtResource("15")]
+[node name="NgSelectUI" parent="UI" instance=ExtResource("16")]
+[node name="ShopUI" parent="UI" instance=ExtResource("17")]
 
 [node name="IntroLabel" type="Label" parent="UI"]
 visible = false
@@ -70,7 +74,6 @@ offset_left = -200.0
 offset_top = -40.0
 offset_right = 200.0
 offset_bottom = 40.0
-theme_override_colors/font_color = Color(1, 0.82, 0.9, 1)
 theme_override_font_sizes/font_size = 22
 text = "STAGE"
 horizontal_alignment = 1

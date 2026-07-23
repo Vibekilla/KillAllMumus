@@ -7,8 +7,8 @@ config_version=5
 config/name="Kill All Mumus"
 config/description="Bobina: Kill All Mumus!! — modular Godot port"
 run/main_scene="res://scenes/main/Main.tscn"
-config/features=PackedStringArray("4.3", "Forward Plus")
-config/icon="res://assets/textures/favicon.png"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon="res://assets/textures/clear-0.png"
 
 [autoload]
 
@@ -86,3 +86,9 @@ melee={
 renderer/rendering_method="gl_compatibility"
 textures/canvas_textures/default_texture_filter=0
 environment/defaults/default_clear_color=Color(0.06, 0.03, 0.08, 1)
+
+[debug]
+
+gdscript/warnings/treat_warnings_as_errors=false
+gdscript/warnings/untyped_declaration=0
+gdscript/warnings/inferred_declaration=0
