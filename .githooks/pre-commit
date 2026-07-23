@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+case "$branch" in
+  main|dev)
+    echo "pre-commit: refuse commit on protected branch '$branch'" >&2
+    echo "Use: ./scripts/feature-branch.sh <name> then commit there." >&2
+    exit 1
+    ;;
+esac
+exit 0
