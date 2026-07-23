@@ -48,6 +48,7 @@ func _ensure_draw() -> void:
 	ported.setup(ctx)
 
 func activate(pos: Vector2, vel: Vector2, dmg: float, col: Color, t: Team) -> void:
+	z_index = 12
 	global_position = pos
 	velocity = vel
 	damage = dmg

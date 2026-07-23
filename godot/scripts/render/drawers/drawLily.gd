@@ -113,7 +113,7 @@ func drawLily(b, flash) -> void:
 	ctx.fill_style("#14f195")
 	draw_circle_helper(0, R * 0.55, R * 0.11, "#14f195")
 	ctx.fill_style("#0a2e1a")
-	ctx.font("bold " + R * 0.15 + "px monospace")
+	ctx.font("bold " + str(R * 0.15) + "px monospace")
 	ctx.text_align("center")
 	ctx.fill_text("◎", 0, R * 0.6)
 	ctx.text_align("left")

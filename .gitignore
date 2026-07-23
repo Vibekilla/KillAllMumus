@@ -27,3 +27,7 @@ id_ed25519.*
 db-backups/
 backups/
 pgdata/
+
+# dual playtest screenshots (regenerate via npm run port:dual)
+tools/port/playtest_out/
+

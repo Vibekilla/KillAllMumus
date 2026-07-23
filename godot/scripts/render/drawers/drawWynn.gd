@@ -124,7 +124,7 @@ func drawWynn(b, flash) -> void:
 	draw_circle_helper(-R * 0.22, -R * 0.16, R * 0.04, "#ffd27a")
 	draw_circle_helper(R * 0.22, -R * 0.16, R * 0.04, "#ffd27a")
 	ctx.fill_style("#ffd700")
-	ctx.font("bold " + R * 0.5 + "px monospace")
+	ctx.font("bold " + str(R * 0.5) + "px monospace")
 	ctx.text_align("center")
 	ctx.fill_text("$", 0, R * 0.7)
 	ctx.text_align("left")

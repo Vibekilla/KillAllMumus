@@ -200,7 +200,7 @@ func drawBobina(p) -> void:
 	var yel = null
 	var lean = p.get("lean", 0)
 	ctx.save()
-	ctx.translate(p.get("x", 0), p.get("y", 0))
+	ctx.translate(float(p.get("x", 0)), float(p.get("y", 0)))
 	if float(p.get("iframe", 0)) > 0 and (int(floorf(float(p.get("iframe", 0)) / 4.0)) % 2) == 1:
 		ctx.global_alpha(0.5)
 	var breath = sin(tick * 0.1) * 0.6
@@ -1985,7 +1985,7 @@ func drawBobina(p) -> void:
 		ctx.line_to(-2.4, -2.2)
 		ctx.close_path()
 		ctx.stroke()
-		ctx.fill_style("rgba(255,60,60," + (0.5 + 0.4 * glow) + ")")
+		ctx.fill_style("rgba(255,60,60," + str(0.5 + 0.4 * glow) + ")")
 		ctx.begin_path()
 		ctx.arc(0, -3.7, 0.7, 0, 7)
 		ctx.fill()
@@ -3976,7 +3976,7 @@ func drawBobina(p) -> void:
 	ctx.restore()
 	if p.get("focus", false):
 		ctx.save()
-		ctx.translate(p.get("x", 0), p.get("y", 0))
+		ctx.translate(float(p.get("x", 0)), float(p.get("y", 0)))
 		ctx.stroke_style("#fff")
 		ctx.line_width(1.4)
 		ctx.begin_path()
