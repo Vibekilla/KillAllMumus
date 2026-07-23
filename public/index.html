@@ -4318,8 +4318,8 @@ function fetchLB(){ lbPage=0; lbState='loading'; fetch('api/scores',{credentials
 function submitScore(handle){
   handle=(handle||'').trim().replace(/[<>@\s]/g,'').slice(0,15);
   try{ if(handle) localStorage.setItem('bobina_handle',handle); }catch(e){}
-  const linked = !!(bobinaMe && bobinaMe.authenticated);
-  lastSubmit={ handle: linked ? (bobinaMe.xUsername||handle||'') : handle, score:sessionScore, kills:totalKills, bcId: linked ? bobinaMe.bcId : null, bobinaUsername: linked ? bobinaMe.username : null };
+  const _me = window.bobinaMe || bobinaMe; const linked = !!( _me && _me.authenticated);
+  lastSubmit={ handle: linked ? (_me.xUsername||handle||'') : handle, score:sessionScore, kills:totalKills, bcId: linked ? _me.bcId : null, bobinaUsername: linked ? _me.username : null };
   const payload={ handle, score:sessionScore, kills:totalKills, rank:rankLetter(), mode:modeTag(), won:endWon?1:0, outfit:selectedOutfit };
   lbState='loading';
   fetch('api/scores',{ method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
@@ -4329,8 +4329,9 @@ function submitScore(handle){
 const NE=document.getElementById('nameEntry'), NEinput=document.getElementById('ne-input');
 function showNameEntry(){
   // Linked Bobina players skip the X prompt — progress saves under bc_id
-  if(bobinaMe && bobinaMe.authenticated){
-    submitScore(bobinaMe.xUsername || localStorage.getItem('bobina_handle') || '');
+  const _me2 = window.bobinaMe || bobinaMe;
+  if(_me2 && _me2.authenticated){
+    submitScore(_me2.xUsername || localStorage.getItem('bobina_handle') || '');
     justSavedScore=true;
     state = endWon ? 'win' : 'gameover';
     return;
@@ -5019,17 +5020,22 @@ addEventListener('keydown', e=>{ if((e.key==='f'||e.key==='F') && !nameEntryOpen
 (function(){
   const el = document.getElementById('bobinaAuth');
   if(!el) return;
+
   function loginHref(){
     let h='';
     try{ h=(localStorage.getItem('bobina_handle')||'').replace(/[^A-Za-z0-9_]/g,''); }catch(e){}
     return h ? ('/auth/bobina?claim_handle='+encodeURIComponent(h)) : '/auth/bobina';
   }
+
+  function applyMe(me){
+    window.bobinaMe = (me && me.authenticated) ? me : null;
+    if(typeof window.__setBobinaMe === 'function'){
+      try{ window.__setBobinaMe(me); }catch(e){}
+    }
+  }
+
   function paint(me){
-    window.bobinaMe = me && me.authenticated ? me : null;
-    if(typeof bobinaMe!=='undefined'){ try{ bobinaMe = window.bobinaMe; }catch(e){} }
-    // sync outer let bobinaMe if present
-    try{ if(typeof bobinaMe==='object' || typeof bobinaMe==='undefined' || bobinaMe===null){ /* assigned below via global */ } }catch(e){}
-    if(window.__setBobinaMe) window.__setBobinaMe(me);
+    applyMe(me);
     if(!me || !me.authenticated){
       el.innerHTML = '<a href="'+loginHref()+'">Sign in with Bobina</a>';
       return;
@@ -5037,19 +5043,55 @@ addEventListener('keydown', e=>{ if((e.key==='f'||e.key==='F') && !nameEntryOpen
     const name = me.username ? '@'+me.username : 'Bobina player';
     const img = me.avatar ? '<img src="'+String(me.avatar).replace(/"/g,'')+'" alt="">' : '🐻';
     const link = me.profileUrl || 'https://bobina.moe';
-    el.innerHTML = '<span class="who">'+img+' <a href="'+link+'" target="_blank" rel="noopener" style="background:none;box-shadow:none;padding:0;color:#ffd0e4">'+name+'</a></span>'
+    const linkedN = me.linkedScores|0;
+    const linked = linkedN > 0
+      ? (' · '+linkedN+' run'+(linkedN===1?'':'s')+' on board')
+      : ' · account linked';
+    el.innerHTML = '<span class="who">'+img+' <a href="'+link+'" target="_blank" rel="noopener" style="background:none;box-shadow:none;padding:0;color:#ffd0e4">'+name+'</a><span style="opacity:.7;font-size:11px">'+linked+'</span></span>'
       + '<button type="button" class="ghost" id="bobinaLogout">Sign out</button>';
     const b = document.getElementById('bobinaLogout');
     if(b) b.onclick = function(){
       fetch('/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){ location.href='/'; });
     };
   }
-  // Bridge into game scope (bobinaMe let in main script)
-  window.__setBobinaMe = function(me){ try{ bobinaMe = (me && me.authenticated) ? me : null; }catch(e){ window.bobinaMe = me; } };
-  fetch('/api/me',{credentials:'same-origin'})
-    .then(function(r){ return r.json(); })
-    .then(paint)
-    .catch(function(){ paint({authenticated:false,bobinaConfigured:false}); });
+
+  function loadMe(){
+    return fetch('/api/me',{credentials:'same-origin'})
+      .then(function(r){ return r.json(); })
+      .then(paint)
+      .catch(function(){ paint({authenticated:false,bobinaConfigured:false}); });
+  }
+
+  function syncAccount(){
+    return fetch('/api/sync',{method:'POST',credentials:'same-origin'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d && d.ok){
+          return loadMe().then(function(){
+            if(typeof fetchLB === 'function'){ try{ fetchLB(); }catch(e){} }
+            return d;
+          });
+        }
+        return loadMe();
+      })
+      .catch(function(e){ console.warn('sync failed', e); return loadMe(); });
+  }
+
+  try{
+    const sp = new URLSearchParams(location.search);
+    if(sp.get('bobina') === '1'){
+      // OAuth just finished — force DB claim + profile resolve
+      syncAccount().finally(function(){
+        try{ history.replaceState(null,'',location.pathname); }catch(e){}
+      });
+    } else {
+      loadMe().then(function(){
+        if(window.bobinaMe && window.bobinaMe.authenticated){
+          syncAccount();
+        }
+      });
+    }
+  }catch(e){ loadMe(); }
 })();
 </script>
 
