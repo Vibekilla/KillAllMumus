@@ -18,6 +18,15 @@ const shot = read("godot/scripts/tools/screenshot_playtest.gd");
 g.ok(shot.includes("godot_bobina_face_") || shot.includes("bobina_face"), "dual face shots");
 g.ok(shot.includes("godot_bobina_pose_") || shot.includes("bobina_pose"), "dual pose shots");
 g.ok(shot.includes("blink_open") && shot.includes("blink_closed"), "dual blink open/closed shots");
+g.ok(shot.includes("bobina_breath_") || shot.includes("breath_"), "dual breath ticks");
+g.ok(shot.includes("outfit_anim_") || shot.includes("godot_outfit_anim"), "dual continuous outfit anims");
+g.ok(shot.includes("godot_gif_talk") || shot.includes("gif_talk"), "dual talk GIF");
+g.ok(shot.includes("godot_gif_confused") || shot.includes("gif_confused"), "dual confused GIF");
+g.ok(shot.includes("outfit_pose = 5") || shot.includes("pose_i in [2, 3, 5]"), "dual coffee / This Is Fine pose");
+
+const bank = read("godot/scripts/html_parity/AssetBank.gd");
+g.ok(bank.includes("sim_tick") || bank.includes("sim_time"), "AssetBank GIF driven by SimClock");
+g.ok(bank.includes("get_anim_tex") || bank.includes("ANIM"), "AssetBank anim frame API");
 
 const fx = read("godot/scripts/render/drawers/drawCombatFx.gd");
 g.ok(fx.includes("func poseParams"), "poseParams");

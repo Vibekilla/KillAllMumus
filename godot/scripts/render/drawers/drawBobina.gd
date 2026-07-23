@@ -3955,7 +3955,8 @@ func drawBobina(p) -> void:
 	if _hold:
 		hcx = _hold.x
 		hcy = _hold.y + 0.5
-		hc = _handCols  or  ["#ff8ad6", "#ffd6f2", "#ff5bb0"]
+		# GDScript `or` returns bool — never use as JS-style fallback for arrays
+		var hc_cols: Array = _handCols if (_handCols is Array and (_handCols as Array).size() >= 3) else ["#ff8ad6", "#ffd6f2", "#ff5bb0"]
 		ctx.stroke_style(_armCol)
 		ctx.line_width(_armW)
 		ctx.line_cap("round")
@@ -3970,8 +3971,8 @@ func drawBobina(p) -> void:
 		ctx.line_to(8.7, 7)
 		ctx.line_to(hcx + 2.2, hcy)
 		ctx.stroke()
-		p_orb(hcx - 2.2, hcy, hc[0], hc[1], hc[2])
-		p_orb(hcx + 2.2, hcy, hc[0], hc[1], hc[2])
+		p_orb(hcx - 2.2, hcy, hc_cols[0], hc_cols[1], hc_cols[2])
+		p_orb(hcx + 2.2, hcy, hc_cols[0], hc_cols[1], hc_cols[2])
 	ctx.global_alpha(1)
 	ctx.restore()
 	if p.get("focus", false):

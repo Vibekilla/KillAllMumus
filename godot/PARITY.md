@@ -172,11 +172,11 @@ Exact HTML timing and pixels:
 
 | # | Requirement | Status |
 | --- | --- | --- |
-| 2.1 | Breath, head bob, body sway, movement-driven leg kick + arm swing | **partial** — in `drawBobina`; dual pose shots idle/dance/cheer |
-| 2.2 | Blink: `(tick % 230) < 7 and not squee` | **partial** — ported + dual open/closed shots; fix JS `!squee` → GDScript `not` |
-| 2.3 | Expressions `smile` / `uwu` / `giggle` / `annoyed` / `squee` (eyes/mouth/blush/brows/iris at every scale) | **partial** — all VICTORY_FACES dual shots; scale matrix open |
-| 2.4 | Every outfit continuous animation (tails, wings, veils, tendrils, …) | open |
-| 2.5 | Full pose system + victory-face mapping + `hold` prop + GIF overlays (`talk`, leekspin, confused) | **partial** — pose dual subset; hold/GIF open |
+| 2.1 | Breath, head bob, body sway, movement-driven leg kick + arm swing | **partial** — formulas in `drawBobina`; dual breath ticks 0/35 |
+| 2.2 | Blink: `(tick % 230) < 7 and not squee` | **done** (structure + dual open/closed) |
+| 2.3 | Expressions `smile` / `uwu` / `giggle` / `annoyed` / `squee` (eyes/mouth/blush/brows/iris at every scale) | **partial** — all faces dual; multi-scale matrix still open |
+| 2.4 | Every outfit continuous animation (tails, wings, veils, tendrils, …) | **partial** — dual angel/succubus/voidling/honeypot @ ticks 8/48 |
+| 2.5 | Full pose system + victory-face mapping + `hold` prop + GIF overlays (`talk`, leekspin, confused) | **partial** — all 6 poses dual; coffee hold; talk/confused dual; leek on stageclear |
 
 ### Phase 3 — Exhaustive visual systems
 

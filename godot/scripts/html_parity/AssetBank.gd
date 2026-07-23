@@ -34,15 +34,45 @@ const GIF_KEYS := ["confused", "talk", "leek"]
 
 func _ready() -> void:
 	_load_all()
+	# Advance GIF frames on fixed sim steps (not wall-clock) for dual QA parity.
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
+	else:
+		call_deferred("_bind_sim")
+
+func _bind_sim() -> void:
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
+
+func _on_sim_tick(_dt: float) -> void:
+	_advance_anims()
 
 func _process(_delta: float) -> void:
-	# Keep IMG[key] pointing at the current animation frame (browser GIF behavior)
+	# Fallback if SimClock missing (tools / headless scripts)
+	if SimClock == null:
+		_advance_anims_wall()
+
+func _advance_anims() -> void:
+	## Drive GIF frame index from sim_time so dual runs are deterministic.
+	var t := float(SimClock.sim_time) if SimClock else 0.0
 	for key in ANIM.keys():
 		var a: Dictionary = ANIM[key]
 		var frames: Array = a.frames
 		if frames.is_empty():
 			continue
-		var fps: float = float(a.fps)
+		var fps: float = maxf(0.001, float(a.get("fps", 12.0)))
+		var idx := int(floor(t * fps)) % frames.size()
+		if idx < 0:
+			idx = 0
+		IMG[key] = frames[idx]
+
+func _advance_anims_wall() -> void:
+	for key in ANIM.keys():
+		var a: Dictionary = ANIM[key]
+		var frames: Array = a.frames
+		if frames.is_empty():
+			continue
+		var fps: float = maxf(0.001, float(a.get("fps", 12.0)))
 		var idx := int(floor(Time.get_ticks_msec() / 1000.0 * fps)) % frames.size()
 		IMG[key] = frames[idx]
 
@@ -122,10 +152,31 @@ func _load_texture(path: String) -> Texture2D:
 func get_tex(key: String) -> Texture2D:
 	return IMG.get(key, null) as Texture2D
 
+## Deterministic frame pick for dual QA / forced screenshots (HTML GIF frame N).
+func get_anim_tex(key: String, frame_index: int = -1) -> Texture2D:
+	if not ANIM.has(key):
+		return get_tex(key)
+	var frames: Array = ANIM[key].frames
+	if frames.is_empty():
+		return get_tex(key)
+	var idx := frame_index
+	if idx < 0:
+		var fps: float = maxf(0.001, float(ANIM[key].get("fps", 12.0)))
+		var t := float(SimClock.sim_time) if SimClock else 0.0
+		idx = int(floor(t * fps)) % frames.size()
+	else:
+		idx = idx % frames.size()
+	return frames[idx] as Texture2D
+
 func get_anim_frames(key: String) -> Array:
 	if ANIM.has(key):
 		return ANIM[key].frames
 	return []
+
+func anim_frame_count(key: String) -> int:
+	if ANIM.has(key):
+		return (ANIM[key].frames as Array).size()
+	return 0
 
 func ok(key: String) -> bool:
 	## HTML imgOK(i) — texture present and non-null

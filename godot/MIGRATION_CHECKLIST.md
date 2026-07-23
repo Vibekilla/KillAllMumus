@@ -33,9 +33,12 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [x] Dual pose shots: idle / dance / cheer
 - [x] Dual blink open vs closed (SimClock tick window)
 - [x] Blink formula ported: `(tick % 230) < 7 and not squee`
-- [ ] Breath / head bob / body sway / leg kick dual timing sign-off
-- [ ] Outfit continuous anim dual (tails/wings/veils per outfit)
-- [ ] hold prop + talk/leekspin/confused GIF overlays dual
+- [x] Dual breath ticks (idle 0 vs 35)
+- [x] Dual all poses 0–5 (incl. coffee / This Is Fine hold + fire)
+- [x] Dual continuous outfit anims (angel / succubus / voidling / honeypot @ 8 & 48)
+- [x] GIF overlays: talk (dialog), confused (floater), leek (stage clear); AssetBank on SimClock
+- [ ] Multi-scale expression matrix dual (menu vs play vs HUD mini)
+- [ ] Remaining wardrobe continuous dual (all 28 outfits sign-off)
 
 ## Phase 3 — Exhaustive visuals
 

@@ -29,12 +29,13 @@ func _on_sim_tick(dt: float) -> void:
 
 func _process(_delta: float) -> void:
 	var nt := SimClock.sim_frame if SimClock else tick + 1
-	# show for flow states or when field portal is active
+	var dialog_on := GameState.state == GameState.State.PLAY and StageFlow and StageFlow.dialog != null
+	# show for flow states, field portal, or live dialog (talk GIF dual)
 	var show := GameState.state in [
 		GameState.State.INTRO, GameState.State.STAGE_CLEAR, GameState.State.SHOP
-	] or (GameState.state == GameState.State.PLAY and StageFlow and StageFlow.is_field_cleared())
+	] or (GameState.state == GameState.State.PLAY and StageFlow and StageFlow.is_field_cleared()) or dialog_on
 	# still need clicks when portal active — stay mouse_filter stop only then
-	if GameState.state == GameState.State.PLAY and not (StageFlow and StageFlow.is_field_cleared()):
+	if GameState.state == GameState.State.PLAY and not (StageFlow and StageFlow.is_field_cleared()) and not dialog_on:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 	else:
 		mouse_filter = Control.MOUSE_FILTER_STOP

@@ -59,7 +59,13 @@ func _face_bucket(face: float) -> float:
 
 func get_texture(outfit: String, expr, pose: int, tick: int, scale: float, state: Dictionary = {}) -> Texture2D:
 	_ensure_viewport()
-	var key := cache_key(outfit, expr, pose, tick, scale)
+	# Pose 5 coffeeHold sip position must affect key (not only tick bucket)
+	var extra := ""
+	if state is Dictionary and state.has("hold"):
+		var h = state["hold"]
+		if h is Dictionary:
+			extra = "h%.1f_%.1f" % [float(h.get("x", 0)), float(h.get("y", 0))]
+	var key := cache_key(outfit, expr, pose, tick, scale, extra)
 	return _get_or_enqueue(key, outfit, expr, tick, scale, state)
 
 ## Playfield Bobina: quantize facing + focus; iframe/alpha applied by caller at blit.

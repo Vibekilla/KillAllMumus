@@ -211,6 +211,88 @@ func _run() -> void:
 			await _save("godot_bobina_blink_closed")
 			sc.paused = was_paused
 
+		# --- Phase 2.1 / 2.4 / 2.5: breath, all poses, continuous outfits, coffee hold, GIFs ---
+		var sc2 = _A("SimClock")
+		if sc2:
+			sc2.paused = true
+		# Breath dual (idle pose): two breath-phase ticks — sin(t*0.045) peaks differ
+		title.model.victory_face = 2
+		title.model.outfit_pose = 0
+		title.model.outfit_preview = "og"
+		for breath_tick in [0, 35]:
+			if sc2:
+				sc2.sim_frame = breath_tick
+			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+				title.menus.set_tick(breath_tick)
+			title.queue_redraw()
+			for _i in range(6):
+				await process_frame
+				title.queue_redraw()
+			await _save("godot_bobina_breath_%d" % breath_tick)
+		# Remaining poses: twirl / bounce / This Is Fine (coffee + fire)
+		for pose_i in [2, 3, 5]:
+			title.model.outfit_pose = pose_i
+			title.model.outfit_preview = "og"
+			if sc2:
+				sc2.sim_frame = 40
+			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+				title.menus.set_tick(40)
+			title.queue_redraw()
+			for _i in range(10):
+				await process_frame
+				title.queue_redraw()
+			await _save("godot_bobina_pose_%d" % pose_i)
+		# Continuous outfit anims (wings / tail / tendrils): two ticks per key skin
+		for outfit_key in ["angel", "succubus", "voidling", "honeypot"]:
+			title.model.outfit_preview = outfit_key
+			title.model.outfit_pose = 0
+			title.model.victory_face = 2
+			for anim_tick in [8, 48]:
+				if sc2:
+					sc2.sim_frame = anim_tick
+				if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+					title.menus.set_tick(anim_tick)
+				title.queue_redraw()
+				for _i in range(8):
+					await process_frame
+					title.queue_redraw()
+				await _save("godot_outfit_anim_%s_%d" % [outfit_key, anim_tick])
+		if sc2:
+			sc2.paused = false
+
+		# GIF overlays: talk (dialog), leek (stage clear already), confused floater
+		# StageFlow already resolved at _run start
+		if StageFlow and StageFlow.has_method("start_dialog"):
+			GameState.set_state(GameState.State.PLAY)
+			StageFlow.start_dialog([
+				{"w": 1, "t": "Phase 2 talk GIF dual — hewo!"},
+			], {})
+			_force_ui_size(_main)
+			for _i in range(12):
+				await process_frame
+			await _save("godot_gif_talk")
+			StageFlow.dialog = null
+		var items = _A("ItemSystem")
+		if items:
+			GameState.set_state(GameState.State.PLAY)
+			items.floaters.clear()
+			items.floaters.append({
+				"x": 304.0, "y": 280.0, "life": 30.0, "vy": 0.0, "scale": 1.0,
+			})
+			_force_ui_size(_main)
+			var wd = _main.get_node_or_null("WorldCanvas")
+			if wd and wd.has_method("queue_redraw"):
+				wd.queue_redraw()
+			for _i in range(10):
+				await process_frame
+				if wd:
+					wd.queue_redraw()
+			await _save("godot_gif_confused")
+			items.floaters.clear()
+		# Return to outfits for later dual restore
+		GameState.set_state(GameState.State.OUTFITS)
+		_force_ui_size(_main)
+
 	# Restore emblems for rest of dual (play may earn more)
 	if _ps:
 		_ps.emblems = _saved_emblems
