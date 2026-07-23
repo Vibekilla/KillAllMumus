@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function nearestTarget — review required
+func nearestTarget(x, y):
+	 var best=null,bd=1e9; for e in enemies){ var d=(e.x-x)**2+(e.y-y)**2; if(d<bd){bd=d;best=e;} } if(boss&&!boss.dead&&boss.intro<=0){ var d=(boss.x-x)**2+(boss.y-y)**2; if(d<bd){bd=d;best=boss;} } return best; 

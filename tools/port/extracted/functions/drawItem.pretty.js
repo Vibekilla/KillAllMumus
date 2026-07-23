@@ -1,0 +1,90 @@
+function drawItem(it) {
+  ctx.save();
+  ctx.translate(it.x, it.y);
+  let col, glyph, sz;
+  if (it.type === 'weapon') {
+    const wp = WEAPONS[it.wep];
+    col = wp.col;
+    glyph = wp.icon;
+    sz = 11;
+    // diamond capsule for weapons
+    ctx.shadowColor = col;
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = col;
+    ctx.save();
+    ctx.rotate(Math.PI / 4);
+    ctx.beginPath();
+    ctx.roundRect(-sz, -sz, sz * 2, sz * 2, 3);
+    ctx.fill();
+    ctx.restore();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#1a0e14';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(glyph, 0, 1);
+    ctx.fillStyle = col;
+    ctx.font = 'bold 7px monospace';
+    ctx.fillText('WPN', 0, -15);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.restore();
+    return;
+  }
+  if (it.type === 'skull') {
+    // Mumu skull — the shop currency; a little bone-white skull (vector, no emoji dependency)
+    ctx.shadowColor = '#ffe0a0';
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = '#f2ead6';
+    ctx.beginPath();
+    ctx.arc(0, -1, 6, Math.PI, 0);
+    ctx.lineTo(5, 3);
+    ctx.quadraticCurveTo(5, 6.4, 2, 6.4);
+    ctx.lineTo(2, 4.6);
+    ctx.lineTo(-2, 4.6);
+    ctx.lineTo(-2, 6.4);
+    ctx.quadraticCurveTo(-5, 6.4, -5, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#241812';
+    ctx.beginPath();
+    ctx.arc(-2.4, -1, 1.7, 0, 7);
+    ctx.arc(2.4, -1, 1.7, 0, 7);
+    ctx.fill(); // eye sockets
+    ctx.beginPath();
+    ctx.moveTo(0, 1.4);
+    ctx.lineTo(-1, 3.2);
+    ctx.lineTo(1, 3.2);
+    ctx.closePath();
+    ctx.fill(); // nose
+    ctx.restore();
+    return;
+  }
+  const map = {
+    power: ['#ff5b8d', 'P'],
+    point: ['#5bb8ff', '★'],
+    life: ['#ff6ec7', '♥'],
+    bomb: ['#ffd27a', '✸'],
+    fullpower: ['#ffd27a', 'P'],
+    shield: ['#e8a860', '◈'],
+    rapid: ['#ffe14a', '»'],
+  };
+  const m = map[it.type] || ['#fff', '?'];
+  sz = it.type === 'fullpower' ? 11 : 8;
+  ctx.shadowColor = m[0];
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = m[0];
+  ctx.beginPath();
+  ctx.roundRect(-sz, -sz, sz * 2, sz * 2, 3);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#1a0e14';
+  ctx.font = 'bold ' + (sz + 2) + 'px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(m[1], 0, 1);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.restore();
+}

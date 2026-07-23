@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function actx — review required
+func actx():
+	 if(!AC){ try{ AC=new(HtmlBridge.win.AudioContext||HtmlBridge.win.webkitAudioContext)(); }catch(e){} } return AC; 

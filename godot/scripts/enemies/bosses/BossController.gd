@@ -1,63 +1,507 @@
 extends Area2D
-## Modular boss — pattern table driven by stage boss id.
+## Full HTML updateBoss + bossSpecial parity (all 7 stages).
 
 signal defeated(boss_id: String)
 
+const FRAME := 60.0
+const BulletPatterns = preload("res://scripts/combat/BulletPatterns.gd")
+
 var boss_id: String = ""
+var portrait: String = ""
 var max_hp: float = 100.0
 var hp: float = 100.0
 var bullet_pool: Node
-var pattern_t: float = 0.0
+var data: Dictionary = {}
+var t: int = 0
 var phase: int = 0
+var phases: int = 3
+var spin: float = 0.0
+var intro: float = 90.0
+var dead: bool = false
+var dead_t: float = 0.0
+var flash: float = 0.0
+var special_used: bool = false
+var special_t: float = 0.0
+var stun: float = 0.0
+var radius: float = 36.0
+var mtx: float = 0.0
+var mty: float = 0.0
+var dash: bool = false
+var face: float = PI / 2.0
+var px: float = 0.0
+var py: float = 0.0
+var twin: bool = false
+var active_twin: String = "igor"
+var tw: Dictionary = {}
+var swap_cd: float = 0.0
+var hud_name: String = ""
+var color: Color = Color("c9a24b")
+var ctx: RefCounted
+var ported: RefCounted
+## HTML Wynn hell portal sequence (startWynnHell / updateWynnHell)
+var hell: bool = false
+var hell_t: float = 0.0
+var hell_done: float = 0.0
+var hell_r: float = 0.0
+var hell_spin: float = 0.0
+var hell_scale: float = 1.0
+var hell_shake: float = 0.0
+var hy: float = 0.0
 
-func setup(pool: Node, pos: Vector2, id: String, hp_val: float) -> void:
+func _ready() -> void:
+	ctx = load("res://scripts/render/CanvasCompat.gd").new()
+	ctx.bind(self)
+	ported = load("res://scripts/render/PortedDraw.gd").new()
+	ported.setup(ctx)
+
+func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 	bullet_pool = pool
-	boss_id = id
-	max_hp = hp_val
-	hp = hp_val
+	data = stage.get("boss", {})
+	boss_id = str(data.get("name", "boss"))
+	portrait = str(data.get("portrait", "ape"))
+	hud_name = str(data.get("name", boss_id))
+	max_hp = float(data.get("hp", 340)) * (1.0 + GameState.ng_plus * 0.08) * (1.15 if GameState.hard_mode else 1.0)
+	hp = max_hp
 	global_position = pos
+	color = Color.html(str(data.get("color", "#c9a24b")))
+	phases = 3 if GameState.stage_index > 0 else 2
+	if portrait == "bogdanoff":
+		twin = true
+		tw = {
+			"igor": {"hp": max_hp, "max": max_hp, "done": false},
+			"grichka": {"hp": max_hp, "max": max_hp, "done": false},
+		}
+		active_twin = "igor"
+		hud_name = "Igor Bogdanoff"
+	intro = 20.0 if GameState.speedrun else 90.0
+	var pf: Rect2 = Config.PLAYFIELD
+	mtx = pf.get_center().x
+	mty = pf.position.y + 100
 	add_to_group("enemies")
 	add_to_group("bosses")
+	queue_redraw()
 
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
-	pattern_t += delta
-	# Bob left-right
+	var p := get_tree().get_first_node_in_group("player") as Node2D
 	var pf: Rect2 = Config.PLAYFIELD
-	position.x = pf.get_center().x + sin(pattern_t * 0.8) * (pf.size.x * 0.28)
-	position.y = pf.position.y + 90 + sin(pattern_t * 0.4) * 12.0
-	_pattern(delta)
+
+	if intro > 0.0:
+		intro -= delta * FRAME
+		position.y += (mty - position.y) * 0.06
+		queue_redraw()
+		return
+
+	if hell:
+		_update_wynn_hell(delta)
+		queue_redraw()
+		return
+
+	if dead:
+		dead_t += delta * FRAME
+		if int(dead_t) % 3 == 0:
+			# death burst visual via redraw flash
+			flash = 4.0
+		# Final boss (Wynn): HTML startWynnHell instead of instant clear
+		if portrait == "wynn" and not hell and dead_t > 30.0:
+			start_wynn_hell()
+			queue_redraw()
+			return
+		if dead_t > 90.0:
+			defeated.emit(boss_id)
+			queue_free()
+		queue_redraw()
+		return
+
+	t += 1
+	if flash > 0.0:
+		flash -= delta * FRAME
+	if swap_cd > 0.0:
+		swap_cd -= delta * FRAME
+
+	# twin swap
+	if twin and swap_cd <= 0.0:
+		var other := "grichka" if active_twin == "igor" else "igor"
+		if not bool(tw[other].get("done", false)) and hp > max_hp * 0.16 and t % 300 == 0 and randf() < 0.35:
+			_twin_swap(other)
+
+	# roam
+	if t % 100 == 0:
+		mtx = pf.position.x + 55 + randf() * (pf.size.x - 110)
+		mty = pf.position.y + 55 + randf() * (pf.size.y - 135)
+		dash = randf() < 0.34
+	var ez := 0.055 if dash else 0.03
+	position.x += (mtx - position.x) * ez + sin(float(t) * 0.05) * 0.5
+	position.y += (mty - position.y) * ez + sin(float(t) * 0.033) * 0.4
+	position.x = clampf(position.x, pf.position.x + 40, pf.end.x - 40)
+	position.y = clampf(position.y, pf.position.y + 40, pf.end.y - 80)
+
+	# body collision shove
+	if p:
+		var dp := p.global_position.distance_to(global_position)
+		var near := radius + 12.0
+		if dp < near and dp > 0.01:
+			var nrm := (p.global_position - global_position) / dp
+			p.global_position += nrm * (near - dp)
+			p.global_position.x = clampf(p.global_position.x, pf.position.x + 8, pf.end.x - 8)
+			p.global_position.y = clampf(p.global_position.y, pf.position.y + 8, pf.end.y - 8)
+
+	var bvx := position.x - px
+	var bvy := position.y - py
+	px = position.x
+	py = position.y
+	var bface_t := atan2(bvy, bvx) if sqrt(bvx * bvx + bvy * bvy) > 0.4 else PI / 2.0
+	face = lerp_angle(face, bface_t, 0.08)
+
+	var cx := position.x
+	var cy := position.y
+	var s := GameState.stage_index
+	var ph := phase
+	var hm := (0.7 if GameState.hard_mode else 1.25) * (1.0 - mini(s, 3) * 0.07)
+
+	if stun > 0.0:
+		stun -= delta * FRAME
+	elif special_t > 0.0:
+		special_t -= delta * FRAME
+		_boss_special(cx, cy, p)
+	else:
+		_patterns(s, ph, hm, cx, cy, p)
+
+	# special at 45%
+	if not special_used and hp <= max_hp * 0.45:
+		special_used = true
+		special_t = 200.0
+		if bullet_pool:
+			bullet_pool.clear_enemy()
+		flash = 10.0
+
+	# phase transitions
+	var per_phase := max_hp / float(phases)
+	if hp <= max_hp - per_phase * float(phase + 1) and phase < phases - 1:
+		phase += 1
+		if bullet_pool:
+			bullet_pool.clear_enemy()
+		flash = 8.0
+
 	queue_redraw()
 
-func _pattern(_delta: float) -> void:
-	if bullet_pool == null:
+func _patterns(s: int, ph: int, hm: float, cx: float, cy: float, p: Node2D) -> void:
+	if p == null:
 		return
-	if int(pattern_t * 10) % 8 != 0:
+	var pxp := p.global_position.x
+	var pyp := p.global_position.y
+	if s == 0:
+		if ph == 0:
+			if t % maxi(1, int(floor(40 * hm))) == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 7, 1.0, 2.6, 7, "#e6c65a")
+			if t % 90 == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 16, 1.8, 6, "#c9a24b", float(t) * 0.05)
+			if t % 150 == 0:
+				BulletPatterns.heavy_shell(bullet_pool, cx, cy, pxp, pyp, 3.0)
+		else:
+			spin += 0.3
+			if t % 3 == 0:
+				for a in 3:
+					BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 2.094, 2.4, 6, "#ffd27a")
+			if t % 70 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 9, 1.2, 3.0, 6, "#e6c65a")
+	elif s == 1:
+		if ph == 0:
+			if t % maxi(1, int(floor(46 * hm))) == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 20, 1.7, 6, "#8fd0ff", float(t) * 0.04)
+			if t % 64 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 5, 0.7, 3.2, 7, "#7ea8ff")
+		elif ph == 1:
+			spin += 0.22
+			if t % 3 == 0:
+				for a in 4:
+					BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 1.5708, 2.2, 6, "#a0e0ff")
+			if t % 140 == 0:
+				BulletPatterns.heavy_shell(bullet_pool, cx, cy, pxp, pyp, 3.2)
+		else:
+			if t % maxi(1, int(floor(30 * hm))) == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 11, 1.4, 3.4, 6, "#c7f0ff")
+			if t % 100 == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 24, 1.9, 5, "#8fd0ff", 0)
+	elif s == 2:
+		if ph == 0:
+			if t % maxi(1, int(floor(42 * hm))) == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 18, 1.7, 6, "#7ed957", float(t) * 0.04)
+			if t % 60 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 6, 0.8, 3.2, 7, "#bff58a")
+		elif ph == 1:
+			spin += 0.2
+			if t % 3 == 0:
+				for a in 5:
+					BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 1.2566, 2.2, 6, "#9ff06a")
+			if t % 130 == 0:
+				BulletPatterns.heavy_shell(bullet_pool, cx, cy, pxp, pyp, 3.2)
+		else:
+			if t % maxi(1, int(floor(30 * hm))) == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 11, 1.5, 3.2, 6, "#d6ffa8")
+			if t % 96 == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 22, 1.9, 5, "#7ed957", 0)
+	elif s == 3:
+		if ph == 0:
+			if t % maxi(1, int(floor(40 * hm))) == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 18, 1.8, 5, "#9945ff", float(t) * 0.05)
+			if t % 54 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 7, 0.9, 3.4, 6, "#14f195")
+		elif ph == 1:
+			spin += 0.24
+			if t % 2 == 0:
+				for a in 4:
+					BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 1.5708, 2.6, 5, "#14f195")
+			if t % 120 == 0:
+				BulletPatterns.heavy_shell(bullet_pool, cx, cy, pxp, pyp, 3.2)
+		else:
+			if t % maxi(1, int(floor(26 * hm))) == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 12, 1.5, 3.6, 6, "#c9a0ff")
+			if t % 88 == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 24, 2.0, 5, "#9945ff", 0)
+	elif s == 4:
+		if ph == 0:
+			if t % maxi(1, int(floor(42 * hm))) == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 20, 1.7, 5, "#e08a2a", float(t) * 0.05)
+			if t % 58 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 7, 0.9, 3.2, 6, "#ffd27a")
+		elif ph == 1:
+			spin += 0.22
+			if t % 3 == 0:
+				for a in 4:
+					BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 1.5708, 2.4, 5, "#f0a020")
+			if t % 64 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 5, 0.7, 3.4, 7, "#ff7a3c")
+			if t % 140 == 0:
+				BulletPatterns.heavy_shell(bullet_pool, cx, cy, pxp, pyp, 3.2)
+		else:
+			if t % maxi(1, int(floor(28 * hm))) == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 11, 1.4, 3.4, 6, "#ffe0a0")
+			if t % 92 == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 26, 1.9, 5, "#e08a2a", 0)
+	elif s == 5:
+		var rage := hp < max_hp * 0.4
+		if active_twin == "igor":
+			spin += 0.16
+			var arms := 6 if rage else 5
+			if t % 3 == 0:
+				for a in arms:
+					BulletPatterns.eb(bullet_pool, cx, cy, spin + a * (TAU / float(arms)), 2.2, 6, "#b48ce0")
+			if t % maxi(1, int(floor(72 * hm))) == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 18, 1.7, 6, "#9d6bff", float(t) * 0.05)
+			if rage and t % 42 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 7, 0.9, 3.0, 6, "#c9a0ff")
+		else:
+			if t % maxi(1, int(floor(40 * hm))) == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 11 if rage else 8, 1.2, 3.2, 7, "#e0b84a")
+			if t % 96 == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 22, 1.8, 5, "#ffd27a", 0)
+			if t % 150 == 0:
+				BulletPatterns.heavy_shell(bullet_pool, cx, cy, pxp, pyp, 3.2)
+			if rage and t % 6 == 0:
+				spin += 0.4
+				for a in 3:
+					BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 2.094, 2.4, 6, "#ffe08a")
+	else:
+		# Wynn final
+		if ph == 0:
+			if t % maxi(1, int(floor(38 * hm))) == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 9, 1.2, 3.2, 7, "#ff8a3c")
+			if t % 84 == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 18, 2.0, 6, "#ff5b7d", float(t) * 0.05)
+		elif ph == 1:
+			spin += 0.26
+			if t % 2 == 0:
+				for a in 4:
+					BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 1.5708, 2.5, 6, "#ff6ec7")
+			if t % 70 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 7, 1.0, 3.6, 7, "#ffd27a")
+			if t % 160 == 0:
+				BulletPatterns.heavy_shell(bullet_pool, cx, cy, pxp, pyp, 3.4)
+		else:
+			spin += 0.16
+			if t % 2 == 0:
+				for a in 5:
+					BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 1.2566, 2.3, 6, "#ff5b3c")
+			if t % 40 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 13, 1.6, 3.6, 6, "#ff9ecb")
+			if t % 140 == 0:
+				BulletPatterns.ring(bullet_pool, cx, cy, 28, 2.2, 5, "#ff5b7d", 0)
+
+func _boss_special(cx: float, cy: float, p: Node2D) -> void:
+	if p == null:
 		return
-	var n := 8 + phase * 4
-	for i in n:
-		var a := pattern_t + TAU * i / float(n)
-		var spd := 90.0 * GameState.threat_mul()
-		bullet_pool.spawn(global_position, Vector2.from_angle(a) * spd, 1.0, Color(1.0, 0.3, 0.55), 1)
-	if hp < max_hp * 0.5:
-		phase = 1
-	if hp < max_hp * 0.25:
-		phase = 2
+	var port := portrait
+	var pxp := p.global_position.x
+	var pyp := p.global_position.y
+	if port == "ape":
+		if t % 6 == 0:
+			spin += 0.5
+			for a in 8:
+				BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 0.785, 2.6, 7, "#ffd27a")
+		if t % 30 == 0:
+			BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 9, 1.0, 3.2, 7, "#e6c65a")
+	elif port == "robotnik":
+		if t % 16 == 0:
+			for k in range(1, 4):
+				BulletPatterns.ring(bullet_pool, cx, cy, 18, 1.4 + k * 0.5, 6, "#a0e0ff", float(t) * 0.05 + k)
+	elif port == "mumina":
+		spin += 0.16
+		if t % 3 == 0:
+			for a in 6:
+				BulletPatterns.eb(bullet_pool, cx, cy, spin + a * 1.047, 2.2, 6, "#7ed957")
+		if t % 40 == 0:
+			BulletPatterns.fan_at(bullet_pool, cx, cy, pxp, pyp, 11, 1.4, 3.0, 6, "#bff58a")
+	else:
+		if t % 40 < 20:
+			if t % 5 == 0:
+				BulletPatterns.fan_at(bullet_pool, cx, cy, cx, Config.PLAYFIELD.position.y - 20, 7, 0.6, -3.4, 7, "#ff8a3c")
+		else:
+			if t % 4 == 0:
+				for a in 9:
+					BulletPatterns.eb(bullet_pool, cx, cy, float(a) / 9.0 * TAU, 2.0, 6, "#ff5b3c")
+
+func _twin_swap(other: String) -> void:
+	if StageFlow:
+		StageFlow.twin_swap(self)
+	tw[active_twin]["hp"] = hp
+	active_twin = other
+	hp = float(tw[other].get("hp", max_hp))
+	max_hp = float(tw[other].get("max", max_hp))
+	hud_name = ("Igor" if other == "igor" else "Grichka") + " Bogdanoff"
+	swap_cd = 480 + randi() % 180
+	flash = 14.0
+	if bullet_pool:
+		bullet_pool.clear_enemy()
 
 func take_damage(amount: float) -> void:
-	hp -= amount
+	if intro > 0.0 or dead:
+		return
+	var mul := _boss_dmg_mul() * _boss_wep_mul()
+	hp -= amount * mul
+	flash = 3.0
+	if twin:
+		tw[active_twin]["hp"] = hp
 	if hp <= 0.0:
-		ProgressStore.estats_add("bosses", 1)
-		GameState.add_score(int(5000 * GameState.score_mul()))
-		defeated.emit(boss_id)
-		queue_free()
+		_on_hp_zero()
+
+func _boss_dmg_mul() -> float:
+	# Soften high power vs bosses
+	var lv := clampf(GameState.power, 1.0, 5.0)
+	return 1.0 / (0.75 + lv * 0.12)
+
+func _boss_wep_mul() -> float:
+	return 0.85 if GameState.hard_mode else 1.0
+
+func _on_hp_zero() -> void:
+	if twin:
+		tw[active_twin]["hp"] = 0
+		tw[active_twin]["done"] = true
+		var other := "grichka" if active_twin == "igor" else "igor"
+		if not bool(tw[other].get("done", false)):
+			_twin_swap(other)
+			hp = float(tw[other].get("max", max_hp))
+			tw[other]["hp"] = hp
+			return
+	dead = true
+	hp = 0
+	if bullet_pool:
+		bullet_pool.clear_enemy()
+	ProgressStore.estats_add("bosses", 1)
+	GameState.add_score(int(5000 * GameState.score_mul()))
+	GameState.power = minf(5.0, GameState.power + 1.0)
+	GameState.lives = mini(DataRegistry.max_lives(), GameState.lives + 1)
+	GameState.bombs = mini(DataRegistry.max_bombs(), GameState.bombs + 1)
+	if portrait == "wynn":
+		# defer portal until short death flash, then startWynnHell
+		pass
+
+func start_wynn_hell() -> void:
+	## HTML startWynnHell
+	hell = true
+	hell_t = 0.0
+	hell_done = 0.0
+	hell_r = 0.0
+	hell_spin = 0.0
+	hell_scale = 1.0
+	hell_shake = 0.0
+	hy = global_position.y
+	if StageFlow:
+		StageFlow.start_dialog([
+			{"w": 1, "t": "That’s the sound of the house going bankrupt. Dank Memes plus Time. Bolieve it."},
+			{"w": 2, "t": "James Wynn. Your ledger is settled. The Cabal’s debt comes due — in full."},
+			{"w": 0, "t": "N-NO! I RUN this town! UNHAND me, you— NO!! NOT THE PORTAL!!"},
+			{"w": 0, "t": "CURSE YOU BOBINA! CURSE YOU REKT! CURSE YOU VIBE! TO HELL WITH BOBO!!!! AAGGGH!!"},
+		], data)
+
+func _update_wynn_hell(delta: float) -> void:
+	## HTML updateWynnHell
+	var df := delta * FRAME
+	hell_t += df
+	hell_r = minf(82.0, hell_t * 0.7)
+	if int(hell_t) % 2 == 0 and CombatHelpers:
+		var cols := ["#ff3b1a", "#ff7a2a", "#ffc030"]
+		CombatHelpers.particles.append({
+			"x": global_position.x + (randf() - 0.5) * hell_r * 1.5,
+			"y": hy + (randf() - 0.4) * hell_r,
+			"vx": (randf() - 0.5) * 2.0,
+			"vy": -1.0 - randf() * 2.4,
+			"life": 26.0,
+			"c": cols[randi() % 3],
+		})
+	hell_shake = sin(hell_t * 0.7) * minf(3.5, hell_t * 0.03) if hell_t < 210.0 else 0.0
+	var dialog_open := StageFlow != null and StageFlow.dialog != null
+	if not dialog_open:
+		hell_done += df
+		hell_spin += 0.42 * df
+		global_position.y = hy + hell_done * 0.5
+		hell_scale = maxf(0.0, 1.0 - hell_done / 74.0)
+		if hell_done > 96.0:
+			hell = false
+			if StageFlow:
+				StageFlow.on_boss_defeated()
+			defeated.emit(boss_id)
+			queue_free()
 
 func _draw() -> void:
-	draw_circle(Vector2.ZERO, 28, Color(0.85, 0.2, 0.4))
-	draw_circle(Vector2.ZERO, 18, Color(0.2, 0.05, 0.1))
-	# HP bar
-	var w := 60.0
-	var ratio := clampf(hp / max_hp, 0.0, 1.0)
-	draw_rect(Rect2(-w/2, -40, w, 5), Color(0.2, 0.1, 0.15))
-	draw_rect(Rect2(-w/2, -40, w * ratio, 5), Color(1.0, 0.35, 0.55))
+	if ctx == null or ported == null:
+		ctx = load("res://scripts/render/CanvasCompat.gd").new()
+		ctx.bind(self)
+		ported = load("res://scripts/render/PortedDraw.gd").new()
+		ported.setup(ctx)
+	ctx.begin_frame()
+	if SimClock and ported.has_method("set_tick"):
+		ported.set_tick(SimClock.tick)
+	var d := data.duplicate() if typeof(data) == TYPE_DICTIONARY else {}
+	if not d.has("portrait"):
+		d["portrait"] = portrait
+	if not d.has("color"):
+		d["color"] = "#%02x%02x%02x" % [int(color.r * 255), int(color.g * 255), int(color.b * 255)]
+	var st := {
+		"x": hell_shake if hell else 0.0,
+		"y": 0.0,
+		"r": radius * hell_scale if hell else radius,
+		"flash": flash,
+		"face": face,
+		"dead": dead,
+		"deadT": dead_t,
+		"hell": hell,
+		"hellT": hell_t,
+		"hellR": hell_r,
+		"hellSpin": hell_spin,
+		"hellScale": hell_scale,
+		"hellShake": hell_shake,
+		"data": d,
+		"portrait": portrait,
+		"active": active_twin if twin else "",
+		"t": t,
+	}
+	ported.draw_boss(st)
+	# HP bar (UI overlay)
+	var w := 80.0
+	var ratio := clampf(hp / maxf(1.0, max_hp), 0.0, 1.0)
+	draw_rect(Rect2(-w / 2, -48, w, 6), Color(0.15, 0.08, 0.12))
+	draw_rect(Rect2(-w / 2, -48, w * ratio, 6), Color(1.0, 0.35, 0.55))
+	if special_t > 0.0:
+		draw_arc(Vector2.ZERO, 40 + sin(float(t) * 0.2) * 4.0, 0, TAU, 32, Color(1, 1, 1, 0.35), 2.0)

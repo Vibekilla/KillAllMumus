@@ -1,0 +1,4 @@
+## AUTO-PORTED from HTML function fetchLB — review required
+func fetchLB():
+	 lbPage=0; lbState='loading'; fetch('api/scores',{credentials:'same-origin'}).then(func(r): return r.json()).then(func(d): return { lbCache=Array.isArray(d)?d:[]; lbState='ok'; }).catchfunc((): # arrow
+	 lbState='error'; }); 

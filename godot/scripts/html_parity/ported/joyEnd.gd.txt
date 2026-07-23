@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function joyEnd — review required
+func joyEnd(e):
+	 if(!joy.active)return; if(e.changedTouches){ var hit=false; for tt in e.changedTouches){ if(tt.identifier==joy.id)hit=true; } if(!hit)return; } joyReset(); 

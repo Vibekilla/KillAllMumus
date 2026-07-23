@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function openShoutouts — review required
+func openShoutouts():
+	 if(shoutEl) shoutEl.classList['on'); 

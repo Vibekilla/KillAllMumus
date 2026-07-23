@@ -1,0 +1,50 @@
+## AUTO-PORTED from HTML function fire — review required
+func fire():
+
+	  var p=player, lv=shotLevel(), wep=(run&&run.weapon)||'spread', aim=aimAngle();
+	  // fire a shot at angular offset from the aim direction
+	  var shot=func(off,spd,dmg,extra): # arrow
+	 var a=aim+off, s={ x:p.x+cos(a)*10, y:p.y+sin(a)*10, vx:cos(a)*spd, vy:sin(a)*spd, dmg, dead:false }; if(extra)s.merge(extra); pshots.append(s); };
+	  if(wep=='laser'){
+	    if(p.focus){ shot(0,20,3,{foc:true,laser:true}); if(lv>=2){ shot(-0.05,20,2,{laser:true}); shot(0.05,20,2,{laser:true}); } }
+	    else { var n=minf(5,1+lv); for i in range(int(0), int(n)) shot((i-(n-1)/2)*0.06,18,2,{laser:true}); }
+	  } else if(wep=='homing'){
+	    var n=lv+1; for i in range(int(0), int(n)) shot((i-(n-1)/2)*0.42,6,1,{home:true});
+	  } else if(wep=='wave'){
+	    // Wave Beam — weaving twin beams that snake toward enemies (pierce-ish, medium dmg)
+	    var ph=tick*0.4; shot(0,11,1,{wv:2.6+lv*0.4, wph:ph}); shot(0,11,1,{wv:2.6+lv*0.4, wph:ph+PI});
+	    if(lv>=3){ shot(0,11,1,{wv:4+lv*0.4, wph:ph+PI/2}); }
+	  } else if(wep=='scatter'){
+	    // Scatter Burst — wide shotgun spray, great crowd clear, short range
+	    var n=3+lv*2; for i in range(int(0), int(n)){ var off=(i-(n-1)/2)*0.14 + (randf()-0.5)*0.06; shot(off,10+randf()*3,1,{life:22}); }
+	  } else if(wep=='gatling'){
+	    // Mumina's Gatling Lasers — a tight BRAIDED multi-barrel stream firing dead-straight (a minigun of green lasers)
+	    var barrels=minf(5,2+floorf(lv/1.5)), perpX=-sin(aim), perpY=cos(aim), cax=cos(aim), cay=sin(aim);
+	    for b in range(int(0), int(barrels)){ var lat=(b-(barrels-1)/2)*6 + sin(tick*0.9+b*1.6)*2.6;   // barrels weave around the axis → braided rope of light
+	      pshots.append({x:p.x+perpX*lat+cax*8, y:p.y+perpY*lat+cay*8, vx:cax*20, vy:cay*20, dmg:2, dead:false, gat:true}); }
+	  } else if(wep=='grenade'){
+	    // Grrnade Launcher — a deliberate, slow-firing single lob (2 at max power), not a spray
+	    var n=(lv>=5?3:lv>=4?2:1); for i in range(int(0), int(n)){ var off=(i-(n-1)/2)*0.16; shot(off,7+lv*0.4,2+floorf(lv/2),{nade:true, life:30+lv*3}); } sfx('thud',0.6);
+	  } else if(wep=='voidripper'){
+	    // Voidripper — PARALLEL piercing rift-lanes that carve straight columns clean through everything (wide-set, no fan)
+	    var lanes=minf(5,1+floorf(lv/1.2)), perpX=-sin(aim), perpY=cos(aim), cax=cos(aim), cay=sin(aim);
+	    for i in range(int(0), int(lanes)){ var lat=(i-(lanes-1)/2)*18;
+	      pshots.append({x:p.x+perpX*lat+cax*8, y:p.y+perpY*lat+cay*8, vx:cax*15, vy:cay*15, dmg:3+lv, dead:false, vrip:true, pierce:true, hit:{}}); }
+	  } else if(wep=='lotus'){
+	    // Lotus Petals — a WIDE blooming fan of petals that drift out and curl (area bloom, NOT homing like the bananas)
+	    var n=6+lv*2, spread=1.5+lv*0.4;
+	    for i in range(int(0), int(n)){ var off=(i-(n-1)/2)*(spread/(n-1)); shot(off, 6.2+randf()*1.4, 1, {petal:true, curl:(off<0?-1:1)*0.03, life:62}); }
+	  } else if(wep=='shock'){
+	    // Shock & Awe — an ERRATIC crackling arc-spray: bolts fork out at jittery random angles and speeds, chain-lightning on hit
+	    var n=2+lv; for i in range(int(0), int(n)){ var off=(randf()-0.5)*(0.55+lv*0.09); shot(off, 13+randf()*5, 2, {zap:true}); }
+	  } else {
+	    if(p.focus){ var n=1+lv; for i in range(int(0), int(n)) shot((i-(n-1)/2)*0.05,16,2,{foc:true}); }
+	    else { var spreadA=[[0],[-0.13,0.13],[-0.2,0,0.2],[-0.26,-0.09,0.09,0.26],[-0.32,-0.14,0,0.14,0.32]][lv-1];
+	      for off in spreadA) shot(off,13,1);
+	      if(lv>=4){ shot(-0.5,9,1,{home:true}); shot(0.5,9,1,{home:true}); } }
+	  }
+	  // options (familiars) fire a shot that MATCHES the equipped weapon (no more generic default bullet)
+	  var opts=optionOffsets(lv);
+	  for o in opts){ var q=optionPos(p,o); optionShot(q.x+cos(aim)*4, q.y+sin(aim)*4, aim, wep); }
+	  sfx('shoot');
+

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function joyMove — review required
+func joyMove(e):
+	 if(!joy.active)return; var t=null; if(e.changedTouches){ for tt in e.changedTouches){ if(tt.identifier==joy.id){ t=tt; break; } } if(!t)return; } else t=e; joyApply(t); if(e.cancelable)e.preventDefault(); 

@@ -1,34 +1,58 @@
-# Kill All Mumus — Godot 4.3 (modular)
+# Kill All Mumus — Godot 4.3 port
 
 Modular Godot port of **Bobina: Kill All Mumus!!**.
+
+## Critical policy
+
+**`public/index.html` is the source of truth.**  
+Live production serves that HTML client unless the GDScript port is proven
+pixel- and mechanic-identical. See **[PARITY.md](./PARITY.md)**.
+
+Do **not** export approximate Web builds over `public_godot/` without
+`KEEP_GODOT_WASM=1` and a full parity sign-off. By default:
+
+```bash
+node tools/port/sync_exact_client.mjs   # public_godot/ = exact HTML copy
+```
 
 ## Layout
 
 ```
 godot/
-├── data/                 # JSON game data (stages, weapons, emblems, …)
-├── assets/textures/      # Art
-├── autoload/             # Config, GameState, Progress, API, Audio
-├── scenes/               # Main, player, enemies, bullets, UI, shop
-└── scripts/              # Matching modules (systems, combat, bosses, UI)
+├── PARITY.md
+├── data/                      # JSON extracted from HTML (complete)
+├── assets/textures/           # Full public/assets + icons
+├── assets/html/               # Reference index + game_script
+├── autoload/
+├── scenes/
+└── scripts/
+    ├── combat/                # FireSystem, bullets, patterns
+    ├── enemies/ + bosses/     # Waves + updateBoss patterns
+    ├── systems/               # Specials, melee, shop, emblems
+    ├── audio/SfxSynth.gd      # HTML sfx() oscillator table
+    ├── render/                # CanvasCompat + PortedDraw
+    └── html_parity/           # Full-canvas host + auto-port drafts
 ```
 
-## Status
+## Port tooling (repo root)
 
-See `data/MIGRATION_CHECKLIST.md` — core systems migrated; HTML client retained as fallback when `public_godot/` is absent.
+```bash
+npm run port:extract    # all 290 functions + data
+npm run port:convert    # JS → GDScript drafts
+npm run port:sync       # assets + exact public_godot
+npm run port:verify     # critical map gate
+```
 
-## Run desktop
+## Run desktop (WIP port)
 
 ```bash
 ~/.local/godot/godot --path /var/www/killallmumus.com/godot
 ```
 
-## Export web
+## Export web (only after parity)
 
 ```bash
-# templates: ~/.local/share/godot/export_templates/4.3.stable/
-~/.local/godot/godot --path . --headless --export-release "Web" \
-  /var/www/killallmumus.com/public_godot/index.html
+KEEP_GODOT_WASM=1 ~/.local/godot/godot --path . --headless \
+  --export-release "Web" /var/www/killallmumus.com/public_godot/index.html
+USE_GODOT=1   # in server env — do not enable until gate passes
 ```
-
-Express serves `public_godot/` when present (`USE_GODOT=0` forces legacy `public/`).

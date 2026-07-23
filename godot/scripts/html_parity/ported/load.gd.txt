@@ -1,0 +1,18 @@
+## AUTO-PORTED from HTML function load — review required
+func load(n, src):
+	 var i=new Image(); i.src=src; IMG[n]=i; }
+	load('peephole','assets/peephole.png');
+	load('portrait','assets/portrait.webp');
+	load('confused','assets/confused.gif');
+	load('maid','assets/maid.png');
+	load('clear0','assets/clear-0.png');
+	load('clear1','assets/clear-1.png');
+	load('clear2','assets/clear-2.png');
+	load('mumina','assets/mumina.png');
+	load('lily','assets/lily.png');
+	load('clear3','assets/clear-3.png');
+	load('clear4','assets/clear-4.png');
+	load('winimg','assets/win.jpg');
+	load('honeybadger','assets/honeybadger.png');
+	load('clear5','assets/clear-5.png');
+

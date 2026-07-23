@@ -1,0 +1,6 @@
+## AUTO-PORTED from HTML function bossDmgMul — review required
+func bossDmgMul():
+	 return run ? (1 - minf(0.55, (run.power-1)*0.11)) : 1; }   // higher power fires WAY more shots → scale per-hit boss damage DOWN (up to −55% at Lv5) so bosses stay fierce instead of getting mowed
+	// Concentrated single-target weapons dump their whole DPS onto a boss and melt it. Debuff their per-hit boss damage, harder on higher difficulty. [NORMAL, HARD, HELL]
+	var BOSS_WEP_DEBUFF={ voidripper:[0.7,0.5,0.34], laser:[0.8,0.64,0.48], gatling:[0.8,0.64,0.48], homing:[0.9,0.76,0.62] };
+

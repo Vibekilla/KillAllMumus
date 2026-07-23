@@ -1,0 +1,23 @@
+function drawBullet(b) {
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  ctx.shadowColor = b.col;
+  ctx.shadowBlur = 7;
+  ctx.fillStyle = b.col;
+  ctx.beginPath();
+  ctx.arc(0, 0, b.r, 0, 7);
+  ctx.fill();
+  if (b.hp > 0) {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, b.r - 1, 0, 7);
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.beginPath();
+  ctx.arc(-b.r * 0.25, -b.r * 0.25, b.r * 0.42, 0, 7);
+  ctx.fill();
+  ctx.restore();
+}

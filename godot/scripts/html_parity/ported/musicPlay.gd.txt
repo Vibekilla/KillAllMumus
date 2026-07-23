@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function musicPlay — review required
+func musicPlay():
+	 ytWant=true; if(ytReady&&ytPlayer){ try{ ytPlayer.setVolume(roundf(musicVol*100)); ytPlayer.unMute(); ytPlayer.playVideo(); }catch(e){} } 

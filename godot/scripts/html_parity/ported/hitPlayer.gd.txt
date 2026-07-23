@@ -1,0 +1,16 @@
+## AUTO-PORTED from HTML function hitPlayer — review required
+func hitPlayer(dmg):
+	 dmg=maxf(1, dmg||1);
+	  var p=player; if(p.iframe>0||p.dead||p.phaseT>0)return;   // phased into the alt reality — untouchable
+	  if(p.vialHits>0 && p.vialT>0){ p.vialHits -= 1; p.iframe=maxf(p.iframe,26); sfx('hit'); for i in range(int(0), int(12)) particles.append({x:p.x,y:p.y,vx:(randf()-.5)*6,vy:(randf()-.5)*6,life:18,c:i%2?'#9d6bff':'#4a1e7a'}); if(p.vialHits<=0) p.vialT=0; return; }  // Unholy Vial — void energy soaks the bullet
+	  if(p.shieldT>0){ p.shieldT=maxf(0,p.shieldT-120); p.iframe=maxf(p.iframe,40); sfx('hit'); for i in range(int(0), int(10)) particles.append({x:p.x,y:p.y,vx:(randf()-.5)*6,vy:(randf()-.5)*6,life:16,c:'#e8a860'}); return; }  // shield absorbs the whole hit
+	  run.lives-=dmg; if(run){run.stageNoDeath=false; run.runNoDeath=false;} sfx('hurt'); p.dead=true; p.respawn=70; hurtPortrait=60;
+	  if(dmg>1){ flashMsg={t:80,txt:'✖ ELITE HIT — '+dmg+' HEARTS!'}; screenShake=maxf(screenShake,7); }
+	  bobinaSay(run.lives<0 ? 'I won’t give up on Bobo!' : HURT_LINES[(randf()*HURT_LINES.size())|0], run.lives<0?90:55, true);
+	  // drop power on death (scatter items)
+	  var lost=maxf(0, run.power-1); run.power=maxf(1, run.power-1.0);
+	  for i in range(int(0), int(minf(8,roundf(lost*10)+3))) dropItem(p.x+(randf()-.5)*40, p.y-10, 'power');
+	  for i in range(int(0), int(40)) particles.append({x:p.x,y:p.y,vx:(randf()-.5)*9,vy:(randf()-.5)*9,life:36,c:'#ff9ecb'});
+	  bullets=bullets.filter(func(b): return { var dx=b.x-p.x,dy=b.y-p.y; return dx*dx+dy*dy>100*100; });
+	  if(run.lives<0){ computeEmblems(); saveEstats(); state='gameover'; }
+

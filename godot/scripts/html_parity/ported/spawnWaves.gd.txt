@@ -1,0 +1,24 @@
+## AUTO-PORTED from HTML function spawnWaves — review required
+func spawnWaves():
+
+	  var s=run.stageIdx, st=stageTime, hm=hardMode?0.62:1.2;
+	  var prog=st/STAGES[s].waveDur;              // within-stage ramp: denser toward the boss
+	  var iv=maxf(18, floorf((s==0?70:s==1?60:52)*hm*(1-prog*0.32)));
+	  if(st%iv!=0) return; var roll=(st/iv)|0;
+	  if(s==0){
+	    if(roll%4==3){ spawnBig(PF.x+80+randf()*(PF.w-160), PF.y-30); }
+	    else { var cx=PF.x+60+randf()*(PF.w-120), n=hardMode?7:5; for i in range(int(0), int(n)) spawnLil(cx+(i-(n-1)/2)*24, PF.y-30-absf(i-(n-1)/2)*14, (randf()-.5)*0.4, 1.7+randf()*0.5,false); }
+	  } else if(s==1){
+	    if(roll%3==2){ spawnBig(PF.x+70+randf()*(PF.w-140), PF.y-30, true); }
+	    else { var fromLeft=roll%2==0; var n=hardMode?6:4; for i in range(int(0), int(n)) spawnLil(fromLeft?PF.x-20:PF.x+PF.w+20, PF.y+40+i*34, fromLeft?1.8:-1.8, 0.7+randf()*0.4, true); }
+	  } else {
+	    if(roll%5==4){ spawnBig(PF.x+PF.w/2, PF.y-30, roll%2==0); }
+	    var n=hardMode?9:6, cx=PF.x+60+randf()*(PF.w-120);
+	    for i in range(int(0), int(n)) spawnLil(cx+(i-(n-1)/2)*22, PF.y-30-((i*11)%40), (randf()-.5)*1.2, 1.9+randf()*0.7, roll%3==0);
+	  }
+	  // a themed elite mob for this stage drops in periodically
+	  if(roll>1 && roll%4==2) spawnElite(PF.x+80+randf()*(PF.w-160));
+	}
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 Items  -= 1 -= 1 -= 1 -= 1 -= 1 */
+

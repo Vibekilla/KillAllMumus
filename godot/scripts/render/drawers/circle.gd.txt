@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML circle — hand-fixed where needed
+func circle(x, y, r, fill, line) -> void:
+	 ctx.begin_path(); ctx.arc(x,y,r,0,7); if(line){ctx.stroke_style=line;ctx.line_width=2;ctx.stroke();} ctx.fill_style=fill; ctx.fill(); 

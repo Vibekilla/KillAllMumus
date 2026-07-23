@@ -1,0 +1,10 @@
+## AUTO-PORTED from HTML function joyReset — review required
+func joyReset():
+	 joy.active=false; joy.vx=0; joy.vy=0;
+	  var on=HtmlBridge.doc.getElementById('touch').classList.contains('on');
+	  if(on){ joybase.classList['idle'); joyknob.style.transform='translate(-50%,-50%)'; } else if(joybase) joybase.style.display='none'; }
+	joyzone.HtmlBridge.add_listener('touchstart',joyStart,{passive:false});
+	joyzone.HtmlBridge.add_listener('touchmove',joyMove,{passive:false});
+	HtmlBridge.add_listener('touchend',joyEnd); HtmlBridge.add_listener('touchcancel',joyEnd);
+	// show touch controls ONLY during play (keep them up while paused so the pause button can un-pause); reset the stick when hidden or paused
+

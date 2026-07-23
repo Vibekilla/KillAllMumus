@@ -1,0 +1,37 @@
+## AUTO-PORTED from HTML function drawDebugLayer — review required
+func drawDebugLayer():
+
+	  try{
+	    var fps = (typeof _lastFrame=='number' && typeof performance!='null')
+	      ? roundf(1000/maxf(1, (performance.now()-(_dbgLast||_lastFrame)))) : 0;
+	    _dbgLast = typeof performance!='null'?performance.now():0;
+	    ctx.save();
+	    ctx.setTransform(1,0,0,1,0,0);
+	    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(8,8,210,92);
+	    ctx.strokeStyle='#7ed957'; ctx.strokeRect(8,8,210,92);
+	    ctx.fillStyle='#7ed957'; ctx.font='bold 12px monospace'; ctx.textAlign='left';
+	    ctx.fillText('DEBUG', 16, 26);
+	    ctx.fillStyle='#c8f0c8'; ctx.font='11px monospace';
+	    ctx.fillText('state: '+state+(paused?' (paused)':''), 16, 44);
+	    ctx.fillText('scale: '+roundf(displayScale*100)+'%  sim: '+refreshRate+'Hz', 16, 60);
+	    ctx.fillText('canvas: '+W+'×'+H, 16, 76);
+	    if(typeof player!='null' && player) ctx.fillText('player: '+roundf(player.x)+','+roundf(player.y), 16, 92);
+	    ctx.restore();
+	  }catch(e){}
+	}
+	(function(){
+	  var scale=HtmlBridge.doc.getElementById('disp-scale');
+	  if(scale) scale.HtmlBridge.add_listener('input',()=>setDisplayScale(scale.value));
+	  HtmlBridge.doc.querySelectorAll('.disp-preset') # forEach func(b): return b.HtmlBridge.add_listener('click',()=>setDisplayScale(b.dataset.scale)));
+	  HtmlBridge.doc.querySelectorAll('.disp-hz') # forEach func(b): return b.HtmlBridge.add_listener('click',()=>setRefreshRate(b.dataset.hz)));
+	  var dbg=HtmlBridge.doc.getElementById('disp-debug'); if(dbg) dbg.HtmlBridge.add_listener('click',()=>setDebugLayer(!debugLayer));
+	  var fs=HtmlBridge.doc.getElementById('disp-fs'); if(fs) fs.addEventListenerfunc('click',(): # arrow
+	 if(typeof toggleFullscreen=='function') toggleFullscreen(); setTimeout(syncDisplayUI,80); });
+	  var cl=HtmlBridge.doc.getElementById('disp-close'); if(cl) cl.HtmlBridge.add_listener('click', closeDisplay);
+	  var d=HtmlBridge.doc.getElementById('display'); if(d) d.HtmlBridge.add_listener('click',func(e): return { if(e.target==d) closeDisplay(); });
+	  var sd=HtmlBridge.doc.getElementById('set-display'); if(sd) sd.HtmlBridge.add_listener('click', openDisplay);
+	  var pd=HtmlBridge.doc.getElementById('ps-display'); if(pd) pd.HtmlBridge.add_listener('click', openDisplay);
+	})();
+
+	//  -= 1 -= 1 Fullscreen  -= 1 -= 1
+

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function clearWaveMobs — review required
+func clearWaveMobs():
+	 for e in enemies){ burst(e.x,e.y,e.icy?'#a0e0ff':'#ffd27a'); sessionScore+=floorf(50*scoreMult()); } enemies=[]; bulletCancelAll(); 

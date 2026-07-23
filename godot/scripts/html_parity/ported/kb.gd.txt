@@ -1,0 +1,11 @@
+## AUTO-PORTED from HTML function kb — review required
+func kb(a):
+	 return keyName(binds[a]); }   // live label for an action's current binding — used by every on-screen key prompt so rebinds reflect globally
+	rebuildKMAP();
+	var mouse={x:0,y:0,moveT:0}, lastShiftTap=-99;
+	var nameEntryOpen=false;
+	HtmlBridge.add_listener('keydown',func(e): return { if(rebindAction){ e.preventDefault(); e.stopPropagation(); setBind(rebindAction, e.code); rebindAction=null; renderKeybinds(); return; } }, true);   // capture: rebind a key (Esc is bindable too; cancel by clicking the key again)
+	HtmlBridge.add_listener('keydown',func(e): return { if(nameEntryOpen||anyModalOpen())return; var k=KMAP[e.code]; if(k){ e.preventDefault(); if(!keys[k]) keyPress(k); keys[k]=true; } });
+	HtmlBridge.add_listener('keyup',func(e): return { if(nameEntryOpen)return; var k=KMAP[e.code]; if(k){ e.preventDefault(); keys[k]=false; } });
+	var pointer={down:false,x:0,y:0};
+

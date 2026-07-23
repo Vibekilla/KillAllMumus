@@ -1,0 +1,11 @@
+## AUTO-PORTED from HTML function toggleFullscreen — review required
+func toggleFullscreen():
+	 var el=HtmlBridge.doc.documentElement;
+	  if(!HtmlBridge.doc.fullscreenElement && !HtmlBridge.doc.webkitFullscreenElement){
+	    (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);
+	  } else {
+	    (HtmlBridge.doc.exitFullscreen||HtmlBridge.doc.webkitExitFullscreen||function(){}).call(document);
+	  } }
+	var fsBtn=HtmlBridge.doc.getElementById('fsbtn');
+	var fsSupported=!!(HtmlBridge.doc.documentElement.requestFullscreen||HtmlBridge.doc.documentElement.webkitRequestFullscreen);
+	if(fsBtn){ if(!fsSupported){ fsBtn.style.display='none'; var _pb=HtmlBridge.doc.getElementById('pausebtn'); if(_pb) _pb.classList['nofs'); } else { fsBtn.HtmlBridge.add_listener('click', toggleFullscreen); } 

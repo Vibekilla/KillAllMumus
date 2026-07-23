@@ -1,0 +1,12 @@
+function drawPosedFigure(cx, cy, scale, t, pose, outfit, motionScale, exprOverride, faceOverride){
+  const P=poseParams(pose, t), ms=(motionScale==null?1:motionScale), expr=(exprOverride!=null?exprOverride:P.expr), face=(faceOverride!=null?faceOverride:-Math.PI/2);
+  const hold=(pose===5?coffeeHold(t):undefined);   // coffee pose raises her real right arm + orb
+  // Spin/lean about her BODY CENTRE (drawBobina's pivot, 16px up along her facing) — NOT her feet — so poses like
+  // Twirl pirouette in place and stay dead-centre inside the power aura instead of orbiting out of it.
+  const rr=face+Math.PI/2, pcx=-Math.sin(rr)*16, pcy=-16+Math.cos(rr)*16;
+  ctx.save(); ctx.translate(cx+P.sway*ms, cy-P.bounce*ms); ctx.scale(scale, scale*P.sq);
+  ctx.translate(pcx, pcy); ctx.rotate(P.rot); ctx.translate(-pcx, -pcy);
+  drawBobina({x:0,y:0,iframe:0,focus:false,walk:0,bombFx:0,face, vx:P.vx, vy:P.vy, lean:P.lean, outfit, expr, hold});
+  drawPoseProp(pose, t);
+  ctx.restore();
+}

@@ -1,0 +1,7 @@
+## AUTO-PORTED from HTML function musicPause — review required
+func musicPause():
+	 ytWant=false; if(ytReady&&ytPlayer){ try{ ytPlayer.pauseVideo(); }catch(e){} } }
+	// Sound-enable verification gate — the tap is the user gesture browsers require to autoplay audio
+	var soundGate=HtmlBridge.doc.getElementById('soundgate');
+	// go fullscreen on touch devices for an immersive experience (best effort — no-op on iOS Safari, which has no Fullscreen API)
+

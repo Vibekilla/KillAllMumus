@@ -1,0 +1,102 @@
+## AUTO-PORTED from HTML function updateFx — review required
+func updateFx():
+
+	  var p=player;
+	  for f in fx){
+	    if(f.type=='laser'){ f.t -= 1; f.x=p.x; f.y=p.y; f.ang=(p.aim!=null?p.aim:-PI/2); var dx=cos(f.ang),dy=sin(f.ang),half=f.w/2;
+	      var onBeam=func(ex,ey,rad): # arrow
+	 var rx=ex-f.x,ry=ey-f.y,proj=rx*dx+ry*dy; if(proj<0||proj>PF.w+PF.h)return false; return absf(rx*dy-ry*dx)<half+rad; };
+	      for e in enemies){ if(onBeam(e.x,e.y,e.r)){ e.hp-=2; e.flash=4; if(e.hp<=0){ killEnemy(e); } } }
+	      if(boss&&!boss.dead&&boss.intro<=0 && onBeam(boss.x,boss.y,boss.r)){ boss.hp-=4; boss.flash=3; }
+	      bullets=bullets.filter(func(b): return { if(b.hp>0)return true; return !onBeam(b.x,b.y,0); });
+	      if(f.t%3==0){ var d=40+randf()*300; sparks(f.x+dx*d,f.y+dy*d,'#c9a0ff'); }
+	    } else if(f.type=='mech'){ f.t -= 1; f.ct += 1;
+	      // escort that FOLLOWS her orientation — hovers in front (her aim direction) and turns with her
+	      var face=(p.aim!=null?p.aim:-PI/2), hx=p.x+cos(face)*46, hy=p.y+sin(face)*46;
+	      f.x+=(hx-f.x)*0.2; f.y+=(hy-f.y)*0.2; f.x=maxf(PF.x+16,minf(PF.x+PF.w-16,f.x)); f.y=maxf(PF.y+18,minf(PF.y+PF.h-18,f.y)); f.face=face;
+	      // MIMIC her equipped ranged weapon and DOUBLE the output — fires her weapon's shots from both cannons at twice the cadence
+	      if(f.ct%3==0){ var wep=(run&&run.weapon)||'spread'; optionShot(f.x-9,f.y,face,wep); optionShot(f.x+9,f.y,face,wep); if(f.ct%9==0) sfx('shoot'); }
+	      // SHIELD her — cancel any enemy bullets that reach the bubble around her
+	      bullets=bullets.filter(func(b): return { if(b.hp>0)return true; if(sqrt_sum_sq(b.x-p.x,b.y-p.y)<28){ floaters.append({x:b.x,y:b.y,life:10,vy:-0.4,scale:0.28}); sparks(b.x,b.y,'#8fb8ff'); return false; } return true; });
+	    } else if(f.type=='bearzooka'){ f.t -= 1; f.ct += 1; f.x += (PF.w+90)/156; f.y = PF.y+34 + sin(f.ct*0.14)*6;   // gunship sweeps across the top
+	      var overField=(f.x>PF.x-14 && f.x<PF.x+PF.w+14);
+	      if(overField && f.ct%5==0){ for d in range(int(0), int(3)) fx.append({type:'bombdrop', t:150, x:f.x+(randf()-.5)*72, y:f.y+12, vy:2.3+randf()*0.8, ty:PF.y+80+randf()*(PF.h-150)}); }   // carpet bombs — a wide, dense, slower-falling spread
+	      if(overField && f.ct%3==0){ for k in range(int(-1), int(1)) pshots.append({x:f.x+k*10,y:f.y+8,vx:(randf()-.5)*3,vy:9+randf()*3,dmg:2,dead:false}); if(f.ct%9==0)sfx('shoot'); }   // bullet volley
+	    } else if(f.type=='bombdrop'){ f.t -= 1; f.y+=f.vy; f.vy+=0.26;
+	      if(f.y>=f.ty){ f._dead=true; burst(f.x,f.ty,'#ff9a3c'); burst(f.x,f.ty,'#ffd27a'); screenShake=maxf(screenShake,4.5); if(randf()<0.5)sfx('bomb',0.65);
+	        for i in range(int(0), int(18)) particles.append({x:f.x,y:f.ty,vx:(randf()-.5)*11,vy:(randf()-.5)*11,life:24,c:i%2?'#ff9a3c':'#fff'});
+	        for e in enemies){ if(sqrt_sum_sq(e.x-f.x,e.y-f.ty)<62){ e.hp-=12; e.flash=6; if(e.hp<=0) killEnemy(e); } }
+	        if(boss&&!boss.dead&&boss.intro<=0 && sqrt_sum_sq(boss.x-f.x,boss.y-f.ty)<70){ boss.hp-=6; boss.flash=5; }
+	        bullets=bullets.filter(func(b): return { if(b.hp>0)return true; return sqrt_sum_sq(b.x-f.x,b.y-f.ty)>54; }); } }
+	    else if(f.type=='blackhole'){ f.t -= 1; f.dt += 1;
+	      if(f.dt<16){ f.x+=f.vx; f.y+=f.vy; f.vx*=0.9; f.vy*=0.9; }   // launch, then settle and pull
+	      f.x=maxf(PF.x+24,minf(PF.x+PF.w-24,f.x)); f.y=maxf(PF.y+24,minf(PF.y+PF.h-24,f.y)); f.r=minf(15,(f.r||0)+1.1);
+	      var pull=155;
+	      for e in enemies){ var dx=f.x-e.x, dy=f.y-e.y, d=sqrt_sum_sq(dx,dy)||1; if(d<pull){ var g=(1-d/pull)*2.6; e.x+=dx/d*g; e.y+=dy/d*g;   // suck toward centre → groups them
+	        if(d<26 && f.dt%8==0){ e.hp-=4; e.flash=4; if(e.hp<=0) killEnemy(e); } } }
+	      enemies=enemies.filter(func(e): return e.hp>0);
+	      if(boss&&!boss.dead&&boss.intro<=0 && f.dt%12==0 && sqrt_sum_sq(f.x-boss.x,f.y-boss.y)<pull*0.7){ boss.hp-=3; boss.flash=3; }
+	      bullets=bullets.filter(func(b): return { if(b.hp>0)return true; var dx=f.x-b.x,dy=f.y-b.y,d=sqrt_sum_sq(dx,dy)||1;
+	        if(d<pull){ var g=(1-d/pull)*2.4; b.vx=b.vx*0.9+dx/d*g; b.vy=b.vy*0.9+dy/d*g;   // gravity + orbital decay: kills their momentum and spirals them in
+	          if(d<16){ floaters.append({x:b.x,y:b.y,life:8,vy:-0.3,scale:0.24}); sparks(b.x,b.y,f.col); return false; } }   // devoured at the core
+	        return true; });
+	      if(!paused && f.dt%2==0){ var a=randf()*6.283, rr=pull*(0.5+randf()*0.5); particles.append({x:f.x+cos(a)*rr,y:f.y+sin(a)*rr,vx:-cos(a)*3.5,vy:-sin(a)*3.5,life:14,c:randf()<0.55?f.col:'#0a3018'}); }
+	      if(f.t<=0) f._dead=true; }
+	    else if(f.type=='wave'){ if(f.delay>0){ f.delay -= 1; continue; } f.r+=9;
+	      var lo=f.r-14, hi=f.r+6;
+	      for e in enemies){ if(!f.hit.has(e)){ var d=sqrt_sum_sq(e.x-f.x,e.y-f.y); if(d>lo&&d<hi){ f.hit[e); e.hp-=5; e.flash=5; if(e.hp<=0) killEnemy(e); } } }
+	      if(boss&&!boss.dead&&boss.intro<=0 && !f.hit.has(boss)){ var d=sqrt_sum_sq(boss.x-f.x,boss.y-f.y); if(d>lo&&d<hi){ f.hit[boss); boss.hp-=14; boss.flash=5; } }
+	      bullets=bullets.filter(func(b): return { if(b.hp>0)return true; var d=sqrt_sum_sq(b.x-f.x,b.y-f.y); return !(d>lo&&d<hi); });
+	      if(f.r>PF.w+PF.h) f.alive=false;
+	    } else if(f.type=='bull'){ f.t -= 1; f.y-=9.5; f.x+=sin((100-f.t)*0.2)*0.6;
+	      for e in enemies){ if(!f.hit.has(e) && absf(e.x-f.x)<24+e.r && absf(e.y-f.y)<30){ f.hit[e); e.hp-=7; e.flash=5; if(e.hp<=0) killEnemy(e); } }
+	      if(boss&&!boss.dead&&boss.intro<=0 && absf(boss.x-f.x)<28+boss.r && absf(boss.y-f.y)<34){ boss.hp-=3; boss.flash=4; }
+	      bullets=bullets.filter(func(b): return { if(b.hp>0)return true; return !(absf(b.x-f.x)<24 && absf(b.y-f.y)<26); });
+	      if(f.y<PF.y-40) f._dead=true;
+	    } else if(f.type=='badger'){ f.t -= 1; f.x+=f.dir*12; f.y+=sin((90-f.t)*0.3)*1.2;   // fearless charge across the field
+	      for e in enemies){ if(!f.hit.has(e) && absf(e.x-f.x)<26+e.r && absf(e.y-f.y)<22){ f.hit[e); e.hp-=8; e.flash=5; if(e.hp<=0) killEnemy(e); } }
+	      if(boss&&!boss.dead&&boss.intro<=0 && absf(boss.x-f.x)<32+boss.r && absf(boss.y-f.y)<26){ boss.hp-=3; boss.flash=4; }
+	      bullets=bullets.filter(func(b): return { if(b.hp>0)return true; return !(absf(b.x-f.x)<30 && absf(b.y-f.y)<20); });   // honey badger don't care about bullets
+	      if(f.dir>0 && f.x>PF.x+PF.w+50) f._dead=true; if(f.dir<0 && f.x<PF.x-50) f._dead=true;
+	    }
+	    else if(f.type=='kiss'){ f.t -= 1; f.r+=8; if(f.t<=0) f._dead=true; }   // charm shockwave (enemies already flagged e.charm)
+	    else if(f.type=='tentacle'){ f.t -= 1; f.ph+=0.13;   // Unleash the Kraken — thrashes nearby Mumus
+	      for e in enemies){ var d=sqrt_sum_sq(e.x-f.x,e.y-f.y); if(d<f.reach){ if(f.t%9==0){ e.hp-=4; e.flash=4; if(e.hp<=0) killEnemy(e); } var g=(1-d/f.reach)*0.5; e.x+=(f.x-e.x)/(d||1)*g; e.y+=(f.y-e.y)/(d||1)*g; } }
+	      if(boss&&!boss.dead&&boss.intro<=0 && f.t%12==0 && sqrt_sum_sq(f.x-boss.x,f.y-boss.y)<f.reach){ boss.hp-=2; boss.flash=2; }
+	      bullets=bullets.filter(func(b): return { if(b.hp>0)return true; if(sqrt_sum_sq(b.x-f.x,b.y-f.y)<f.reach*0.5){ floaters.append({x:b.x,y:b.y,life:8,vy:-0.3,scale:0.24}); return false; } return true; });
+	      if(f.t<=0) f._dead=true; }
+	    else if(f.type=='servitor'){ f.t -= 1; f.ct += 1;   // Call of the Void — eldritch minion hunts Mumus, has HP
+	      var tgt=null, best=1e9; for e in enemies){ var d=sqrt_sum_sq(e.x-f.x,e.y-f.y); if(d<best){ best=d; tgt=e; } }
+	      if(!tgt && boss&&!boss.dead&&boss.intro<=0){ tgt={x:boss.x,y:boss.y}; }
+	      if(tgt){ var dx=tgt.x-f.x,dy=tgt.y-f.y,d=sqrt_sum_sq(dx,dy)||1; if(d>62){ f.x+=dx/d*2.2; f.y+=dy/d*2.2; }
+	        if(f.ct%8==0){ var base=atan2(dy,dx); for b in range(int(-1), int(1)){ var a=base+b*0.16; pshots.append({x:f.x,y:f.y,vx:cos(a)*9,vy:sin(a)*9,dmg:3,dead:false,laser:true,voidbolt:true}); } if(f.ct%24==0)sfx('shoot'); } }   // fires a 3-bolt spread, far more often
+	      else { f.x+=sin(f.ct*0.05)*0.7; f.y+=cos(f.ct*0.04)*0.7; }
+	      f.x=maxf(PF.x+18,minf(PF.x+PF.w-18,f.x)); f.y=maxf(PF.y+18,minf(PF.y+PF.h-18,f.y));
+	      bullets=bullets.filter(func(b): return { if(b.hp>0)return true; if(sqrt_sum_sq(b.x-f.x,b.y-f.y)<13*(f.sz||1)){ f.hp-=5; sparks(b.x,b.y,'#9d6bff'); return false; } return true; });   // their big bodies soak bullets but take heavy damage doing it — they don't last long under fire
+	      if(f.hp<=0 || f.t<=0){ f._dead=true; burst(f.x,f.y,'#9d6bff'); } }
+	    else if(f.type=='bubble'){
+	      if(f.pop>0){ f.pop -= 1; f.popR+=4; if(f.pop<=0) f._dead=true; }   // popping — expanding shockwave
+	      else { f.life -= 1; f.x+=f.vx; f.y+=f.vy; f.vy+=0.015; f.vx*=0.99; f.vy*=0.985; f.r=minf(f.rmax, f.r+0.35);
+	        if(f.x<PF.x+f.r){ f.x=PF.x+f.r; f.vx=absf(f.vx)*0.6; } if(f.x>PF.x+PF.w-f.r){ f.x=PF.x+PF.w-f.r; f.vx=-absf(f.vx)*0.6; }
+	        if(f.y<PF.y+f.r){ f.y=PF.y+f.r; f.vy=absf(f.vy)*0.6; } if(f.y>PF.y+PF.h-f.r){ f.y=PF.y+PF.h-f.r; f.vy=-absf(f.vy)*0.6; }
+	        var caught=0; for e in enemies){ var dx=f.x-e.x, dy=f.y-e.y, d=sqrt_sum_sq(dx,dy)||1; if(d<f.r+e.r+10){ var gp=(1-minf(1,d/(f.r+34)))*1.7; e.x+=dx/d*gp; e.y+=dy/d*gp; e.flash=maxf(e.flash,2); caught += 1; } }   // trap: pull Mumus in, grouping them
+	        f.caught=caught;
+	        if(f.life<=0 || f.caught>=5){ f.pop=16; f.popR=f.r; sfx('bomb');   // POP → AoE burst
+	          var R=f.r+46; for e in enemies){ if(sqrt_sum_sq(e.x-f.x,e.y-f.y)<R){ e.hp-=18; e.flash=6; if(e.hp<=0) killEnemy(e); } }
+	          if(boss && !boss.dead && boss.intro<=0 && sqrt_sum_sq(boss.x-f.x,boss.y-f.y)<R){ boss.hp-=12; boss.flash=4; }
+	          for i in range(int(0), int(18)) particles.append({x:f.x,y:f.y,vx:(randf()-.5)*7,vy:(randf()-.5)*7,life:24,c:i%2?'#bfe8ff':'#eafcff'}); }
+	      }
+	    }
+	    else if(f.type=='stardust'){ var pp=player; f.life -= 1; if(f.life<=0) f._dead=true;
+	      if(pp&&!pp.dead){ f.x=pp.x; f.y=pp.y-14; }
+	      // birth a new twinkling star at a random spot around her
+	      if(f.life>0 && f.life%5==0){ var a=randf()*6.283, r=18+randf()*58; f.stars.append({x:f.x+cos(a)*r, y:f.y+sin(a)*r, life:28, t:0, sz:1.3+randf()*1.5, rot:randf()*6.28, hue:(tick*4+randf()*100)%360|0, sapping:false}); }
+	      // each star saps HP from the nearest Mumu it's near
+	      for st in f.stars){ st.t += 1; var tgt=null,bd=1e9; for e in enemies){ var d=(e.x-st.x)**2+(e.y-st.y)**2; if(d<bd){ bd=d; tgt=e; } }
+	        if(tgt && bd<34*34){ tgt.hp-=0.5; tgt.flash=maxf(tgt.flash,2); st.sapX=tgt.x; st.sapY=tgt.y; st.sapping=true; if(tgt.hp<=0) killEnemy(tgt); } else st.sapping=false; }
+	      f.stars=f.stars.filter(func(s): return s.t<s.life);
+	    }
+	  }
+	  fx=fx.filter(func(f): return f.type=='wave'? f.alive!=false : (!f._dead && f.t>0));
+	  enemies=enemies.filter(func(e): return e.hp>0);
+

@@ -1,0 +1,1452 @@
+[
+  {
+    "name": "_hEsc",
+    "path": "ported/_hEsc.gd.txt",
+    "lines": 18
+  },
+  {
+    "name": "_hItem",
+    "path": "ported/_hItem.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "_hSec",
+    "path": "ported/_hSec.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "_hexA",
+    "path": "ported/_hexA.gd.txt",
+    "lines": 9
+  },
+  {
+    "name": "_hexRgb",
+    "path": "ported/_hexRgb.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "_rgbHue",
+    "path": "ported/_rgbHue.gd.txt",
+    "lines": 9
+  },
+  {
+    "name": "actx",
+    "path": "ported/actx.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "addBomb",
+    "path": "ported/addBomb.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "addMelee",
+    "path": "ported/addMelee.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "addPower",
+    "path": "ported/addPower.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "addSpecial",
+    "path": "ported/addSpecial.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "addWeapon",
+    "path": "ported/addWeapon.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "advanceScreen",
+    "path": "ported/advanceScreen.gd.txt",
+    "lines": 19
+  },
+  {
+    "name": "aimAngle",
+    "path": "ported/aimAngle.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "angDiff",
+    "path": "ported/angDiff.gd.txt",
+    "lines": 14
+  },
+  {
+    "name": "anyModalOpen",
+    "path": "ported/anyModalOpen.gd.txt",
+    "lines": 23
+  },
+  {
+    "name": "applyArsenalToRun",
+    "path": "ported/applyArsenalToRun.gd.txt",
+    "lines": 25
+  },
+  {
+    "name": "applyDiff",
+    "path": "ported/applyDiff.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "applyLayout",
+    "path": "ported/applyLayout.gd.txt",
+    "lines": 22
+  },
+  {
+    "name": "applyMusicVol",
+    "path": "ported/applyMusicVol.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "applyProgressSnapshot",
+    "path": "ported/applyProgressSnapshot.gd.txt",
+    "lines": 71
+  },
+  {
+    "name": "applySfxVol",
+    "path": "ported/applySfxVol.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "armedSpec",
+    "path": "ported/armedSpec.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "arsArr",
+    "path": "ported/arsArr.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "arsItemByKey",
+    "path": "ported/arsItemByKey.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "arsPool",
+    "path": "ported/arsPool.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "arsenalCount",
+    "path": "ported/arsenalCount.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "bobinaSay",
+    "path": "ported/bobinaSay.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "bodyCtr",
+    "path": "ported/bodyCtr.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "bossDmgMul",
+    "path": "ported/bossDmgMul.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "bossSpecial",
+    "path": "ported/bossSpecial.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "bossWepMul",
+    "path": "ported/bossWepMul.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "buildHelp",
+    "path": "ported/buildHelp.gd.txt",
+    "lines": 44
+  },
+  {
+    "name": "buildProgressSnapshot",
+    "path": "ported/buildProgressSnapshot.gd.txt",
+    "lines": 42
+  },
+  {
+    "name": "bulletCancelAll",
+    "path": "ported/bulletCancelAll.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "bulletCancelNear",
+    "path": "ported/bulletCancelNear.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "burst",
+    "path": "ported/burst.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "cabalUnlocked",
+    "path": "ported/cabalUnlocked.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "canvasPos",
+    "path": "ported/canvasPos.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "chainLightning",
+    "path": "ported/chainLightning.gd.txt",
+    "lines": 13
+  },
+  {
+    "name": "checkExtend",
+    "path": "ported/checkExtend.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "circle",
+    "path": "ported/circle.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "clearWaveMobs",
+    "path": "ported/clearWaveMobs.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "closeDisplay",
+    "path": "ported/closeDisplay.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "closeGate",
+    "path": "ported/closeGate.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "closeHelp",
+    "path": "ported/closeHelp.gd.txt",
+    "lines": 33
+  },
+  {
+    "name": "closeKeybinds",
+    "path": "ported/closeKeybinds.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "closeSettings",
+    "path": "ported/closeSettings.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "closeShoutouts",
+    "path": "ported/closeShoutouts.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "cloudLinked",
+    "path": "ported/cloudLinked.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "cloudPullAndMerge",
+    "path": "ported/cloudPullAndMerge.gd.txt",
+    "lines": 65
+  },
+  {
+    "name": "coffeeHold",
+    "path": "ported/coffeeHold.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "collectItem",
+    "path": "ported/collectItem.gd.txt",
+    "lines": 15
+  },
+  {
+    "name": "computeEmblems",
+    "path": "ported/computeEmblems.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "consumById",
+    "path": "ported/consumById.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "consumQty",
+    "path": "ported/consumQty.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "consumeSelected",
+    "path": "ported/consumeSelected.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "contentUnlocked",
+    "path": "ported/contentUnlocked.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "controlsHtml",
+    "path": "ported/controlsHtml.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "cycleConsumable",
+    "path": "ported/cycleConsumable.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "cycleSpecial",
+    "path": "ported/cycleSpecial.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "dashLandExplosion",
+    "path": "ported/dashLandExplosion.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "diffName",
+    "path": "ported/diffName.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "diffScoreMul",
+    "path": "ported/diffScoreMul.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "doBomb",
+    "path": "ported/doBomb.gd.txt",
+    "lines": 14
+  },
+  {
+    "name": "doDash",
+    "path": "ported/doDash.gd.txt",
+    "lines": 16
+  },
+  {
+    "name": "doMeleeSwipe",
+    "path": "ported/doMeleeSwipe.gd.txt",
+    "lines": 36
+  },
+  {
+    "name": "doSaveScore",
+    "path": "ported/doSaveScore.gd.txt",
+    "lines": 9
+  },
+  {
+    "name": "draw",
+    "path": "ported/draw.gd.txt",
+    "lines": 66
+  },
+  {
+    "name": "drawApe",
+    "path": "ported/drawApe.gd.txt",
+    "lines": 13
+  },
+  {
+    "name": "drawArsenal",
+    "path": "ported/drawArsenal.gd.txt",
+    "lines": 65
+  },
+  {
+    "name": "drawBobina",
+    "path": "ported/drawBobina.gd.txt",
+    "lines": 882
+  },
+  {
+    "name": "drawBobo",
+    "path": "ported/drawBobo.gd.txt",
+    "lines": 33
+  },
+  {
+    "name": "drawBogdanoff",
+    "path": "ported/drawBogdanoff.gd.txt",
+    "lines": 47
+  },
+  {
+    "name": "drawBoss",
+    "path": "ported/drawBoss.gd.txt",
+    "lines": 13
+  },
+  {
+    "name": "drawBossAmbience",
+    "path": "ported/drawBossAmbience.gd.txt",
+    "lines": 29
+  },
+  {
+    "name": "drawBullet",
+    "path": "ported/drawBullet.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "drawBurns",
+    "path": "ported/drawBurns.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "drawClearGate",
+    "path": "ported/drawClearGate.gd.txt",
+    "lines": 53
+  },
+  {
+    "name": "drawDashComet",
+    "path": "ported/drawDashComet.gd.txt",
+    "lines": 34
+  },
+  {
+    "name": "drawDebugLayer",
+    "path": "ported/drawDebugLayer.gd.txt",
+    "lines": 38
+  },
+  {
+    "name": "drawDevil",
+    "path": "ported/drawDevil.gd.txt",
+    "lines": 24
+  },
+  {
+    "name": "drawDialog",
+    "path": "ported/drawDialog.gd.txt",
+    "lines": 21
+  },
+  {
+    "name": "drawElite",
+    "path": "ported/drawElite.gd.txt",
+    "lines": 91
+  },
+  {
+    "name": "drawEmblemToasts",
+    "path": "ported/drawEmblemToasts.gd.txt",
+    "lines": 22
+  },
+  {
+    "name": "drawEmblems",
+    "path": "ported/drawEmblems.gd.txt",
+    "lines": 43
+  },
+  {
+    "name": "drawEmote",
+    "path": "ported/drawEmote.gd.txt",
+    "lines": 18
+  },
+  {
+    "name": "drawFloater",
+    "path": "ported/drawFloater.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "drawFx",
+    "path": "ported/drawFx.gd.txt",
+    "lines": 102
+  },
+  {
+    "name": "drawGameOver",
+    "path": "ported/drawGameOver.gd.txt",
+    "lines": 16
+  },
+  {
+    "name": "drawHeart",
+    "path": "ported/drawHeart.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "drawHellPortal",
+    "path": "ported/drawHellPortal.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "drawHoneyBadger",
+    "path": "ported/drawHoneyBadger.gd.txt",
+    "lines": 102
+  },
+  {
+    "name": "drawIntro",
+    "path": "ported/drawIntro.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "drawItem",
+    "path": "ported/drawItem.gd.txt",
+    "lines": 25
+  },
+  {
+    "name": "drawLeaderboard",
+    "path": "ported/drawLeaderboard.gd.txt",
+    "lines": 50
+  },
+  {
+    "name": "drawLily",
+    "path": "ported/drawLily.gd.txt",
+    "lines": 34
+  },
+  {
+    "name": "drawMaidDance",
+    "path": "ported/drawMaidDance.gd.txt",
+    "lines": 32
+  },
+  {
+    "name": "drawMech",
+    "path": "ported/drawMech.gd.txt",
+    "lines": 32
+  },
+  {
+    "name": "drawMeleeFx",
+    "path": "ported/drawMeleeFx.gd.txt",
+    "lines": 29
+  },
+  {
+    "name": "drawMeleeWeapon",
+    "path": "ported/drawMeleeWeapon.gd.txt",
+    "lines": 75
+  },
+  {
+    "name": "drawMenuBtn",
+    "path": "ported/drawMenuBtn.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "drawMumina",
+    "path": "ported/drawMumina.gd.txt",
+    "lines": 32
+  },
+  {
+    "name": "drawMumu",
+    "path": "ported/drawMumu.gd.txt",
+    "lines": 24
+  },
+  {
+    "name": "drawNgSelect",
+    "path": "ported/drawNgSelect.gd.txt",
+    "lines": 29
+  },
+  {
+    "name": "drawOptions",
+    "path": "ported/drawOptions.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "drawOutfitFigure",
+    "path": "ported/drawOutfitFigure.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "drawOutfits",
+    "path": "ported/drawOutfits.gd.txt",
+    "lines": 72
+  },
+  {
+    "name": "drawPShot",
+    "path": "ported/drawPShot.gd.txt",
+    "lines": 33
+  },
+  {
+    "name": "drawPanel",
+    "path": "ported/drawPanel.gd.txt",
+    "lines": 111
+  },
+  {
+    "name": "drawPanelPortrait",
+    "path": "ported/drawPanelPortrait.gd.txt",
+    "lines": 60
+  },
+  {
+    "name": "drawPanelTouch",
+    "path": "ported/drawPanelTouch.gd.txt",
+    "lines": 23
+  },
+  {
+    "name": "drawPause",
+    "path": "ported/drawPause.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "drawPhaseVeil",
+    "path": "ported/drawPhaseVeil.gd.txt",
+    "lines": 20
+  },
+  {
+    "name": "drawPolice",
+    "path": "ported/drawPolice.gd.txt",
+    "lines": 32
+  },
+  {
+    "name": "drawPortraitBust",
+    "path": "ported/drawPortraitBust.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "drawPoseProp",
+    "path": "ported/drawPoseProp.gd.txt",
+    "lines": 22
+  },
+  {
+    "name": "drawPosedFigure",
+    "path": "ported/drawPosedFigure.gd.txt",
+    "lines": 15
+  },
+  {
+    "name": "drawPowerAura",
+    "path": "ported/drawPowerAura.gd.txt",
+    "lines": 69
+  },
+  {
+    "name": "drawPowerRadiance",
+    "path": "ported/drawPowerRadiance.gd.txt",
+    "lines": 18
+  },
+  {
+    "name": "drawRobotnik",
+    "path": "ported/drawRobotnik.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "drawShareBtn",
+    "path": "ported/drawShareBtn.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "drawShop",
+    "path": "ported/drawShop.gd.txt",
+    "lines": 50
+  },
+  {
+    "name": "drawSlowmoFx",
+    "path": "ported/drawSlowmoFx.gd.txt",
+    "lines": 16
+  },
+  {
+    "name": "drawStageBg",
+    "path": "ported/drawStageBg.gd.txt",
+    "lines": 26
+  },
+  {
+    "name": "drawStageBgFx",
+    "path": "ported/drawStageBgFx.gd.txt",
+    "lines": 65
+  },
+  {
+    "name": "drawStageClear",
+    "path": "ported/drawStageClear.gd.txt",
+    "lines": 20
+  },
+  {
+    "name": "drawStunStars",
+    "path": "ported/drawStunStars.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "drawTitle",
+    "path": "ported/drawTitle.gd.txt",
+    "lines": 53
+  },
+  {
+    "name": "drawTitleBtn",
+    "path": "ported/drawTitleBtn.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "drawWin",
+    "path": "ported/drawWin.gd.txt",
+    "lines": 37
+  },
+  {
+    "name": "drawWynn",
+    "path": "ported/drawWynn.gd.txt",
+    "lines": 16
+  },
+  {
+    "name": "dropItem",
+    "path": "ported/dropItem.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "dropLoot",
+    "path": "ported/dropLoot.gd.txt",
+    "lines": 22
+  },
+  {
+    "name": "dropToSlot",
+    "path": "ported/dropToSlot.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "dropWeapon",
+    "path": "ported/dropWeapon.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "eb",
+    "path": "ported/eb.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "eliteHearts",
+    "path": "ported/eliteHearts.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "emPageCount",
+    "path": "ported/emPageCount.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "emblemCount",
+    "path": "ported/emblemCount.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "emblemDef",
+    "path": "ported/emblemDef.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "emblemTick",
+    "path": "ported/emblemTick.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "emote",
+    "path": "ported/emote.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "enemyExplode",
+    "path": "ported/enemyExplode.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "enterPortal",
+    "path": "ported/enterPortal.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "enterShop",
+    "path": "ported/enterShop.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "exitArsenal",
+    "path": "ported/exitArsenal.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "fanAt",
+    "path": "ported/fanAt.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "fetchLB",
+    "path": "ported/fetchLB.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "fire",
+    "path": "ported/fire.gd.txt",
+    "lines": 51
+  },
+  {
+    "name": "fit",
+    "path": "ported/fit.gd.txt",
+    "lines": 16
+  },
+  {
+    "name": "fmtScore",
+    "path": "ported/fmtScore.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "gainLife",
+    "path": "ported/gainLife.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "goFullscreenMobile",
+    "path": "ported/goFullscreenMobile.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "handleTitleClick",
+    "path": "ported/handleTitleClick.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "hasEmblem",
+    "path": "ported/hasEmblem.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "heavyShell",
+    "path": "ported/heavyShell.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "hideNameEntry",
+    "path": "ported/hideNameEntry.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "hitPlayer",
+    "path": "ported/hitPlayer.gd.txt",
+    "lines": 17
+  },
+  {
+    "name": "imgOK",
+    "path": "ported/imgOK.gd.txt",
+    "lines": 16
+  },
+  {
+    "name": "inBtn",
+    "path": "ported/inBtn.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "initMaster",
+    "path": "ported/initMaster.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "initPlayer",
+    "path": "ported/initPlayer.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "joyApply",
+    "path": "ported/joyApply.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "joyEnd",
+    "path": "ported/joyEnd.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "joyHomePos",
+    "path": "ported/joyHomePos.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "joyMove",
+    "path": "ported/joyMove.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "joyReset",
+    "path": "ported/joyReset.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "joyShowHome",
+    "path": "ported/joyShowHome.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "joyStart",
+    "path": "ported/joyStart.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "kb",
+    "path": "ported/kb.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "keyName",
+    "path": "ported/keyName.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "keyPress",
+    "path": "ported/keyPress.gd.txt",
+    "lines": 38
+  },
+  {
+    "name": "killEnemy",
+    "path": "ported/killEnemy.gd.txt",
+    "lines": 18
+  },
+  {
+    "name": "killExtend",
+    "path": "ported/killExtend.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "lbIsMine",
+    "path": "ported/lbIsMine.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "lbPageCount",
+    "path": "ported/lbPageCount.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "lbSetPage",
+    "path": "ported/lbSetPage.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "leaveShop",
+    "path": "ported/leaveShop.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "lerpAngle",
+    "path": "ported/lerpAngle.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "limb",
+    "path": "ported/limb.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "lineTime",
+    "path": "ported/lineTime.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "load",
+    "path": "ported/load.gd.txt",
+    "lines": 19
+  },
+  {
+    "name": "loadStage",
+    "path": "ported/loadStage.gd.txt",
+    "lines": 14
+  },
+  {
+    "name": "lockCost",
+    "path": "ported/lockCost.gd.txt",
+    "lines": 57
+  },
+  {
+    "name": "loop",
+    "path": "ported/loop.gd.txt",
+    "lines": 25
+  },
+  {
+    "name": "manageGifOverlays",
+    "path": "ported/manageGifOverlays.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "manageTouchUI",
+    "path": "ported/manageTouchUI.gd.txt",
+    "lines": 13
+  },
+  {
+    "name": "measureLines",
+    "path": "ported/measureLines.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "meleeChargeFx",
+    "path": "ported/meleeChargeFx.gd.txt",
+    "lines": 21
+  },
+  {
+    "name": "meleeIdxList",
+    "path": "ported/meleeIdxList.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "modeTag",
+    "path": "ported/modeTag.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "moveArsenal",
+    "path": "ported/moveArsenal.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "musicPause",
+    "path": "ported/musicPause.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "musicPlay",
+    "path": "ported/musicPlay.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "nadeBoom",
+    "path": "ported/nadeBoom.gd.txt",
+    "lines": 9
+  },
+  {
+    "name": "nearestTarget",
+    "path": "ported/nearestTarget.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "neutralizeInputs",
+    "path": "ported/neutralizeInputs.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "newRun",
+    "path": "ported/newRun.gd.txt",
+    "lines": 9
+  },
+  {
+    "name": "onBossDefeated",
+    "path": "ported/onBossDefeated.gd.txt",
+    "lines": 13
+  },
+  {
+    "name": "onFsChange",
+    "path": "ported/onFsChange.gd.txt",
+    "lines": 90
+  },
+  {
+    "name": "onGameCleared",
+    "path": "ported/onGameCleared.gd.txt",
+    "lines": 25
+  },
+  {
+    "name": "openDisplay",
+    "path": "ported/openDisplay.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "openHelp",
+    "path": "ported/openHelp.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "openKeybinds",
+    "path": "ported/openKeybinds.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "openSettings",
+    "path": "ported/openSettings.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "openShoutouts",
+    "path": "ported/openShoutouts.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "optionOffsets",
+    "path": "ported/optionOffsets.gd.txt",
+    "lines": 9
+  },
+  {
+    "name": "optionPos",
+    "path": "ported/optionPos.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "optionShot",
+    "path": "ported/optionShot.gd.txt",
+    "lines": 15
+  },
+  {
+    "name": "outfitColors",
+    "path": "ported/outfitColors.gd.txt",
+    "lines": 119
+  },
+  {
+    "name": "outfitUnlocked",
+    "path": "ported/outfitUnlocked.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "overlayHide",
+    "path": "ported/overlayHide.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "overlayShow",
+    "path": "ported/overlayShow.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "pOrb",
+    "path": "ported/pOrb.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "pauseReturnMenu",
+    "path": "ported/pauseReturnMenu.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "pdown",
+    "path": "ported/pdown.gd.txt",
+    "lines": 42
+  },
+  {
+    "name": "pmove",
+    "path": "ported/pmove.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "pop",
+    "path": "ported/pop.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "poseParams",
+    "path": "ported/poseParams.gd.txt",
+    "lines": 21
+  },
+  {
+    "name": "powerCap",
+    "path": "ported/powerCap.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "powerGainMul",
+    "path": "ported/powerGainMul.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "pup",
+    "path": "ported/pup.gd.txt",
+    "lines": 27
+  },
+  {
+    "name": "rankIndex",
+    "path": "ported/rankIndex.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "rankLetter",
+    "path": "ported/rankLetter.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "readUiOverride",
+    "path": "ported/readUiOverride.gd.txt",
+    "lines": 19
+  },
+  {
+    "name": "rebuildKMAP",
+    "path": "ported/rebuildKMAP.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "renderKeybinds",
+    "path": "ported/renderKeybinds.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "resetInventory",
+    "path": "ported/resetInventory.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "resumeGame",
+    "path": "ported/resumeGame.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "ring",
+    "path": "ported/ring.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "saveArsenal",
+    "path": "ported/saveArsenal.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "saveBinds",
+    "path": "ported/saveBinds.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "saveConsum",
+    "path": "ported/saveConsum.gd.txt",
+    "lines": 9
+  },
+  {
+    "name": "saveDisplayPrefs",
+    "path": "ported/saveDisplayPrefs.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "saveEmblems",
+    "path": "ported/saveEmblems.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "saveEstats",
+    "path": "ported/saveEstats.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "saveHeads",
+    "path": "ported/saveHeads.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "saveNgPrefs",
+    "path": "ported/saveNgPrefs.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "saveShopUnlocks",
+    "path": "ported/saveShopUnlocks.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "scheduleCloudSave",
+    "path": "ported/scheduleCloudSave.gd.txt",
+    "lines": 24
+  },
+  {
+    "name": "scoreMult",
+    "path": "ported/scoreMult.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "selConsumObj",
+    "path": "ported/selConsumObj.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "setBind",
+    "path": "ported/setBind.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "setDebugLayer",
+    "path": "ported/setDebugLayer.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "setDisplayScale",
+    "path": "ported/setDisplayScale.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "setRefreshRate",
+    "path": "ported/setRefreshRate.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "sfx",
+    "path": "ported/sfx.gd.txt",
+    "lines": 48
+  },
+  {
+    "name": "shopBuySelected",
+    "path": "ported/shopBuySelected.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "shopList",
+    "path": "ported/shopList.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "shotLevel",
+    "path": "ported/shotLevel.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "shotLevelCap",
+    "path": "ported/shotLevelCap.gd.txt",
+    "lines": 5
+  },
+  {
+    "name": "showNameEntry",
+    "path": "ported/showNameEntry.gd.txt",
+    "lines": 18
+  },
+  {
+    "name": "simStep",
+    "path": "ported/simStep.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "sparks",
+    "path": "ported/sparks.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "spawnBig",
+    "path": "ported/spawnBig.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "spawnBoss",
+    "path": "ported/spawnBoss.gd.txt",
+    "lines": 16
+  },
+  {
+    "name": "spawnBubbles",
+    "path": "ported/spawnBubbles.gd.txt",
+    "lines": 8
+  },
+  {
+    "name": "spawnClearGate",
+    "path": "ported/spawnClearGate.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "spawnElite",
+    "path": "ported/spawnElite.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "spawnLil",
+    "path": "ported/spawnLil.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "spawnStardust",
+    "path": "ported/spawnStardust.gd.txt",
+    "lines": 6
+  },
+  {
+    "name": "spawnWaves",
+    "path": "ported/spawnWaves.gd.txt",
+    "lines": 25
+  },
+  {
+    "name": "specialButton",
+    "path": "ported/specialButton.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "startDialog",
+    "path": "ported/startDialog.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "startRun",
+    "path": "ported/startRun.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "startWynnHell",
+    "path": "ported/startWynnHell.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "submitScore",
+    "path": "ported/submitScore.gd.txt",
+    "lines": 17
+  },
+  {
+    "name": "swapWeapon",
+    "path": "ported/swapWeapon.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "syncDisplayUI",
+    "path": "ported/syncDisplayUI.gd.txt",
+    "lines": 11
+  },
+  {
+    "name": "syncPauseUI",
+    "path": "ported/syncPauseUI.gd.txt",
+    "lines": 28
+  },
+  {
+    "name": "syncSettingsUI",
+    "path": "ported/syncSettingsUI.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "threatMul",
+    "path": "ported/threatMul.gd.txt",
+    "lines": 59
+  },
+  {
+    "name": "toggleArsenal",
+    "path": "ported/toggleArsenal.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "toggleFullscreen",
+    "path": "ported/toggleFullscreen.gd.txt",
+    "lines": 12
+  },
+  {
+    "name": "tweetResult",
+    "path": "ported/tweetResult.gd.txt",
+    "lines": 27
+  },
+  {
+    "name": "twinSwap",
+    "path": "ported/twinSwap.gd.txt",
+    "lines": 14
+  },
+  {
+    "name": "unequipArsenal",
+    "path": "ported/unequipArsenal.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "unlockEmblem",
+    "path": "ported/unlockEmblem.gd.txt",
+    "lines": 7
+  },
+  {
+    "name": "update",
+    "path": "ported/update.gd.txt",
+    "lines": 174
+  },
+  {
+    "name": "updateBoss",
+    "path": "ported/updateBoss.gd.txt",
+    "lines": 107
+  },
+  {
+    "name": "updateBurns",
+    "path": "ported/updateBurns.gd.txt",
+    "lines": 14
+  },
+  {
+    "name": "updateFx",
+    "path": "ported/updateFx.gd.txt",
+    "lines": 103
+  },
+  {
+    "name": "updateItems",
+    "path": "ported/updateItems.gd.txt",
+    "lines": 21
+  },
+  {
+    "name": "updatePortrait",
+    "path": "ported/updatePortrait.gd.txt",
+    "lines": 14
+  },
+  {
+    "name": "updateTouchButtons",
+    "path": "ported/updateTouchButtons.gd.txt",
+    "lines": 17
+  },
+  {
+    "name": "updateWynnHell",
+    "path": "ported/updateWynnHell.gd.txt",
+    "lines": 10
+  },
+  {
+    "name": "useSpecial",
+    "path": "ported/useSpecial.gd.txt",
+    "lines": 23
+  },
+  {
+    "name": "wrapLines",
+    "path": "ported/wrapLines.gd.txt",
+    "lines": 4
+  },
+  {
+    "name": "wrapText",
+    "path": "ported/wrapText.gd.txt",
+    "lines": 9
+  }
+]

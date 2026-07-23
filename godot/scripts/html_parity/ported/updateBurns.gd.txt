@@ -1,0 +1,13 @@
+## AUTO-PORTED from HTML function updateBurns — review required
+func updateBurns():
+	 if(!burns.size()) return;
+	  for bn in burns){ bn.life -= 1; bn.dt += 1;
+	    if(bn.dt%6==0){ for e in enemies){ var dx=e.x-bn.x,dy=e.y-bn.y,d=sqrt_sum_sq(dx,dy); if(d<bn.reach && angDiff(atan2(dy,dx),bn.dir)<bn.half){ e.hp-=2; e.flash=4; if(e.hp<=0) killEnemy(e); } }
+	      enemies=enemies.filter(func(e): return e.hp>0);
+	      if(boss && !boss.dead && boss.intro<=0){ var dx=boss.x-bn.x,dy=boss.y-bn.y,d=sqrt_sum_sq(dx,dy); if(d<bn.reach && angDiff(atan2(dy,dx),bn.dir)<bn.half){ boss.hp-=2; boss.flash=2; } }
+	      bullets=bullets.filter(func(b): return { var dx=b.x-bn.x,dy=b.y-bn.y,d=sqrt_sum_sq(dx,dy); if(d<bn.reach*0.9 && angDiff(atan2(dy,dx),bn.dir)<bn.half){ floaters.append({x:b.x,y:b.y,life:10,vy:-0.4,scale:0.28}); return false; } return true; }); }
+	    if(!paused){ var a=bn.dir-bn.half+randf()*(bn.half*2), rr=bn.reach*(0.3+randf()*0.7);
+	      particles.append({x:bn.x+cos(a)*rr,y:bn.y+sin(a)*rr,vx:(randf()-.5)*1.5,vy:-1.4-randf()*1.6,life:14+((randf()*8)|0),c:randf()<0.4?'#fff':(randf()<0.5?bn.col:'#ff7a2a')}); }
+	  }
+	  burns=burns.filter(func(b): return b.life>0);
+

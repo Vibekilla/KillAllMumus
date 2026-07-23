@@ -1,0 +1,1 @@
+function wrapText(t,x,y,maxw,lh){ const words=t.split(' '); let line='',yy=y; for(const wd of words){ if(ctx.measureText(line+wd+' ').width>maxw){ ctx.fillText(line,x,yy); line=wd+' '; yy+=lh; } else line+=wd+' '; } ctx.fillText(line,x,yy); }

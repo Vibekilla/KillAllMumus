@@ -1,0 +1,1 @@
+function lbIsMine(e){ if(!lastSubmit) return false; if(lastSubmit.bcId && e.bcId && lastSubmit.bcId===e.bcId) return true; return (e.handle||'')===(lastSubmit.handle||'') && e.score===lastSubmit.score && e.kills===lastSubmit.kills; }

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function dropItem — review required
+func dropItem(x, y, type):
+	 items.append({x,y,vx:(randf()-.5)*1.2,vy:-2-randf()*1.5,type,t:0,homing:false}); 

@@ -1,0 +1,7 @@
+## AUTO-PORTED from HTML function shopList — review required
+func shopList(tab):
+
+	  if(tab=='i') return CONSUMABLES.map(func(c): return ({ kind:'consumable', key:c.key, icon:c.icon, name:c.name, desc:c.desc, col:c.col, cost:c.cost, qty:consumQty(c.key), draw:c.draw }));
+	  var arr = tab=='w'?WEAPON_ORDER.map(func(k): return {key:k}.merge(WEAPONS[k])) : tab=='s'?SPECIALS : MELEE;
+	  return arr.map(func(it): return { var owned=contentUnlocked(tab,it.key), cost=lockCost(tab,it.key); return { kind:'gear', type:tab, key:it.key, icon:it.icon, name:it.name, desc:it.desc||it.tag||'', col:it.col, owned, cost }; });
+

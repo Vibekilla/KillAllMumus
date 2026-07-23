@@ -1,0 +1,70 @@
+## AUTO-PORTED from HTML function applyProgressSnapshot — review required
+func applyProgressSnapshot(p):
+
+	  if(!p || typeof p!='object') return;
+	  // emblems / stats
+	  if(p.emblems && typeof p.emblems=='object'){
+	    emblemsGot = {}.merge(emblemsGot||{}, p.emblems);
+	    try{ HtmlBridge.storage_set('bobina_emblems', JSON.stringify(emblemsGot)); }catch(e){}
+	  }
+	  if(p.estats && typeof p.estats=='object'){
+	    var e0 = estats||{};
+	    for k in Object.keys(p.estats)){ e0[k] = maxf(float(e0[k])||0, float(p.estats[k])||0); }
+	    estats = e0;
+	    try{ HtmlBridge.storage_set('bobina_estats', JSON.stringify(estats)); }catch(e){}
+	  }
+	  if(p.arsenal && typeof p.arsenal=='object'){
+	    if(Array.isArray(p.arsenal.w) && p.arsenal.w.size()) arsenalW = p.arsenal.w.filter(func(k): return WEAPONS[k]);
+	    if(Array.isArray(p.arsenal.s)) arsenalS = p.arsenal.s.filter(func(k): return SPECIALS.some(func(s): return s.key==k));
+	    if(Array.isArray(p.arsenal.m) && typeof MELEE!='null') arsenalM = p.arsenal.m.filter(func(k): return MELEE.some(func(m): return m.key==k));
+	    if(Array.isArray(p.arsenal.i) && typeof CONSUMABLES!='null') arsenalI = p.arsenal.i.filter(func(k): return CONSUMABLES.some(func(c): return c.key==k));
+	    if(!arsenalW.size()) arsenalW=['laser'];
+	    try{ HtmlBridge.storage_set('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){}
+	  }
+	  if(p.heads!=null){ mumuHeads = maxf(mumuHeads|0, float(p.heads)||0); try{ HtmlBridge.storage_set('bobina_heads', String(mumuHeads)); }catch(e){} }
+	  if(p.shopUnlocks && typeof p.shopUnlocks=='object'){
+	    shopUnlocks = {}.merge(shopUnlocks||{}, p.shopUnlocks);
+	    try{ HtmlBridge.storage_set('bobina_shopunlocks', JSON.stringify(shopUnlocks)); }catch(e){}
+	  }
+	  if(p.consum && typeof p.consum=='object'){
+	    var c0 = consumInv||{};
+	    for k in Object.keys(p.consum)){ c0[k] = maxf(float(c0[k])||0, float(p.consum[k])||0); }
+	    consumInv = c0;
+	    try{ HtmlBridge.storage_set('bobina_consum', JSON.stringify(consumInv)); }catch(e){}
+	  }
+	  if(p.ngUnlocked!=null){ ngUnlocked = minf(100, maxf(ngUnlocked|0, float(p.ngUnlocked)||0)); try{ HtmlBridge.storage_set('bobina_ngunlocked', String(ngUnlocked)); }catch(e){} }
+	  if(p.hellCleared){ hellCleared = true; try{ HtmlBridge.storage_set('bobina_hellclear','1'); }catch(e){} }
+	  if(p.difficulty!=null){ difficulty = maxf(0, minf(2, float(p.difficulty)||0)); }
+	  if(p.ngPlus!=null){ ngPlus = maxf(0, minf(ngUnlocked, float(p.ngPlus)||0)); }
+	  try{ HtmlBridge.storage_set('bobina_difficulty', String(difficulty)); HtmlBridge.storage_set('bobina_nglevel', String(ngPlus)); }catch(e){}
+	  if(typeof applyDiff=='function') applyDiff();
+	  if(p.outfit){ selectedOutfit = p.outfit; try{ HtmlBridge.storage_set('bobina_outfit', selectedOutfit); }catch(e){} }
+	  if(p.pose!=null && typeof outfitPose!='null'){ outfitPose = float(p.pose)||0; try{ HtmlBridge.storage_set('bobina_pose', String(outfitPose)); }catch(e){} }
+	  if(p.face!=null && typeof victoryFace!='null'){ victoryFace = float(p.face)||0; try{ HtmlBridge.storage_set('bobina_face', String(victoryFace)); }catch(e){} }
+	  if(p.handle){ try{ HtmlBridge.storage_set('bobina_handle', String(p.handle).replace(/^@+/,'')); }catch(e){} }
+	  if(p.binds && typeof p.binds=='object' && typeof binds!='null'){
+	    binds = {}.merge(binds, p.binds);
+	    try{ HtmlBridge.storage_set('bobina_binds', JSON.stringify(binds)); }catch(e){}
+	    if(typeof rebuildKMAP=='function') try{ rebuildKMAP(); }catch(e){}
+	  }
+	  if(p.settings && typeof p.settings=='object'){
+	    var st=p.settings;
+	    if(st.musicVol!=null && typeof musicVol!='null'){ musicVol=float(st.musicVol); try{ HtmlBridge.storage_set('bobina_musicvol',String(musicVol)); }catch(e){} if(typeof applyMusicVol=='function') applyMusicVol(); }
+	    if(st.sfxVol!=null && typeof sfxVol!='null'){ sfxVol=float(st.sfxVol); try{ HtmlBridge.storage_set('bobina_sfxvol',String(sfxVol)); }catch(e){} if(typeof applySfxVol=='function') applySfxVol(); }
+	    if(st.follow!=null && typeof MOUSE!='null'){ MOUSE.follow=float(st.follow); try{ HtmlBridge.storage_set('bobina_follow',String(MOUSE.follow)); }catch(e){} }
+	    if(st.mspeed!=null && typeof MOUSE!='null'){ MOUSE.speed=float(st.mspeed); try{ HtmlBridge.storage_set('bobina_mspeed',String(MOUSE.speed)); }catch(e){} }
+	    if(st.speedrun!=null && typeof speedrun!='null'){ speedrun=!!st.speedrun; try{ HtmlBridge.storage_set('bobina_speedrun', speedrun?'1':'0'); }catch(e){} }
+	    if(st.autofire!=null && typeof autoFire!='null'){ autoFire=!!st.autofire; try{ HtmlBridge.storage_set('bobina_autofire', autoFire?'1':'0'); }catch(e){} }
+	    if(st.ui){ try{ HtmlBridge.storage_set('bobina_ui', st.ui); }catch(e){} }
+	    if(st.displayScale!=null && typeof setDisplayScale=='function') setDisplayScale(roundf(float(st.displayScale)*100));
+	    else if(p.displayScale!=null && typeof setDisplayScale=='function') setDisplayScale(roundf(float(p.displayScale)*100));
+	    if(st.refreshRate!=null && typeof setRefreshRate=='function') setRefreshRate(st.refreshRate);
+	    if(st.debugLayer!=null && typeof setDebugLayer=='function') setDebugLayer(!!st.debugLayer);
+	  }
+	  // top-level display fields
+	  if(p.displayScale!=null && typeof setDisplayScale=='function' && !p.settings) setDisplayScale(roundf(float(p.displayScale)*100));
+	  if(p.refreshRate!=null && typeof setRefreshRate=='function') setRefreshRate(p.refreshRate);
+	  if(p.debugLayer!=null && typeof setDebugLayer=='function') setDebugLayer(!!p.debugLayer);
+	  emblemsGot['start']=true;
+	  if(typeof saveEmblems=='function'){ /* already written */ }
+

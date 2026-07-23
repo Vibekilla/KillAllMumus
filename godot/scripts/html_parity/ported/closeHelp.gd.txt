@@ -1,0 +1,32 @@
+## AUTO-PORTED from HTML function closeHelp — review required
+func closeHelp():
+	 if(helpEl) helpEl.classList.remove('on'); }
+	(function(){ renderKeybinds();
+	  var hb=HtmlBridge.doc.getElementById('set-help'); if(hb){ hb.HtmlBridge.add_listener('click',openHelp); hb.HtmlBridge.add_listener('touchstart',func(e): return {e.preventDefault();openHelp();},{passive:false}); }
+	  var hc=HtmlBridge.doc.getElementById('help-close'); if(hc){ hc.HtmlBridge.add_listener('click',closeHelp); hc.HtmlBridge.add_listener('touchstart',func(e): return {e.preventDefault();closeHelp();},{passive:false}); }
+	  if(helpEl) helpEl.HtmlBridge.add_listener('click',func(e): return { if(e.target==helpEl) closeHelp(); });
+	  // keybinds submenu — open from Settings and from the Pause screen
+	  var skb=HtmlBridge.doc.getElementById('set-keybinds'); if(skb) skb.HtmlBridge.add_listener('click',openKeybinds);
+	  var pkb=HtmlBridge.doc.getElementById('ps-keybinds'); if(pkb) pkb.HtmlBridge.add_listener('click',openKeybinds);
+	  var kbd=HtmlBridge.doc.getElementById('kb-done'); if(kbd) kbd.HtmlBridge.add_listener('click',closeKeybinds);
+	  var kbr=HtmlBridge.doc.getElementById('kb-reset'); if(kbr) kbr.addEventListenerfunc('click',(): # arrow
+	 binds={}.merge(DEFAULT_BINDS); saveBinds(); rebuildKMAP(); rebindAction=null; renderKeybinds(); });
+	  var km=HtmlBridge.doc.getElementById('keybinds'); if(km) km.HtmlBridge.add_listener('click',func(e): return { if(e.target==km) closeKeybinds(); });
+	  // reset-inventory: button opens a confirm dialog; confirm wipes bought gear/items/skulls (keeps emblems, outfits, NG+)
+	  var riOpen=HtmlBridge.doc.getElementById('set-resetinv'); if(riOpen) riOpen.addEventListenerfunc('click',(): # arrow
+	 var m=HtmlBridge.doc.getElementById('resetinv'); if(m) m.classList['on'); });
+	  var riCancel=HtmlBridge.doc.getElementById('ri-cancel'); if(riCancel) riCancel.addEventListenerfunc('click',(): # arrow
+	 var m=HtmlBridge.doc.getElementById('resetinv'); if(m) m.classList.remove('on'); });
+	  var riConfirm=HtmlBridge.doc.getElementById('ri-confirm'); if(riConfirm) riConfirm.addEventListenerfunc('click',(): # arrow
+	 resetInventory(); var m=HtmlBridge.doc.getElementById('resetinv'); if(m) m.classList.remove('on'); closeSettings(); flashMsg={t:120,txt:'🗑 Inventory reset — starter kit restored'}; try{ sfx('item'); }catch(e){} });
+	  var rim=HtmlBridge.doc.getElementById('resetinv'); if(rim) rim.HtmlBridge.add_listener('click',func(e): return { if(e.target==rim) rim.classList.remove('on'); }); })();
+	var run=null, player, enemies, bullets, pshots, items, particles, floaters, scoreTexts, emotes=[], boss, dialog;
+	var stageTime, stagePhase, clearInfo, totalKills, sessionScore, graze, killsThisStage, winTimer=0, introTimer=0, flashMsg=null;
+	var stageEmblemMark=0;   // index into newEmblems at the start of the current stage → lets stage-clear show ONLY emblems actually earned this stage
+	var clearPortal=null, clearShop=null, clearMsgT=0, shopSel=0, shopReturn='stageclear', shopBtns=[], shopMsg='', shopMsgT=0;   // post-boss: a portal to the clear screen + Honey Badger's shop
+	//  -= 1 -= 1 Mumu Heads: currency you collect from kills, spent at Honey Badger's shop (persistent)  -= 1 -= 1
+	var mumuHeads=func((): # arrow
+	 try{ return int(HtmlBridge.storage_get('bobina_heads'))||0; }catch(e){ return 0; } })();
+	var shopUnlocks=func((): # arrow
+	 try{ return JSON.parse(HtmlBridge.storage_get('bobina_shopunlocks'))||{}; }catch(e){ return {}; } })();
+

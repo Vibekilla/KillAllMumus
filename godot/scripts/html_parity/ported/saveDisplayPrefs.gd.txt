@@ -1,0 +1,10 @@
+## AUTO-PORTED from HTML function saveDisplayPrefs — review required
+func saveDisplayPrefs():
+
+	  try{
+	    HtmlBridge.storage_set('bobina_disp_scale', String(displayScale));
+	    HtmlBridge.storage_set('bobina_disp_hz', String(refreshRate));
+	    HtmlBridge.storage_set('bobina_disp_debug', debugLayer?'1':'0');
+	  }catch(e){}
+	  if(typeof scheduleCloudSave=='function') try{ scheduleCloudSave(false); }catch(e){}
+

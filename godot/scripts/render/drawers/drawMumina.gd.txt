@@ -1,0 +1,31 @@
+## AUTO-PORTED from HTML drawMumina — hand-fixed where needed
+func drawMumina(b, flash) -> void:
+	 var R=b.r;
+	  // body (green uniform)
+	  ctx.fill_style=flash._STR0__:"#2f6b3a"; ctx.begin_path(); ctx.ellipse(0,R*0.55,R*0.85,R*0.7,0,0,7); ctx.fill();
+	  ctx.fill_style="#f4efe6"; ctx.fill_rect(-R*0.06,R*0.08,R*0.12,R*0.36);
+	  ctx.fill_style=flash._STR3__:"#3f8a4a"; ctx.begin_path(); ctx.move_to(0,R*0.08); ctx.line_to(-R*0.16,R*0.5); ctx.line_to(R*0.16,R*0.5); ctx.close_path(); ctx.fill();
+	  // hair back
+	  ctx.fill_style=flash._STR5__:"#c96a24"; ctx.begin_path(); ctx.arc(0,-R*0.18,R*0.78,0,7); ctx.fill();
+	  // face
+	  ctx.fill_style=flash._STR7__:"#f0c9a0"; ctx.begin_path(); ctx.arc(0,-R*0.24,R*0.55,0,7); ctx.fill();
+	  // white bull horns
+	  ctx.fill_style=flash._STR9__:"#f0ead6"; ctx.stroke_style="#cbbf9a"; ctx.line_width=1.5;
+	  ctx.begin_path(); ctx.move_to(-R*0.4,-R*0.55); ctx.quadratic_curve_to(-R*0.98,-R*0.85,-R*0.78,-R*1.16); ctx.quadratic_curve_to(-R*0.55,-R*0.8,-R*0.25,-R*0.6); ctx.fill();
+	  ctx.begin_path(); ctx.move_to(R*0.4,-R*0.55); ctx.quadratic_curve_to(R*0.98,-R*0.85,R*0.78,-R*1.16); ctx.quadratic_curve_to(R*0.55,-R*0.8,R*0.25,-R*0.6); ctx.fill();
+	  // bangs
+	  ctx.fill_style=flash._STR12__:"#e8873a"; ctx.begin_path(); ctx.move_to(-R*0.56,-R*0.28); ctx.quadratic_curve_to(-R*0.5,-R*0.82,0,-R*0.84); ctx.quadratic_curve_to(R*0.5,-R*0.82,R*0.56,-R*0.28); ctx.quadratic_curve_to(R*0.3,-R*0.5,R*0.16,-R*0.32); ctx.quadratic_curve_to(0,-R*0.5,-R*0.16,-R*0.32); ctx.quadratic_curve_to(-R*0.3,-R*0.5,-R*0.56,-R*0.28); ctx.fill();
+	  ctx.begin_path(); ctx.ellipse(-R*0.53,-R*0.08,R*0.14,R*0.4,0.1,0,7); ctx.ellipse(R*0.53,-R*0.08,R*0.14,R*0.4,-0.1,0,7); ctx.fill();
+	  // green bow
+	  ctx.fill_style=flash._STR14__:"#4a9e3a"; ctx.begin_path(); ctx.move_to(R*0.46,-R*0.5); ctx.line_to(R*0.64,-R*0.62); ctx.line_to(R*0.64,-R*0.38); ctx.close_path(); ctx.move_to(R*0.46,-R*0.5); ctx.line_to(R*0.28,-R*0.62); ctx.line_to(R*0.28,-R*0.38); ctx.close_path(); ctx.fill(); circle(R*0.46,-R*0.5,R*0.06,flash._STR16__:"#3a7e2a");
+	  // green eyes
+	  ctx.fill_style="#fff"; ctx.begin_path(); ctx.ellipse(-R*0.2,-R*0.2,R*0.13,R*0.17,0,0,7); ctx.ellipse(R*0.2,-R*0.2,R*0.13,R*0.17,0,0,7); ctx.fill();
+	  ctx.fill_style="#5fae3a"; circle(-R*0.2,-R*0.18,R*0.09,"#5fae3a"); circle(R*0.2,-R*0.18,R*0.09,"#5fae3a");
+	  ctx.fill_style="#123a0a"; circle(-R*0.2,-R*0.18,R*0.045,"#123a0a"); circle(R*0.2,-R*0.18,R*0.045,"#123a0a");
+	  ctx.fill_style="#fff"; circle(-R*0.23,-R*0.22,R*0.03,"#fff"); circle(R*0.17,-R*0.22,R*0.03,"#fff");
+	  ctx.fill_style="rgba(220,120,120,0.4)"; circle(-R*0.33,-R*0.04,R*0.07,"rgba(220,120,120,0.4)"); circle(R*0.33,-R*0.04,R*0.07,"rgba(220,120,120,0.4)");
+	  ctx.fill_style="#a94a4a"; ctx.begin_path(); ctx.ellipse(0,-R*0.02,R*0.06,R*0.045,0,0,7); ctx.fill();
+	  // gold crown
+	  ctx.fill_style=flash._STR32__:"#ffd24a"; ctx.begin_path(); ctx.move_to(-R*0.26,-R*0.72); ctx.line_to(-R*0.26,-R*0.9); ctx.line_to(-R*0.13,-R*0.78); ctx.line_to(0,-R*0.98); ctx.line_to(R*0.13,-R*0.78); ctx.line_to(R*0.26,-R*0.9); ctx.line_to(R*0.26,-R*0.72); ctx.close_path(); ctx.fill();
+	  ctx.fill_style="#e0102a"; circle(0,-R*0.85,R*0.04,"#e0102a");
+	

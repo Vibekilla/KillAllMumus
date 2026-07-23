@@ -1,0 +1,37 @@
+## AUTO-PORTED from HTML function keyPress — review required
+func keyPress(k):
+	 bumpIdle();
+	  if(state=='arsenal'){ if(k=='start'||k=='shoot'||k=='melee'||k=='menu'||k=='bomb'){ exitArsenal(); } return; }
+	  if(state=='shop'){ var tabs=['w','s','m','i'], n=shopList(shopTab).size()||1;
+	    if(k=='interact'||k=='menu'){ leaveShop(); }
+	    else if(k=='swap'||k=='cycle'||k=='item_switch'||k=='item_use'){ shopTab=tabs[(tabs.find(shopTab)+1)%tabs.size()]; shopSel=0; sfx('item'); }   // Swap/Cycle/Switch-Item/Use-Item all cycle shop tabs (so the on-screen key always works)
+	    else if(k=='left'){ shopSel=(shopSel+n-1)%n; sfx('item'); }
+	    else if(k=='right'){ shopSel=(shopSel+1)%n; sfx('item'); }
+	    else if(k=='shoot'||k=='melee'||k=='start'){ shopBuySelected(); }
+	    return; }
+	  if(k=='interact' && state=='play' && !paused && run && run.cleared && clearShop && player && sqrt_sum_sq(player.x-clearShop.x,player.y-clearShop.y)<40){ enterShop(); return; }
+	  if(k=='interact' && state=='play' && !paused && run && run.cleared && clearPortal && player && sqrt_sum_sq(player.x-clearPortal.x,player.y-clearPortal.y)<44){ enterPortal(); return; }
+	  if(k=='start'||k=='shoot'||k=='melee'){
+	    if(state=='title'){ startRun(); return; }
+	    if(state=='intro'||state=='stageclear'||state=='win'||state=='gameover'||state=='leaderboard'||state=='emblems'||state=='outfits'||state=='ngselect'){ advanceScreen(); return; }
+	  }
+	  if(k=='item_switch' && state=='play' && !paused) cycleConsumable();   // switch selected consumable
+	  if(k=='meleeswap' && state=='play' && !paused && player){ var ms=(run&&run.melees&&run.melees.size())?run.melees:[player.melee||0]; if(ms.size()>1){ var i=ms.find(player.melee); i=(i+1)%ms.size(); player.melee=ms[i]; var m=MELEE[player.melee]; sfx('item'); flashMsg={t:75,txt:(m.icon||'🗡️')+' '+m.name}; } }
+	  if(k=='focus' && state=='play' && !paused){ if(tick-lastShiftTap<15) doDash(); lastShiftTap=tick; }   // double-tap Shift = dash
+	  if(k=='pause' && state=='play') paused=!paused;
+	  if(k=='bomb' && state=='play' && !paused) doBomb();
+	  if(k=='swap' && state=='play' && !paused) swapWeapon();
+	  if(k=='special' && state=='play' && !paused) useSpecial();
+	  if(k=='cycle' && state=='play' && !paused) cycleSpecial();
+	  if(k=='fire'){ autoFire=!autoFire; try{HtmlBridge.storage_set('bobina_autofire',autoFire?'1':'0');}catch(e){} sfx('item'); }   // touch: toggle auto-fire (choose to fire)
+	  if(k=='tweet' && (state=='win'||state=='gameover')) tweetResult(state=='win');
+	  if(k=='menu' && state!='title'){ if(state=='play' && !paused) return; state='title'; paused=false; sfx('item'); }
+	  if(state=='leaderboard'){ if(k=='left' && lbPage>0){ lbSetPage(lbPage-1); sfx('item'); } if(k=='right' && lbPage<lbPageCount()-1){ lbSetPage(lbPage+1); sfx('item'); } }
+	  if(state=='emblems'){ if(k=='left' && emPage>0){ emPage -= 1; sfx('item'); } if(k=='right' && emPage<emPageCount()-1){ emPage += 1; sfx('item'); } }
+	}
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 Audio  -= 1 -= 1 -= 1 -= 1 -= 1 */
+	var AC=null, masterGain=null;
+	// audio + speedrun prefs (tunable in Settings)
+	var sfxVol=0.9, musicVol=1.0, speedrun=false, autoFire=true;
+	try{ var a=float(HtmlBridge.storage_get('bobina_sfxvol')); if(!is_nan(a)) sfxVol=a; var m=float(HtmlBridge.storage_get('bobina_musicvol')); if(!is_nan(m)) musicVol=m; speedrun=HtmlBridge.storage_get('bobina_speedrun')=='1'; if(HtmlBridge.storage_get('bobina_autofire')=='0') autoFire=false; }catch(e){

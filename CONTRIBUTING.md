@@ -1,5 +1,20 @@
 # Contributing / branch workflow
 
+## Game client parity
+
+**`public/index.html` is the source of truth.** Live defaults to this HTML client
+so players always get the exact original game (assets, sounds, mechanics, canvas
+drawing). See `godot/PARITY.md`.
+
+```bash
+# Extract + sync exact client / assets into godot + public_godot
+node tools/port/sync_exact_client.mjs
+
+# Godot web export only when 1:1 is verified:
+# KEEP_GODOT_WASM=1  + godot --export-release Web
+# USE_GODOT=1
+```
+
 ## Branches
 
 | Branch | Role |

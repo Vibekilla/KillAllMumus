@@ -1,0 +1,1 @@
+{ shoot:'KeyZ', focus:'ShiftLeft', melee:'Space', meleeswap:'KeyD', bomb:'KeyX', swap:'KeyC', special:'KeyV', cycle:'KeyB', pause:'KeyP', interact:'KeyE', item_switch:'KeyA', item_use:'KeyQ' }

@@ -1,0 +1,1 @@
+function drawFloater(f){ const img=IMG.confused; ctx.save(); ctx.globalAlpha=Math.max(0,f.life/30); const s=(f.scale||0.7)*46; if(imgOK(img)) ctx.drawImage(img,f.x-s/2,f.y-s/2,s,s); else { ctx.fillStyle='#5a3d2b'; circle(f.x,f.y,s/2,'#5a3d2b'); } ctx.restore(); }

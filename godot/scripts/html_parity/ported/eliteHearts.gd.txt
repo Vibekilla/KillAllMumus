@@ -1,0 +1,4 @@
+## AUTO-PORTED from HTML function eliteHearts — review required
+func eliteHearts():
+	 return minf(5, 2 + difficulty + ngPlus); }   // an elite body-check costs multiple hearts, scaled by difficulty + NG+, hard-capped at 5
+

@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function arsenalCount — review required
+func arsenalCount():
+	 return arsenalW.size()+arsenalS.size(); 

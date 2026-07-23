@@ -1,0 +1,13 @@
+function drawGameOver(){
+  ctx.fillStyle='rgba(10,2,6,0.9)'; ctx.fillRect(0,0,W,H); ctx.textAlign='center';
+  // maid image
+  const img=IMG.maid; const S=200;
+  if(imgOK(img)){ ctx.save(); ctx.beginPath(); ctx.roundRect(W/2-S/2,40,S,S,14); ctx.clip(); const ar=img.naturalWidth/img.naturalHeight; let dw=S,dh=S; if(ar>1){dh=S; dw=S*ar;} else {dw=S; dh=S/ar;} ctx.drawImage(img, W/2-dw/2, 40-(dh-S)/2, dw, dh); ctx.restore(); ctx.strokeStyle='#ff5b6e'; ctx.lineWidth=4; ctx.beginPath(); ctx.roundRect(W/2-S/2,40,S,S,14); ctx.stroke(); }
+  ctx.save(); ctx.shadowColor='#ff2b4e'; ctx.shadowBlur=20; ctx.fillStyle='#ff4d6d'; ctx.font='900 46px "Trebuchet MS"'; ctx.fillText('GAME OVER', W/2, 282); ctx.restore();
+  ctx.fillStyle='#ffd0dc'; ctx.font='italic 16px "Trebuchet MS"'; ctx.fillText('“Aw shoot— dropped Bobo’s snacks AND the mission...”', W/2, 308);
+  ctx.fillStyle='#e8cfe0'; ctx.font='14px "Trebuchet MS"'; ctx.fillText('The LA Cabal still has Bobo. Regroup and hit back.', W/2, 330);
+  ctx.fillStyle='#ff9ecb'; ctx.font='bold 18px monospace'; ctx.fillText(totalKills+' Mumus  ·  Rank '+rankLetter()+'  ·  '+fmtScore(sessionScore)+' pts', W/2, 360);
+  drawShareBtn(W/2, 378, false);
+  drawMenuBtn(W/2, 420);
+  ctx.textAlign='center'; ctx.fillStyle=(Math.floor(tick/26)%2)?'#fff':'#9a7c96'; ctx.font='bold 17px monospace'; ctx.fillText('PRESS '+kb('shoot')+' / TAP TO RETRY', W/2, 470); ctx.textAlign='left';
+}

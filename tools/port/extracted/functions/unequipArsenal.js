@@ -1,0 +1,1 @@
+function unequipArsenal(type,key){ const arr=arsArr(type), minK=(type==='s'||type==='i'?0:1), i=arr.indexOf(key); if(i>=0 && arr.length>minK){ arr.splice(i,1); if(type==='i'&&selConsum>=arr.length)selConsum=0; saveArsenal(); if(run) applyArsenalToRun(); sfx('item'); } else sfx('hit'); }

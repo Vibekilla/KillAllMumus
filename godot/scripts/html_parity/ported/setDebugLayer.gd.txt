@@ -1,0 +1,9 @@
+## AUTO-PORTED from HTML function setDebugLayer — review required
+func setDebugLayer(on):
+
+	  debugLayer=!!on;
+	  var b=HtmlBridge.doc.getElementById('disp-debug'), v=HtmlBridge.doc.getElementById('disp-debug-v');
+	  if(b) b.classList.toggle('on', debugLayer);
+	  if(v) v.textContent=debugLayer?'ON':'OFF';
+	  saveDisplayPrefs();
+

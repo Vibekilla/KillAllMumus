@@ -31,6 +31,23 @@ var speedrun: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	set_process(true)
+
+func _process(delta: float) -> void:
+	## HTML update(): power bleed 0.00085/frame when power>1, not in dialog, not stage-cleared
+	if state != State.PLAY:
+		return
+	if power <= 1.0:
+		return
+	var cleared := bool(get_meta("stage_cleared", false))
+	var dialog_open := false
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/StageFlow"):
+		dialog_open = StageFlow.dialog != null
+	if cleared or dialog_open:
+		return
+	# HTML runs at 60 sim frames; scale by delta*60 so wall-time matches
+	var df := delta * 60.0
+	power = maxf(1.0, power - 0.00085 * df)
 
 func set_state(s: State) -> void:
 	state = s
@@ -47,14 +64,21 @@ func mode_tag() -> String:
 		return "%s+%d" % [base, ng_plus]
 	return base
 
-func threat_mul() -> float:
-	return (1.28 if hell_mode else 1.0) * (1.0 + ng_plus * 0.16)
-
 func score_mul() -> float:
-	var rank_i := _rank_index()
+	## HTML scoreMult via CombatHelpers when available
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/CombatHelpers"):
+		return CombatHelpers.score_mult()
+	var rank_i: int = _rank_index()
 	return (1.0 + rank_i * 0.5) * (1.0 + ng_plus) * (1.5 if hard_mode and not hell_mode else (2.2 if hell_mode else 1.0))
 
+func threat_mul() -> float:
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/CombatHelpers"):
+		return CombatHelpers.threat_mul()
+	return (1.28 if hell_mode else 1.0) * (1.0 + ng_plus * 0.16)
+
 func _rank_index() -> int:
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/CombatHelpers"):
+		return CombatHelpers.rank_index()
 	var order := ["D", "C", "B", "A", "S", "SS"]
 	return maxi(0, order.find(DataRegistry.rank_for_kills(total_kills)))
 
@@ -62,17 +86,38 @@ func rank_letter() -> String:
 	return DataRegistry.rank_for_kills(total_kills)
 
 func start_run() -> void:
+	## HTML newRun / startRun parity
 	apply_difficulty()
 	stage_index = 0
 	session_score = 0
 	total_kills = 0
-	lives = 3
+	# HTML newRun: lives:6, bombs:3, power:1.0, special:15
+	lives = 6
 	bombs = 3
-	power = 0.0
-	special_meter = 0.0
+	power = 1.0
+	special_meter = 15.0
 	run_no_death = true
 	run_no_bomb = true
+	# sync arsenal weapons if present
+	var ar: Dictionary = ProgressStore.progress.get("arsenal", {}) if ProgressStore else {}
+	if ar.get("w") is Array and (ar["w"] as Array).size():
+		weapons.clear()
+		for w in ar["w"]:
+			weapons.append(str(w))
+	if ar.get("s") is Array:
+		specials.clear()
+		for s in ar["s"]:
+			specials.append(str(s))
 	current_weapon = weapons[0] if weapons.size() else "laser"
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/P2Meta"):
+		P2Meta.just_saved_score = false
+		P2Meta.end_won = false
+		P2Meta.new_emblems.clear()
+		P2Meta.init_player()
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/ItemSystem"):
+		ItemSystem.reset_run()
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/StageFlow"):
+		StageFlow.reset_run()
 	set_state(State.INTRO)
 	run_started.emit()
 	score_changed.emit(session_score, total_kills, rank_letter())
@@ -116,9 +161,11 @@ func end_run(won: bool) -> void:
 		set_state(State.WIN)
 	else:
 		set_state(State.GAMEOVER)
-	if session_score > int(ProgressStore.progress.get("estats", {}).get("best", 0)):
-		ProgressStore.progress["estats"]["best"] = session_score
-		ProgressStore.queue_save()
+	# HTML: computeEmblems() + saveEstats() on win/gameover
+	ProgressStore.compute_emblems()
+	if session_score > int(ProgressStore.estats.get("best", 0)):
+		ProgressStore.estats["best"] = session_score
+	ProgressStore.save_estats()
 	run_ended.emit(won)
 
 func return_to_title() -> void:

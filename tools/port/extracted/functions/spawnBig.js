@@ -1,0 +1,1 @@
+function spawnBig(x,y,icy){ const d=run?run.stageIdx:0; enemies.push({kind:'big',x,y,vx:0,vy:0.55+d*0.08,r:30,hp:Math.round((icy?26:16)*(1+d*0.45)),icy:!!icy,t:0,flash:0,hover:PF.y+90+Math.random()*60}); }

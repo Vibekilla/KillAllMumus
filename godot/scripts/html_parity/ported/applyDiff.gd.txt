@@ -1,0 +1,5 @@
+## AUTO-PORTED from HTML function applyDiff — review required
+func applyDiff():
+	 hardMode = difficulty>=1; hellMode = difficulty>=2; }
+	applyDiff();   // sync hard/hell flags to the restored difficulty
+

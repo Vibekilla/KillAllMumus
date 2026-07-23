@@ -1,0 +1,1 @@
+['spread','laser','homing','wave','scatter','gatling','grenade','voidripper','lotus','shock']

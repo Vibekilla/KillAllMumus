@@ -1,0 +1,1 @@
+function drawTitleBtn(x,y,w,h,label,color,id){ titleBtns.push({x,y,w,h,id:id||'mode'}); ctx.fillStyle='rgba(20,10,28,0.7)'; ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill(); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle=color; ctx.font='bold 14px "Trebuchet MS"'; ctx.textAlign='center'; ctx.fillText(label, x+w/2, y+h/2+5); ctx.textAlign='left'; }

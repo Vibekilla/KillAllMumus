@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function addPower — review required
+func addPower(a):
+	 var before=shotLevel(); run.power=minf(powerCap(), run.power + a*powerGainMul()); var lv=shotLevel(); if(lv>before){ pop(player.x,player.y-30,'POWER UP! Lv'+lv,'#ffd27a'); flashMsg={t:70,txt:lv>=shotLevelCap()?'★ MAX POWER — LV'+lv+' ★':'POWER UP'}; } 

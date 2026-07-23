@@ -1,0 +1,11 @@
+## AUTO-PORTED from HTML function goFullscreenMobile — review required
+func goFullscreenMobile():
+	 try{
+	  if(!(('ontouchstart' in window)||navigator.maxTouchPoints>0)) return;
+	  var el=HtmlBridge.doc.documentElement; var rf=el.requestFullscreen||el.webkitRequestFullscreen;
+	  if(rf && !HtmlBridge.doc.fullscreenElement && !HtmlBridge.doc.webkitFullscreenElement){ var r=rf.call(el); if(r&&r.catch)r.catchfunc((): # arrow
+	}); setTimeoutfunc((): # arrow
+	 if(typeof fit=='function') fit(); },250); }
+	}catch(e){} }
+	// dismissing the verification gate is the user gesture that opts into fullscreen (removes the browser chrome on supported devices)
+

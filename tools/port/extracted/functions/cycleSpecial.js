@@ -1,0 +1,1 @@
+function cycleSpecial(){ if(!run||!run.specials||run.specials.length<2)return; run.armed=(run.armed+1)%run.specials.length; const sp=armedSpec(); sfx('item'); flashMsg={t:60,txt:'SPECIAL ▸ '+(sp?sp.name:'—')}; }

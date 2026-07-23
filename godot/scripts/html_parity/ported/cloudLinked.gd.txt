@@ -1,0 +1,6 @@
+## AUTO-PORTED from HTML function cloudLinked — review required
+func cloudLinked():
+
+	  var me = HtmlBridge.win.bobinaMe || (typeof bobinaMe!='null' ? bobinaMe : null);
+	  return !!(me && me.authenticated && me.bcId);
+

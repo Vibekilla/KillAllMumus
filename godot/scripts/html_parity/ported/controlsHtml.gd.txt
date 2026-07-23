@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function controlsHtml — review required
+func controlsHtml():
+	 return CONTROLS.map(func(c): return "<div class="set-ctrl"><span class="ca">" + str(_hEsc(c[0])) + "</span><span class="ck">" + str(_hEsc(c[1])) + "</span></div>").join(''); 

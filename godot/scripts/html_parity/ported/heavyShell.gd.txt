@@ -1,0 +1,6 @@
+## AUTO-PORTED from HTML function heavyShell — review required
+func heavyShell(x, y, tx, ty, spd):
+	 spd*=SPD; var a=atan2(ty-y,tx-x); bullets.append({x,y,vx:cos(a)*spd,vy:sin(a)*spd,r:12,col:'#ffd27a',grazed:false,hp:4,shell:true}); }
+
+	/*  -= 1 -= 1 -= 1 -= 1 -= 1 Enemies  -= 1 -= 1 -= 1 -= 1 -= 1 */
+

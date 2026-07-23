@@ -1,0 +1,18 @@
+## AUTO-PORTED from HTML function readUiOverride — review required
+func readUiOverride():
+	 try{ var q=new URLSearchParams(location.search).get('touch');
+	    if(q=='1'||q=='0'){ HtmlBridge.storage_set('bobina_ui', q=='1'?'touch':'desktop'); }
+	    var v=HtmlBridge.storage_get('bobina_ui'); if(v=='touch') return true; if(v=='desktop') return false; }catch(e){} return null; }
+	var _uiOverride=readUiOverride();
+	var isTouch = _uiOverride!=null ? _uiOverride
+	  : ((HtmlBridge.win.matchMedia && HtmlBridge.win.matchMedia('(hover: none) and (pointer: coarse)').matches)
+	     || (!HtmlBridge.win.matchMedia && (('ontouchstart' in window) || navigator.maxTouchPoints>0)));
+	if(isTouch) HtmlBridge.doc.body.classList['touch');
+	var btnEls={};
+	HtmlBridge.doc.querySelectorAll('.btn') # forEach func(b): return { var k=b.dataset.k; btnEls[k]=b;
+	  var dn=func(e): return {e.preventDefault(); if(!keys[k])keyPress(k); keys[k]=true;}; var up=func(e): return {e.preventDefault(); keys[k]=false;};
+	  b.HtmlBridge.add_listener('touchstart',dn,{passive:false}); b.HtmlBridge.add_listener('touchend',up); b.HtmlBridge.add_listener('touchcancel',up);
+	  b.HtmlBridge.add_listener('mousedown',dn); b.HtmlBridge.add_listener('mouseup',up); b.HtmlBridge.add_listener('mouseleave',up);
+	});
+	// live touch buttons: SPEC glows "USE!" when charged (tap to unleash) or shows charge % (tap to switch); BOMB shows count; SWAP shows weapon
+

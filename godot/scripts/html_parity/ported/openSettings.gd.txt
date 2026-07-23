@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function openSettings — review required
+func openSettings():
+	 syncSettingsUI(); if(setEl) setEl.classList['on'); 

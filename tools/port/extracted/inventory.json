@@ -1,0 +1,2091 @@
+{
+  "count": 298,
+  "functions": [
+    {
+      "name": "applyLayout",
+      "line": 566,
+      "index": 47059,
+      "endLine": 583,
+      "approxLines": 18
+    },
+    {
+      "name": "load",
+      "line": 584,
+      "index": 47867,
+      "endLine": 598,
+      "approxLines": 15
+    },
+    {
+      "name": "imgOK",
+      "line": 599,
+      "index": 48455,
+      "endLine": 609,
+      "approxLines": 11
+    },
+    {
+      "name": "rebuildKMAP",
+      "line": 610,
+      "index": 49642,
+      "endLine": 610,
+      "approxLines": 1
+    },
+    {
+      "name": "saveBinds",
+      "line": 611,
+      "index": 49760,
+      "endLine": 611,
+      "approxLines": 1
+    },
+    {
+      "name": "setBind",
+      "line": 612,
+      "index": 49862,
+      "endLine": 612,
+      "approxLines": 1
+    },
+    {
+      "name": "keyName",
+      "line": 613,
+      "index": 50002,
+      "endLine": 613,
+      "approxLines": 1
+    },
+    {
+      "name": "kb",
+      "line": 614,
+      "index": 50334,
+      "endLine": 621,
+      "approxLines": 8
+    },
+    {
+      "name": "canvasPos",
+      "line": 622,
+      "index": 51167,
+      "endLine": 622,
+      "approxLines": 1
+    },
+    {
+      "name": "inBtn",
+      "line": 623,
+      "index": 51339,
+      "endLine": 623,
+      "approxLines": 1
+    },
+    {
+      "name": "pdown",
+      "line": 624,
+      "index": 51422,
+      "endLine": 662,
+      "approxLines": 39
+    },
+    {
+      "name": "pmove",
+      "line": 663,
+      "index": 55463,
+      "endLine": 664,
+      "approxLines": 2
+    },
+    {
+      "name": "pup",
+      "line": 665,
+      "index": 55778,
+      "endLine": 687,
+      "approxLines": 23
+    },
+    {
+      "name": "readUiOverride",
+      "line": 688,
+      "index": 57513,
+      "endLine": 702,
+      "approxLines": 15
+    },
+    {
+      "name": "updateTouchButtons",
+      "line": 703,
+      "index": 58757,
+      "endLine": 715,
+      "approxLines": 13
+    },
+    {
+      "name": "resumeGame",
+      "line": 716,
+      "index": 60350,
+      "endLine": 716,
+      "approxLines": 1
+    },
+    {
+      "name": "pauseReturnMenu",
+      "line": 717,
+      "index": 60459,
+      "endLine": 718,
+      "approxLines": 2
+    },
+    {
+      "name": "syncPauseUI",
+      "line": 719,
+      "index": 60735,
+      "endLine": 738,
+      "approxLines": 20
+    },
+    {
+      "name": "openShoutouts",
+      "line": 739,
+      "index": 62946,
+      "endLine": 739,
+      "approxLines": 1
+    },
+    {
+      "name": "closeShoutouts",
+      "line": 740,
+      "index": 63015,
+      "endLine": 746,
+      "approxLines": 7
+    },
+    {
+      "name": "joyHomePos",
+      "line": 747,
+      "index": 63756,
+      "endLine": 749,
+      "approxLines": 3
+    },
+    {
+      "name": "joyShowHome",
+      "line": 750,
+      "index": 64013,
+      "endLine": 751,
+      "approxLines": 2
+    },
+    {
+      "name": "joyApply",
+      "line": 752,
+      "index": 64299,
+      "endLine": 753,
+      "approxLines": 2
+    },
+    {
+      "name": "joyStart",
+      "line": 754,
+      "index": 64554,
+      "endLine": 756,
+      "approxLines": 3
+    },
+    {
+      "name": "joyMove",
+      "line": 757,
+      "index": 64873,
+      "endLine": 757,
+      "approxLines": 1
+    },
+    {
+      "name": "joyEnd",
+      "line": 758,
+      "index": 65108,
+      "endLine": 758,
+      "approxLines": 1
+    },
+    {
+      "name": "joyReset",
+      "line": 759,
+      "index": 65293,
+      "endLine": 765,
+      "approxLines": 7
+    },
+    {
+      "name": "manageTouchUI",
+      "line": 766,
+      "index": 65907,
+      "endLine": 774,
+      "approxLines": 9
+    },
+    {
+      "name": "updatePortrait",
+      "line": 775,
+      "index": 66469,
+      "endLine": 784,
+      "approxLines": 10
+    },
+    {
+      "name": "bobinaSay",
+      "line": 785,
+      "index": 67495,
+      "endLine": 785,
+      "approxLines": 1
+    },
+    {
+      "name": "keyPress",
+      "line": 786,
+      "index": 67650,
+      "endLine": 820,
+      "approxLines": 35
+    },
+    {
+      "name": "applySfxVol",
+      "line": 821,
+      "index": 71080,
+      "endLine": 821,
+      "approxLines": 1
+    },
+    {
+      "name": "applyMusicVol",
+      "line": 822,
+      "index": 71171,
+      "endLine": 822,
+      "approxLines": 1
+    },
+    {
+      "name": "actx",
+      "line": 823,
+      "index": 71287,
+      "endLine": 823,
+      "approxLines": 1
+    },
+    {
+      "name": "initMaster",
+      "line": 824,
+      "index": 71403,
+      "endLine": 824,
+      "approxLines": 1
+    },
+    {
+      "name": "sfx",
+      "line": 825,
+      "index": 71562,
+      "endLine": 860,
+      "approxLines": 36
+    },
+    {
+      "name": "musicPlay",
+      "line": 861,
+      "index": 75973,
+      "endLine": 861,
+      "approxLines": 1
+    },
+    {
+      "name": "musicPause",
+      "line": 862,
+      "index": 76139,
+      "endLine": 865,
+      "approxLines": 4
+    },
+    {
+      "name": "goFullscreenMobile",
+      "line": 866,
+      "index": 76523,
+      "endLine": 871,
+      "approxLines": 6
+    },
+    {
+      "name": "closeGate",
+      "line": 872,
+      "index": 77065,
+      "endLine": 876,
+      "approxLines": 5
+    },
+    {
+      "name": "limb",
+      "line": 877,
+      "index": 77464,
+      "endLine": 877,
+      "approxLines": 1
+    },
+    {
+      "name": "circle",
+      "line": 878,
+      "index": 77607,
+      "endLine": 878,
+      "approxLines": 1
+    },
+    {
+      "name": "lerpAngle",
+      "line": 879,
+      "index": 77773,
+      "endLine": 879,
+      "approxLines": 1
+    },
+    {
+      "name": "pOrb",
+      "line": 880,
+      "index": 77897,
+      "endLine": 885,
+      "approxLines": 6
+    },
+    {
+      "name": "outfitColors",
+      "line": 886,
+      "index": 80289,
+      "endLine": 1000,
+      "approxLines": 115
+    },
+    {
+      "name": "saveArsenal",
+      "line": 1001,
+      "index": 94473,
+      "endLine": 1001,
+      "approxLines": 1
+    },
+    {
+      "name": "arsenalCount",
+      "line": 1002,
+      "index": 94619,
+      "endLine": 1002,
+      "approxLines": 1
+    },
+    {
+      "name": "meleeIdxList",
+      "line": 1003,
+      "index": 94686,
+      "endLine": 1003,
+      "approxLines": 1
+    },
+    {
+      "name": "armedSpec",
+      "line": 1004,
+      "index": 94836,
+      "endLine": 1004,
+      "approxLines": 1
+    },
+    {
+      "name": "applyArsenalToRun",
+      "line": 1005,
+      "index": 95003,
+      "endLine": 1025,
+      "approxLines": 21
+    },
+    {
+      "name": "addWeapon",
+      "line": 1026,
+      "index": 98827,
+      "endLine": 1026,
+      "approxLines": 1
+    },
+    {
+      "name": "addSpecial",
+      "line": 1027,
+      "index": 98945,
+      "endLine": 1027,
+      "approxLines": 1
+    },
+    {
+      "name": "addMelee",
+      "line": 1028,
+      "index": 99019,
+      "endLine": 1028,
+      "approxLines": 1
+    },
+    {
+      "name": "addBomb",
+      "line": 1029,
+      "index": 99085,
+      "endLine": 1029,
+      "approxLines": 1
+    },
+    {
+      "name": "angDiff",
+      "line": 1030,
+      "index": 99150,
+      "endLine": 1033,
+      "approxLines": 4
+    },
+    {
+      "name": "bumpIdle",
+      "line": 1034,
+      "index": 99385,
+      "endLine": 1040,
+      "approxLines": 7
+    },
+    {
+      "name": "saveNgPrefs",
+      "line": 1041,
+      "index": 100152,
+      "endLine": 1041,
+      "approxLines": 1
+    },
+    {
+      "name": "applyDiff",
+      "line": 1042,
+      "index": 100312,
+      "endLine": 1043,
+      "approxLines": 2
+    },
+    {
+      "name": "diffName",
+      "line": 1044,
+      "index": 100454,
+      "endLine": 1044,
+      "approxLines": 1
+    },
+    {
+      "name": "modeTag",
+      "line": 1045,
+      "index": 100532,
+      "endLine": 1047,
+      "approxLines": 3
+    },
+    {
+      "name": "fmtScore",
+      "line": 1048,
+      "index": 100796,
+      "endLine": 1050,
+      "approxLines": 3
+    },
+    {
+      "name": "threatMul",
+      "line": 1051,
+      "index": 101142,
+      "endLine": 1105,
+      "approxLines": 55
+    },
+    {
+      "name": "hasEmblem",
+      "line": 1106,
+      "index": 108065,
+      "endLine": 1106,
+      "approxLines": 1
+    },
+    {
+      "name": "emblemDef",
+      "line": 1107,
+      "index": 108116,
+      "endLine": 1107,
+      "approxLines": 1
+    },
+    {
+      "name": "emblemCount",
+      "line": 1108,
+      "index": 108177,
+      "endLine": 1108,
+      "approxLines": 1
+    },
+    {
+      "name": "saveEmblems",
+      "line": 1109,
+      "index": 108254,
+      "endLine": 1109,
+      "approxLines": 1
+    },
+    {
+      "name": "saveEstats",
+      "line": 1110,
+      "index": 108365,
+      "endLine": 1110,
+      "approxLines": 1
+    },
+    {
+      "name": "unlockEmblem",
+      "line": 1111,
+      "index": 108470,
+      "endLine": 1113,
+      "approxLines": 3
+    },
+    {
+      "name": "emblemTick",
+      "line": 1114,
+      "index": 108781,
+      "endLine": 1122,
+      "approxLines": 9
+    },
+    {
+      "name": "cabalUnlocked",
+      "line": 1123,
+      "index": 109358,
+      "endLine": 1123,
+      "approxLines": 1
+    },
+    {
+      "name": "outfitUnlocked",
+      "line": 1124,
+      "index": 109418,
+      "endLine": 1124,
+      "approxLines": 1
+    },
+    {
+      "name": "onGameCleared",
+      "line": 1125,
+      "index": 109592,
+      "endLine": 1145,
+      "approxLines": 21
+    },
+    {
+      "name": "syncSettingsUI",
+      "line": 1146,
+      "index": 111079,
+      "endLine": 1152,
+      "approxLines": 7
+    },
+    {
+      "name": "openSettings",
+      "line": 1153,
+      "index": 111962,
+      "endLine": 1153,
+      "approxLines": 1
+    },
+    {
+      "name": "closeSettings",
+      "line": 1154,
+      "index": 112044,
+      "endLine": 1154,
+      "approxLines": 1
+    },
+    {
+      "name": "anyModalOpen",
+      "line": 1155,
+      "index": 112112,
+      "endLine": 1167,
+      "approxLines": 13
+    },
+    {
+      "name": "_hEsc",
+      "line": 1168,
+      "index": 114569,
+      "endLine": 1181,
+      "approxLines": 14
+    },
+    {
+      "name": "controlsHtml",
+      "line": 1182,
+      "index": 115026,
+      "endLine": 1182,
+      "approxLines": 1
+    },
+    {
+      "name": "renderKeybinds",
+      "line": 1183,
+      "index": 115194,
+      "endLine": 1189,
+      "approxLines": 7
+    },
+    {
+      "name": "openKeybinds",
+      "line": 1190,
+      "index": 115725,
+      "endLine": 1190,
+      "approxLines": 1
+    },
+    {
+      "name": "closeKeybinds",
+      "line": 1191,
+      "index": 115901,
+      "endLine": 1191,
+      "approxLines": 1
+    },
+    {
+      "name": "_hItem",
+      "line": 1192,
+      "index": 116028,
+      "endLine": 1192,
+      "approxLines": 1
+    },
+    {
+      "name": "_hSec",
+      "line": 1193,
+      "index": 116215,
+      "endLine": 1194,
+      "approxLines": 2
+    },
+    {
+      "name": "buildHelp",
+      "line": 1195,
+      "index": 116324,
+      "endLine": 1234,
+      "approxLines": 40
+    },
+    {
+      "name": "openHelp",
+      "line": 1235,
+      "index": 121910,
+      "endLine": 1235,
+      "approxLines": 1
+    },
+    {
+      "name": "closeHelp",
+      "line": 1236,
+      "index": 121985,
+      "endLine": 1258,
+      "approxLines": 23
+    },
+    {
+      "name": "saveHeads",
+      "line": 1259,
+      "index": 125133,
+      "endLine": 1259,
+      "approxLines": 1
+    },
+    {
+      "name": "saveShopUnlocks",
+      "line": 1260,
+      "index": 125231,
+      "endLine": 1265,
+      "approxLines": 6
+    },
+    {
+      "name": "contentUnlocked",
+      "line": 1266,
+      "index": 125852,
+      "endLine": 1268,
+      "approxLines": 3
+    },
+    {
+      "name": "lockCost",
+      "line": 1269,
+      "index": 126214,
+      "endLine": 1308,
+      "approxLines": 40
+    },
+    {
+      "name": "saveConsum",
+      "line": 1309,
+      "index": 132006,
+      "endLine": 1313,
+      "approxLines": 5
+    },
+    {
+      "name": "cloudLinked",
+      "line": 1314,
+      "index": 132328,
+      "endLine": 1317,
+      "approxLines": 4
+    },
+    {
+      "name": "buildProgressSnapshot",
+      "line": 1318,
+      "index": 132485,
+      "endLine": 1356,
+      "approxLines": 39
+    },
+    {
+      "name": "applyProgressSnapshot",
+      "line": 1357,
+      "index": 134666,
+      "endLine": 1424,
+      "approxLines": 68
+    },
+    {
+      "name": "scheduleCloudSave",
+      "line": 1425,
+      "index": 140233,
+      "endLine": 1445,
+      "approxLines": 21
+    },
+    {
+      "name": "cloudPullAndMerge",
+      "line": 1446,
+      "index": 141050,
+      "endLine": 1472,
+      "approxLines": 27
+    },
+    {
+      "name": "hookCloudSaves",
+      "line": 1473,
+      "index": 142382,
+      "endLine": 1473,
+      "approxLines": 1
+    },
+    {
+      "name": "wrap",
+      "line": 1474,
+      "index": 142411,
+      "endLine": 1507,
+      "approxLines": 34
+    },
+    {
+      "name": "consumQty",
+      "line": 1508,
+      "index": 143939,
+      "endLine": 1508,
+      "approxLines": 1
+    },
+    {
+      "name": "resetInventory",
+      "line": 1509,
+      "index": 143988,
+      "endLine": 1516,
+      "approxLines": 8
+    },
+    {
+      "name": "consumById",
+      "line": 1517,
+      "index": 144586,
+      "endLine": 1517,
+      "approxLines": 1
+    },
+    {
+      "name": "selConsumObj",
+      "line": 1518,
+      "index": 144651,
+      "endLine": 1518,
+      "approxLines": 1
+    },
+    {
+      "name": "cycleConsumable",
+      "line": 1519,
+      "index": 144828,
+      "endLine": 1519,
+      "approxLines": 1
+    },
+    {
+      "name": "consumeSelected",
+      "line": 1520,
+      "index": 145118,
+      "endLine": 1526,
+      "approxLines": 7
+    },
+    {
+      "name": "shopList",
+      "line": 1527,
+      "index": 146132,
+      "endLine": 1531,
+      "approxLines": 5
+    },
+    {
+      "name": "shopBuySelected",
+      "line": 1532,
+      "index": 146664,
+      "endLine": 1538,
+      "approxLines": 7
+    },
+    {
+      "name": "spawnClearGate",
+      "line": 1539,
+      "index": 147571,
+      "endLine": 1545,
+      "approxLines": 7
+    },
+    {
+      "name": "enterShop",
+      "line": 1546,
+      "index": 148050,
+      "endLine": 1546,
+      "approxLines": 1
+    },
+    {
+      "name": "neutralizeInputs",
+      "line": 1547,
+      "index": 148150,
+      "endLine": 1550,
+      "approxLines": 4
+    },
+    {
+      "name": "leaveShop",
+      "line": 1551,
+      "index": 148458,
+      "endLine": 1551,
+      "approxLines": 1
+    },
+    {
+      "name": "enterPortal",
+      "line": 1552,
+      "index": 148639,
+      "endLine": 1553,
+      "approxLines": 2
+    },
+    {
+      "name": "newRun",
+      "line": 1554,
+      "index": 148767,
+      "endLine": 1559,
+      "approxLines": 6
+    },
+    {
+      "name": "loadStage",
+      "line": 1560,
+      "index": 149327,
+      "endLine": 1570,
+      "approxLines": 11
+    },
+    {
+      "name": "initPlayer",
+      "line": 1571,
+      "index": 150303,
+      "endLine": 1571,
+      "approxLines": 1
+    },
+    {
+      "name": "startRun",
+      "line": 1572,
+      "index": 150804,
+      "endLine": 1574,
+      "approxLines": 3
+    },
+    {
+      "name": "eb",
+      "line": 1575,
+      "index": 150911,
+      "endLine": 1575,
+      "approxLines": 1
+    },
+    {
+      "name": "ring",
+      "line": 1576,
+      "index": 151069,
+      "endLine": 1576,
+      "approxLines": 1
+    },
+    {
+      "name": "fanAt",
+      "line": 1577,
+      "index": 151174,
+      "endLine": 1577,
+      "approxLines": 1
+    },
+    {
+      "name": "heavyShell",
+      "line": 1578,
+      "index": 151345,
+      "endLine": 1580,
+      "approxLines": 3
+    },
+    {
+      "name": "spawnLil",
+      "line": 1581,
+      "index": 151568,
+      "endLine": 1581,
+      "approxLines": 1
+    },
+    {
+      "name": "spawnBig",
+      "line": 1582,
+      "index": 151780,
+      "endLine": 1587,
+      "approxLines": 6
+    },
+    {
+      "name": "spawnElite",
+      "line": 1588,
+      "index": 152494,
+      "endLine": 1588,
+      "approxLines": 1
+    },
+    {
+      "name": "spawnWaves",
+      "line": 1589,
+      "index": 152794,
+      "endLine": 1609,
+      "approxLines": 21
+    },
+    {
+      "name": "dropItem",
+      "line": 1610,
+      "index": 154125,
+      "endLine": 1610,
+      "approxLines": 1
+    },
+    {
+      "name": "dropWeapon",
+      "line": 1611,
+      "index": 154247,
+      "endLine": 1611,
+      "approxLines": 1
+    },
+    {
+      "name": "dropLoot",
+      "line": 1612,
+      "index": 154408,
+      "endLine": 1630,
+      "approxLines": 19
+    },
+    {
+      "name": "emote",
+      "line": 1631,
+      "index": 155553,
+      "endLine": 1631,
+      "approxLines": 1
+    },
+    {
+      "name": "collectItem",
+      "line": 1632,
+      "index": 155609,
+      "endLine": 1643,
+      "approxLines": 12
+    },
+    {
+      "name": "drawEmote",
+      "line": 1644,
+      "index": 157221,
+      "endLine": 1658,
+      "approxLines": 15
+    },
+    {
+      "name": "powerCap",
+      "line": 1659,
+      "index": 158848,
+      "endLine": 1659,
+      "approxLines": 1
+    },
+    {
+      "name": "powerGainMul",
+      "line": 1660,
+      "index": 159055,
+      "endLine": 1660,
+      "approxLines": 1
+    },
+    {
+      "name": "addPower",
+      "line": 1661,
+      "index": 159206,
+      "endLine": 1661,
+      "approxLines": 1
+    },
+    {
+      "name": "shotLevelCap",
+      "line": 1662,
+      "index": 159490,
+      "endLine": 1662,
+      "approxLines": 1
+    },
+    {
+      "name": "gainLife",
+      "line": 1663,
+      "index": 159625,
+      "endLine": 1663,
+      "approxLines": 1
+    },
+    {
+      "name": "pop",
+      "line": 1664,
+      "index": 159804,
+      "endLine": 1666,
+      "approxLines": 3
+    },
+    {
+      "name": "shotLevel",
+      "line": 1667,
+      "index": 159919,
+      "endLine": 1667,
+      "approxLines": 1
+    },
+    {
+      "name": "bossDmgMul",
+      "line": 1668,
+      "index": 159997,
+      "endLine": 1670,
+      "approxLines": 3
+    },
+    {
+      "name": "bossWepMul",
+      "line": 1671,
+      "index": 160513,
+      "endLine": 1671,
+      "approxLines": 1
+    },
+    {
+      "name": "nearestTarget",
+      "line": 1672,
+      "index": 160620,
+      "endLine": 1672,
+      "approxLines": 1
+    },
+    {
+      "name": "aimAngle",
+      "line": 1673,
+      "index": 160869,
+      "endLine": 1674,
+      "approxLines": 2
+    },
+    {
+      "name": "optionShot",
+      "line": 1675,
+      "index": 161026,
+      "endLine": 1686,
+      "approxLines": 12
+    },
+    {
+      "name": "fire",
+      "line": 1687,
+      "index": 162285,
+      "endLine": 1733,
+      "approxLines": 47
+    },
+    {
+      "name": "swapWeapon",
+      "line": 1734,
+      "index": 166126,
+      "endLine": 1734,
+      "approxLines": 1
+    },
+    {
+      "name": "cycleSpecial",
+      "line": 1735,
+      "index": 166344,
+      "endLine": 1735,
+      "approxLines": 1
+    },
+    {
+      "name": "useSpecial",
+      "line": 1736,
+      "index": 166556,
+      "endLine": 1755,
+      "approxLines": 20
+    },
+    {
+      "name": "specialButton",
+      "line": 1756,
+      "index": 168903,
+      "endLine": 1756,
+      "approxLines": 1
+    },
+    {
+      "name": "spawnBubbles",
+      "line": 1757,
+      "index": 168945,
+      "endLine": 1761,
+      "approxLines": 5
+    },
+    {
+      "name": "spawnStardust",
+      "line": 1762,
+      "index": 169338,
+      "endLine": 1764,
+      "approxLines": 3
+    },
+    {
+      "name": "updateFx",
+      "line": 1765,
+      "index": 169569,
+      "endLine": 1863,
+      "approxLines": 99
+    },
+    {
+      "name": "drawFx",
+      "line": 1864,
+      "index": 180381,
+      "endLine": 1962,
+      "approxLines": 99
+    },
+    {
+      "name": "drawMech",
+      "line": 1963,
+      "index": 191669,
+      "endLine": 1991,
+      "approxLines": 29
+    },
+    {
+      "name": "optionOffsets",
+      "line": 1992,
+      "index": 193927,
+      "endLine": 1996,
+      "approxLines": 5
+    },
+    {
+      "name": "optionPos",
+      "line": 1997,
+      "index": 194395,
+      "endLine": 2000,
+      "approxLines": 4
+    },
+    {
+      "name": "lineTime",
+      "line": 2001,
+      "index": 194633,
+      "endLine": 2001,
+      "approxLines": 1
+    },
+    {
+      "name": "startDialog",
+      "line": 2002,
+      "index": 194700,
+      "endLine": 2004,
+      "approxLines": 3
+    },
+    {
+      "name": "spawnBoss",
+      "line": 2005,
+      "index": 194939,
+      "endLine": 2017,
+      "approxLines": 13
+    },
+    {
+      "name": "bossSpecial",
+      "line": 2018,
+      "index": 195916,
+      "endLine": 2024,
+      "approxLines": 7
+    },
+    {
+      "name": "twinSwap",
+      "line": 2025,
+      "index": 196708,
+      "endLine": 2035,
+      "approxLines": 11
+    },
+    {
+      "name": "updateBoss",
+      "line": 2036,
+      "index": 197555,
+      "endLine": 2139,
+      "approxLines": 104
+    },
+    {
+      "name": "startWynnHell",
+      "line": 2140,
+      "index": 207686,
+      "endLine": 2147,
+      "approxLines": 8
+    },
+    {
+      "name": "updateWynnHell",
+      "line": 2148,
+      "index": 208203,
+      "endLine": 2154,
+      "approxLines": 7
+    },
+    {
+      "name": "drawHellPortal",
+      "line": 2155,
+      "index": 208781,
+      "endLine": 2163,
+      "approxLines": 9
+    },
+    {
+      "name": "onBossDefeated",
+      "line": 2164,
+      "index": 209666,
+      "endLine": 2172,
+      "approxLines": 9
+    },
+    {
+      "name": "doBomb",
+      "line": 2173,
+      "index": 210194,
+      "endLine": 2182,
+      "approxLines": 10
+    },
+    {
+      "name": "doDash",
+      "line": 2183,
+      "index": 211088,
+      "endLine": 2194,
+      "approxLines": 12
+    },
+    {
+      "name": "dashLandExplosion",
+      "line": 2195,
+      "index": 212313,
+      "endLine": 2202,
+      "approxLines": 8
+    },
+    {
+      "name": "doMeleeSwipe",
+      "line": 2203,
+      "index": 213134,
+      "endLine": 2234,
+      "approxLines": 32
+    },
+    {
+      "name": "meleeChargeFx",
+      "line": 2235,
+      "index": 215996,
+      "endLine": 2251,
+      "approxLines": 17
+    },
+    {
+      "name": "chainLightning",
+      "line": 2252,
+      "index": 217721,
+      "endLine": 2260,
+      "approxLines": 9
+    },
+    {
+      "name": "nadeBoom",
+      "line": 2261,
+      "index": 218583,
+      "endLine": 2266,
+      "approxLines": 6
+    },
+    {
+      "name": "enemyExplode",
+      "line": 2267,
+      "index": 219299,
+      "endLine": 2272,
+      "approxLines": 6
+    },
+    {
+      "name": "updateBurns",
+      "line": 2273,
+      "index": 219996,
+      "endLine": 2283,
+      "approxLines": 11
+    },
+    {
+      "name": "drawBurns",
+      "line": 2284,
+      "index": 221140,
+      "endLine": 2288,
+      "approxLines": 5
+    },
+    {
+      "name": "drawStunStars",
+      "line": 2289,
+      "index": 221664,
+      "endLine": 2290,
+      "approxLines": 2
+    },
+    {
+      "name": "bulletCancelAll",
+      "line": 2291,
+      "index": 221962,
+      "endLine": 2292,
+      "approxLines": 2
+    },
+    {
+      "name": "clearWaveMobs",
+      "line": 2293,
+      "index": 222274,
+      "endLine": 2293,
+      "approxLines": 1
+    },
+    {
+      "name": "bulletCancelNear",
+      "line": 2294,
+      "index": 222444,
+      "endLine": 2296,
+      "approxLines": 3
+    },
+    {
+      "name": "killEnemy",
+      "line": 2297,
+      "index": 222786,
+      "endLine": 2311,
+      "approxLines": 15
+    },
+    {
+      "name": "killExtend",
+      "line": 2312,
+      "index": 223987,
+      "endLine": 2312,
+      "approxLines": 1
+    },
+    {
+      "name": "checkExtend",
+      "line": 2313,
+      "index": 224356,
+      "endLine": 2313,
+      "approxLines": 1
+    },
+    {
+      "name": "diffScoreMul",
+      "line": 2314,
+      "index": 224499,
+      "endLine": 2314,
+      "approxLines": 1
+    },
+    {
+      "name": "scoreMult",
+      "line": 2315,
+      "index": 224610,
+      "endLine": 2315,
+      "approxLines": 1
+    },
+    {
+      "name": "rankIndex",
+      "line": 2316,
+      "index": 224739,
+      "endLine": 2316,
+      "approxLines": 1
+    },
+    {
+      "name": "rankLetter",
+      "line": 2317,
+      "index": 224852,
+      "endLine": 2317,
+      "approxLines": 1
+    },
+    {
+      "name": "eliteHearts",
+      "line": 2318,
+      "index": 224906,
+      "endLine": 2318,
+      "approxLines": 1
+    },
+    {
+      "name": "hitPlayer",
+      "line": 2319,
+      "index": 225070,
+      "endLine": 2332,
+      "approxLines": 14
+    },
+    {
+      "name": "sparks",
+      "line": 2333,
+      "index": 226682,
+      "endLine": 2333,
+      "approxLines": 1
+    },
+    {
+      "name": "burst",
+      "line": 2334,
+      "index": 226810,
+      "endLine": 2337,
+      "approxLines": 4
+    },
+    {
+      "name": "computeEmblems",
+      "line": 2338,
+      "index": 226991,
+      "endLine": 2345,
+      "approxLines": 8
+    },
+    {
+      "name": "update",
+      "line": 2346,
+      "index": 227487,
+      "endLine": 2516,
+      "approxLines": 171
+    },
+    {
+      "name": "updateItems",
+      "line": 2517,
+      "index": 242812,
+      "endLine": 2533,
+      "approxLines": 17
+    },
+    {
+      "name": "draw",
+      "line": 2534,
+      "index": 243537,
+      "endLine": 2596,
+      "approxLines": 63
+    },
+    {
+      "name": "drawStageBg",
+      "line": 2597,
+      "index": 250124,
+      "endLine": 2618,
+      "approxLines": 22
+    },
+    {
+      "name": "drawStageBgFx",
+      "line": 2619,
+      "index": 253026,
+      "endLine": 2679,
+      "approxLines": 61
+    },
+    {
+      "name": "drawOptions",
+      "line": 2680,
+      "index": 259149,
+      "endLine": 2680,
+      "approxLines": 1
+    },
+    {
+      "name": "_hexRgb",
+      "line": 2681,
+      "index": 259522,
+      "endLine": 2681,
+      "approxLines": 1
+    },
+    {
+      "name": "_hexA",
+      "line": 2682,
+      "index": 259691,
+      "endLine": 2686,
+      "approxLines": 5
+    },
+    {
+      "name": "bodyCtr",
+      "line": 2687,
+      "index": 260267,
+      "endLine": 2688,
+      "approxLines": 2
+    },
+    {
+      "name": "drawPhaseVeil",
+      "line": 2689,
+      "index": 260525,
+      "endLine": 2704,
+      "approxLines": 16
+    },
+    {
+      "name": "drawSlowmoFx",
+      "line": 2705,
+      "index": 262160,
+      "endLine": 2717,
+      "approxLines": 13
+    },
+    {
+      "name": "drawPowerAura",
+      "line": 2718,
+      "index": 263252,
+      "endLine": 2782,
+      "approxLines": 65
+    },
+    {
+      "name": "drawPowerRadiance",
+      "line": 2783,
+      "index": 269472,
+      "endLine": 2796,
+      "approxLines": 14
+    },
+    {
+      "name": "_rgbHue",
+      "line": 2797,
+      "index": 270580,
+      "endLine": 2801,
+      "approxLines": 5
+    },
+    {
+      "name": "drawBossAmbience",
+      "line": 2802,
+      "index": 271265,
+      "endLine": 2826,
+      "approxLines": 25
+    },
+    {
+      "name": "drawDashComet",
+      "line": 2827,
+      "index": 273546,
+      "endLine": 2856,
+      "approxLines": 30
+    },
+    {
+      "name": "drawMeleeWeapon",
+      "line": 2857,
+      "index": 276148,
+      "endLine": 2927,
+      "approxLines": 71
+    },
+    {
+      "name": "drawMeleeFx",
+      "line": 2928,
+      "index": 282820,
+      "endLine": 2953,
+      "approxLines": 26
+    },
+    {
+      "name": "drawBobina",
+      "line": 2954,
+      "index": 285809,
+      "endLine": 3828,
+      "approxLines": 875
+    },
+    {
+      "name": "drawElite",
+      "line": 3829,
+      "index": 382223,
+      "endLine": 3916,
+      "approxLines": 88
+    },
+    {
+      "name": "drawMumu",
+      "line": 3917,
+      "index": 391880,
+      "endLine": 3937,
+      "approxLines": 21
+    },
+    {
+      "name": "drawBullet",
+      "line": 3938,
+      "index": 394289,
+      "endLine": 3938,
+      "approxLines": 1
+    },
+    {
+      "name": "drawPShot",
+      "line": 3939,
+      "index": 394721,
+      "endLine": 3968,
+      "approxLines": 30
+    },
+    {
+      "name": "drawItem",
+      "line": 3969,
+      "index": 398282,
+      "endLine": 3990,
+      "approxLines": 22
+    },
+    {
+      "name": "drawFloater",
+      "line": 3991,
+      "index": 400294,
+      "endLine": 3992,
+      "approxLines": 2
+    },
+    {
+      "name": "drawBobo",
+      "line": 3993,
+      "index": 400604,
+      "endLine": 4021,
+      "approxLines": 29
+    },
+    {
+      "name": "drawBoss",
+      "line": 4022,
+      "index": 402874,
+      "endLine": 4031,
+      "approxLines": 10
+    },
+    {
+      "name": "drawApe",
+      "line": 4032,
+      "index": 404002,
+      "endLine": 4041,
+      "approxLines": 10
+    },
+    {
+      "name": "drawRobotnik",
+      "line": 4042,
+      "index": 404938,
+      "endLine": 4049,
+      "approxLines": 8
+    },
+    {
+      "name": "drawWynn",
+      "line": 4050,
+      "index": 405957,
+      "endLine": 4062,
+      "approxLines": 13
+    },
+    {
+      "name": "drawMumina",
+      "line": 4063,
+      "index": 407338,
+      "endLine": 4091,
+      "approxLines": 29
+    },
+    {
+      "name": "drawLily",
+      "line": 4092,
+      "index": 410338,
+      "endLine": 4122,
+      "approxLines": 31
+    },
+    {
+      "name": "drawPolice",
+      "line": 4123,
+      "index": 413489,
+      "endLine": 4151,
+      "approxLines": 29
+    },
+    {
+      "name": "drawBogdanoff",
+      "line": 4152,
+      "index": 416375,
+      "endLine": 4195,
+      "approxLines": 44
+    },
+    {
+      "name": "drawPortraitBust",
+      "line": 4196,
+      "index": 420381,
+      "endLine": 4204,
+      "approxLines": 9
+    },
+    {
+      "name": "drawDevil",
+      "line": 4205,
+      "index": 421718,
+      "endLine": 4224,
+      "approxLines": 20
+    },
+    {
+      "name": "overlayShow",
+      "line": 4225,
+      "index": 423473,
+      "endLine": 4228,
+      "approxLines": 4
+    },
+    {
+      "name": "overlayHide",
+      "line": 4229,
+      "index": 423820,
+      "endLine": 4229,
+      "approxLines": 1
+    },
+    {
+      "name": "manageGifOverlays",
+      "line": 4230,
+      "index": 423915,
+      "endLine": 4237,
+      "approxLines": 8
+    },
+    {
+      "name": "wrapLines",
+      "line": 4238,
+      "index": 424479,
+      "endLine": 4238,
+      "approxLines": 1
+    },
+    {
+      "name": "drawDialog",
+      "line": 4239,
+      "index": 424778,
+      "endLine": 4256,
+      "approxLines": 18
+    },
+    {
+      "name": "measureLines",
+      "line": 4257,
+      "index": 426561,
+      "endLine": 4257,
+      "approxLines": 1
+    },
+    {
+      "name": "wrapText",
+      "line": 4258,
+      "index": 426794,
+      "endLine": 4262,
+      "approxLines": 5
+    },
+    {
+      "name": "drawPanelTouch",
+      "line": 4263,
+      "index": 427282,
+      "endLine": 4282,
+      "approxLines": 20
+    },
+    {
+      "name": "drawPanelPortrait",
+      "line": 4283,
+      "index": 430859,
+      "endLine": 4339,
+      "approxLines": 57
+    },
+    {
+      "name": "drawPanel",
+      "line": 4340,
+      "index": 436346,
+      "endLine": 4447,
+      "approxLines": 108
+    },
+    {
+      "name": "drawHeart",
+      "line": 4448,
+      "index": 449800,
+      "endLine": 4450,
+      "approxLines": 3
+    },
+    {
+      "name": "drawTitle",
+      "line": 4451,
+      "index": 450135,
+      "endLine": 4500,
+      "approxLines": 50
+    },
+    {
+      "name": "drawMaidDance",
+      "line": 4501,
+      "index": 455348,
+      "endLine": 4528,
+      "approxLines": 28
+    },
+    {
+      "name": "drawMenuBtn",
+      "line": 4529,
+      "index": 457434,
+      "endLine": 4532,
+      "approxLines": 4
+    },
+    {
+      "name": "tweetResult",
+      "line": 4533,
+      "index": 457862,
+      "endLine": 4555,
+      "approxLines": 23
+    },
+    {
+      "name": "lbPageCount",
+      "line": 4556,
+      "index": 459249,
+      "endLine": 4556,
+      "approxLines": 1
+    },
+    {
+      "name": "lbSetPage",
+      "line": 4557,
+      "index": 459334,
+      "endLine": 4559,
+      "approxLines": 3
+    },
+    {
+      "name": "fetchLB",
+      "line": 4560,
+      "index": 459571,
+      "endLine": 4560,
+      "approxLines": 1
+    },
+    {
+      "name": "submitScore",
+      "line": 4561,
+      "index": 459779,
+      "endLine": 4572,
+      "approxLines": 12
+    },
+    {
+      "name": "showNameEntry",
+      "line": 4573,
+      "index": 460739,
+      "endLine": 4586,
+      "approxLines": 14
+    },
+    {
+      "name": "hideNameEntry",
+      "line": 4587,
+      "index": 461688,
+      "endLine": 4587,
+      "approxLines": 1
+    },
+    {
+      "name": "doSaveScore",
+      "line": 4588,
+      "index": 461800,
+      "endLine": 4592,
+      "approxLines": 5
+    },
+    {
+      "name": "drawShareBtn",
+      "line": 4593,
+      "index": 462214,
+      "endLine": 4599,
+      "approxLines": 7
+    },
+    {
+      "name": "drawTitleBtn",
+      "line": 4600,
+      "index": 462890,
+      "endLine": 4600,
+      "approxLines": 1
+    },
+    {
+      "name": "handleTitleClick",
+      "line": 4601,
+      "index": 463266,
+      "endLine": 4609,
+      "approxLines": 9
+    },
+    {
+      "name": "drawIntro",
+      "line": 4610,
+      "index": 464177,
+      "endLine": 4615,
+      "approxLines": 6
+    },
+    {
+      "name": "drawClearGate",
+      "line": 4616,
+      "index": 464930,
+      "endLine": 4664,
+      "approxLines": 49
+    },
+    {
+      "name": "drawHoneyBadger",
+      "line": 4665,
+      "index": 470262,
+      "endLine": 4761,
+      "approxLines": 97
+    },
+    {
+      "name": "drawShop",
+      "line": 4762,
+      "index": 477887,
+      "endLine": 4808,
+      "approxLines": 47
+    },
+    {
+      "name": "drawStageClear",
+      "line": 4809,
+      "index": 483794,
+      "endLine": 4825,
+      "approxLines": 17
+    },
+    {
+      "name": "drawGameOver",
+      "line": 4826,
+      "index": 486557,
+      "endLine": 4838,
+      "approxLines": 13
+    },
+    {
+      "name": "drawWin",
+      "line": 4839,
+      "index": 487974,
+      "endLine": 4872,
+      "approxLines": 34
+    },
+    {
+      "name": "drawPause",
+      "line": 4873,
+      "index": 491919,
+      "endLine": 4874,
+      "approxLines": 2
+    },
+    {
+      "name": "lbIsMine",
+      "line": 4875,
+      "index": 492239,
+      "endLine": 4875,
+      "approxLines": 1
+    },
+    {
+      "name": "drawLeaderboard",
+      "line": 4876,
+      "index": 492473,
+      "endLine": 4921,
+      "approxLines": 46
+    },
+    {
+      "name": "advanceScreen",
+      "line": 4922,
+      "index": 498234,
+      "endLine": 4936,
+      "approxLines": 15
+    },
+    {
+      "name": "drawEmblemToasts",
+      "line": 4937,
+      "index": 498972,
+      "endLine": 4954,
+      "approxLines": 18
+    },
+    {
+      "name": "exitArsenal",
+      "line": 4955,
+      "index": 500278,
+      "endLine": 4955,
+      "approxLines": 1
+    },
+    {
+      "name": "dropToSlot",
+      "line": 4956,
+      "index": 500369,
+      "endLine": 4960,
+      "approxLines": 5
+    },
+    {
+      "name": "unequipArsenal",
+      "line": 4961,
+      "index": 500959,
+      "endLine": 4961,
+      "approxLines": 1
+    },
+    {
+      "name": "arsArr",
+      "line": 4962,
+      "index": 501247,
+      "endLine": 4962,
+      "approxLines": 1
+    },
+    {
+      "name": "toggleArsenal",
+      "line": 4963,
+      "index": 501355,
+      "endLine": 4969,
+      "approxLines": 7
+    },
+    {
+      "name": "moveArsenal",
+      "line": 4970,
+      "index": 501794,
+      "endLine": 4974,
+      "approxLines": 5
+    },
+    {
+      "name": "arsItemByKey",
+      "line": 4975,
+      "index": 502115,
+      "endLine": 4975,
+      "approxLines": 1
+    },
+    {
+      "name": "arsPool",
+      "line": 4976,
+      "index": 502337,
+      "endLine": 4977,
+      "approxLines": 2
+    },
+    {
+      "name": "drawArsenal",
+      "line": 4978,
+      "index": 502820,
+      "endLine": 5037,
+      "approxLines": 60
+    },
+    {
+      "name": "emPageCount",
+      "line": 5038,
+      "index": 510269,
+      "endLine": 5038,
+      "approxLines": 1
+    },
+    {
+      "name": "drawEmblems",
+      "line": 5039,
+      "index": 510354,
+      "endLine": 5074,
+      "approxLines": 36
+    },
+    {
+      "name": "poseParams",
+      "line": 5075,
+      "index": 514799,
+      "endLine": 5091,
+      "approxLines": 17
+    },
+    {
+      "name": "coffeeHold",
+      "line": 5092,
+      "index": 516116,
+      "endLine": 5093,
+      "approxLines": 2
+    },
+    {
+      "name": "drawPoseProp",
+      "line": 5094,
+      "index": 516376,
+      "endLine": 5110,
+      "approxLines": 17
+    },
+    {
+      "name": "drawPosedFigure",
+      "line": 5111,
+      "index": 518335,
+      "endLine": 5122,
+      "approxLines": 12
+    },
+    {
+      "name": "drawOutfitFigure",
+      "line": 5123,
+      "index": 519316,
+      "endLine": 5126,
+      "approxLines": 4
+    },
+    {
+      "name": "drawNgSelect",
+      "line": 5127,
+      "index": 519662,
+      "endLine": 5152,
+      "approxLines": 26
+    },
+    {
+      "name": "drawOutfits",
+      "line": 5153,
+      "index": 522366,
+      "endLine": 5220,
+      "approxLines": 68
+    },
+    {
+      "name": "simStep",
+      "line": 5221,
+      "index": 528714,
+      "endLine": 5224,
+      "approxLines": 4
+    },
+    {
+      "name": "loop",
+      "line": 5225,
+      "index": 528817,
+      "endLine": 5245,
+      "approxLines": 21
+    },
+    {
+      "name": "fit",
+      "line": 5246,
+      "index": 530094,
+      "endLine": 5257,
+      "approxLines": 12
+    },
+    {
+      "name": "saveDisplayPrefs",
+      "line": 5258,
+      "index": 531145,
+      "endLine": 5265,
+      "approxLines": 8
+    },
+    {
+      "name": "setDisplayScale",
+      "line": 5266,
+      "index": 531485,
+      "endLine": 5274,
+      "approxLines": 9
+    },
+    {
+      "name": "setRefreshRate",
+      "line": 5275,
+      "index": 531992,
+      "endLine": 5281,
+      "approxLines": 7
+    },
+    {
+      "name": "setDebugLayer",
+      "line": 5282,
+      "index": 532333,
+      "endLine": 5288,
+      "approxLines": 7
+    },
+    {
+      "name": "syncDisplayUI",
+      "line": 5289,
+      "index": 532587,
+      "endLine": 5296,
+      "approxLines": 8
+    },
+    {
+      "name": "openDisplay",
+      "line": 5297,
+      "index": 533002,
+      "endLine": 5297,
+      "approxLines": 1
+    },
+    {
+      "name": "closeDisplay",
+      "line": 5298,
+      "index": 533118,
+      "endLine": 5298,
+      "approxLines": 1
+    },
+    {
+      "name": "drawDebugLayer",
+      "line": 5299,
+      "index": 533221,
+      "endLine": 5331,
+      "approxLines": 33
+    },
+    {
+      "name": "toggleFullscreen",
+      "line": 5332,
+      "index": 535347,
+      "endLine": 5340,
+      "approxLines": 9
+    },
+    {
+      "name": "onFsChange",
+      "line": 5341,
+      "index": 536035,
+      "endLine": 5351,
+      "approxLines": 11
+    },
+    {
+      "name": "loginHref",
+      "line": 5352,
+      "index": 536594,
+      "endLine": 5357,
+      "approxLines": 6
+    },
+    {
+      "name": "applyMe",
+      "line": 5358,
+      "index": 536820,
+      "endLine": 5364,
+      "approxLines": 7
+    },
+    {
+      "name": "paint",
+      "line": 5365,
+      "index": 537016,
+      "endLine": 5385,
+      "approxLines": 21
+    },
+    {
+      "name": "loadMe",
+      "line": 5386,
+      "index": 538096,
+      "endLine": 5392,
+      "approxLines": 7
+    },
+    {
+      "name": "syncAccount",
+      "line": 5393,
+      "index": 538324,
+      "endLine": 5430,
+      "approxLines": 38
+    }
+  ]
+}

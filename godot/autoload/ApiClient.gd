@@ -80,8 +80,11 @@ func fetch_scores() -> void:
 			scores_received.emit([])
 			return
 		var data = JSON.parse_string(body.get_string_from_utf8())
+		# HTML accepts Array or {scores:[]}
 		if typeof(data) == TYPE_ARRAY:
 			scores_received.emit(data)
+		elif typeof(data) == TYPE_DICTIONARY and data.get("scores") is Array:
+			scores_received.emit(data["scores"])
 		else:
 			scores_received.emit([])
 	)
@@ -96,6 +99,8 @@ func submit_score(payload: Dictionary) -> void:
 			var data = JSON.parse_string(body.get_string_from_utf8())
 			if typeof(data) == TYPE_DICTIONARY and data.get("scores") is Array:
 				scores_received.emit(data["scores"])
+			elif typeof(data) == TYPE_ARRAY:
+				scores_received.emit(data)
 	)
 	req.request(
 		_url("/api/scores"),

@@ -1,0 +1,268 @@
+# AUTO-PORTED from public/index.html — needs manual polish
+# Original: drawBobina
+extends RefCounted
+# expects `ctx` CanvasCompat and game globals
+
+func drawBobina(p) -> void:
+
+  var lean=p.lean or 0;
+  ctx.save(); ctx.translate(p.x,p.y);
+  if (p.iframe>0  and  Math.floor(p.iframe/4)%2) ctx.global_alpha(0.5);
+  var breath=Math.sin(tick*0.1)*0.6;         // gentle up/down
+  var idle=Math.sin(tick*0.12)*0.7;          // head bob
+  var sway=Math.sin(tick*0.09)*1.3 + lean*7; // skirt hem drift (+ trails when leaning)
+  var sBob=Math.sin(tick*0.13)*0.9;          // sleeve bob
+  ctx.line_join('round'); ctx.line_cap('round');
+  // rotate the whole body to face her travel direction (full 360), about her centre
+  var rot=(p.face!=null?p.face:-Math.PI/2)+Math.PI/2;
+  ctx.translate(0,-16); ctx.rotate(rot); ctx.translate(0,16+breath);
+  // ground shadow + soft glow — drawn INSIDE the rotated frame at her feet, so it flips with her orientation
+  ctx.save(); var _ga=ctx.globalAlpha;
+  ctx.global_alpha(_ga*0.5);  ctx.fill_style(Color.html("#08040c")); ctx.begin_path(); ctx.ellipse(0,20,13,4.6,0,0,7); ctx.fill();   // drop shadow at her feet
+  ctx.global_alpha(_ga*0.34); ctx.fill_style(Color.html("#ff8ad6")); ctx.begin_path(); ctx.ellipse(0,19,11,4,0,0,7);   ctx.fill();   // pink glow
+  ctx.restore();
+  var _grh=(p.outfit or selectedOutfit or 'og')=='ourbit';   // Ourbit mascot has green hair
+  var skin='#7c4c31',skinSh='#5f3823',hair=_grh?'#4a9e3a':'#181320',hairHi=_grh?'#7cc255':'#3a3048',ln='#241019';
+  // movement-driven animation: legs pump + arms swing when she flies fast
+  var mspd=Math.hypot(p.vx or 0,p.vy or 0), amt=Math.min(1,mspd/3.2), aph=tick*0.4;
+  var kickL=Math.sin(aph)*amt*3.2, kickR=Math.sin(aph+Math.PI)*amt*3.2, armSw=Math.sin(aph+0.6)*amt*2.2;
+  // shared, consistent arm geometry for EVERY outfit (arms tuck at her sides, shoulders covered) — fixes wonky/mismatched limbs
+  // BOTH arms are drawn here (behind the torso) so they poke out the back symmetrically — anchored up at the shoulder joints so they read as in-socket, hanging down to the hands
+  var hold=p.hold;   // : # {x,y# }: raise her RIGHT arm + orb to this point (e.g. lifting a coffee) — drawn in front, after the head, so it stays visible
+  var _armCol=skinSh, _armW=3.8, _handCols=null;
+  var backArm=(col,lw)=>: # { _armCol=col; _armW=lw or 3.8; if (hold) return;   // when holding, BOTH arms are drawn in front of the chest (below)
+    ctx.stroke_style(col); ctx.line_width(_armW);
+    ctx.begin_path(); ctx.move_to(-7.5,-4); ctx.line_to(-10.5-armSw*0.7,7+sBob); ctx.stroke();
+    ctx.begin_path(); ctx.move_to(7.5,-4);  ctx.line_to(10.5+armSw*0.7,7-sBob); ctx.stroke(); # };
+  var frontArm=(col,lw)=>: # {# };   // arms now both drawn by backArm (behind the body); kept as a no-op so every outfit's call site still works
+  var hands=(g,c1,c2)=>: # { _handCols=[g,c1,c2]; if (hold) return; pOrb(-10.5-armSw*0.7,7.6+sBob,g,c1,c2); pOrb(10.5+armSw*0.7,7.6-sBob,g,c1,c2); # };
+  var outfit=(p.outfit or selectedOutfit or 'og');
+  var uwu=(p.expr=='uwu');   // cute ^w^ easter-egg face (closed :3 eyes)
+  var smile=(not p.expr  or  p.expr=='smile');   // her updated open-eye model — now the DEFAULT face (in-game player, main menu, win screen, etc.)
+  var annoyed=(p.expr=='annoyed');   // mildly annoyed: half-lidded droopy eyes + flat mouth (Twirl)
+  var squee=(p.expr=='squee');       // >v< : squeezed chevron eyes + v mouth + big blush (victory pose, no blink)
+  var giggle=(p.expr=='giggle');     // giggling: happy closed ^^ eyes + open laugh mouth (Coffee pose)
+  var custom=(uwu or smile or annoyed or squee or giggle);   // any of her stylised preview expressions
+  // ==== BODY (outfit-specific) ====
+  if (outfit=='maid'): # {
+    var dress='#201b2e', white='#f4efe6', whiteSh='#d6cdbf', ribbon='#d23a44', sway2=Math.sin(tick*0.09)*1.2;
+    ctx.stroke_style(white); ctx.line_width(5.5); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,18); ctx.move_to(4,7); ctx.line_to(4+kickR,18); ctx.stroke();
+    ctx.fill_style(Color.html("#26222e")); ctx.begin_path(); ctx.ellipse(-4+kickL,19,3.6,2.3,0,0,7); ctx.ellipse(4+kickR,19,3.6,2.3,0,0,7); ctx.fill();
+    ctx.fill_style(dress); ctx.begin_path(); ctx.move_to(-8,2); ctx.quadratic_curve_to(-13+sway2,9,-11+sway2,13); ctx.line_to(11+sway2,13); ctx.quadratic_curve_to(13+sway2,9,8,2); ctx.close_path(); ctx.stroke_style(ln); ctx.line_width(1.4); ctx.stroke(); ctx.fill();
+    ctx.fill_style(white); for(var i=-11;i<11;i+=4): # { ctx.begin_path(); ctx.arc(i+2+sway2,13,2.2,0,Math.PI); ctx.fill(); # }
+    ctx.fill_style(white); ctx.begin_path(); ctx.move_to(-5,3); ctx.line_to(5,3); ctx.line_to(4,12); ctx.line_to(-4,12); ctx.close_path(); ctx.fill();
+    backArm(skinSh);
+    ctx.fill_style(dress); ctx.begin_path(); ctx.roundRect(-8,-6,16,10,4); ctx.stroke_style(ln); ctx.line_width(1.4); ctx.stroke(); ctx.fill();
+    ctx.fill_style(white); ctx.begin_path(); ctx.roundRect(-4.5,-6,9,10,2); ctx.fill();
+    ctx.fill_style(ribbon); ctx.begin_path(); ctx.move_to(0,-6); ctx.line_to(-4,-3); ctx.line_to(0,-1.5); ctx.line_to(4,-3); ctx.close_path(); ctx.fill(); circle(0,-3.6,1.4,ribbon);
+    ctx.fill_style(white); ctx.begin_path(); ctx.ellipse(-8.5,-3.3,4.3,4.7,0,0,7); ctx.ellipse(8.5,-3.3,4.3,4.7,0,0,7); ctx.fill();   // puff sleeves cover the shoulders
+    frontArm(skin);
+    hands('#ff8ad6','#ffd6f2','#ff5bb0');
+  # } else if (outfit=='bride'): # {
+    // flowing white wedding gown with a pink sash + bouquet
+    var gown='#f7f2ec', gownSh='#dcd2c6', sash='#ffcfe0', lace='#ffffff', sway2=Math.sin(tick*0.09)*1.3;
+    ctx.stroke_style(Color.html("#efe7dc")); ctx.line_width(5); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,18); ctx.move_to(4,7); ctx.line_to(4+kickR,18); ctx.stroke();
+    ctx.fill_style(Color.html("#e8dccb")); ctx.begin_path(); ctx.ellipse(-4+kickL,19,3.4,2.2,0,0,7); ctx.ellipse(4+kickR,19,3.4,2.2,0,0,7); ctx.fill();
+    ctx.fill_style(gown); ctx.begin_path(); ctx.move_to(-8,1); ctx.quadratic_curve_to(-15+sway2,10,-13+sway2,16); ctx.quadratic_curve_to(0,19,13+sway2,16); ctx.quadratic_curve_to(15+sway2,10,8,1); ctx.close_path(); ctx.stroke_style(gownSh); ctx.line_width(1.2); ctx.stroke(); ctx.fill();
+    ctx.fill_style(lace); for(var i=-12;i<12;i+=3.4): # { ctx.begin_path(); ctx.arc(i+2+sway2,16,1.8,0,Math.PI); ctx.fill(); # }
+    ctx.stroke_style(gownSh); ctx.line_width(0.7); ctx.begin_path(); ctx.move_to(0,3); ctx.line_to(0,16); ctx.stroke();
+    backArm(gownSh);
+    ctx.fill_style(gown); ctx.begin_path(); ctx.roundRect(-8,-6,16,9,4); ctx.stroke_style(gownSh); ctx.line_width(1.2); ctx.stroke(); ctx.fill();
+    ctx.fill_style(gownSh); ctx.begin_path(); ctx.move_to(-5,-6); ctx.quadratic_curve_to(0,-3.4,5,-6); ctx.quadratic_curve_to(0,-4.6,-5,-6); ctx.fill();
+    ctx.fill_style(sash); ctx.fill_rect(-8,1.4,16,2.2);
+    ctx.begin_path(); ctx.move_to(0,2.5); ctx.line_to(-4,0.3); ctx.line_to(-4,4.9); ctx.close_path(); ctx.move_to(0,2.5); ctx.line_to(4,0.3); ctx.line_to(4,4.9); ctx.close_path(); ctx.fill(); circle(0,2.5,1.3,'#ff9ec4');
+    ctx.fill_style(lace); ctx.begin_path(); ctx.ellipse(-8.5,-3.3,4.2,4.6,0,0,7); ctx.ellipse(8.5,-3.3,4.2,4.6,0,0,7); ctx.fill();
+    frontArm('#efe7dc');
+    hands('#ffd6e6','#ffffff','#ffb0d0');
+  # } else if (outfit=='angel'): # {
+    // white-and-gold robe with feathered wings + gold cord
+    var robe='#fbf6e8', robeSh='#e6dcc0', gold='#ffd76a', sway2=Math.sin(tick*0.09)*1.2, wf=Math.sin(tick*0.13)*1.4;
+    ctx.fill_style(Color.html("rgba(255,255,255,0.94)"));
+    for(var s of [-1,1]): # { ctx.begin_path(); ctx.move_to(s*5,-3);
+      ctx.quadratic_curve_to(s*(16+wf),-10, s*(19+wf),0); ctx.quadratic_curve_to(s*(16+wf),3, s*(13+wf),4);
+      ctx.quadratic_curve_to(s*(16+wf),7, s*(11+wf),10); ctx.quadratic_curve_to(s*9,7, s*5,4); ctx.close_path(); ctx.fill();
+      ctx.stroke_style(Color.html("rgba(214,206,180,0.6)")); ctx.line_width(0.6); ctx.stroke(); # }
+    ctx.stroke_style(robe); ctx.line_width(5); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,18); ctx.move_to(4,7); ctx.line_to(4+kickR,18); ctx.stroke();
+    ctx.fill_style(Color.html("#e8dcc0")); ctx.begin_path(); ctx.ellipse(-4+kickL,19,3.3,2.1,0,0,7); ctx.ellipse(4+kickR,19,3.3,2.1,0,0,7); ctx.fill();
+    ctx.fill_style(robe); ctx.begin_path(); ctx.move_to(-8,1); ctx.quadratic_curve_to(-13+sway2,10,-11+sway2,15); ctx.quadratic_curve_to(0,17,11+sway2,15); ctx.quadratic_curve_to(13+sway2,10,8,1); ctx.close_path(); ctx.fill();
+    ctx.stroke_style(gold); ctx.line_width(1.4); ctx.begin_path(); ctx.move_to(-11+sway2,15); ctx.quadratic_curve_to(0,17,11+sway2,15); ctx.stroke();
+    backArm(robeSh);
+    ctx.fill_style(robe); ctx.begin_path(); ctx.roundRect(-8,-6,16,9,4); ctx.fill();
+    ctx.stroke_style(gold); ctx.line_width(1.5); ctx.begin_path(); ctx.move_to(-6,-5); ctx.line_to(4,3); ctx.stroke();
+    ctx.fill_style(gold); ctx.fill_rect(-8,2,16,1.6);
+    ctx.fill_style(robe); ctx.begin_path(); ctx.ellipse(-8.5,-3.3,4.2,4.6,0,0,7); ctx.ellipse(8.5,-3.3,4.2,4.6,0,0,7); ctx.fill();
+    frontArm(robe);
+    hands('#fff4c2','#ffffff','#ffe08a');
+  # } else if (outfit=='golden'): # {
+    // shimmering gold gown with a chest gem + crown (headwear)
+    var gold='#ffcf3a', goldHi='#fff1a8', goldSh='#c8901a', sway2=Math.sin(tick*0.09)*1.2;
+    ctx.stroke_style(goldSh); ctx.line_width(5); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,18); ctx.move_to(4,7); ctx.line_to(4+kickR,18); ctx.stroke();
+    ctx.fill_style(Color.html("#a8760f")); ctx.begin_path(); ctx.ellipse(-4+kickL,19,3.4,2.2,0,0,7); ctx.ellipse(4+kickR,19,3.4,2.2,0,0,7); ctx.fill();
+    var gg=ctx.create_linear_gradient(-12,0,12,0); gg.addColorStop(0,goldSh); gg.addColorStop(0.5,goldHi); gg.addColorStop(1,gold);
+    ctx.fill_style(gg); ctx.begin_path(); ctx.move_to(-8,2); ctx.quadratic_curve_to(-13+sway2,9,-11+sway2,14); ctx.line_to(11+sway2,14); ctx.quadratic_curve_to(13+sway2,9,8,2); ctx.close_path(); ctx.fill();
+    ctx.stroke_style(goldSh); ctx.line_width(0.8); for i in range(int(-2), int(=2)):
+	 ctx.begin_path(); ctx.move_to(i*2.4,3); ctx.line_to(i*3.4+sway2,14); ctx.stroke(); # }
+    backArm(goldSh);
+    ctx.fill_style(gg); ctx.begin_path(); ctx.roundRect(-8,-6,16,10,4); ctx.stroke_style(goldSh); ctx.line_width(1.2); ctx.stroke(); ctx.fill();
+    circle(0,-2,1.9,'#fff1a8'); circle(0,-2,1,'#ff5b8d');
+    ctx.fill_style(goldHi); ctx.begin_path(); ctx.ellipse(-8.5,-3.3,4.2,4.6,0,0,7); ctx.ellipse(8.5,-3.3,4.2,4.6,0,0,7); ctx.fill();
+    frontArm(gold);
+    hands('#fff1a8','#ffffff','#ffcf3a');
+  # } else if (outfit=='succubus'): # {
+    // dark crimson bodice + jagged skirt, bat wings, a spade-tipped tail (horns in headwear)
+    var dress='#8a1030', dressSh='#5a0a20', trim='#2a1030', sway2=Math.sin(tick*0.09)*1.3, wf=Math.sin(tick*0.13)*1.5;
+    // bat wings BEHIND
+    ctx.fill_style(Color.html("rgba(58,12,44,0.94)")); ctx.stroke_style(Color.html("rgba(150,24,64,0.6)")); ctx.line_width(0.7);
+    for(var s of [-1,1]): # { ctx.begin_path(); ctx.move_to(s*5,-4);
+      ctx.quadratic_curve_to(s*(15+wf),-12, s*(20+wf),-3); ctx.line_to(s*(15.5+wf),-0.5); ctx.line_to(s*(19+wf),3.5); ctx.line_to(s*(13.5+wf),3.5); ctx.line_to(s*(16+wf),8); ctx.line_to(s*(10.5+wf),6.5);
+      ctx.quadratic_curve_to(s*8,3, s*5,1); ctx.close_path(); ctx.fill(); ctx.stroke();
+      ctx.begin_path(); ctx.move_to(s*6,-2); ctx.line_to(s*(17+wf),-3); ctx.move_to(s*6,0); ctx.line_to(s*(14.5+wf),2); ctx.stroke(); # }   // wing struts
+    // spade-tipped tail
+    var tw2=Math.sin(tick*0.11)*2.2;
+    ctx.stroke_style(dress); ctx.line_width(1.8); ctx.line_cap('round'); ctx.begin_path(); ctx.move_to(5,10); ctx.quadratic_curve_to(14+tw2,13,12.5+tw2,20); ctx.stroke();
+    ctx.fill_style(dress); ctx.begin_path(); ctx.move_to(12.5+tw2,17.5); ctx.line_to(15.2+tw2,22); ctx.line_to(12.5+tw2,21); ctx.line_to(9.8+tw2,22); ctx.close_path(); ctx.fill();
+    // legs (thigh-high stockings)
+    ctx.stroke_style(trim); ctx.line_width(5); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,18); ctx.move_to(4,7); ctx.line_to(4+kickR,18); ctx.stroke();
+    ctx.fill_style(Color.html("#1a0a14")); ctx.begin_path(); ctx.ellipse(-4+kickL,19,3.4,2.2,0,0,7); ctx.ellipse(4+kickR,19,3.4,2.2,0,0,7); ctx.fill();
+    // jagged short skirt
+    ctx.fill_style(dress); ctx.begin_path(); ctx.move_to(-8,2); ctx.line_to(-9+sway2,11); ctx.line_to(-5.5,8.5); ctx.line_to(-2.5,12); ctx.line_to(0,8.5); ctx.line_to(2.5,12); ctx.line_to(5.5,8.5); ctx.line_to(9+sway2,11); ctx.line_to(8,2); ctx.close_path(); ctx.fill(); ctx.stroke_style(dressSh); ctx.line_width(0.8); ctx.stroke();
+    backArm(dressSh);
+    // strapless bodice + heart cutout
+    ctx.fill_style(dress); ctx.begin_path(); ctx.roundRect(-8,-5,16,8,4); ctx.stroke_style(dressSh); ctx.line_width(1.2); ctx.stroke(); ctx.fill();
+    ctx.fill_style(trim); ctx.begin_path(); ctx.move_to(0,-0.6); ctx.bezier_curve_to(-3,-3,-2.4,-5.4,0,-3.6); ctx.bezier_curve_to(2.4,-5.4,3,-3,0,-0.6); ctx.fill();
+    ctx.fill_style(dress); ctx.begin_path(); ctx.ellipse(-8.5,-3,3.4,3.9,0,0,7); ctx.ellipse(8.5,-3,3.4,3.9,0,0,7); ctx.fill();   // shoulder bands
+    frontArm(skin);
+    hands('#ff3b6e','#ffd6e6','#c81e4a');
+  # } else if (outfit=='nanosuit'): # {
+    // Eva-style red plugsuit: red bodysuit, black accent stripes, orange chest plates, green core gem
+    var red='#d0202a', redD='#9c1420', black='#16121c', orange='#ff7a2a', orangeL='#ffb060', green='#3ad84a', steel='#cdd2da';
+    // legs (red with black stripe) + boots
+    ctx.stroke_style(red); ctx.line_width(6); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,15); ctx.move_to(4,7); ctx.line_to(4+kickR,15); ctx.stroke();
+    ctx.stroke_style(black); ctx.line_width(1.4); ctx.begin_path(); ctx.move_to(-4,9.5); ctx.line_to(-4+kickL*0.7,14.5); ctx.move_to(4,9.5); ctx.line_to(4+kickR*0.7,14.5); ctx.stroke();
+    ctx.fill_style(black); ctx.begin_path(); ctx.ellipse(-4+kickL,18,4,2.6,0,0,7); ctx.ellipse(4+kickR,18,4,2.6,0,0,7); ctx.fill();
+    // hips (red) with black seam
+    ctx.fill_style(red); ctx.begin_path(); ctx.roundRect(-9,2,18,8,3); ctx.stroke_style(redD); ctx.line_width(1.4); ctx.stroke(); ctx.fill();
+    ctx.stroke_style(black); ctx.line_width(1.4); ctx.begin_path(); ctx.move_to(-9,6); ctx.line_to(9,6); ctx.move_to(0,2); ctx.line_to(0,10); ctx.stroke();
+    backArm(redD,4);
+    // torso (red suit)
+    ctx.begin_path(); ctx.move_to(-9,3); ctx.line_to(-9,-4); ctx.quadratic_curve_to(-9,-9,-4,-10.5); ctx.line_to(4,-10.5); ctx.quadratic_curve_to(9,-9,9,-4); ctx.line_to(9,3); ctx.close_path(); ctx.stroke_style(redD); ctx.line_width(1.4); ctx.stroke(); ctx.fill_style(red); ctx.fill();
+    // black accent stripes down the torso
+    ctx.stroke_style(black); ctx.line_width(1.3); ctx.begin_path(); ctx.move_to(-7.5,-9); ctx.line_to(-8.5,3); ctx.move_to(7.5,-9); ctx.line_to(8.5,3); ctx.stroke();
+    // orange chest plates (two) with highlights
+    ctx.fill_style(orange); ctx.begin_path(); ctx.ellipse(-3.6,-5,3.4,3.9,0.25,0,7); ctx.ellipse(3.6,-5,3.4,3.9,-0.25,0,7); ctx.fill();
+    ctx.fill_style(orangeL); ctx.begin_path(); ctx.ellipse(-4.2,-6.2,1.3,1.6,0.2,0,7); ctx.ellipse(3,-6.2,1.3,1.6,-0.2,0,7); ctx.fill();
+    ctx.stroke_style(redD); ctx.line_width(0.9); ctx.begin_path(); ctx.ellipse(-3.6,-5,3.4,3.9,0.25,0,7); ctx.ellipse(3.6,-5,3.4,3.9,-0.25,0,7); ctx.stroke();
+    // green core gem at sternum
+    ctx.fill_style(green); ctx.shadow_color(green); ctx.shadow_blur(8); ctx.begin_path(); ctx.arc(0,-1,2.2,0,7); ctx.fill(); ctx.shadow_blur(0);
+    ctx.fill_style(Color.html("#d8ffd0")); ctx.begin_path(); ctx.arc(-0.6,-1.7,0.85,0,7); ctx.fill();
+    // black plugsuit collar with steel nubs
+    ctx.fill_style(black); ctx.begin_path(); ctx.roundRect(-6,-11,12,3,1.5); ctx.fill();
+    ctx.fill_style(steel); ctx.begin_path(); ctx.arc(-4,-9.5,0.8,0,7); ctx.arc(4,-9.5,0.8,0,7); ctx.fill();
+    // shoulder pads (dark red) cover the joints
+    ctx.fill_style(redD); ctx.begin_path(); ctx.arc(-8.5,-3.5,4.2,0,7); ctx.arc(8.5,-3.5,4.2,0,7); ctx.fill();
+    frontArm(redD,4);
+    hands('#ff9a4a','#ffe0b0','#ff7a2a');
+  # } else if (outfit=='badger'): # {
+    // cute honey-badger onesie: charcoal fur, white dorsal stripe, honey-amber trim
+    var furc='#2a2620', furD='#1a1712', white='#ece7da', honey='#f0b030', cream='#f6efe0';
+    // legs (charcoal) + cream paw feet with tiny claws
+    ctx.stroke_style(furc); ctx.line_width(6); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,16); ctx.move_to(4,7); ctx.line_to(4+kickR,16); ctx.stroke();
+    ctx.fill_style(cream); ctx.begin_path(); ctx.ellipse(-4+kickL,18,3.8,2.5,0,0,7); ctx.ellipse(4+kickR,18,3.8,2.5,0,0,7); ctx.fill();
+    ctx.stroke_style(Color.html("#c9b48a")); ctx.line_width(0.8); ctx.begin_path();
+    ctx.move_to(-6+kickL,19.4); ctx.line_to(-6+kickL,20.4); ctx.move_to(-2.4+kickL,19.4); ctx.line_to(-2.4+kickL,20.4);   // left foot claws
+    ctx.move_to(2.4+kickR,19.4); ctx.line_to(2.4+kickR,20.4); ctx.move_to(6+kickR,19.4); ctx.line_to(6+kickR,20.4);   // right foot claws (was missing)
+    ctx.stroke();
+    // hips
+    ctx.fill_style(furc); ctx.begin_path(); ctx.roundRect(-9,2,18,8,3); ctx.stroke_style(furD); ctx.line_width(1.4); ctx.stroke(); ctx.fill();
+    backArm(furD,4);
+    // torso (charcoal onesie)
+    ctx.begin_path(); ctx.move_to(-9,3); ctx.line_to(-9,-4); ctx.quadratic_curve_to(-9,-9,-4,-10.5); ctx.line_to(4,-10.5); ctx.quadratic_curve_to(9,-9,9,-4); ctx.line_to(9,3); ctx.close_path(); ctx.stroke_style(furD); ctx.line_width(1.4); ctx.stroke(); ctx.fill_style(furc); ctx.fill();
+    // white dorsal/front stripe (badger signature)
+    ctx.fill_style(white); ctx.begin_path(); ctx.move_to(-4,-10.5); ctx.line_to(4,-10.5); ctx.line_to(3,3); ctx.line_to(-3,3); ctx.close_path(); ctx.fill();
+    // honey-amber collar + belly emblem
+    ctx.fill_style(honey); ctx.begin_path(); ctx.roundRect(-6,-11,12,2.6,1.3); ctx.fill();
+    ctx.fill_style(honey); ctx.begin_path(); ctx.arc(0,-2,1.9,0,7); ctx.fill(); ctx.fill_style(Color.html("#fff2c8")); ctx.begin_path(); ctx.arc(-0.5,-2.6,0.7,0,7); ctx.fill();
+    // shoulder tufts (dark, white flecks) cover the joints
+    ctx.fill_style(furc); ctx.begin_path(); ctx.arc(-8.5,-3.5,4.2,0,7); ctx.arc(8.5,-3.5,4.2,0,7); ctx.fill();
+    ctx.fill_style(white); ctx.begin_path(); ctx.arc(-8.7,-5,1.5,0,7); ctx.arc(8.7,-5,1.5,0,7); ctx.fill();
+    frontArm(furD,4);
+    hands('#f0b030','#fff2c8','#e0902a');
+  # } else if (outfit=='honeybee'): # {
+    // black-and-yellow striped bee suit with buzzing translucent wings + fuzzy shoulders
+    var yel='#ffd23a', blk='#1a1712', wing='rgba(210,235,255,0.5)', wingE='rgba(180,215,255,0.8)';
+    ctx.stroke_style(blk); ctx.line_width(6); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,16); ctx.move_to(4,7); ctx.line_to(4+kickR,16); ctx.stroke();   // black legs
+    ctx.fill_style(yel); ctx.begin_path(); ctx.ellipse(-4+kickL,18,3.6,2.4,0,0,7); ctx.ellipse(4+kickR,18,3.6,2.4,0,0,7); ctx.fill();   // yellow boots
+    var wf=Math.sin(tick*0.6)*0.18; ctx.fill_style(wing); ctx.stroke_style(wingE); ctx.line_width(0.8);   // buzzing wings (behind)
+    for(var s of [-1,1]): # { ctx.save(); ctx.translate(s*7,-7); ctx.rotate(s*(0.6+wf)); ctx.begin_path(); ctx.ellipse(s*5,0,6.5,3.4,0,0,7); ctx.fill(); ctx.stroke(); ctx.restore(); # }
+    ctx.fill_style(yel); ctx.begin_path(); ctx.roundRect(-9,2,18,8,3); ctx.fill();   // striped abdomen
+    ctx.save(); ctx.begin_path(); ctx.roundRect(-9,2,18,8,3); ctx.clip(); ctx.fill_style(blk); ctx.fill_rect(-9,3.6,18,1.8); ctx.fill_rect(-9,7,18,1.8); ctx.restore();
+    backArm(blk,4);
+    ctx.begin_path(); ctx.move_to(-9,3); ctx.line_to(-9,-4); ctx.quadratic_curve_to(-9,-9,-4,-10.5); ctx.line_to(4,-10.5); ctx.quadratic_curve_to(9,-9,9,-4); ctx.line_to(9,3); ctx.close_path(); ctx.fill_style(yel); ctx.fill();   // striped torso
+    ctx.save(); ctx.clip(); ctx.fill_style(blk); ctx.fill_rect(-9,-8,18,2); ctx.fill_rect(-9,-3.5,18,2); ctx.fill_rect(-9,1,18,2); ctx.restore();
+    ctx.fill_style(blk); ctx.begin_path(); ctx.roundRect(-6,-11,12,2.6,1.3); ctx.fill();   // black collar
+    ctx.fill_style(yel); ctx.begin_path(); ctx.arc(-8.5,-3.5,4.2,0,7); ctx.arc(8.5,-3.5,4.2,0,7); ctx.fill();   // fuzzy shoulders
+    ctx.fill_style(blk); ctx.begin_path(); ctx.arc(-8.7,-2.2,1.4,0,7); ctx.arc(8.7,-2.2,1.4,0,7); ctx.fill();
+    frontArm(blk,4);
+    hands('#ffd23a','#fff3b0','#e0a91e');
+  # } else if (outfit=='voidling'): # {
+    // eldritch void robe: deep violet, glowing rune trim, a void-eye sigil, wispy tentacle hem
+    var voidc='#241238', voidD='#160a24', glow='#9d6bff', glowL='#c9a0ff', rune='#b98cff';
+    ctx.stroke_style(voidc); ctx.line_width(6); ctx.line_cap('round');   // tentacle legs
+    ctx.begin_path(); ctx.move_to(-4,7); ctx.quadratic_curve_to(-5+kickL,13,-4+kickL,17); ctx.move_to(4,7); ctx.quadratic_curve_to(5+kickR,13,4+kickR,17); ctx.stroke();
+    ctx.save(); ctx.shadow_color(glow); ctx.shadow_blur(6); ctx.fill_style(glow); ctx.begin_path(); ctx.arc(-4+kickL,18,1.9,0,7); ctx.arc(4+kickR,18,1.9,0,7); ctx.fill(); ctx.restore();   // glowing tips
+    ctx.stroke_style(voidD); ctx.line_width(2.6); for i in range(int(-2), int(=2)):
+	 var tx=i*4, wob=Math.sin(tick*0.12+i)*2; ctx.begin_path(); ctx.move_to(tx,5); ctx.quadratic_curve_to(tx+wob,11,tx+wob*1.4,16); ctx.stroke(); # }   // wispy hem tentacles
+    ctx.fill_style(voidc); ctx.begin_path(); ctx.move_to(-8,2); ctx.quadratic_curve_to(-12,10,-9,14); ctx.line_to(9,14); ctx.quadratic_curve_to(12,10,8,2); ctx.close_path(); ctx.fill();   // robe skirt
+    backArm(voidD,4);
+    ctx.begin_path(); ctx.move_to(-9,3); ctx.line_to(-9,-4); ctx.quadratic_curve_to(-9,-9,-4,-10.5); ctx.line_to(4,-10.5); ctx.quadratic_curve_to(9,-9,9,-4); ctx.line_to(9,3); ctx.close_path(); ctx.fill_style(voidc); ctx.fill();   // torso robe
+    ctx.save(); ctx.shadow_color(glow); ctx.shadow_blur(6); ctx.fill_style(glowL); ctx.begin_path(); ctx.ellipse(0,-3,3,2,0,0,7); ctx.fill(); ctx.restore();   // glowing void-eye sigil
+    ctx.fill_style(voidD); ctx.begin_path(); ctx.ellipse(0,-3,1.1,1.6,0,0,7); ctx.fill();   // slit pupil
+    ctx.save(); ctx.shadow_color(glow); ctx.shadow_blur(4); ctx.stroke_style(rune); ctx.line_width(1.3); ctx.begin_path(); ctx.move_to(-6,-10.6); ctx.line_to(6,-10.6); ctx.stroke(); ctx.restore();   // glowing rune collar
+    ctx.line_cap('butt'); ctx.fill_style(voidD); ctx.begin_path(); ctx.arc(-8.5,-3.5,4.2,0,7); ctx.arc(8.5,-3.5,4.2,0,7); ctx.fill();   // shadow shoulder tufts
+    frontArm(voidD,4);
+    hands('#9d6bff','#e0d0ff','#6a3aa0');
+  # } else if (outfit=='banana'): # {
+    // a plump banana costume — curved yellow peel body with ridge lines, ripe spots + a lighter belly
+    var ban='#ffcf3a', banD='#e0a800', banL='#ffe89a', spot='#a5732a', tip='#6a4a24';
+    ctx.stroke_style(ban); ctx.line_width(6); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,16); ctx.move_to(4,7); ctx.line_to(4+kickR,16); ctx.stroke();   // legs
+    ctx.fill_style(banD); ctx.begin_path(); ctx.ellipse(-4+kickL,18,3.6,2.3,0,0,7); ctx.ellipse(4+kickR,18,3.6,2.3,0,0,7); ctx.fill();
+    ctx.fill_style(ban); ctx.begin_path(); ctx.roundRect(-9,2,18,8,3); ctx.fill();   // hips
+    backArm(banD,4);
+    ctx.fill_style(ban); ctx.begin_path(); ctx.move_to(-8,-9); ctx.quadratic_curve_to(-12,0,-8,9); ctx.quadratic_curve_to(0,12,8,9); ctx.quadratic_curve_to(12,0,8,-9); ctx.quadratic_curve_to(0,-11,-8,-9); ctx.close_path(); ctx.fill(); ctx.stroke_style(banD); ctx.line_width(1.3); ctx.stroke();   // banana body
+    ctx.stroke_style(banD); ctx.line_width(0.9); for(var rx of [-4,0,4]): # { ctx.begin_path(); ctx.move_to(rx,-8); ctx.quadratic_curve_to(rx*1.3,0,rx,9); ctx.stroke(); # }   // ridge lines
+    ctx.fill_style(banL); ctx.begin_path(); ctx.ellipse(-2,0,2.2,5,0,0,7); ctx.fill();   // belly highlight
+    ctx.fill_style(spot); for(var sp of [[5,-4],[-6,3],[3,6]]): # { ctx.begin_path(); ctx.arc(sp[0],sp[1],0.9,0,7); ctx.fill(); # }   // ripe spots
+    ctx.fill_style(tip); ctx.begin_path(); ctx.ellipse(0,10,2,1.6,0,0,7); ctx.fill();   // brown tip
+    ctx.fill_style(ban); ctx.begin_path(); ctx.arc(-8.5,-3.5,4.2,0,7); ctx.arc(8.5,-3.5,4.2,0,7); ctx.fill();   // shoulders
+    frontArm(banD,4);
+    hands('#ffcf3a','#ffe89a','#e0a800');
+  # } else if (outfit=='squirrely'): # {
+    // squirrel onesie: warm brown fur, cream belly, a big bushy tail curling up behind (like Monke)
+    var fur='#a5642e', furD='#7a441c', cream='#e6cfa0', furL='#c07d3e';
+    ctx.fill_style(fur); ctx.begin_path(); ctx.move_to(8,9); ctx.quadratic_curve_to(21,7,21,-6); ctx.quadratic_curve_to(21,-19,7,-16); ctx.quadratic_curve_to(15,-8,12,-1); ctx.quadratic_curve_to(15,5,8,9); ctx.close_path(); ctx.fill();   // big bushy tail
+    ctx.stroke_style(furL); ctx.line_width(1); for i in range(int(0), int(4)):
+	 ctx.begin_path(); ctx.move_to(11,6-i*4.5); ctx.quadratic_curve_to(18,2-i*4.5,16.5,-4-i*3.5); ctx.stroke(); # }
+    ctx.stroke_style(fur); ctx.line_width(6); ctx.begin_path(); ctx.move_to(-4,7); ctx.line_to(-4+kickL,16); ctx.move_to(4,7); ctx.line_to(4+kickR,16); ctx.stroke();
+    ctx.fill_style(cream); ctx.begin_path(); ctx.ellipse(-4+kickL,18,3.8,2.5,0,0,7); ctx.ellipse(4+kickR,18,3.8,2.5,0,0,7); ctx.fill();
+    ctx.fill_style(fur); ctx.begin_path(); ctx.roundRect(-9,2,18,8,3); ctx.stroke_style(furD); ctx.line_width(1.3); ctx.stroke(); ctx.fill();
+    backArm(furD,4);
+    ctx.begin_path(); ctx.move_to(-9,3); ctx.line_to(-9,-4); ctx.quadratic_curve_to(-9,-9,-4,-10.5); ctx.line_to(4,-10.5); ctx.quadratic_curve_to(9,-9,9,-4); ctx.line_to(9,3); ctx.close_path(); ctx.fill_style(fur); ctx.fill(); ctx.stroke_style(furD); ctx.line_width(1.3); ctx.stroke();
+    ctx.fill_style(cream); ctx.begin_path(); ctx.ellipse(0,-2,4,5.4,0,0,7); ctx.fill();
+    ctx.fill_style(fur); ctx.begin_path(); ctx.arc(-8.5,-3.5,4.2,0,7); ctx.arc(8.5,-3.5,4.2,0,7); ctx.fill();
+    frontArm(furD,4);
+    hands('#c07d3e','#e6cfa0','#7a441c');
+  # } else if (outfit=='honeypot'): # {
+    // she's wearing a round honeypot — clean amber pot body with honey drips, little legs poking out
+    var pot='#e0972a', potD='#b0731a', honey='#ffcf5a';
+    ctx.stroke_style(Color.html("#7c4c31")); ctx.line_width(5.5); ctx.begin_path(); ctx.move_to(-4,10); ctx.line_to(-4+kickL,17); ctx.move_to(4,10); ctx.line_to(4+kickR,17); ctx.stroke();
+    ctx.fill_style(Color.html("#5f3823")); ctx.begin_path(); ctx.ellipse(-4+kickL,18.5,3.4,2.2,0,0,7); ctx.ellipse(4+kickR,18.5,3.4,2.2,0,0,7); ctx.fill();
+    backArm('#7c4c31',3.8);
+    ctx.fill_style(pot); ctx.begin_path(); ctx.move_to(-9,-6); ctx.quadratic_curve_to(-13,0,-10,9); ctx.quadratic_curve_to(0,13,10,9); ctx.quadratic_curve_to(13,0,9,-6); ctx.close_path(); ctx.fill(); ctx.stroke_style(potD); ctx.line_width(1.4); ctx.stroke();   // pot body
+    ctx.fill_style(potD); ctx.begin_path(); ctx.ellipse(0,-6,9.5,3,0,0,7); ctx.fill(); ctx.fill_style(honey); ctx.begin_path(); ctx.ellipse(0,-6,7.5,2.2,0,0,7); ctx.fill();   // honey-filled rim
+    ctx.fill_style(honey); ctx.begin_path(); ctx.move_to(-8,-5); ctx.quadratic_curve_to(-9,0,-7.5,2); ctx.quadratic_curve_to(-6,0,-6,-5); ctx.close_path(); ctx.fill(); ctx.begin_path(); ctx.arc(-7.5,2.4,1.4,0,7); ctx.fill();   // drip L
+    ctx.begin_path(); ctx.move_to(6,-5); ctx.quadratic_curve_to(5.5,2,7,4); ctx.quadratic_curve_to(8.5,2,8,-5); ctx.close_path(); ctx.fill(); ctx.begin_path(); ctx.arc(7,4.4,1.3,0,7); ctx.fill();   // drip R
+    ctx.fill_style(potD); ctx.begin_path(); ctx.roundRect(-9,1.5,18,1.8,1); ctx.fill();   // simple decorative band
+    ctx.stroke_style(Color.html("rgba(255,255,255,0.4)")); ctx.line_width(1.4); ctx.begin_path(); ctx.arc(0,1,7,Math.PI*0.72,Math.PI*0.96); ctx.stroke();   // pot sheen
+    frontArm('#7c4c31',3.8);
+    hands('#e0972a','#ffcf5a','#b0731a');
+  

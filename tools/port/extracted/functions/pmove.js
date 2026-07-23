@@ -1,0 +1,2 @@
+function pmove(e){ bumpIdle(); const p=canvasPos(e); mouse.x=p.x; mouse.y=p.y; mouse.moveT=45; if(pointer.down){ pointer.x=p.x; pointer.y=p.y; }
+  if(state==='arsenal' && arsDrag){ arsDrag.x=p.x; arsDrag.y=p.y; if(!arsDrag.moved && Math.hypot(p.x-(arsDrag.sx||p.x),p.y-(arsDrag.sy||p.y))>7) arsDrag.moved=true; } }

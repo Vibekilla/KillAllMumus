@@ -1,0 +1,9 @@
+## AUTO-PORTED from HTML function enemyExplode — review required
+func enemyExplode(e):
+	 if(e._exploded) return; e._exploded=true; e.hp=0;
+	  burst(e.x,e.y,'#ffd27a'); for i in range(int(0), int(12)) particles.append({x:e.x,y:e.y,vx:(randf()-.5)*9,vy:(randf()-.5)*9,life:22,c:i%2?'#ffd27a':'#fff'});
+	  for o in enemies){ if(o!=e && o.hp>0 && sqrt_sum_sq(o.x-e.x,o.y-e.y)<46){ o.hp-=6; o.flash=5; if(o.hp<=0) killEnemy(o); } }
+	  bullets=bullets.filter(func(b): return { if(sqrt_sum_sq(b.x-e.x,b.y-e.y)<42){ floaters.append({x:b.x,y:b.y,life:12,vy:-0.5,scale:0.3}); return false; } return true; });
+	  killEnemy(e); screenShake=maxf(screenShake,3.5); sfx('hit'); }
+	// plasma-flame fields (Kuma Katana charged): burn Mumus + incoming bullets in the swipe wedge over time
+

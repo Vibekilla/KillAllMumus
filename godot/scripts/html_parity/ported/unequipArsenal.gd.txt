@@ -1,0 +1,3 @@
+## AUTO-PORTED from HTML function unequipArsenal — review required
+func unequipArsenal(type, key):
+	 var arr=arsArr(type), minK=(type=='s'||type=='i'?0:1), i=arr.find(key); if(i>=0 && arr.size()>minK){ arr.splice(i,1); if(type=='i'&&selConsum>=arr.size())selConsum=0; saveArsenal(); if(run) applyArsenalToRun(); sfx('item'); } else sfx('hit'); 

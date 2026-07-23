@@ -1,0 +1,6 @@
+## AUTO-PORTED from HTML function simStep — review required
+func simStep():
+
+	  if(state=='title') titleIdleT += 1; else titleIdleT=0;
+	  update(); emblemTick();
+

@@ -1,0 +1,50 @@
+# AUTO-PORTED from public/index.html — needs manual polish
+# Original: drawBogdanoff
+extends RefCounted
+# expects `ctx` CanvasCompat and game globals
+
+func drawBogdanoff(b,flash) -> void:
+ var R=b.r;
+  // which twin is on the strings? (fake bust passes no active → reflect the live boss, else default Igor)
+  var igor = (b.active!=null)? b.active=='igor' : (boss and boss.twin and boss.active? boss.active=='igor' : true);
+  var skin=flash?'#fff':'#c99a6a', skinSh='#a2764c', hair=flash?'#fff':'#e8dcc4', tux='#20202a', accent=igor?'#b48ce0':'#e0b84a';
+  var bust=(b.t==null);   // the dialogue-box portrait passes a fake with no .t → draw a STATIC astral glow (no per-frame pulse)
+  // astral aura behind him (pulses on the field, static in the dialogue picture)
+  ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.global_alpha(bust?0.34:(0.32+0.16*Math.sin(tick*0.1))); ctx.fill_style(accent); ctx.begin_path(); ctx.arc(0,-R*0.05,R*1.05,0,7); ctx.fill(); ctx.restore();
+  // faint puppet strings descending from above
+  ctx.stroke_style(_hexA(accent,0.35)); ctx.line_width(1); ctx.begin_path(); ctx.move_to(-R*0.5,R*0.2); ctx.line_to(-R*0.72,-R*1.4); ctx.move_to(R*0.5,R*0.2); ctx.line_to(R*0.72,-R*1.4); ctx.stroke();
+  // tuxedo shoulders + shirt + bow tie
+  ctx.fill_style(tux); ctx.begin_path(); ctx.ellipse(0,R*0.72,R*0.95,R*0.5,0,0,7); ctx.fill();
+  ctx.fill_style(Color.html("#f4efe6")); ctx.begin_path(); ctx.move_to(0,R*0.3); ctx.line_to(-R*0.15,R*0.72); ctx.line_to(R*0.15,R*0.72); ctx.close_path(); ctx.fill();
+  ctx.fill_style(accent); ctx.begin_path(); ctx.move_to(0,R*0.32); ctx.line_to(-R*0.08,R*0.5); ctx.line_to(0,R*0.62); ctx.line_to(R*0.08,R*0.5); ctx.close_path(); ctx.fill();
+  // long gaunt face with the signature jutting chin + high cheekbones
+  ctx.fill_style(skin); ctx.begin_path();
+  ctx.move_to(-R*0.42,-R*0.34);
+  ctx.quadratic_curve_to(-R*0.54,R*0.04,-R*0.34,R*0.3);
+  ctx.quadratic_curve_to(-R*0.2,R*0.64,0,R*0.68);
+  ctx.quadratic_curve_to(R*0.2,R*0.64,R*0.34,R*0.3);
+  ctx.quadratic_curve_to(R*0.54,R*0.04,R*0.42,-R*0.34);
+  ctx.quadratic_curve_to(0,-R*0.5,-R*0.42,-R*0.34); ctx.close_path(); ctx.fill();
+  // cheekbone + jaw shadows (over-sculpted look)
+  ctx.fill_style(skinSh); ctx.begin_path(); ctx.ellipse(-R*0.3,R*0.14,R*0.1,R*0.2,0.3,0,7); ctx.ellipse(R*0.3,R*0.14,R*0.1,R*0.2,-0.3,0,7); ctx.fill();
+  ctx.begin_path(); ctx.ellipse(0,R*0.5,R*0.16,R*0.12,0,0,7); ctx.fill();   // chin shadow
+  // huge swept-back hair
+  ctx.fill_style(hair); ctx.begin_path();
+  ctx.move_to(-R*0.44,-R*0.26);
+  ctx.quadratic_curve_to(-R*0.62,-R*0.92,-R*0.08,-R*0.82);
+  ctx.quadratic_curve_to(R*0.12,-R*1.08,R*0.52,-R*0.76);
+  ctx.quadratic_curve_to(R*0.72,-R*0.48,R*0.44,-R*0.26);
+  ctx.quadratic_curve_to(R*0.2,-R*0.48,0,-R*0.44);
+  ctx.quadratic_curve_to(-R*0.2,-R*0.48,-R*0.44,-R*0.26); ctx.close_path(); ctx.fill();
+  // hair sweep lines
+  ctx.stroke_style(_hexA('#c9bfa2',0.6)); ctx.line_width(1.2); ctx.begin_path(); for i in range(int(-2), int(=3)):
+	 ctx.move_to(i*R*0.16,-R*0.4); ctx.quadratic_curve_to(i*R*0.16-R*0.2,-R*0.75,i*R*0.16-R*0.05,-R*0.9); # } ctx.stroke();
+  // heavy brow + deep-set glowing eyes
+  ctx.stroke_style(Color.html("#3a2a1a")); ctx.line_width(R*0.06); ctx.line_cap('round'); ctx.begin_path(); ctx.move_to(-R*0.32,-R*0.12); ctx.line_to(-R*0.08,-R*0.05); ctx.move_to(R*0.32,-R*0.12); ctx.line_to(R*0.08,-R*0.05); ctx.stroke();
+  ctx.save(); ctx.shadow_color(accent); ctx.shadow_blur(8); circle(-R*0.2,0.02*R,R*0.07,flash?'#fff':accent); circle(R*0.2,0.02*R,R*0.07,flash?'#fff':accent); ctx.restore();
+  ctx.fill_style(Color.html("#1a1008")); circle(-R*0.2,0.02*R,R*0.03,'#1a1008'); circle(R*0.2,0.02*R,R*0.03,'#1a1008');
+  // long nose + thin flat mouth
+  ctx.stroke_style(skinSh); ctx.line_width(2); ctx.line_cap('round'); ctx.begin_path(); ctx.move_to(0,-R*0.02); ctx.line_to(-R*0.05,R*0.2); ctx.line_to(R*0.04,R*0.22); ctx.stroke();
+  ctx.stroke_style(Color.html("#7a4a3a")); ctx.begin_path(); ctx.move_to(-R*0.13,R*0.38); ctx.quadratic_curve_to(0,R*0.34,R*0.13,R*0.38); ctx.stroke();
+  // initial floating above (I / G)
+  ctx.fill_style(accent); ctx.font('bold '+(R*0.32)+'px "Trebuchet MS"'); ctx.text_align('center'); ctx.save(); ctx.shadow_color(accent); ctx.shadow_blur(8); ctx.fill_text(igor?'I':'G', 0, -R*0.62); ctx.restore(); ctx.text_align('left');

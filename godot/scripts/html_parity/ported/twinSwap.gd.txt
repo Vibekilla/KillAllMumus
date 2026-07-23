@@ -1,0 +1,13 @@
+## AUTO-PORTED from HTML function twinSwap — review required
+func twinSwap(b):
+	   // voluntary hand-off — the current twin retreats (banking his HP) and the other takes the stage
+	  var other=b.active=='igor'?'grichka':'igor';
+	  b.tw[b.active].hp=b.hp;
+	  b.active=other; b.hp=b.tw[other].hp; b.maxhp=b.tw[other].max;
+	  b.hudName=(other=='igor'?'Igor':'Grichka')+' Bogdanoff';
+	  b.swapCd=420+((randf()*240)|0); b.flash=10; b.spin=0; bulletCancelAll(); sfx('card');
+	  flashMsg={t:90,txt:'⟳ '+(other=='igor'?'IGOR':'GRICHKA')+' takes the strings'};
+	  b.mtx=PF.x+55+randf()*(PF.w-110); b.mty=PF.y+55+randf()*(PF.h-135);
+	  for i in range(int(0), int(26)) particles.append({x:b.x,y:b.y,vx:(randf()-.5)*8,vy:(randf()-.5)*8,life:28,c:other=='igor'?'#b48ce0':'#e0b84a'});
+	  if(!dialog && b.data.taunts) startDialog([{w:0,t:b.data.taunts[(randf()*b.data.taunts.size())|0]}], b.data);
+

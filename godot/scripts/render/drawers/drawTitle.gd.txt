@@ -1,0 +1,52 @@
+## AUTO-PORTED from HTML drawTitle — hand-fixed where needed
+func drawTitle() -> void:
+	
+	  titleBtns=[];
+	  var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"#1a0e26"); g.addColorStop(0.6,"#3a1030"); g.addColorStop(1,"#12060c"); ctx.fill_style=g; ctx.fill_rect(0,0,W,H);
+	  for i in range(int(0), int(40)){ var a=tick*0.01+i; var x=W/2+cos(a)*(120+i*7); var y=140+sin(a*1.3)*80+(i*3); ctx.fill_style=["#ff6ec7","#ffd27a","#8fd0ff"][i%3]; ctx.global_alpha=0.5; ctx.begin_path(); ctx.arc(((x%W)+W)%W,((y%H)+H)%H,3,0,7); ctx.fill(); } ctx.global_alpha=1;
+	  var img=IMG.peephole; var S=146, py=20;
+	  if(imgOK(img)){ ctx.save(); ctx.begin_path(); ctx.arc(W/2,py+S/2,S/2,0,7); ctx.clip(); ctx.draw_image(img,W/2-S/2,py,S,S); ctx.restore(); ctx.stroke_style="#ffd27a"; ctx.line_width=4; ctx.begin_path(); ctx.arc(W/2,py+S/2,S/2,0,7); ctx.stroke(); }
+	  ctx.text_align="center";
+	  ctx.save(); ctx.shadow_color="#ff2b6e"; ctx.shadow_blur=22; ctx.fill_style="#ff5b8d"; ctx.font="900 48px \"Trebuchet MS\""; ctx.line_width=6; ctx.stroke_style="#ffd27a";
+	  ctx.stroke_text("BOBINA", W/2, 210); ctx.fill_text("BOBINA", W/2, 210);
+	  ctx.font="900 36px \"Trebuchet MS\""; ctx.shadow_color="#ff5b3c"; ctx.stroke_text("KILL ALL MUMUS!!", W/2, 246); ctx.fill_style="#ffe08a"; ctx.fill_text("KILL ALL MUMUS!!", W/2, 246); ctx.restore();
+	  ctx.fill_style="#ffb3d4"; ctx.font="italic 13px \"Trebuchet MS\""; ctx.fill_text("Rescue her dad Bobo from the evil clutches of the LA Cabal!", W/2, 270);
+	  ctx.fill_style="#9a8ba8"; ctx.font="11px \"Trebuchet MS\""; ctx.fill_text("A Touhou-Style Adventure • Created by the Bobina Council • Powered by Emblem Vault", W/2, 286);
+	  // ---- menu buttons (bigger tap targets + SHOUTOUTS on touch) ----
+	  var bh = isTouch.4:28;
+	  var oW=isTouch.36:200, oy=isTouch.98:304, ox=W/2-oW/2;
+	  if(!outfitUnlocked(selectedOutfit)){ selectedOutfit="og"; try{localStorage.setItem("bobina_outfit","og");}catch(e){} }   // safety: never keep an un-earned skin equipped (e.g. one freed by the old NG+ perk) — emblem gates it now, and this no longer depends on NG+ so it won"t fire on toggles
+	  ctx.save(); ctx.translate(ox-26, oy+bh/2); ctx.scale(1.15,1.15); drawBobina({x:0,y:0,iframe:0,focus:false,walk:0,bombFx:0,face:-Math.PI/2,vx:0,vy:0,outfit:selectedOutfit}); ctx.restore();
+	  drawTitleBtn(ox, oy, oW, bh, "👗 OUTFIT: "+ (OUTFITS.find(o=>o.key===selectedOutfit)||OUTFITS[0]).name +"  ▸", "#ff9ecb","outfit");
+	  const mW=isTouch?250:232, lW=isTouch?150:126, gap=10, rowW=mW+gap+lW, rx=W/2-rowW/2, ry=oy+bh+(isTouch?10:12);
+	  const modeLbl=["MODE: NORMAL (tap)","MODE: HARD  🔥","MODE: HELL  ☠"][difficulty], modeCol=["#8fd0ff","#ff5b6e","#ff2a2a"][difficulty];
+	  drawTitleBtn(rx, ry, mW, bh, modeLbl, modeCol,"mode");
+	  drawTitleBtn(rx+mW+gap, ry, lW, bh, "🏆 LEADERBOARD", "#ffd27a","lb");
+	  let ny=ry+bh+(isTouch?10:12);
+	  const row3=[{l:"🎒 ARSENAL",c:"#7fdfff",id:"arsenal"},{l:"🏅 EMBLEMS "+emblemCount()+"/"+EMBLEMS.length,c:"#ffd27a",id:"emblems"},{l:"⚙ SETTINGS",c:"#b0a0d8",id:"settings"}];
+	  if(ngUnlocked>0) row3.push({l:(ngPlus>0?("🔁 NG+ Lv"+ngPlus):"🔁 NG+ OFF"),c:(ngPlus>0?"#ffd27a":"#8a7a92"),id:"ngplus"});
+	  if(isTouch) row3.push({l:"📣 SHOUTOUTS",c:"#8fd0a0",id:"shoutouts"});
+	  { const bw=150, tot=row3.length*bw+(row3.length-1)*gap, sx0=W/2-tot/2; for(let i=0;i<row3.length;i++) drawTitleBtn(sx0+i*(bw+gap), ny, bw, bh, row3[i].l, row3[i].c, row3[i].id); }
+	  ny+=bh;
+	  ctx.textAlign="center";
+	  // ---- START indicator: a roomy pill so it clearly stands apart ----
+	  ny += isTouch?12:16;                                  // breathing room above
+	  const stTxt = isTouch?"▶  TAP TO START  ◀":"▶  PRESS "+kb("shoot")+"   /   TAP TO START  ◀";
+	  ctx.font="bold "+(isTouch?22:20)+"px monospace"; const stw=ctx.measureText(stTxt).width, pad=20, pillH=isTouch?34:32;
+	  ctx.fillStyle="rgba(255,90,140,0.14)"; ctx.strokeStyle="rgba(255,120,190,0.4)"; ctx.lineWidth=1.5;
+	  ctx.beginPath(); ctx.roundRect(W/2-stw/2-pad, ny, stw+pad*2, pillH, 10); ctx.fill(); ctx.stroke();
+	  ctx.fillStyle=(Math.floorf(tick/30)%2)?"#fff":"#ffb3d4"; ctx.fillText(stTxt, W/2, ny+pillH/2+7);
+	  ny += pillH + (isTouch?12:16);                        // breathing room below
+	  // ---- controls / info ----
+	  if(!isTouch){
+	    ctx.fillStyle="#7a6a82"; ctx.font="11px monospace"; ctx.fillText("Move: mouse/arrows · HOLD Z fire · SPACE melee (hold=charge) · D switch · SHIFT focus (2× = dash) · full-charge+dash = SLASH DASH · X bomb", W/2, ny); ny+=16;
+	    ctx.fillStyle="#6a5a72"; ctx.fillText(STAGES.length+" stages · "+STAGES.length+" meme bosses · power fades, grab P · save your score globally", W/2, ny); ny+=16;
+	    ctx.fillStyle="#8a6a92"; ctx.fillText("A Bobina Council LLC & Grr Finance production", W/2, ny);
+	  } else {
+	    ctx.fillStyle="#a894b2"; ctx.font="bold 11px monospace"; ctx.fillText("◀ JOYSTICK (bottom-left) moves — she auto-fires", W/2, ny); ny+=15;
+	    ctx.fillStyle="#9a8aa2"; ctx.font="11px monospace"; ctx.fillText("Buttons ▶  FOCUS · BOMB · SPEC (tap USE! when charged) · SWAP", W/2, ny); ny+=15;
+	    ctx.fillStyle="#8a6a92"; ctx.font="10px monospace"; ctx.fillText("A Bobina Council LLC & Grr Finance production · tap ⛶ for fullscreen", W/2, ny);
+	  }
+	  ctx.textAlign="left';
+	  if(titleIdleT>1800) drawMaidDance();   // idle 30s on the title → maid-dance easter egg
+	
