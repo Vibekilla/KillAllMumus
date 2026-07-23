@@ -9,3 +9,21 @@ node_modules/
 .emblem_build/
 .emblemvault/
 npm-debug.log*
+
+# Keys & certs
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+
+# Local DB / dumps / backups (never publish)
+*.sql
+*.sql.gz
+*.dump
+db-backups/
+backups/
+pgdata/
