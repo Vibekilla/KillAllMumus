@@ -386,11 +386,23 @@ func _run() -> void:
 			await process_frame
 	await _save("godot_play")
 
-	# Pause overlay (HTML #pausescreen during play)
+	# Pause overlay (HTML #pausescreen during play) — re-center after force_ui_size
 	GameState.set_state(GameState.State.PAUSED)
 	_force_ui_size(_main)
+	var pause_ui = _main.get_node_or_null("UI/PauseMenu")
+	if pause_ui and pause_ui.has_method("_center_panel") and pause_ui.get("panel"):
+		pause_ui._center_panel(pause_ui.panel as PanelContainer, 380.0)
+	# Clear emblem toast so dual matches HTML (toast under pause dim, not over card)
+	var ch = _A("CombatHelpers")
+	if ch and "flash_msg" in ch:
+		ch.flash_msg = {}
+	var ps = _A("ProgressStore")
+	if ps and ps.has_meta("emblem_toasts"):
+		ps.set_meta("emblem_toasts", [])
 	for _i in range(6 if fast else 10):
 		await process_frame
+		if pause_ui and pause_ui.has_method("_center_panel") and pause_ui.get("panel"):
+			pause_ui._center_panel(pause_ui.panel as PanelContainer, 380.0)
 	await _save("godot_flow_pause")
 	GameState.set_state(GameState.State.PLAY)
 

@@ -29,36 +29,45 @@ func _ready() -> void:
 var _last_tick: int = -1
 
 func _process(_d: float) -> void:
+	# HTML #pausescreen is a full-viewport DOM overlay — hide canvas HUD while paused
+	# (PauseMenu Control owns the pause chrome; drawing panel/toasts here fights dim).
+	if GameState.state == GameState.State.PAUSED:
+		if visible:
+			visible = false
+		return
+	if not visible:
+		visible = true
 	var nt := SimClock.sim_frame if SimClock else tick + 1
 	if nt == _last_tick:
 		return
 	# Panel meters don't need 60 Hz — 30 Hz is fine (huge panel draw cost)
-	if (nt % 2) != 0 and GameState.state != GameState.State.PAUSED:
+	if (nt % 2) != 0:
 		return
 	_last_tick = nt
 	tick = nt
 	var playish := GameState.state in [
-		GameState.State.PLAY, GameState.State.INTRO, GameState.State.PAUSED,
+		GameState.State.PLAY, GameState.State.INTRO,
 		GameState.State.STAGE_CLEAR, GameState.State.SHOP
 	]
-	if playish or GameState.state == GameState.State.PAUSED:
+	if playish:
 		queue_redraw()
 
 func _draw() -> void:
 	if ctx == null or hud == null:
 		return
+	if GameState.state == GameState.State.PAUSED:
+		return
 	ctx.begin_frame()
 	hud.set_tick(tick)
 	var playish := GameState.state in [
-		GameState.State.PLAY, GameState.State.INTRO, GameState.State.PAUSED,
+		GameState.State.PLAY, GameState.State.INTRO,
 		GameState.State.STAGE_CLEAR, GameState.State.SHOP
 	]
 	# Panel + overlays only — never full-field stage bg (that covered entities)
 	if playish:
 		hud.drawPanel()
 		hud.drawEmblemToasts()
-	if GameState.state == GameState.State.PAUSED:
-		hud.drawPauseOverlay()
+	# Pause chrome is PauseMenu Control (HTML #pausescreen) — not canvas drawPause
 	if touch_draw and GameState.state in [GameState.State.PLAY, GameState.State.SHOP]:
 		touch_draw.set_tick(tick)
 		touch_draw.draw()

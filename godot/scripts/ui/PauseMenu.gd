@@ -1,5 +1,6 @@
 extends Control
 ## HTML #pausescreen — full pause card (audio, mouse, resume, display, controls, menu).
+## Must sit above HudCanvas (z) and center like HTML flex #pausescreen.
 
 const OverlayTheme = preload("res://scripts/ui/menu/OverlayTheme.gd")
 
@@ -17,7 +18,9 @@ func _ready() -> void:
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	# Show Control card (not only HudCanvas "PAUSED" text)
+	# Above HudCanvas (z=5) / FlowUI so toast + HUD never draw over the card
+	z_index = 80
+	z_as_relative = false
 	if panel:
 		panel.visible = true
 	_apply_html_chrome()
@@ -28,8 +31,7 @@ func _apply_html_chrome() -> void:
 	var dim := get_node_or_null("Dim") as ColorRect
 	var pc := panel as PanelContainer
 	OverlayTheme.apply_pause_card(pc, dim)
-	_center_panel(pc, 380.0, 420.0)
-	# After reparent, resolve via panel (not "Panel/…" path from root)
+	_center_panel(pc, 380.0)
 	var vbox := pc.get_node_or_null("VBox") as VBoxContainer if pc else null
 	var title := (vbox.get_node_or_null("Title") if vbox else null) as Label
 	if title:
@@ -52,10 +54,17 @@ func _apply_html_chrome() -> void:
 	if resume:
 		resume.add_theme_font_size_override("font_size", 18)
 		resume.custom_minimum_size.y = 48
+		resume.text = "▶ RESUME"
 	OverlayTheme.style_button(display, "ghost")
+	if display:
+		display.text = "🖥 Display"
 	OverlayTheme.style_button(keybinds, "ghost")
+	if keybinds:
+		keybinds.text = "🎮 Controls"
 	OverlayTheme.style_button(menu, "ghost")
-	# Section headers + hint (create if missing)
+	if menu:
+		menu.text = "⌂ RETURN TO MENU"
+	# Section headers + hint (HTML .set-sec uppercase via CSS text-transform)
 	if vbox and vbox.get_node_or_null("SecAudio") == null:
 		var sa := Label.new()
 		sa.name = "SecAudio"
@@ -72,49 +81,89 @@ func _apply_html_chrome() -> void:
 			vbox.move_child(sm, follow_label.get_index())
 		var hint := Label.new()
 		hint.name = "Hint"
-		hint.text = "tap outside or press P to resume · menu ends this run"
+		# HTML .ps-hint
+		hint.text = "tap outside the card or press P to resume · returning to menu ends this run"
 		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		hint.add_theme_color_override("font_color", OverlayTheme.HINT)
-		hint.add_theme_font_size_override("font_size", 11)
+		hint.add_theme_font_size_override("font_size", 12)
 		vbox.add_child(hint)
 
-func _center_panel(pc: PanelContainer, w: float, _h: float) -> void:
+func _viewport_size() -> Vector2:
+	var vs := get_viewport().get_visible_rect().size if get_viewport() else Vector2.ZERO
+	if vs.x < 8.0 or vs.y < 8.0:
+		vs = Vector2(Config.W if Config else 960.0, Config.H if Config else 540.0)
+	return vs
+
+func _fill_rect(ctrl: Control, vs: Vector2) -> void:
+	if ctrl == null:
+		return
+	ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ctrl.anchor_left = 0.0
+	ctrl.anchor_top = 0.0
+	ctrl.anchor_right = 1.0
+	ctrl.anchor_bottom = 1.0
+	ctrl.offset_left = 0.0
+	ctrl.offset_top = 0.0
+	ctrl.offset_right = 0.0
+	ctrl.offset_bottom = 0.0
+	ctrl.position = Vector2.ZERO
+	ctrl.size = vs
+
+func _center_panel(pc: PanelContainer, w: float) -> void:
 	if pc == null:
 		return
-	# HTML flex center — wrap panel in full-rect CenterContainer (anchors alone get thrash from playtest)
-	var host: CenterContainer = get_node_or_null("CenterHost") as CenterContainer
-	if host == null:
-		host = CenterContainer.new()
-		host.name = "CenterHost"
-		host.set_anchors_preset(Control.PRESET_FULL_RECT)
-		host.offset_left = 0
-		host.offset_top = 0
-		host.offset_right = 0
-		host.offset_bottom = 0
-		host.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(host)
-		# Keep dim behind, card on top of host
-		move_child(host, get_child_count() - 1)
-	if pc.get_parent() != host:
-		pc.reparent(host)
+	var vs := _viewport_size()
+	# HTML #pausescreen: full-viewport flex center + dim over the whole game
+	_fill_rect(self, vs)
+	var dim := get_node_or_null("Dim") as ColorRect
+	if dim:
+		if dim.get_parent() != self:
+			dim.reparent(self)
+		_fill_rect(dim, vs)
+		dim.color = Color(6.0 / 255.0, 4.0 / 255.0, 10.0 / 255.0, 0.72)
+		dim.mouse_filter = Control.MOUSE_FILTER_STOP
+		move_child(dim, 0)
+	# Drop CenterHost if present — absolute center is more reliable under SubViewport dual
+	var host := get_node_or_null("CenterHost")
+	if host and pc.get_parent() == host:
+		pc.reparent(self)
+	if host:
+		host.queue_free()
+	if pc.get_parent() != self:
+		pc.reparent(self)
 	pc.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	pc.anchor_left = 0.0
+	pc.anchor_top = 0.0
 	pc.anchor_right = 0.0
 	pc.anchor_bottom = 0.0
-	pc.offset_left = 0
-	pc.offset_top = 0
-	pc.offset_right = w
-	pc.offset_bottom = 0
 	pc.custom_minimum_size = Vector2(w, 0)
 	pc.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	pc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	# Measure after style applied
+	pc.reset_size()
+	var ph := maxf(pc.get_combined_minimum_size().y, pc.size.y)
+	if ph < 120.0:
+		ph = 420.0
+	pc.size = Vector2(w, ph)
+	pc.position = Vector2(roundf((vs.x - w) * 0.5), roundf((vs.y - ph) * 0.5))
+	move_child(pc, get_child_count() - 1)
 
 func _on_state(_s: StringName) -> void:
 	var paused := GameState.state == GameState.State.PAUSED
 	visible = paused
 	if paused:
-		_center_panel(panel as PanelContainer, 380.0, 420.0)
+		_center_panel(panel as PanelContainer, 380.0)
 		_sync_ui()
+		# Suppress emblem toast drawing over the card (HTML pause z-index 42 > UI)
+		z_index = 80
+		if ProgressStore and ProgressStore.has_meta("emblem_toasts"):
+			ProgressStore.set_meta("emblem_toasts", [])
+		var hud := get_parent().get_node_or_null("HudCanvas") if get_parent() else null
+		if hud:
+			hud.z_index = 5
+			if hud.has_method("queue_redraw"):
+				hud.queue_redraw()
 
 func _sync_ui() -> void:
 	var st: Dictionary = ProgressStore.progress.get("settings", {}) if ProgressStore else {}
@@ -143,7 +192,6 @@ func _sync_ui() -> void:
 	_refresh_mouse_labels()
 
 func _refresh_mouse_labels() -> void:
-	# HTML pause labels
 	if follow_label and follow_slider:
 		follow_label.text = "Cursor Follow Tightness  %d%%" % int(follow_slider.value)
 	if speed_label and speed_slider:
@@ -197,6 +245,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.is_action_pressed("pause") or event.keycode == KEY_ESCAPE or event.keycode == KEY_P:
 			_on_resume()
 			get_viewport().set_input_as_handled()
+	# HTML: tap outside card resumes
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var pc := panel as PanelContainer
+		if pc and not pc.get_global_rect().has_point(event.position):
+			_on_resume()
+			get_viewport().set_input_as_handled()
 
 func _on_resume() -> void:
 	GameState.set_state(GameState.State.PLAY)
@@ -204,22 +258,16 @@ func _on_resume() -> void:
 	if AudioBus:
 		AudioBus.sfx("item")
 
+func _on_display() -> void:
+	var dm = get_parent().get_node_or_null("DisplayMenu") if get_parent() else null
+	if dm:
+		dm.visible = true
+
+func _on_keybinds() -> void:
+	var kb = get_parent().get_node_or_null("KeybindsMenu") if get_parent() else null
+	if kb:
+		kb.visible = true
+
 func _on_menu() -> void:
 	get_tree().paused = false
 	GameState.return_to_title()
-	if AudioBus:
-		AudioBus.sfx("item")
-
-func _on_display() -> void:
-	var dm := get_tree().get_first_node_in_group("display_menu")
-	if dm and dm.has_method("open_menu"):
-		dm.open_menu()
-
-func _on_keybinds() -> void:
-	var kb := get_tree().get_first_node_in_group("keybinds_menu")
-	if kb and kb.has_method("open_menu"):
-		kb.open_menu()
-
-func _on_settings() -> void:
-	get_tree().paused = false
-	GameState.set_state(GameState.State.SETTINGS)
