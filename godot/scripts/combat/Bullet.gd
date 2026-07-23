@@ -206,7 +206,7 @@ func _physics_process(delta: float) -> void:
 	# HTML graze ring: near player, not hit yet
 	if team == Team.ENEMY and grazeable and not grazed:
 		_try_graze()
-	# Visual is local-centered and orientation-independent for fast path — no per-frame redraw
+	# Visual is local-centered; presentation is WorldDraw / drawers — not a placeholder art path
 
 func _try_graze() -> void:
 	var tree := get_tree()

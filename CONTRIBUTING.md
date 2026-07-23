@@ -2,9 +2,9 @@
 
 ## Game client parity
 
-**`public/index.html` is the source of truth** until Godot cutover. Live defaults
-to the HTML client. See `godot/PARITY.md`. Dual-client flags stay until parity
-sign-off — do not remove `USE_GODOT` / `/godot/` early.
+**`public/index.html` is the source of truth** until Phase 7 dual QA sign-off
+in `godot/PARITY.md`. Live defaults to the HTML client. Dual-client flags stay
+until then — do not enable `USE_GODOT=1` or remove `/godot/` early.
 
 ## Branches (simple)
 
@@ -71,7 +71,7 @@ new workflow (no PR merge/delete dance).
 2. **Live only from `main`** — promote deliberately.
 3. Do **not** force-push `main` unless recovering a known-bad deploy.
 4. Do **not** force-reset `dev` to `main` as a routine step (that deleted WIP).
-5. Godot port: no stubs; dual flags until cutover (`USE_GODOT=1` only after sign-off).
+5. Godot port: no stubs; follow `godot/PARITY.md` phases 0–8 (`USE_GODOT=1` only after Phase 7 sign-off).
 
 ## Rollback
 

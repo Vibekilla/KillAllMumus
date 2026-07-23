@@ -1,69 +1,147 @@
-# HTML → Godot full port checklist
+# HTML → Godot migration checklist
 
-Source of truth: `public/index.html` (~5430 lines) + `public/assets/`.  
-Structure smoke: `npm run port:gates`. Product gate: dual QA + sign-off in `PARITY.md`.
+Mirror of **[PARITY.md](./PARITY.md)** phases 0–7 (checkboxes only).  
+Policy, bans, and cutover narrative live in PARITY.md — not here.
 
-## Policy
+Source of truth: `public/index.html` + `public/assets/`.  
+Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 sign-off.**
 
-- [x] Modular Godot layout (drawers / systems / WorldDraw orchestrator) — keep forever
-- [x] No iframe / HTML shell for gameplay
-- [x] Entity `_draw` empty; presentation via WorldDraw
-- [x] Trebuchet MS shipped under `godot/assets/fonts/`
-- [ ] Dual QA sign-off (title + play + menus)
-- [ ] `USE_GODOT=1` only after sign-off
+---
 
-## A. Assets
+## Phase 0 — Foundation
 
-- [x] Static textures mirrored (`campfire`, clears, portraits, maid, peephole, …)
-- [x] GIF frame sequences (`confused`, `talk`, `leekspin`) in AssetBank
-- [ ] Every live draw site uses AssetBank (floaters = confused.gif, etc.) — verify dual
-- [x] Trebuchet MS + Bold (no silent Noto UI swap)
-- [x] Emoji fallback (Noto Color Emoji)
+- [ ] Mandate documented in PARITY.md (HTML + assets only; no shortcuts)
+- [ ] Dual report treated as living checklist (`npm run port:dual -- --full`)
+- [ ] FPS profile written (desktop + web root cause)
 
-## B. Audio
+## Phase 1 — Performance
 
-- [x] SfxSynth WAV bake path
-- [ ] All 16 sfx envelopes match HTML
-- [ ] Music volume + stream bridge (no game iframe)
+- [ ] Menu / outfit preview: cache full `drawBobina` (SubViewport / bake on state change)
+- [ ] In-game Bobina cache (outfit + expression + pose)
+- [ ] World / HUD / FX redraw throttle + CanvasCompat hot paths
+- [ ] 60 FPS desktop target met
+- [ ] ≥30–45 FPS web target met
 
-## C. Rendering
+## Phase 2 — Bobina animation
 
-- [x] CanvasCompat + FontBank
-- [x] WorldDraw single-pass (HTML draw order)
-- [x] Full-circle `fill()` → native disc (same look, less thrash)
-- [x] drawBobina / drawMumu / drawElite / drawPShot / drawBullet / bosses on disk
-- [x] Title uses full drawBobina (outfit + maid dance)
-- [ ] Pixel dual match title/play/shop
-- [ ] Peephole circular clip quality
+- [ ] Breath / head bob / body sway / leg kick / arm swing (HTML timing)
+- [ ] Blink `(tick % 230) < 7 && !squee`
+- [ ] Expressions: smile, uwu, giggle, annoyed, squee (all scales)
+- [ ] Outfit continuous FX (tails, wings, veils, tendrils, …)
+- [ ] Poses + victory face + hold prop + GIF overlays (talk, leekspin, confused)
 
-## D. Data tables
+## Phase 3 — Exhaustive visuals
 
-- [x] stages · weapons · specials · melee · outfits · emblems · consumables · ranks/bombs
+### Weapons
+- [ ] spread (Emblem Amulets)
+- [ ] laser (Red Death)
+- [ ] homing (Monke Bananas)
+- [ ] wave (Jungle Vines)
+- [ ] scatter (Bobo Bear Claws)
+- [ ] gatling (Gatling Lasers)
+- [ ] grenade (Grrnade Launcher)
+- [ ] voidripper
+- [ ] lotus (Lotus Petals)
+- [ ] shock (Shock & Awe)
 
-## E. Combat / systems
+### Specials
+- [ ] laser (Kraken Cannon)
+- [ ] mech (SKOL Mech)
+- [ ] bearzooka
+- [ ] vault (Emblem Vaults)
+- [ ] stampede (Jungle Stampede)
+- [ ] badger (Honey Badger)
+- [ ] sixth (Sixth Sense)
+- [ ] revenge (Ourbie’s Revenge)
+- [ ] kiss (Kiss Me)
+- [ ] kraken (Unleash the Kraken)
+- [ ] void (Call of the Void)
 
-- [x] Fire / spawn / melee / bomb / dash / specials (structure)
-- [ ] Number parity pass vs HTML (power bleed, graze, extends, boss phases)
-- [x] Items / burns / floaters systems
-- [x] ProgressStore · emblems · consumables hold-to-use
-- [x] StageFlow intro / clear / shop / dialog
-- [x] ApiClient absolute web URLs
+### Melee
+- [ ] katana ~155 / arc ~2.0 + plasma-flame
+- [ ] lash ~225 / arc ~1.25 + chain lightning
+- [ ] scythe ~150 / arc ~2.7 + green black hole
+- [ ] hammer ~165 / arc ~3.1 + shockwave
+- [ ] claws ~130 / arc ~2.3 + thousand-strike
+- [ ] swipe arcs / models / slash-dash
 
-## F. Menus & overlays
+### Aura / movement / bomb
+- [ ] Power aura + radiance
+- [ ] Dash comet + slash-dash + focus vacuum + invuln flash
+- [ ] Shield / rapid / vial / phase
+- [ ] Bobina Blast bomb clear
 
-- [x] Canvas title button rows (structure)
-- [ ] Dual-perfect outfits / arsenal / emblems / NG+ / leaderboard
-- [ ] Godot ports of settings / display / keybinds / help / pause / name entry / shoutouts / soundgate
+### Powerups / consumables
+- [ ] power, fullpower, point, life, bomb, shield, rapid, skull
+- [ ] honeycomb, bulltears, bullsouls, galaxygas, clover, bubbles
+- [ ] wagyu, stardust, vial, banana, wormhole
+- [ ] hold-to-use cooldown bars
 
-## G. Cutover
+### Bosses (visuals)
+- [ ] AlchemistTheOG (ape)
+- [ ] Dr. Robotnik
+- [ ] Mumina
+- [ ] Lily
+- [ ] India Police
+- [ ] Bogdanoff twins (Igor / Grichka)
+- [ ] James Wynn (+ Devil if in HTML)
+- [ ] Intro / specials / phases / dialog / defeat / hell portal / twin swap / ambience
 
-- [ ] Dual playtest sign-off
-- [ ] Web export smoke
-- [ ] `USE_GODOT=1` after approval
-- [ ] Steam desktop export (no `public/` runtime dependency)
+### Enemies / stage / meta
+- [ ] All mumu forms + elites (cheer, ape, badnik, pup, scammer, voideye, goon, …)
+- [ ] Intro / dialog / shop + Honey Badger / stage-clear + leekspin + maid dance
+- [ ] Win / game-over / clear portal / full HUD / particles / floaters / emblem toasts
+- [ ] Title + peephole + social + every meta-menu live preview
+
+## Phase 4 — Mechanics
+
+- [ ] Power bleed 0.00085, graze, extends, shot levels, weapon matrix, familiars
+- [ ] Specials / melee charge / bombs / dash numbers match HTML
+- [ ] All boss phases, patterns, HP, threat, twins, defeat
+- [ ] Items / burns / floaters / consumables hold-to-use / emblem tick
+- [ ] Stage flow: intro → waves → gate → shop → dialog → next / win
+- [ ] ProgressStore local + cloud; arsenal/shop; emblems; heads; estats persist
+- [ ] Keyboard / gamepad / touch parity
+- [ ] Autofire setting
+
+## Phase 5 — Audio
+
+- [ ] All 16 `sfx()` envelopes
+- [ ] Music bridge (soundgate → lofi; mute; volume)
+
+## Phase 6 — UI overlays & meta
+
+- [ ] Settings
+- [ ] Display
+- [ ] Keybinds
+- [ ] Help
+- [ ] Pause
+- [ ] Name entry
+- [ ] Shoutouts
+- [ ] Soundgate
+- [ ] Touch chrome
+- [ ] Leaderboard + cloud merge
+
+## Phase 7 — Dual QA hard gate
+
+- [ ] Fresh `npm run port:dual -- --full` covers Phases 2–6 systems
+- [ ] Dual report reviewed (`tools/port/playtest_out/index.html`)
+- [ ] FPS verified (desktop + web)
+- [ ] Progress + audio verified on web export / `/godot/`
+- [ ] Written sign-off filled in PARITY.md Phase 7 log
+
+## Phase 8 — Cutover / Steam / OS (blocked until Phase 7)
+
+- [ ] Web export + music patch + staging smoke
+- [ ] `USE_GODOT=1` flip after approval
+- [ ] Desktop export (no public/ HTML runtime)
+- [ ] Steamworks (achievements, cloud, leaderboards, glyphs, art)
+- [ ] Windows / macOS / Linux packaging + controller polish
+- [ ] Final perf pass per target
 
 ## Explicit bans (must stay clean)
 
-- `_draw_fast`, `_draw_mini_bobina`, “Fast path: native” entity art
-- Gameplay iframe of `public/index.html`
-- Claiming port complete from gate file-presence alone
+- [x] No `_draw_fast` / mini-Bobina / native-only entity art as final presentation
+- [x] No gameplay iframe of `public/index.html`
+- [x] No “complete” claim from `port:gates` alone
+- [x] No `USE_GODOT=1` before Phase 7 sign-off

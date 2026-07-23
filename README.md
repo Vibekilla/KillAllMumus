@@ -7,15 +7,17 @@ They took her dad. Now she’s pissed. Save Bobina’s dad from the evil clutche
 | Layer | Tech |
 | --- | --- |
 | Game client | **Exact** canvas game `public/index.html` (source of truth) |
-| Godot port | `godot/` — full 1:1 port in progress; see `godot/PARITY.md` |
+| Godot port | `godot/` — 1:1 port under phases 0–8; see `godot/PARITY.md` (Phase 7 dual sign-off before cutover) |
 | API / static | Express (`server.js`) on `127.0.0.1:3000` |
 | Database | PostgreSQL 17 (`bobina_scores` leaderboard) |
 | Proxy | nginx → app (see `deploy/nginx/`) |
 | Process | systemd **user** units (`scripts/install-user-services.sh`) |
 | Backups | Daily `pg_dump` → parent dir `…/www-killallmumuscom/db-backups/` |
 
-Live always serves the HTML client unless `USE_GODOT=1` **and** the GDScript
-port has passed the parity gate. Do not ship approximate Godot to players.
+Live always serves the HTML client unless `USE_GODOT=1` **and** Phase 7 dual QA
+is signed off in `godot/PARITY.md`. Do not ship approximate Godot to players.
+Phases 0–7 (every weapon, special, melee, aura, boss, animation) must complete
+before Phase 8 cutover / Steam / multi-OS work.
 
 ## Quick start (this server)
 
@@ -124,5 +126,6 @@ Until credentials are set, anonymous play + X-handle leaderboard still work; Sig
 ## Godot modular client
 
 The game is being ported to **Godot 4.3** under `godot/` (modular scenes/scripts/data).
-The live site still serves `public/index.html` until HTML5 export cutover.
-See `godot/README.md`.
+Process truth: **`godot/PARITY.md`** (phases 0–8). Checklist: `godot/MIGRATION_CHECKLIST.md`.
+Live serves `public/index.html` until **Phase 7** dual sign-off, then Phase 8 cutover.
+See `godot/README.md`. Tooling: `npm run port:dual -- --full`, `port:sync`, `port:extract`.

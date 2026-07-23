@@ -2,57 +2,60 @@
 
 Modular Godot port of **Bobina: Kill All Mumus!!**.
 
-## Critical policy
+## Policy (read first)
 
-**`public/index.html` is the source of truth.**  
-Live production serves that HTML client unless the GDScript port is proven
-pixel- and mechanic-identical. See **[PARITY.md](./PARITY.md)**.
+> Source of truth = `public/index.html` + `public/assets/`.  
+> Real status = dual QA report + written sign-off.  
+> **Do not enable `USE_GODOT=1`, Steam packaging, or multi-OS ship work until Phase 7 is signed off in [PARITY.md](./PARITY.md).**
 
-Do **not** export approximate Web builds over `public_godot/` without
-`KEEP_GODOT_WASM=1` and a full parity sign-off. By default:
+Live production serves the HTML client until that gate. Godot for dual review: `/godot/` or `?test` with `USE_GODOT` still off.
 
-```bash
-node tools/port/sync_exact_client.mjs   # public_godot/ = exact HTML copy
-```
+## Documents
+
+| Doc | Role |
+| --- | --- |
+| **[PARITY.md](./PARITY.md)** | Single process truth — phases 0–8, asset pipeline, bans, sign-off |
+| **[MIGRATION_CHECKLIST.md](./MIGRATION_CHECKLIST.md)** | Checkbox mirror of phases 0–7 |
 
 ## Layout
 
 ```
 godot/
 ├── PARITY.md
-├── data/                      # JSON extracted from HTML (complete)
-├── assets/textures/           # Full public/assets + icons
-├── assets/html/               # Reference index + game_script
+├── MIGRATION_CHECKLIST.md
+├── data/                 # JSON tables from HTML
+├── assets/textures + fonts
 ├── autoload/
 ├── scenes/
 └── scripts/
-    ├── combat/                # FireSystem, bullets, patterns
-    ├── enemies/ + bosses/     # Waves + updateBoss patterns
-    ├── systems/               # Specials, melee, shop, emblems
-    ├── audio/SfxSynth.gd      # HTML sfx() oscillator table
-    ├── render/                # CanvasCompat + PortedDraw
-    └── html_parity/           # Full-canvas host + auto-port drafts
+    ├── html_parity/      # SimClock, WorldDraw orchestrator
+    ├── render/drawers/   # 1:1 HTML draw* modules
+    ├── combat/ enemies/ player/ systems/ ui/ audio/
+    └── tools/            # screenshot / dual helpers
 ```
 
-## Port tooling (repo root)
+## Port tooling (from repo root)
 
 ```bash
-npm run port:extract    # all 290 functions + data
-npm run port:convert    # JS → GDScript drafts
-npm run port:sync       # assets + exact public_godot
-npm run port:verify     # critical map gate
+npm run port:inventory   # HTML asset / reference inventory
+npm run port:extract     # functions + data from index.html
+npm run port:sync        # assets → godot/assets (+ sync helpers)
+npm run port:verify      # presence / critical map gate
+npm run port:gates       # structure smoke only — not product gate
+npm run port:dual -- --full
+# → tools/port/playtest_out/index.html
 ```
 
-## Run desktop (WIP port)
+## Run desktop (dev)
 
 ```bash
-~/.local/godot/godot --path /var/www/killallmumus.com/godot
+~/.local/godot/godot --path /var/www/dev/godot
 ```
 
-## Export web (only after parity)
+## Web export (Phase 8 cutover only for live)
 
 ```bash
-KEEP_GODOT_WASM=1 ~/.local/godot/godot --path . --headless \
-  --export-release "Web" /var/www/killallmumus.com/public_godot/index.html
-USE_GODOT=1   # in server env — do not enable until gate passes
+godot --path godot --headless --export-debug "Web" public_godot/index.html
+./scripts/patch-godot-music.sh
+# USE_GODOT=1 only after Phase 7 sign-off
 ```

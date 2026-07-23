@@ -1,29 +1,36 @@
 # Phase status — HTML → Godot true 1:1 port
 
+**Canonical plan:** [`godot/PARITY.md`](../../godot/PARITY.md) (phases 0–8).  
+**Checkboxes:** [`godot/MIGRATION_CHECKLIST.md`](../../godot/MIGRATION_CHECKLIST.md).
+
 | Phase | Scope | Status |
 | --- | --- | --- |
-| P0 | Policy / ban shortcuts / docs | **in progress** — ban greps + docs rewrite |
-| P1 | WorldDraw single pass | **in progress** — modular orchestrator + empty entity draws |
-| P2 | CanvasCompat + Trebuchet | **in progress** — Trebuchet shipped; circle fill hot path |
-| P3–P8 | Menus / combat / flow / audio / meta | structure on disk; dual not signed |
-| P9 | Dual QA | **open** |
-| P10 | Cutover | **blocked** on P9 |
+| 0 | Foundation / docs / dual as living checklist | **active** — docs rewritten to 0–8 plan |
+| 1 | Performance (cache Bobina, throttle redraws) | **open** (blocks visual polish) |
+| 2 | Bobina animation (breath, blink, expressions, outfits, poses) | **open** |
+| 3 | Exhaustive visuals (weapons / specials / melee / auras / powerups / bosses / meta) | **open** |
+| 4 | Exhaustive mechanics + boss AI + stage flow + progress | **open** |
+| 5 | Audio (16 sfx + music bridge) | **open** |
+| 6 | UI overlays & meta | **open** |
+| 7 | Full dual QA hard gate + written sign-off | **open — not signed** |
+| 8 | Cutover / Steam / OS | **blocked** on Phase 7 |
 
-`function_map.json` entries on disk ≠ dual_ok.  
-`npm run port:gates` = structure smoke only.
+`function_map.json` / files on disk ≠ dual_ok.  
+`npm run port:gates` = structure smoke only.  
+`npm run port:dual -- --full` = product gate.
 
 ## Live
 
-`USE_GODOT` **off** — client remains **html-legacy** until sign-off.
+`USE_GODOT` **off** — client remains **html-legacy** until Phase 7 sign-off.
 
 ## Modular structure (do not collapse)
 
 - `WorldDraw.gd` orchestrates one shared `CanvasCompat`
 - Full art stays in `scripts/render/drawers/*`
 - Systems in `scripts/systems/*`, combat in `scripts/combat/*`
-- Performance via shared ctx + tick redraw + circle fill — never art shortcuts
+- Performance via shared ctx + caches + tick redraw — never art shortcuts
 
 ```bash
-npm run port:gates
-npm run port:dual -- --fast
+npm run port:inventory && npm run port:sync && npm run port:verify
+npm run port:dual -- --full
 ```
