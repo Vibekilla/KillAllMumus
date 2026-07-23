@@ -89,6 +89,3 @@ sudo certbot --nginx -d killallmumus.com -d www.killallmumus.com
 | GET | `/api/scores` | Top 100 leaderboard |
 | POST | `/api/scores` | Submit run (per-IP throttle, best-per-handle) |
 
-## Bobina.moe linkage
-
-See `bobina.moe implementation.md` for planned OAuth / `bc_id` identity (not required for current anonymous + X-handle leaderboard).
