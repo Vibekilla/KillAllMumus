@@ -1,5 +1,6 @@
 extends RefCounted
-## HTML _hexRgb / _hexA / _rgbHue helpers.
+class_name ColorUtil
+## HTML _hexRgb / _hexA / _rgbHue + CSS color parse helpers.
 
 static func hex_rgb(h) -> Array:
 	var s := str(h if h != null else "#fff").replace("#", "")
@@ -29,3 +30,39 @@ static func rgb_hue(r: float, g: float, b: float) -> float:
 	else:
 		h = (r - g) / d + 4.0
 	return h * 60.0
+
+static func parse_css(c) -> Color:
+	## HTML fillStyle / strokeStyle strings: #hex, rgb(), rgba(), hsl(), hsla()
+	if c is Color:
+		return c
+	var s := str(c).strip_edges().replace("'", "").replace('"', '')
+	if s.begins_with("rgba(") or s.begins_with("rgb("):
+		var inner := s.trim_prefix("rgba(").trim_prefix("rgb(").trim_suffix(")")
+		var parts := inner.split(",")
+		if parts.size() >= 3:
+			var r0 := float(parts[0].strip_edges())
+			var g0 := float(parts[1].strip_edges())
+			var b0 := float(parts[2].strip_edges())
+			var a := float(parts[3].strip_edges()) if parts.size() > 3 else 1.0
+			# 0–1 floats if all channels ≤ 1
+			if r0 <= 1.0 and g0 <= 1.0 and b0 <= 1.0 and (r0 > 0.0 or g0 > 0.0 or b0 > 0.0 or a < 1.0):
+				# Still treat pure 0,0,0,1 as 0–255 if written as 0,0,0 — prefer 0–255 when any > 1
+				pass
+			if r0 > 1.0 or g0 > 1.0 or b0 > 1.0:
+				return Color(r0 / 255.0, g0 / 255.0, b0 / 255.0, a)
+			# Heuristic: values like 255,120,190 always > 1; 0.5,0.2,0.1 are 0–1
+			if r0 <= 1.0 and g0 <= 1.0 and b0 <= 1.0:
+				return Color(r0, g0, b0, a)
+			return Color(r0 / 255.0, g0 / 255.0, b0 / 255.0, a)
+	if s.begins_with("hsla(") or s.begins_with("hsl("):
+		var inner2 := s.trim_prefix("hsla(").trim_prefix("hsl(").trim_suffix(")")
+		var parts2 := inner2.split(",")
+		if parts2.size() >= 3:
+			var h := float(parts2[0].strip_edges())
+			var sat := float(parts2[1].strip_edges().replace("%", "")) / 100.0
+			var lit := float(parts2[2].strip_edges().replace("%", "")) / 100.0
+			var a2 := float(parts2[3].strip_edges()) if parts2.size() > 3 else 1.0
+			return Color.from_hsv(fposmod(h, 360.0) / 360.0, sat, lit, a2)
+	if s.begins_with("#"):
+		return Color.html(s)
+	return Color.WHITE

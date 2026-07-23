@@ -7,6 +7,11 @@ const TEAM_PLAYER := 0
 var tick: int = 0
 var fire_cd_frames: float = 0.0
 
+func reset_run() -> void:
+	## Clear fire cooldown at run start (HTML p.cd = 0)
+	tick = 0
+	fire_cd_frames = 0.0
+
 func _process(delta: float) -> void:
 	if GameState.state == GameState.State.PLAY:
 		tick += 1

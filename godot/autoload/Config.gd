@@ -38,7 +38,9 @@ var mouse_speed: float = 1.12
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if OS.has_feature("web"):
-		api_base_url = ""
+		# HTTPRequest on HTML5 requires absolute URLs — relative "/api/…" fails to parse
+		# and has been seen to destabilize the tab after boot.
+		api_base_url = _web_origin()
 	elif OS.get_environment("KAM_API_BASE") != "":
 		api_base_url = OS.get_environment("KAM_API_BASE")
 	else:
@@ -46,6 +48,20 @@ func _ready() -> void:
 	apply_layout(false)
 	get_tree().root.size_changed.connect(_on_root_size_changed)
 	_on_root_size_changed()
+
+func _web_origin() -> String:
+	## window.location.origin for same-origin API when running under /godot/
+	if not OS.has_feature("web"):
+		return ""
+	if not ClassDB.class_exists("JavaScriptBridge"):
+		return ""
+	var origin = JavaScriptBridge.eval("window.location.origin", true)
+	if origin == null:
+		return ""
+	var s := str(origin).strip_edges()
+	if s == "" or s == "null" or s == "undefined":
+		return ""
+	return s
 
 func _on_root_size_changed() -> void:
 	## HTML resize → applyLayout based on phone orientation

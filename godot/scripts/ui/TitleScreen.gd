@@ -123,9 +123,14 @@ func _process(delta: float) -> void:
 		return
 	if GameState.state == GameState.State.TITLE:
 		title_idle_t += delta * 60.0
+	# ctx/title_drawer can be null if CanvasCompat failed to load — guard hard
+	if ctx == null or title_drawer == null or menus == null:
+		return
 	var t: int = int(SimClock.tick) if SimClock else int(title_drawer.tick) + 1
-	title_drawer.set_tick(t)
-	menus.set_tick(t)
+	if title_drawer.has_method("set_tick"):
+		title_drawer.set_tick(t)
+	if menus.has_method("set_tick"):
+		menus.set_tick(t)
 	if bobina and bobina.has_method("set_tick"):
 		bobina.set_tick(t)
 	queue_redraw()
