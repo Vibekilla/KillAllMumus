@@ -31,7 +31,7 @@ func use(key: String, player: Node2D, bullet_pool: Node) -> bool:
 func _activate(key: String, player: Node2D, bullet_pool: Node) -> void:
 	var px = player.global_position.x
 	var py = player.global_position.y
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	match key:
 		"laser", "kraken":
 			# Kraken cannon = wide beam; also tentacles for kraken
@@ -97,7 +97,7 @@ func _update_fx(delta: float) -> void:
 	var pool: Node = get_meta("pool") if has_meta("pool") else null
 	if player == null:
 		player = get_tree().get_first_node_in_group("player") as Node2D
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 
 	if GameState.has_meta("slowmo"):
 		var sm: float = float(GameState.get_meta("slowmo"))

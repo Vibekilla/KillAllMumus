@@ -17,6 +17,8 @@ func setup(c) -> void:
 
 func set_tick(t: int) -> void:
 	tick = t
+	W = Config.W
+	H = Config.H
 
 func _hex_a(h, a) -> String:
 	var s := str(h if h != null else "#fff").replace("#", "")
@@ -57,7 +59,7 @@ func draw_stage_bg() -> void:
 		if _stage_bg_drawer.has_method("drawStageBg"):
 			_stage_bg_drawer.drawStageBg()
 			# border
-			var pf: Rect2 = Config.PLAYFIELD
+			var pf: Rect2 = Config.playfield()
 			ctx.stroke_style("rgba(255,120,190,0.35)")
 			ctx.line_width(2)
 			ctx.begin_path()
@@ -87,7 +89,7 @@ func draw_stage_bg() -> void:
 		6:
 			top = "#240812"
 			bot = "#4e1019"
-	var pf2: Rect2 = Config.PLAYFIELD
+	var pf2: Rect2 = Config.playfield()
 	ctx.fill_style(top)
 	ctx.fill_rect(pf2.position.x, pf2.position.y, pf2.size.x, pf2.size.y * 0.55)
 	ctx.fill_style(bot)
@@ -102,7 +104,7 @@ func draw_stage_bg() -> void:
 func draw_stage_bg_fx(s: int) -> void:
 	## HTML drawStageBgFx — simplified geometric psychedelic layers
 	var t := float(tick)
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	var cx := pf.position.x + pf.size.x * 0.5
 	var cy := pf.position.y + pf.size.y * 0.42
 	var Hpf := pf.size.y
@@ -182,7 +184,7 @@ func draw_boss_ambience() -> void:
 		col_s = "#%02x%02x%02x" % [int(c.r * 255), int(c.g * 255), int(c.b * 255)]
 	var cr := _hex_rgb(col_s)
 	var bh := _rgb_hue(float(cr[0]), float(cr[1]), float(cr[2]))
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	var cx := pf.position.x + pf.size.x * 0.5
 	var cy := pf.position.y + pf.size.y * 0.42
 	var rage := 0.6
@@ -221,11 +223,318 @@ func draw_boss_ambience() -> void:
 	ctx.restore()
 
 func draw_panel() -> void:
+	## HTML drawPanel — portrait | touch | landscape
+	if Config.portrait:
+		_draw_panel_portrait()
+		return
+	if JoyPad and JoyPad.touch_ui_on:
+		_draw_panel_touch()
+		return
+	_draw_panel_landscape()
+
+func _draw_panel_portrait() -> void:
+	## HTML drawPanelPortrait — top bar + bottom strip
+	var pf: Rect2 = Config.playfield()
+	var panel: Rect2 = Config.panel()
+	var WW := Config.W
+	# TOP BAR
+	ctx.fill_style("rgba(16,9,22,0.82)")
+	ctx.fill_rect(0, 0, WW, pf.position.y - 6.0)
+	ctx.stroke_style("rgba(255,120,190,0.22)")
+	ctx.line_width(1)
+	ctx.begin_path()
+	ctx.move_to(0, pf.position.y - 6.0)
+	ctx.line_to(WW, pf.position.y - 6.0)
+	ctx.stroke()
+	if GameState.state == GameState.State.TITLE:
+		return
+	var st: Dictionary = DataRegistry.get_stage(GameState.stage_index)
+	ctx.text_align("left")
+	ctx.fill_style("#e8d6f0")
+	ctx.font("9px monospace")
+	ctx.fill_text("SCORE", 14, 15)
+	ctx.fill_style("#fff")
+	ctx.font("bold 21px monospace")
+	ctx.fill_text(MenuHelpers.fmt_score(GameState.session_score), 14, 37)
+	ctx.fill_style("#8fd0ff")
+	ctx.font("8px monospace")
+	ctx.fill_text(("%s · %s" % [st.get("title", ""), st.get("name", "")]).substr(0, 34), 14, 50)
+	ctx.text_align("right")
+	ctx.fill_style("#ffd27a")
+	ctx.font("900 24px Trebuchet MS")
+	ctx.fill_text(GameState.rank_letter(), WW - 135, 30)
+	ctx.fill_style("#ff9ab0")
+	ctx.font("bold 10px monospace")
+	ctx.fill_text("%d MUMUS  ×%.1f" % [GameState.total_kills, GameState.score_mul()], WW - 135, 47)
+	ctx.text_align("left")
+	ctx.fill_style("#e8d6f0")
+	ctx.font("9px monospace")
+	ctx.fill_text("LIVES", 14, 68)
+	for i in range(maxi(0, GameState.lives)):
+		_draw_heart(52 + i * 15.0, 64, 5.4)
+	ctx.text_align("right")
+	ctx.fill_style("#e8d6f0")
+	ctx.font("9px monospace")
+	ctx.fill_text("BOMBS", WW - 92, 68)
+	ctx.fill_style("#ff8ad6")
+	ctx.font("13px monospace")
+	ctx.text_align("left")
+	for i in range(GameState.bombs):
+		ctx.fill_text("✸", WW - 84 + i * 15.0, 69)
+	if GameState.difficulty > 0 or GameState.ng_plus > 0:
+		ctx.text_align("center")
+		ctx.fill_style("#ff2a2a" if GameState.difficulty >= 2 else "#ff5b6e")
+		ctx.font("bold 9px monospace")
+		ctx.fill_text("★" + GameState.mode_tag(), WW / 2.0, 68)
+	ctx.text_align("left")
+	# BOTTOM STRIP
+	var x := 14.0
+	var w := WW - 28.0
+	var by := panel.position.y + 6.0
+	var pfrac := clampf((GameState.power - 1.0) / 5.0, 0.0, 1.0)
+	var lv := CombatHelpers.shot_level()
+	ctx.fill_style("#e8d6f0")
+	ctx.font("10px monospace")
+	ctx.fill_text("POWER", x, by + 8)
+	ctx.text_align("right")
+	ctx.fill_style("#ffd27a")
+	ctx.font("bold 11px monospace")
+	var lvtxt := "Lv%d MAX" % lv if lv >= 5 else "Lv%d  %d%%" % [lv, int(round(pfrac * 100))]
+	ctx.fill_text(lvtxt, x + w, by + 8)
+	ctx.text_align("left")
+	ctx.fill_style("#2a1a30")
+	ctx.begin_path()
+	ctx.round_rect(x, by + 12, w, 8, 3)
+	ctx.fill()
+	if pfrac > 0.0:
+		var pg = ctx.create_linear_gradient(x, 0, x + w, 0)
+		pg.addColorStop(0, "#ff6ec7")
+		pg.addColorStop(1, "#ffd27a")
+		ctx.fill_style(pg)
+		ctx.begin_path()
+		ctx.round_rect(x, by + 12, maxf(0.0, w * pfrac), 8, 3)
+		ctx.fill()
+	for i in range(1, 5):
+		var lx := x + w * (float(i) / 5.0)
+		ctx.stroke_style("rgba(0,0,0,0.4)")
+		ctx.begin_path()
+		ctx.move_to(lx, by + 12)
+		ctx.line_to(lx, by + 20)
+		ctx.stroke()
+	by += 28
+	# SPECIAL
+	var sp_col := "#b98cff"
+	var sp_name := "None"
+	var sp_icon := "—"
+	if GameState.specials.size():
+		var sk := str(GameState.specials[0])
+		for s in DataRegistry.specials:
+			if str(s.get("key")) == sk:
+				sp_col = str(s.get("col", sp_col))
+				sp_name = str(s.get("name", sk))
+				sp_icon = str(s.get("icon", "★"))
+				break
+	var ready := GameState.special_meter >= 100.0
+	ctx.fill_style("#e8d6f0")
+	ctx.font("10px monospace")
+	ctx.fill_text("SPECIAL", x, by + 8)
+	ctx.text_align("right")
+	ctx.fill_style(sp_col)
+	ctx.font("bold 10px monospace")
+	ctx.fill_text("%s %s" % [sp_icon, sp_name], x + w, by + 8)
+	ctx.text_align("left")
+	ctx.fill_style("#2a1a30")
+	ctx.begin_path()
+	ctx.round_rect(x, by + 12, w, 8, 3)
+	ctx.fill()
+	ctx.fill_style(sp_col)
+	ctx.global_alpha(1.0 if ready else 0.85)
+	ctx.begin_path()
+	ctx.round_rect(x, by + 12, w * clampf(GameState.special_meter / 100.0, 0.0, 1.0), 8, 3)
+	ctx.fill()
+	ctx.global_alpha(1.0)
+	if ready:
+		ctx.fill_style("#fff" if (int(floorf(float(tick) / 8.0)) % 2) != 0 else "#1a0e14")
+		ctx.font("bold 8px monospace")
+		ctx.text_align("center")
+		ctx.fill_text("READY — tap ★", x + w / 2.0, by + 19)
+		ctx.text_align("left")
+	by += 28
+	# weapon / melee / graze
+	var wpn := GameState.current_weapon
+	var wlabel := wpn
+	if DataRegistry.weapons.has(wpn):
+		var wd: Dictionary = DataRegistry.weapons[wpn]
+		wlabel = "%s %s" % [wd.get("icon", ""), wd.get("name", wpn)]
+	ctx.fill_style("#c8b0c4")
+	ctx.font("10px monospace")
+	ctx.fill_text(wlabel, x, by + 8)
+	ctx.text_align("center")
+	ctx.fill_style("#ff8a6a")
+	ctx.fill_text("⚔ MELEE", WW / 2.0, by + 8)
+	ctx.text_align("right")
+	ctx.fill_style("#8fd0ff")
+	ctx.fill_text("GRAZE %d" % GameState.graze, x + w, by + 8)
+	ctx.text_align("left")
+	by += 22
+	_draw_boss_or_progress(x, by, w)
+
+func _draw_panel_touch() -> void:
+	## HTML drawPanelTouch — compact top-of-panel readout
+	var panel: Rect2 = Config.panel()
+	var x := panel.position.x
+	var y := panel.position.y
+	var w := panel.size.x
+	ctx.fill_style("rgba(18,10,24,0.6)")
+	ctx.begin_path()
+	ctx.round_rect(x, y, w, 196, 10)
+	ctx.fill()
+	ctx.stroke_style("rgba(255,120,190,0.25)")
+	ctx.line_width(1)
+	ctx.stroke()
+	if GameState.state == GameState.State.TITLE:
+		return
+	var st: Dictionary = DataRegistry.get_stage(GameState.stage_index)
+	var cy := y + 20.0
+	ctx.text_align("left")
+	ctx.fill_style("#8fd0ff")
+	ctx.font("bold 11px monospace")
+	ctx.fill_text(("%s — %s" % [st.get("title", ""), st.get("name", "")]).substr(0, 30), x + 14, cy)
+	cy += 20
+	ctx.fill_style("#e8d6f0")
+	ctx.font("10px monospace")
+	ctx.fill_text("SCORE", x + 14, cy)
+	ctx.text_align("right")
+	ctx.fill_style("#fff")
+	ctx.font("bold 17px monospace")
+	ctx.fill_text(MenuHelpers.fmt_score(GameState.session_score), x + w - 14, cy + 2)
+	ctx.text_align("left")
+	cy += 24
+	ctx.fill_style("#ff9ab0")
+	ctx.font("bold 11px monospace")
+	ctx.fill_text("MUMUS  %d" % GameState.total_kills, x + 14, cy)
+	ctx.text_align("right")
+	ctx.fill_style("#c8b0c4")
+	ctx.font("9px monospace")
+	ctx.fill_text("×%.1f" % GameState.score_mul(), x + w - 42, cy)
+	ctx.fill_style("#ffd27a")
+	ctx.font("900 22px Trebuchet MS")
+	ctx.fill_text(GameState.rank_letter(), x + w - 14, cy + 3)
+	ctx.text_align("left")
+	cy += 22
+	var pfrac := clampf((GameState.power - 1.0) / 5.0, 0.0, 1.0)
+	ctx.fill_style("#e8d6f0")
+	ctx.font("10px monospace")
+	ctx.fill_text("POWER Lv%d" % CombatHelpers.shot_level(), x + 14, cy)
+	ctx.text_align("right")
+	ctx.fill_style("#8fd0ff")
+	ctx.fill_text("GRAZE %d" % GameState.graze, x + w - 14, cy)
+	ctx.text_align("left")
+	cy += 5
+	ctx.fill_style("#2a1a30")
+	ctx.begin_path()
+	ctx.round_rect(x + 14, cy, w - 28, 7, 3)
+	ctx.fill()
+	if pfrac > 0.0:
+		var pg = ctx.create_linear_gradient(x + 14, 0, x + w - 14, 0)
+		pg.addColorStop(0, "#ff6ec7")
+		pg.addColorStop(1, "#ffd27a")
+		ctx.fill_style(pg)
+		ctx.begin_path()
+		ctx.round_rect(x + 14, cy, (w - 28) * pfrac, 7, 3)
+		ctx.fill()
+	cy += 18
+	ctx.fill_style("#e8d6f0")
+	ctx.font("10px monospace")
+	ctx.fill_text("LIVES", x + 14, cy)
+	for i in range(maxi(0, GameState.lives)):
+		_draw_heart(x + 50 + i * 14.0, cy - 4, 5)
+	ctx.fill_style("#ff8ad6")
+	ctx.font("12px monospace")
+	ctx.text_align("right")
+	var bs := ""
+	for i in range(GameState.bombs):
+		bs += "✸"
+	ctx.fill_text(bs if bs != "" else "—", x + w - 14, cy)
+	ctx.text_align("left")
+	cy += 18
+	_draw_boss_or_progress(x + 14, cy, w - 28)
+	if GameState.difficulty > 0 or GameState.ng_plus > 0:
+		ctx.fill_style("#ff2a2a" if GameState.difficulty >= 2 else "#ff5b6e")
+		ctx.font("bold 9px monospace")
+		ctx.text_align("right")
+		ctx.fill_text("★" + GameState.mode_tag(), x + w - 14, y + 14)
+		ctx.text_align("left")
+
+func _draw_boss_or_progress(x: float, cy: float, w: float) -> void:
+	var boss = _boss()
+	if boss and not bool(boss.get("dead")) and float(boss.get("intro") if boss.get("intro") != null else 0) <= 0.0:
+		var col := "#ff5b3c"
+		var nm := "BOSS"
+		if boss.get("data") is Dictionary:
+			col = str(boss.data.get("color", col))
+			nm = str(boss.get("hudName") if boss.get("hudName") else boss.data.get("name", "BOSS"))
+		ctx.fill_style(col)
+		ctx.font("bold 11px Trebuchet MS")
+		ctx.fill_text(nm.substr(0, 24), x, cy)
+		cy += 5
+		ctx.fill_style("#3a1020")
+		ctx.begin_path()
+		ctx.round_rect(x, cy, w, 9, 3)
+		ctx.fill()
+		var hp := float(boss.get("hp") if boss.get("hp") != null else 1)
+		var maxhp := maxf(1.0, float(boss.get("maxhp") if boss.get("maxhp") != null else hp))
+		var g = ctx.create_linear_gradient(x, 0, x + w, 0)
+		g.addColorStop(0, "#ff3b30")
+		g.addColorStop(1, col)
+		ctx.fill_style(g)
+		ctx.begin_path()
+		ctx.round_rect(x, cy, w * clampf(hp / maxhp, 0.0, 1.0), 9, 3)
+		ctx.fill()
+	else:
+		var prog := 0.0
+		var spawner = Engine.get_main_loop().root.get_node_or_null("/root/Main/EnemySpawner") if Engine.get_main_loop() else null
+		if spawner == null:
+			var tree := Engine.get_main_loop() as SceneTree
+			if tree:
+				spawner = tree.get_first_node_in_group("enemy_spawner")
+		var stg: Dictionary = DataRegistry.get_stage(GameState.stage_index)
+		var wave_dur := float(stg.get("waveDur", 1500))
+		if spawner and "stage_time" in spawner:
+			prog = clampf(float(spawner.stage_time) / maxf(1.0, wave_dur), 0.0, 1.0)
+		ctx.fill_style("#c8b0c4")
+		ctx.font("10px monospace")
+		ctx.fill_text("STAGE PROGRESS", x, cy)
+		cy += 5
+		ctx.fill_style("#2a1a30")
+		ctx.begin_path()
+		ctx.round_rect(x, cy, w, 6, 3)
+		ctx.fill()
+		ctx.fill_style("#8fd35a")
+		ctx.begin_path()
+		ctx.round_rect(x, cy, w * prog, 6, 3)
+		ctx.fill()
+
+func _draw_heart(cx: float, cy: float, r: float) -> void:
+	ctx.fill_style("#ff6ec7")
+	ctx.begin_path()
+	ctx.arc(cx - r * 0.45, cy, r * 0.55, 0, TAU)
+	ctx.arc(cx + r * 0.45, cy, r * 0.55, 0, TAU)
+	ctx.fill()
+	ctx.begin_path()
+	ctx.move_to(cx - r, cy + r * 0.1)
+	ctx.line_to(cx, cy + r * 1.15)
+	ctx.line_to(cx + r, cy + r * 0.1)
+	ctx.close_path()
+	ctx.fill()
+
+func _draw_panel_landscape() -> void:
 	## HTML drawPanel landscape
-	var x := Config.PANEL.position.x
-	var y := Config.PANEL.position.y
-	var w := Config.PANEL.size.x
-	var ph := Config.PANEL.size.y
+	var panel: Rect2 = Config.panel()
+	var x := panel.position.x
+	var y := panel.position.y
+	var w := panel.size.x
+	var ph := panel.size.y
 	ctx.fill_style("rgba(18,10,24,0.6)")
 	ctx.begin_path()
 	ctx.round_rect(x, y, w, ph, 10)
@@ -288,7 +597,7 @@ func draw_panel() -> void:
 	ctx.font("8px monospace")
 	ctx.fill_text("♥ 1UP in %d" % to_next, x + w * 0.5 - 6, cy + 22)
 	cy += 48
-	# power — HTML: label + Lv/MAX% on same row, gradient bar
+	# power
 	ctx.fill_style("#e8d6f0")
 	ctx.font("11px monospace")
 	ctx.fill_text("POWER", x + 16, cy)
@@ -315,14 +624,12 @@ func draw_panel() -> void:
 		ctx.round_rect(x + 16, cy, pw, 10, 4)
 		ctx.fill()
 	cy += 28
-	# lives / bombs
 	ctx.fill_style("#ff6ec7")
 	ctx.font("bold 14px monospace")
 	ctx.fill_text("❤ ×%d" % maxi(0, GameState.lives), x + 16, cy)
 	ctx.fill_style("#ffd27a")
 	ctx.fill_text("✸ ×%d" % GameState.bombs, x + w * 0.5, cy)
 	cy += 24
-	# special meter
 	ctx.fill_style("#e8d6f0")
 	ctx.font("11px monospace")
 	ctx.fill_text("SPECIAL", x + 16, cy)
@@ -336,7 +643,6 @@ func draw_panel() -> void:
 	ctx.begin_path()
 	ctx.round_rect(x + 16, cy, (w - 32) * sfrac, 10, 4)
 	ctx.fill()
-	# HTML READY — tap ★ when special full
 	if sfrac >= 1.0:
 		ctx.fill_style("#fff" if (int(floorf(float(tick) / 8.0)) % 2) != 0 else "#1a0e14")
 		ctx.font("bold 8px monospace")
@@ -344,7 +650,6 @@ func draw_panel() -> void:
 		ctx.fill_text("READY — tap ★", x + w / 2.0, cy + 19)
 		ctx.text_align("left")
 	cy += 26
-	# weapon chip
 	ctx.fill_style("#ff8ac0")
 	ctx.font("bold 10px monospace")
 	var wpn := GameState.current_weapon
@@ -363,7 +668,6 @@ func draw_panel() -> void:
 				break
 	ctx.fill_text("SPEC " + spn, x + 16, cy)
 	cy += 16
-	# HTML 🦍 MONKE rapid-fire badge
 	var player = _player()
 	if player and float(player.get("rapid_t")) > 0.0:
 		var bx := x + 16.0
@@ -379,14 +683,11 @@ func draw_panel() -> void:
 	ctx.font("10px monospace")
 	ctx.fill_text("MODE " + GameState.mode_tag(), x + 16, cy)
 	cy += 18
-	# heads
 	ctx.fill_style("#ffd27a")
 	ctx.font("bold 12px monospace")
 	ctx.fill_text("💀 %d" % int(ProgressStore.progress.get("heads", 0)), x + 16, cy)
-	# consumable chips row (HTML ITEMS)
 	cy += 18
 	_draw_item_chips(x + 16, cy, w - 32)
-	# portrait strip bottom of panel
 	cy = y + ph - 90
 	ctx.fill_style("rgba(0,0,0,0.25)")
 	ctx.begin_path()
@@ -512,7 +813,7 @@ func draw_phase_veil() -> void:
 	var p := _player()
 	if p == null or float(p.get("phase_t") if p.get("phase_t") != null else 0.0) <= 0.0:
 		return
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	ctx.save()
 	ctx.fill_style("rgba(14,4,34,0.66)")
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
@@ -532,7 +833,7 @@ func draw_slowmo_fx() -> void:
 		return
 	var slowmo_t := float(GameState.get_meta("slowmo"))
 	var a := minf(1.0, slowmo_t / 45.0) * minf(1.0, (300.0 - slowmo_t) / 16.0 + 0.25)
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	ctx.save()
 	ctx.global_composite_operation("lighter")
 	ctx.global_alpha(0.09 * a)

@@ -130,7 +130,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		# mouse follow (desktop)
 		var mouse := get_global_mouse_position()
-		var pf: Rect2 = Config.PLAYFIELD
+		var pf: Rect2 = Config.playfield()
 		if pf.grow(40).has_point(mouse):
 			var f := maxf(0.28, 0.5 * 0.55) if focus else 0.55
 			velocity = (mouse - global_position) * f * FRAME
@@ -217,7 +217,7 @@ func _physics_process(delta: float) -> void:
 			})
 
 func _clamp_to_playfield() -> void:
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	global_position.x = clampf(global_position.x, pf.position.x + 8, pf.end.x - 8)
 	global_position.y = clampf(global_position.y, pf.position.y + 8, pf.end.y - 8)
 

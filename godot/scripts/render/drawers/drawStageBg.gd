@@ -44,7 +44,7 @@ func drawStageBg() -> void:
 		6:
 			top = "#240812"
 			bot = "#4e1019"
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	# HTML: createLinearGradient(0, PF.y, 0, PF.y+PF.h) + stops top→bot
 	var g = ctx.create_linear_gradient(0, pf.position.y, 0, pf.position.y + pf.size.y)
 	g.addColorStop(0, top)
@@ -138,7 +138,7 @@ func drawStageBgFx(s: int = -1) -> void:
 	if s < 0:
 		s = GameState.stage_index if GameState else 0
 	var t = float(tick)
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	var cx = pf.position.x + pf.size.x * 0.5
 	var cy = pf.position.y + pf.size.y * 0.42
 	var H = pf.size.y

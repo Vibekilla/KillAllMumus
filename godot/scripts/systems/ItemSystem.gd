@@ -263,7 +263,7 @@ func _update_items(df: float) -> void:
 			it["vx"] = float(it.vx) * pow(0.96, df)
 		it["x"] = float(it.x) + float(it.vx) * df
 		it["y"] = float(it.y) + float(it.vy) * df
-		var pf: Rect2 = Config.PLAYFIELD
+		var pf: Rect2 = Config.playfield()
 		if float(it.y) > pf.end.y + 30.0:
 			continue
 		keep.append(it)

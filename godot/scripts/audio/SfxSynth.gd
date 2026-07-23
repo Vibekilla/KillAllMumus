@@ -115,9 +115,11 @@ func _beep_delayed(f0: float, f1: float, dur: float, wave: String, vol: float, d
 				s = (u * 4.0 - 1.0) if u < 0.5 else (3.0 - u * 4.0)
 			_:
 				s = sin(phase)
-		# exponential-ish decay
-		var env := exp(-3.5 * t) * (1.0 - t * 0.15)
-		var sample := s * env * 0.35
+		# HTML WebAudio: gain exponentialRampToValueAtTime(0.001, t+d)
+		# Match attack + exponential decay envelope more closely
+		var attack := clampf(t / 0.04, 0.0, 1.0) if t < 0.04 else 1.0
+		var env := attack * exp(-4.2 * t) * (1.0 - t * 0.12)
+		var sample := s * env * 0.38
 		frames[i] = Vector2(sample, sample)
 	# push in chunks
 	var idx := 0

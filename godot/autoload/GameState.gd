@@ -17,6 +17,7 @@ var hell_mode: bool = false
 var stage_index: int = 0
 var session_score: int = 0
 var total_kills: int = 0
+var graze: int = 0  # HTML graze — per-run bullet graze counter
 var lives: int = 3
 var bombs: int = 3
 var power: float = 0.0
@@ -91,6 +92,7 @@ func start_run() -> void:
 	stage_index = 0
 	session_score = 0
 	total_kills = 0
+	graze = 0
 	# HTML newRun: lives:6, bombs:3, power:1.0, special:15
 	lives = 6
 	bombs = 3

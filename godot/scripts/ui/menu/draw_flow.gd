@@ -19,6 +19,8 @@ func setup(c) -> void:
 
 func set_tick(t: int) -> void:
 	tick = t
+	W = Config.W
+	H = Config.H
 	if badger and badger.has_method("set_tick"):
 		badger.set_tick(t)
 
@@ -217,7 +219,7 @@ func draw_clear_gate(portal, shop, msg_t: float) -> void:
 	if msg_t > 0.0:
 		ctx.fill_style("#ff9ecb")
 		ctx.font("bold 14px Trebuchet MS")
-		ctx.fill_text("BOSS DEFEATED — open the portal or visit the shop", Config.PLAYFIELD.get_center().x, Config.PLAYFIELD.position.y + 40)
+		ctx.fill_text("BOSS DEFEATED — open the portal or visit the shop", Config.playfield().get_center().x, Config.playfield().position.y + 40)
 	# shop marker
 	if shop != null:
 		var sx := float(shop.get("x", 0))
@@ -345,17 +347,82 @@ func draw_shop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 			ctx.fill_text("💀 %d" % cost, cx + tW - 9, cy + tH - 7)
 		ctx.global_alpha(1.0)
 		shop_btns.append({"x": cx, "y": cy, "w": tW, "h": tH, "i": i})
-	# badger mascot
-	if badger:
-		badger.drawHoneyBadger(W * 0.5, H - 70, 1.15)
-	ctx.text_align("center")
-	ctx.fill_style("#c8b0a0")
-	ctx.font("11px monospace")
-	ctx.fill_text("Tap a card twice to buy · tap empty to leave", W / 2.0, H - 14)
+	# HTML bottom: Honey Badger portrait + boss-style dialogue bar
+	var hb = AssetBank.get_tex("honeybadger") if AssetBank else null
+	var iw := 216.0
+	var ih := roundf(iw * 473.0 / 527.0)
+	var ix := 4.0
+	var iy := H - 4.0 - ih
+	if hb:
+		ctx.draw_image(hb, ix, iy, iw, ih)
+	elif badger:
+		badger.drawHoneyBadger(66, H - 64, 0.66)
+	var dx := 230.0
+	var dw := W - dx - 14.0
+	var dh := 64.0
+	var dy := H - 172.0
+	ctx.fill_style("rgba(20,12,6,0.92)")
+	ctx.begin_path()
+	ctx.round_rect(dx, dy, dw, dh, 8)
+	ctx.fill()
+	ctx.stroke_style("#ffb347")
+	ctx.line_width(2)
+	ctx.save()
+	ctx.shadow_color("#ff9a2a")
+	ctx.shadow_blur(12)
+	ctx.stroke()
+	ctx.restore()
+	ctx.text_align("left")
+	ctx.fill_style("#ffd27a")
+	ctx.font("bold 15px Trebuchet MS")
+	ctx.fill_text("Honey Badger", dx + 18, dy + 24)
+	ctx.fill_style("#c8a878")
+	ctx.font("italic 12px Trebuchet MS")
+	ctx.fill_text("Reality-Bending Merchant", dx + 18, dy + 40)
+	var lines := [
+		"Heads only. No refunds. No regrets. Mostly.",
+		"You break it, you bought it.",
+		"A honey badger fears nothing. Except a slow day. Buy.",
+		"Warranty void where reality is.",
+		"Discounts? For you? …No.",
+		"Come back richer. Or don’t come back.",
+	]
+	var line_i := int(floorf(float(tick) / 220.0)) % lines.size()
+	ctx.fill_style("#fff")
+	ctx.font("bold 14px Trebuchet MS")
+	ctx.fill_text("“" + lines[line_i] + "”", dx + 18, dy + 58)
 	if msg_t > 0.0 and msg != "":
-		ctx.fill_style("#ffd27a")
+		ctx.global_alpha(minf(1.0, msg_t / 20.0))
+		var bad := msg.begins_with("Not") or msg.begins_with("Already") or msg.begins_with("Earn")
+		ctx.fill_style("#ff9aa8" if bad else "#9fe0a4")
 		ctx.font("bold 14px Trebuchet MS")
-		ctx.fill_text(msg, W / 2.0, H - 36)
+		ctx.text_align("center")
+		ctx.fill_text(msg, W * 0.63, H - 96)
+		ctx.global_alpha(1.0)
+	# selected hint
+	if sel >= 0 and sel < list.size():
+		var sit: Dictionary = list[sel]
+		var hint := ""
+		var act := false
+		if str(sit.get("kind")) == "gear" and bool(sit.get("owned", false)):
+			hint = "✓ Already owned"
+		elif str(sit.get("kind")) == "gear" and int(sit.get("cost", 0)) <= 0:
+			hint = "🏅 Unlock this via its Emblem"
+		elif heads >= int(sit.get("cost", 0)):
+			hint = "[%s] / tap again to BUY — %s" % [MenuHelpers.kb("shoot"), sit.get("name", "")]
+			act = true
+		else:
+			hint = "need %d more heads" % (int(sit.get("cost", 0)) - heads)
+		ctx.fill_style("#fff" if act and (int(floorf(float(tick) / 16.0)) % 2) != 0 else ("#ffd27a" if act else "#a07a7a"))
+		ctx.font("bold 12px monospace")
+		ctx.text_align("center")
+		ctx.fill_text(hint, W * 0.63, H - 62)
+	ctx.fill_style("#fff" if (int(floorf(float(tick) / 26.0)) % 2) != 0 else "#9a7c96")
+	ctx.font("bold 12px monospace")
+	ctx.text_align("center")
+	ctx.fill_text("◀▶ browse  ·  [%s] switch tab  ·  [%s] buy  ·  [%s] LEAVE" % [
+		MenuHelpers.kb("swap"), MenuHelpers.kb("shoot"), MenuHelpers.kb("interact"),
+	], W * 0.63, H - 32)
 	ctx.text_align("left")
 
 func _shop_list(tab: String) -> Array:
@@ -416,7 +483,7 @@ func draw_dialog(d: Dictionary) -> void:
 	var txt := str(line.get("t", line) if line is Dictionary else line)
 	var who := int(line.get("w", 0)) if line is Dictionary else 0
 	var bd: Dictionary = d.get("boss", {}) if d.get("boss") is Dictionary else {}
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	var x := pf.position.x + 8.0
 	var w := pf.size.x - 16.0
 	var lh := 16.0

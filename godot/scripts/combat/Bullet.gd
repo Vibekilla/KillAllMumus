@@ -189,11 +189,59 @@ func _physics_process(delta: float) -> void:
 			return
 
 	lifetime -= delta
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	if lifetime <= 0.0 or not pf.grow(50).has_point(position):
 		deactivate()
 		return
+	# HTML graze ring: near player, not hit yet
+	if team == Team.ENEMY and grazeable and not grazed:
+		_try_graze()
 	queue_redraw()
+
+func _try_graze() -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	var p = tree.get_first_node_in_group("player")
+	if p == null:
+		return
+	var dead_v = p.get("dead")
+	if dead_v != null and dead_v:
+		return
+	var phase_v = p.get("phase_t")
+	if phase_v != null and float(phase_v) > 0.0:
+		return
+	var focus_on := false
+	var focus_v = p.get("focus")
+	if focus_v != null and focus_v:
+		focus_on = true
+	var hit_r := 2.2 if focus_on else 4.2
+	var rr := radius + hit_r
+	var d2 := global_position.distance_squared_to(p.global_position)
+	if d2 < rr * rr:
+		return  # actual hit handled by area signal
+	if d2 < (rr + 8.0) * (rr + 8.0):
+		grazed = true
+		GameState.graze += 1
+		ProgressStore.estats_add("graze", 1)
+		var eg := int(ProgressStore.estats.get("graze", 0))
+		if eg >= 1000:
+			ProgressStore.unlock_emblem("graze_1000")
+		if eg >= 5000:
+			ProgressStore.unlock_emblem("graze_5000")
+		if eg >= 10000:
+			ProgressStore.unlock_emblem("graze_10000")
+		GameState.add_score(int(12.0 * CombatHelpers.score_mult()))
+		GameState.special_meter = minf(100.0, GameState.special_meter + 0.2)
+		if AudioBus:
+			AudioBus.sfx("graze")
+		if CombatHelpers:
+			for i in range(2):
+				CombatHelpers.particles.append({
+					"x": global_position.x, "y": global_position.y,
+					"vx": (randf() - 0.5) * 3.0, "vy": (randf() - 0.5) * 3.0,
+					"life": 10.0, "c": "#fff",
+				})
 
 func _nearest_target() -> Vector2:
 	var best := Vector2.ZERO

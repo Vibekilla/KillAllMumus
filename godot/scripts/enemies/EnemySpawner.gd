@@ -16,6 +16,7 @@ const EnemyScene := preload("res://scenes/enemies/Enemy.tscn")
 func setup(pool: Node, pf: Node2D) -> void:
 	bullet_pool = pool
 	playfield = pf
+	add_to_group("enemy_spawner")
 
 func start_stage(_stage_index: int) -> void:
 	stage_time = 0.0
@@ -59,7 +60,7 @@ func _spawn_waves() -> void:
 	if int(st) % iv != 0:
 		return
 	roll = int(st / float(iv))
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 
 	if s == 0:
 		if roll % 4 == 3:
@@ -118,20 +119,20 @@ func _spawn_big(x: float, y: float, icy: bool = false) -> void:
 		"icy": icy,
 		"r": 22.0,
 		"score": 350,
-		"hover": Config.PLAYFIELD.position.y + 80 + randf() * 40,
+		"hover": Config.playfield().position.y + 80 + randf() * 40,
 	})
 
 func _spawn_elite(x: float) -> void:
 	var d := GameState.stage_index
 	var e = EnemyScene.instantiate()
 	playfield.add_child(e)
-	e.setup(bullet_pool, Vector2(x, Config.PLAYFIELD.position.y - 40), {
+	e.setup(bullet_pool, Vector2(x, Config.playfield().position.y - 40), {
 		"kind": "elite",
 		"hp": round(14.0 * (1.0 + d * 0.55)),
 		"vel": Vector2(0, 1.2 * FRAME),
 		"icy": false,
 		"r": 26.0,
 		"score": 900,
-		"hover": Config.PLAYFIELD.position.y + 100,
+		"hover": Config.playfield().position.y + 100,
 		"elite": str(DataRegistry.get_stage(d).get("boss", {}).get("portrait", "")),
 	})

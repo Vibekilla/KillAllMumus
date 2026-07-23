@@ -62,7 +62,7 @@ func _draw() -> void:
 			ctx.fill_style("#ffe08a")
 			ctx.font("900 20px Trebuchet MS")
 			ctx.text_align("center")
-			var pf: Rect2 = Config.PLAYFIELD
+			var pf: Rect2 = Config.playfield()
 			ctx.fill_text(str(CombatHelpers.flash_msg.get("txt", "")), pf.get_center().x, pf.position.y + 36)
 			ctx.text_align("left")
 			ctx.global_alpha(1.0)

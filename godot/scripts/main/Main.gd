@@ -151,7 +151,7 @@ func _on_state(s: StringName) -> void:
 func _on_run_started() -> void:
 	if SimClock:
 		SimClock.reset()
-	player.global_position = Config.PLAYFIELD.get_center() + Vector2(0, 160)
+	player.global_position = Config.playfield().get_center() + Vector2(0, 160)
 	if player.has_node("Sprite/BobinaSprite"):
 		player.get_node("Sprite/BobinaSprite").set_outfit(GameState.selected_outfit)
 	bullet_pool.clear_all()

@@ -51,7 +51,7 @@ func _on_ready_boss() -> void:
 
 func _spawn_boss(stage: Dictionary) -> void:
 	var boss = BossScene.instantiate()
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	get_parent().get_node("Playfield").add_child(boss)
 	boss.setup(bullet_pool, Vector2(pf.get_center().x, pf.position.y + 70), stage)
 	boss.defeated.connect(func(_id):

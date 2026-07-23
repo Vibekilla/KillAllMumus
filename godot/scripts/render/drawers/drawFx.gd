@@ -21,7 +21,7 @@ func drawFx(fx_list: Array = []) -> void:
 	var list: Array = fx_list
 	if list.is_empty():
 		list = _collect_fx()
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	var player = _player()
 	for f in list:
 		if typeof(f) != TYPE_DICTIONARY:

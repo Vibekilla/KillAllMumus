@@ -74,7 +74,7 @@ func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 		active_twin = "igor"
 		hud_name = "Igor Bogdanoff"
 	intro = 20.0 if GameState.speedrun else 90.0
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	mtx = pf.get_center().x
 	mty = pf.position.y + 100
 	add_to_group("enemies")
@@ -85,7 +85,7 @@ func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
 	var p := get_tree().get_first_node_in_group("player") as Node2D
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 
 	if intro > 0.0:
 		intro -= delta * FRAME
@@ -356,7 +356,7 @@ func _boss_special(cx: float, cy: float, p: Node2D) -> void:
 	else:
 		if t % 40 < 20:
 			if t % 5 == 0:
-				BulletPatterns.fan_at(bullet_pool, cx, cy, cx, Config.PLAYFIELD.position.y - 20, 7, 0.6, -3.4, 7, "#ff8a3c")
+				BulletPatterns.fan_at(bullet_pool, cx, cy, cx, Config.playfield().position.y - 20, 7, 0.6, -3.4, 7, "#ff8a3c")
 		else:
 			if t % 4 == 0:
 				for a in 9:

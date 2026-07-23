@@ -62,7 +62,7 @@ func spawn_clear_gate() -> void:
 	if GameState.stage_index >= DataRegistry.stages.size() - 1:
 		on_boss_defeated()
 		return
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	clear_portal = {"x": pf.position.x + pf.size.x * 0.5, "y": pf.position.y + pf.size.y * 0.30}
 	clear_shop = {"x": pf.position.x + pf.size.x * 0.80, "y": pf.position.y + pf.size.y * 0.55}
 	clear_msg_t = 260.0

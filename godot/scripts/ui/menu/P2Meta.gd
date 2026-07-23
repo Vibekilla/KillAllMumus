@@ -191,7 +191,7 @@ func init_player() -> void:
 	var p = _player()
 	if p == null:
 		return
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	p.global_position = Vector2(pf.position.x + pf.size.x * 0.5, pf.position.y + pf.size.y - 70.0)
 	if p.get("invuln") != null:
 		p.invuln = 120.0

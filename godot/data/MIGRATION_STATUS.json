@@ -27,14 +27,17 @@
     "stage clear leek-spin GIF",
     "touch chrome: virtual stick + action rail + pause chip",
     "autofire setting on Player fire path",
-    "power bleed 0.00085 + dialog freeze"
+    "power bleed 0.00085 + dialog freeze",
+    "portrait dual-panel HUD + touch compact panel",
+    "Config.apply_layout portrait/landscape",
+    "bullet graze ring + estats emblems",
+    "shop honey-badger dialog bar 1:1",
+    "SFX exponential envelope closer to WebAudio"
   ],
   "remaining_visual_polish": [
     "drawElite themed sprites residual polish",
     "drawBoss portrait 1:1 residual polish",
-    "drawShop canvas vs Control residual polish",
-    "SFX envelope micro-tuning",
-    "portrait layout (phone) full dual-panel HUD"
+    "portrait content_scale edge cases on desktop resize"
   ],
   "ported_modules": [
     "scripts/combat/FireSystem.gd",

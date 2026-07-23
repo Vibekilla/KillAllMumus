@@ -44,7 +44,7 @@ func setup(pool: Node, pos: Vector2, opts: Dictionary = {}) -> void:
 	vel = opts.get("vel", Vector2(0, 100)) as Vector2
 	radius = float(opts.get("r", 15.0 if kind == "lil" else 22.0))
 	score_value = int(opts.get("score", 100 if kind == "lil" else (300 if kind == "big" else 800)))
-	hover_y = float(opts.get("hover", Config.PLAYFIELD.position.y + 90.0))
+	hover_y = float(opts.get("hover", Config.playfield().position.y + 90.0))
 	elite_type = str(opts.get("elite", ""))
 	bcol = Color("9fe0ff") if icy else Color("ff7ad1")
 	if kind == "elite":
@@ -58,7 +58,7 @@ func _physics_process(delta: float) -> void:
 	age_frames += delta * FRAME
 	if flash > 0.0:
 		flash -= delta * FRAME
-	var pf: Rect2 = Config.PLAYFIELD
+	var pf: Rect2 = Config.playfield()
 	var p := get_tree().get_first_node_in_group("player") as Node2D
 	var sfr := 1.0 - GameState.stage_index * 0.13
 	var hm := GameState.hard_mode
