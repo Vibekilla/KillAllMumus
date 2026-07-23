@@ -9,6 +9,7 @@ var W: float = 960.0
 var H: float = 540.0
 var shop_btns: Array = []
 var badger = null  # drawHoneyBadger optional
+var ported = null  # PortedDraw for 1:1 portrait bust
 
 func setup(c) -> void:
 	ctx = c
@@ -16,6 +17,8 @@ func setup(c) -> void:
 	H = Config.H
 	badger = load("res://scripts/render/drawers/drawHoneyBadger.gd").new()
 	badger.setup(c)
+	ported = load("res://scripts/render/PortedDraw.gd").new()
+	ported.setup(c)
 
 func set_tick(t: int) -> void:
 	tick = t
@@ -23,6 +26,8 @@ func set_tick(t: int) -> void:
 	H = Config.H
 	if badger and badger.has_method("set_tick"):
 		badger.set_tick(t)
+	if ported and ported.has_method("set_tick"):
+		ported.set_tick(t)
 
 func _hex_a(h, a) -> String:
 	var s := str(h if h != null else "#fff").replace("#", "")
@@ -531,17 +536,17 @@ func draw_dialog(d: Dictionary) -> void:
 		ctx.shadow_blur(14)
 	ctx.stroke()
 	ctx.shadow_blur(0)
-	_draw_portrait_bust(x + 40.0, y + h / 2.0, 58.0, str(cfg.portrait), str(cfg.pcol))
-	# Bobina talk GIF fills the circular bust (HTML #talk overlay)
-	if who == 1 and AssetBank:
-		var talk_tex = AssetBank.get_tex("talk") if AssetBank.has_method("get_tex") else AssetBank.IMG.get("talk", null)
-		if talk_tex:
-			ctx.save()
-			ctx.begin_path()
-			ctx.arc(x + 40.0, y + h / 2.0, 29.0, 0, TAU)
-			ctx.clip()
-			ctx.draw_image(talk_tex, x + 40.0 - 28.0, y + h / 2.0 - 28.0, 56.0, 56.0)
-			ctx.restore()
+	# HTML drawPortraitBust + manageGifOverlays talk gif for Bobina lines
+	if ported:
+		ported.draw_portrait_bust(x + 40.0, y + h / 2.0, 58.0, str(cfg.portrait), str(cfg.pcol))
+	if who == 1 and AssetBank and AssetBank.ok("talk"):
+		var talk_tex = AssetBank.get_tex("talk")
+		ctx.save()
+		ctx.begin_path()
+		ctx.arc(x + 40.0, y + h / 2.0, 29.0, 0, TAU)
+		ctx.clip()
+		ctx.draw_image(talk_tex, x + 40.0 - 28.0, y + h / 2.0 - 28.0, 56.0, 56.0)
+		ctx.restore()
 	ctx.text_align("left")
 	ctx.fill_style(cfg.ncol)
 	ctx.font("bold 15px Trebuchet MS")
@@ -578,91 +583,3 @@ func _wrap_dialog_lines(t: String, maxw: float) -> Array:
 		out.append(line.strip_edges())
 	return out
 
-func _draw_portrait_bust(px: float, py: float, size: float, type: String, color: String) -> void:
-	## HTML drawPortraitBust
-	ctx.save()
-	ctx.translate(px, py)
-	var R := size * 0.5
-	ctx.fill_style("rgba(10,6,14,0.7)")
-	ctx.begin_path()
-	ctx.arc(0, 0, R + 4, 0, TAU)
-	ctx.fill()
-	ctx.stroke_style(color)
-	ctx.line_width(2)
-	ctx.begin_path()
-	ctx.arc(0, 0, R + 4, 0, TAU)
-	ctx.stroke()
-	ctx.save()
-	ctx.begin_path()
-	ctx.arc(0, 0, R, 0, TAU)
-	ctx.clip()
-	var drew_img := false
-	if AssetBank:
-		if type == "mumina":
-			var im = AssetBank.get_tex("mumina") if AssetBank.has_method("get_tex") else AssetBank.IMG.get("mumina", null)
-			if im:
-				var iw := float(im.get_width())
-				var ih := float(im.get_height())
-				var s := maxf(2.0 * R / iw, 2.0 * R / ih) * 1.06
-				var dw := iw * s
-				var dh := ih * s
-				ctx.draw_image(im, -0.5 * dw, -0.46 * dh, dw, dh)
-				drew_img = true
-		elif type == "lily":
-			var im2 = AssetBank.get_tex("lily") if AssetBank.has_method("get_tex") else AssetBank.IMG.get("lily", null)
-			if im2:
-				var iw2 := float(im2.get_width())
-				var ih2 := float(im2.get_height())
-				var s2 := maxf(2.0 * R / iw2, 2.0 * R / ih2) * 1.04
-				var dw2 := iw2 * s2
-				var dh2 := ih2 * s2
-				ctx.draw_image(im2, -0.5 * dw2, -0.5 * dh2, dw2, dh2)
-				drew_img = true
-	if type == "bobina":
-		ctx.fill_style("#2a1830")
-		ctx.fill_rect(-R, -R, 2.0 * R, 2.0 * R)
-		drew_img = true
-	if not drew_img:
-		_draw_bust_fallback(type, R, color)
-	ctx.restore()
-	ctx.restore()
-
-func _draw_bust_fallback(type: String, R: float, color: String) -> void:
-	## Simplified circular bust when full portrait drawers unavailable
-	var col := color
-	match type:
-		"devil":
-			col = "#c0202a"
-		"ape":
-			col = "#c9a24b"
-		"robotnik":
-			col = "#e05a86"
-		"police":
-			col = "#e08a2a"
-		"bogdanoff":
-			col = "#c9a86a"
-		"wynn":
-			col = "#ff5b3c"
-		"mumina":
-			col = "#7ed957"
-		"lily":
-			col = "#9945ff"
-	ctx.fill_style(col)
-	ctx.begin_path()
-	ctx.arc(0, -R * 0.08, R * 0.62, 0, TAU)
-	ctx.fill()
-	ctx.fill_style("rgba(0,0,0,0.25)")
-	ctx.begin_path()
-	ctx.ellipse(0, R * 0.55, R * 0.82, R * 0.55, 0, 0, TAU)
-	ctx.fill()
-	# eyes
-	ctx.fill_style("#fff")
-	ctx.begin_path()
-	ctx.arc(-R * 0.2, -R * 0.05, R * 0.1, 0, TAU)
-	ctx.arc(R * 0.2, -R * 0.05, R * 0.1, 0, TAU)
-	ctx.fill()
-	ctx.fill_style("#1a1008")
-	ctx.begin_path()
-	ctx.arc(-R * 0.2, -R * 0.05, R * 0.04, 0, TAU)
-	ctx.arc(R * 0.2, -R * 0.05, R * 0.04, 0, TAU)
-	ctx.fill()

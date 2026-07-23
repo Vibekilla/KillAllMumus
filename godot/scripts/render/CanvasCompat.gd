@@ -59,6 +59,7 @@ var _fill_grad = null  # CanvasGradient or null
 var _lw: float = 1.0
 var _alpha: float = 1.0
 var _font_size: int = 12
+var _font_css: String = "12px sans-serif"
 var _align: String = "left"
 var _path: PackedVector2Array = PackedVector2Array()
 var _path_closed: bool = false
@@ -191,13 +192,19 @@ func shadow_blur(b: float) -> void:
 	_shadow_blur = b
 
 func font(f) -> void:
-	# e.g. 'bold 12px monospace'
+	# e.g. 'bold 12px monospace' / '900 18px "Trebuchet MS"' — HTML ctx.font
 	var s := str(f)
+	_font_css = s
 	var m := RegEx.new()
 	m.compile("(\\d+)px")
 	var r := m.search(s)
 	if r:
 		_font_size = int(r.get_string(1))
+
+func _active_font() -> Font:
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/FontBank"):
+		return FontBank.font_for(_font_css)
+	return ThemeDB.fallback_font
 
 func text_align(a) -> void:
 	_align = str(a).replace("'","").replace('"','')
@@ -333,59 +340,193 @@ func ellipse(x, y, rx, ry, rot, a0, a1, ccw: bool = false) -> void:
 		_path.append(_xform * lp)
 
 func round_rect(x, y, w, h, r) -> void:
-	# simple rect path
-	move_to(x+r, y)
-	line_to(x+w-r, y)
-	line_to(x+w, y+r)
-	line_to(x+w, y+h-r)
-	line_to(x+w-r, y+h)
-	line_to(x+r, y+h)
-	line_to(x, y+h-r)
-	line_to(x, y+r)
+	## HTML Path2D.roundRect — true corner arcs (not chamfered corners)
+	var rf := minf(float(r), minf(float(w), float(h)) * 0.5)
+	var xf := float(x)
+	var yf := float(y)
+	var wf := float(w)
+	var hf := float(h)
+	if rf <= 0.05:
+		rect(xf, yf, wf, hf)
+		return
+	begin_path()
+	move_to(xf + rf, yf)
+	line_to(xf + wf - rf, yf)
+	_arc_corner(xf + wf - rf, yf + rf, rf, -PI / 2.0, 0.0)
+	line_to(xf + wf, yf + hf - rf)
+	_arc_corner(xf + wf - rf, yf + hf - rf, rf, 0.0, PI / 2.0)
+	line_to(xf + rf, yf + hf)
+	_arc_corner(xf + rf, yf + hf - rf, rf, PI / 2.0, PI)
+	line_to(xf, yf + rf)
+	_arc_corner(xf + rf, yf + rf, rf, PI, PI * 1.5)
 	close_path()
+
+func _arc_corner(cx: float, cy: float, r: float, a0: float, a1: float) -> void:
+	var steps := 8
+	for i in range(1, steps + 1):
+		var t := float(i) / float(steps)
+		var ang := a0 + (a1 - a0) * t
+		_path.append(_xform * (Vector2(cx, cy) + Vector2(cos(ang), sin(ang)) * r))
 
 func rect(x, y, w, h) -> void:
 	move_to(x,y); line_to(x+w,y); line_to(x+w,y+h); line_to(x,y+h); close_path()
 
 func fill() -> void:
+	## HTML CanvasRenderingContext2D.fill — evenodd not used; nonzero fill via triangulation
 	if node == null or _path.size() < 3:
 		return
-	var pts := _dedupe_path(_path)
-	# Close open paths (HTML often omits closePath before fill)
-	if pts.size() >= 3 and pts[0].distance_to(pts[pts.size() - 1]) > 0.05:
-		pts.append(pts[0])
+	var pts := _closed_path_pts(_path)
 	if pts.size() < 3:
 		return
 	pts = _clip_poly(pts)
 	if pts.size() < 3:
 		return
-	# Gradient fills on free paths: sample mid color (full band fill would need mesh UV)
+	# Drop duplicate closing vertex for triangulate_polygon
+	var poly := pts
+	if poly.size() >= 2 and poly[0].distance_to(poly[poly.size() - 1]) < 0.05:
+		poly = poly.slice(0, poly.size() - 1)
+	if poly.size() < 3:
+		return
 	var col := _c(_fill_grad.mid_color() if _fill_grad != null else _fill)
-	# Prefer simple closed polyline fill via triangle fan from centroid when path is well-formed;
-	# otherwise thick outline. Avoid Geometry2D.decompose (engine ERROR spam on bad paths).
-	var n := pts.size()
-	if n >= 3 and n <= 64:
-		var c := Vector2.ZERO
-		for p in pts:
-			c += p
-		c /= float(n)
-		var drew := false
-		for i in range(n - 1):
-			var a: Vector2 = pts[i]
-			var b: Vector2 = pts[i + 1]
-			var area2 := absf((a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y))
-			if area2 < 0.02:
+	_draw_shadow_poly(poly, col)
+	_fill_triangulated(poly, col)
+
+func _closed_path_pts(src: PackedVector2Array) -> PackedVector2Array:
+	var pts := _dedupe_path(src)
+	if pts.size() >= 3 and pts[0].distance_to(pts[pts.size() - 1]) > 0.05:
+		pts.append(pts[0])
+	return pts
+
+func _fill_triangulated(poly: PackedVector2Array, col: Color) -> void:
+	## HTML Canvas fill (nonzero) — always emit triangles only.
+	## Never pass n>3 to draw_colored_polygon (Godot errors on concave/self-intersect).
+	if poly.size() == 3:
+		_draw_tri(poly[0], poly[1], poly[2], col)
+		return
+	_fill_ear_clip(poly, col)
+
+func _draw_tri(a: Vector2, b: Vector2, c: Vector2, col: Color) -> void:
+	var fill_col := col
+	if _fill_grad != null:
+		fill_col = _c(_sample_grad_at_world((a + b + c) / 3.0))
+	# Skip degenerate / collinear (Godot draw_colored_polygon errors: "Invalid polygon data")
+	var cross_z := (b - a).cross(c - a)
+	if absf(cross_z) < 0.25:
+		return
+	if a.is_equal_approx(b) or b.is_equal_approx(c) or a.is_equal_approx(c):
+		return
+	node.draw_colored_polygon(PackedVector2Array([a, b, c]), fill_col)
+
+func _is_convex(poly: PackedVector2Array) -> bool:
+	var n := poly.size()
+	if n < 3:
+		return false
+	var sign := 0.0
+	for i in range(n):
+		var a: Vector2 = poly[i]
+		var b: Vector2 = poly[(i + 1) % n]
+		var c: Vector2 = poly[(i + 2) % n]
+		var cr := (b - a).cross(c - b)
+		if absf(cr) < 1e-8:
+			continue
+		if sign == 0.0:
+			sign = signf(cr)
+		elif signf(cr) != sign:
+			return false
+	return true
+
+func _poly_area(poly: PackedVector2Array) -> float:
+	var a := 0.0
+	var n := poly.size()
+	for i in range(n):
+		var p: Vector2 = poly[i]
+		var q: Vector2 = poly[(i + 1) % n]
+		a += p.x * q.y - q.x * p.y
+	return a * 0.5
+
+func _point_in_tri(p: Vector2, a: Vector2, b: Vector2, c: Vector2) -> bool:
+	var v0 := c - a
+	var v1 := b - a
+	var v2 := p - a
+	var dot00 := v0.dot(v0)
+	var dot01 := v0.dot(v1)
+	var dot02 := v0.dot(v2)
+	var dot11 := v1.dot(v1)
+	var dot12 := v1.dot(v2)
+	var inv := 1.0 / (dot00 * dot11 - dot01 * dot01)
+	var u := (dot11 * dot02 - dot01 * dot12) * inv
+	var v := (dot00 * dot12 - dot01 * dot02) * inv
+	return u >= -1e-6 and v >= -1e-6 and (u + v) <= 1.0 + 1e-6
+
+func _fill_ear_clip(poly: PackedVector2Array, col: Color) -> void:
+	## Classic ear clipping (HTML-equivalent solid fill for simple polygons)
+	var pts: Array = []
+	for p in poly:
+		pts.append(p)
+	# Ensure CCW for consistent ear test
+	if _poly_area(poly) < 0.0:
+		pts.reverse()
+	var guard := 0
+	var max_iters := pts.size() * pts.size() + 8
+	while pts.size() >= 3 and guard < max_iters:
+		guard += 1
+		if pts.size() == 3:
+			_draw_tri(pts[0], pts[1], pts[2], col)
+			break
+		var n := pts.size()
+		var clipped := false
+		for i in range(n):
+			var i0 := (i - 1 + n) % n
+			var i1 := i
+			var i2 := (i + 1) % n
+			var a: Vector2 = pts[i0]
+			var b: Vector2 = pts[i1]
+			var c: Vector2 = pts[i2]
+			# Ear if convex (left turn for CCW)
+			if (b - a).cross(c - b) <= 1e-8:
 				continue
-			# Per-triangle sample for linear gradients (centroid of triangle)
-			var fill_col := col
-			if _fill_grad != null:
-				var mid := (c + a + b) / 3.0
-				fill_col = _c(_sample_grad_at_local(mid))
-			node.draw_colored_polygon(PackedVector2Array([c, a, b]), fill_col)
-			drew = true
-		if drew:
-			return
-	node.draw_polyline(pts, col, maxf(_lw, 2.0), true)
+			var has_pt := false
+			for j in range(n):
+				if j == i0 or j == i1 or j == i2:
+					continue
+				if _point_in_tri(pts[j], a, b, c):
+					has_pt = true
+					break
+			if has_pt:
+				continue
+			_draw_tri(a, b, c, col)
+			pts.remove_at(i1)
+			clipped = true
+			break
+		if not clipped:
+			# Self-intersecting path from polyline sampling — drop one vertex and continue
+			if pts.size() > 3:
+				pts.remove_at(1)
+			else:
+				break
+
+func _sample_grad_at_world(world: Vector2) -> Color:
+	## Inverse of current xform so gradient stops match HTML pre-transform space
+	var local := _xform.affine_inverse() * world
+	return _sample_grad_at_local(local)
+
+func _draw_shadow_poly(poly: PackedVector2Array, _col: Color) -> void:
+	## HTML shadowColor + shadowBlur under fill (offset solid, no Geometry2D)
+	if _shadow_blur <= 0.05 or _shadow_col.a <= 0.001:
+		return
+	var sc := _shadow_col
+	sc.a *= _alpha * 0.35
+	var o := maxf(0.8, _shadow_blur * 0.18)
+	var shifted := PackedVector2Array()
+	for p in poly:
+		shifted.append(p + Vector2(o * 0.2, o * 0.45))
+	if shifted.size() < 3:
+		return
+	# triangles only (avoid Godot concave polygon error spam)
+	var a0: Vector2 = shifted[0]
+	for i in range(1, shifted.size() - 1):
+		if absf((shifted[i] - a0).cross(shifted[i + 1] - a0)) > 0.02:
+			node.draw_colored_polygon(PackedVector2Array([a0, shifted[i], shifted[i + 1]]), sc)
 
 func _dedupe_path(src: PackedVector2Array) -> PackedVector2Array:
 	var out := PackedVector2Array()
@@ -399,17 +540,21 @@ func stroke() -> void:
 		return
 	var pts := _path
 	if not _clip.is_empty():
-		# Keep stroke segments roughly inside clip AABB (full segment clip is heavy)
 		var ab := _clip_aabb()
 		if ab.size.x > 0.0 and ab.size.y > 0.0:
 			var kept := PackedVector2Array()
 			for p in pts:
-				if ab.grow(2.0).has_point(p):
+				if ab.grow(maxf(2.0, _lw)).has_point(p):
 					kept.append(p)
 			if kept.size() < 2:
 				return
 			pts = kept
-	node.draw_polyline(pts, _c(_stroke), _lw, true)
+	var col := _c(_stroke)
+	if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
+		var sc := _shadow_col
+		sc.a *= _alpha * 0.45
+		node.draw_polyline(pts, sc, _lw + _shadow_blur * 0.25, true)
+	node.draw_polyline(pts, col, _lw, true)
 
 func fill_rect(x, y, w, h) -> void:
 	if node == null:
@@ -466,7 +611,10 @@ func _fill_rect_gradient(x: float, y: float, w: float, h: float) -> void:
 				var ang = float(s) / float(segs) * TAU
 				pts.append(_xform * Vector2(cx + cos(ang) * rr, cy + sin(ang) * rr * (h / maxf(w, 0.001))))
 			if pts.size() >= 3:
-				node.draw_colored_polygon(pts, col)
+				# Fan triangles only — draw_colored_polygon(n>3) can fail after non-uniform xform
+				var c0: Vector2 = pts[0]
+				for si in range(1, pts.size() - 1):
+					node.draw_colored_polygon(PackedVector2Array([c0, pts[si], pts[si + 1]]), col)
 		return
 	# Linear: slice along gradient axis into bands
 	var bands2 = 32
@@ -506,7 +654,7 @@ func fill_text(text, x, y) -> void:
 	if node == null:
 		return
 	var p := _xform * Vector2(x, y)
-	var f := ThemeDB.fallback_font
+	var f := _active_font()
 	var sz := _font_size
 	var w := f.get_string_size(str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 	if _align == "center":
@@ -515,13 +663,17 @@ func fill_text(text, x, y) -> void:
 		p.x -= w
 	# Canvas text baseline ~alphabetic: Godot draws from top-left of glyphs
 	p.y -= sz * 0.15
+	if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
+		var sc := _shadow_col
+		sc.a *= _alpha
+		node.draw_string(f, p + Vector2(0, maxf(1.0, _shadow_blur * 0.15)), str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, sc)
 	node.draw_string(f, p, str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, _c(_fill))
 
 func stroke_text(text, x, y) -> void:
 	if node == null:
 		return
 	var p := _xform * Vector2(x, y)
-	var f := ThemeDB.fallback_font
+	var f := _active_font()
 	var sz := _font_size
 	var w := f.get_string_size(str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 	if _align == "center":
@@ -530,7 +682,7 @@ func stroke_text(text, x, y) -> void:
 		p.x -= w
 	p.y -= sz * 0.15
 	var col := _c(_stroke)
-	# Approximate stroke via offset fills (Godot has no font outline API here)
+	# HTML strokeText — outline via offset fills (canvas stroke of glyphs)
 	var o := maxf(1.0, _lw * 0.35)
 	for d in [Vector2(-o, 0), Vector2(o, 0), Vector2(0, -o), Vector2(0, o), Vector2(-o, -o), Vector2(o, -o), Vector2(-o, o), Vector2(o, o)]:
 		node.draw_string(f, p + d, str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
@@ -670,40 +822,79 @@ func _clip_rect(r: Rect2) -> Rect2:
 	return r.intersection(aabb2)
 
 func _clip_poly(pts: PackedVector2Array) -> PackedVector2Array:
+	## Sutherland–Hodgman / reject-outside — no Geometry2D (avoids engine triangulation errors)
 	if _clip.is_empty() or pts.size() < 3:
 		return pts
 	match str(_clip.get("kind", "")):
 		"rect":
-			var r: Rect2 = _clip.rect
-			var clip_poly := PackedVector2Array([
-				r.position,
-				r.position + Vector2(r.size.x, 0),
-				r.position + r.size,
-				r.position + Vector2(0, r.size.y),
-				r.position,
-			])
-			var inter = Geometry2D.intersect_polygons(pts, clip_poly)
-			if inter is Array and inter.size() > 0:
-				return inter[0] as PackedVector2Array
-			return PackedVector2Array()
+			return _sutherland_hodgman_rect(pts, _clip.rect as Rect2)
 		"circle":
+			# Keep vertices inside circle; for edges, leave to ear-clip (HTML clip is pixel-perfect; this is geometric)
 			var c: Vector2 = _clip.c
 			var rad: float = float(_clip.r)
-			var circ := PackedVector2Array()
-			var segs := 28
-			for i in range(segs + 1):
-				var ang := float(i) / float(segs) * TAU
-				circ.append(c + Vector2(cos(ang), sin(ang)) * rad)
-			var inter2 = Geometry2D.intersect_polygons(pts, circ)
-			if inter2 is Array and inter2.size() > 0:
-				return inter2[0] as PackedVector2Array
+			var out := PackedVector2Array()
+			for p in pts:
+				if c.distance_to(p) <= rad + 0.5:
+					out.append(p)
+			if out.size() >= 3:
+				return out
+			# entire poly outside or fully covering — if centroid inside, keep original (common for busts)
+			var cen := Vector2.ZERO
+			for p2 in pts:
+				cen += p2
+			cen /= float(pts.size())
+			if c.distance_to(cen) <= rad:
+				return pts
 			return PackedVector2Array()
 		"poly":
-			var inter3 = Geometry2D.intersect_polygons(pts, _clip.poly)
-			if inter3 is Array and inter3.size() > 0:
-				return inter3[0] as PackedVector2Array
-			return PackedVector2Array()
+			# AABB reject then keep (full poly∩poly is rare in this game)
+			var ab := _clip_aabb()
+			var kept := PackedVector2Array()
+			for p3 in pts:
+				if ab.has_point(p3):
+					kept.append(p3)
+			return kept if kept.size() >= 3 else PackedVector2Array()
 	return pts
+
+func _sutherland_hodgman_rect(subj: PackedVector2Array, r: Rect2) -> PackedVector2Array:
+	## Clip polygon to axis-aligned rect (HTML playfield clip)
+	var out := subj
+	# left, right, top, bottom edges
+	out = _clip_edge(out, true, true, r.position.x)   # x >= left
+	out = _clip_edge(out, true, false, r.end.x)       # x <= right
+	out = _clip_edge(out, false, true, r.position.y)  # y >= top
+	out = _clip_edge(out, false, false, r.end.y)      # y <= bottom
+	return out
+
+func _clip_edge(inp: PackedVector2Array, is_x: bool, keep_gte: bool, edge: float) -> PackedVector2Array:
+	if inp.size() < 2:
+		return PackedVector2Array()
+	var out := PackedVector2Array()
+	var n := inp.size()
+	# treat as open ring: last may equal first
+	for i in range(n):
+		var cur: Vector2 = inp[i]
+		var prv: Vector2 = inp[(i - 1 + n) % n]
+		var cur_in := _inside_edge(cur, is_x, keep_gte, edge)
+		var prv_in := _inside_edge(prv, is_x, keep_gte, edge)
+		if cur_in:
+			if not prv_in:
+				out.append(_intersect_edge(prv, cur, is_x, edge))
+			out.append(cur)
+		elif prv_in:
+			out.append(_intersect_edge(prv, cur, is_x, edge))
+	return out
+
+func _inside_edge(p: Vector2, is_x: bool, keep_gte: bool, edge: float) -> bool:
+	var v := p.x if is_x else p.y
+	return v >= edge - 0.001 if keep_gte else v <= edge + 0.001
+
+func _intersect_edge(a: Vector2, b: Vector2, is_x: bool, edge: float) -> Vector2:
+	if is_x:
+		var t := 0.0 if absf(b.x - a.x) < 1e-9 else (edge - a.x) / (b.x - a.x)
+		return Vector2(edge, a.y + (b.y - a.y) * t)
+	var t2 := 0.0 if absf(b.y - a.y) < 1e-9 else (edge - a.y) / (b.y - a.y)
+	return Vector2(a.x + (b.x - a.x) * t2, edge)
 
 func draw_image(img, dx, dy, dw=null, dh=null) -> void:
 	if node == null or img == null:
@@ -718,39 +909,40 @@ func draw_image(img, dx, dy, dw=null, dh=null) -> void:
 		node.draw_texture_rect(tex, dest, false)
 		return
 	if str(_clip.get("kind", "")) == "circle":
-		# Textured circle fan (HTML clip+drawImage for portraits / peephole)
+		# HTML clip+drawImage: textured triangle fan (one tri per segment — never n>3 poly)
 		var c: Vector2 = _clip.c
 		var rad: float = float(_clip.r)
 		var segs := 32
-		var pts := PackedVector2Array()
-		var uvs := PackedVector2Array()
-		pts.append(c)
-		# UV for center relative to dest rect
 		var uvc := Vector2(
 			(c.x - dest.position.x) / maxf(dest.size.x, 0.001),
 			(c.y - dest.position.y) / maxf(dest.size.y, 0.001)
 		)
-		uvs.append(uvc)
-		for i in range(segs + 1):
-			var ang := float(i) / float(segs) * TAU
-			var wp := c + Vector2(cos(ang), sin(ang)) * rad
-			pts.append(wp)
-			uvs.append(Vector2(
-				(wp.x - dest.position.x) / maxf(dest.size.x, 0.001),
-				(wp.y - dest.position.y) / maxf(dest.size.y, 0.001)
-			))
-		var cols := PackedColorArray()
-		cols.resize(pts.size())
-		for i in pts.size():
-			cols[i] = Color(1, 1, 1, _alpha)
-		node.draw_polygon(pts, cols, uvs, tex)
+		var colw := Color(1, 1, 1, _alpha)
+		for i in range(segs):
+			var a0 := float(i) / float(segs) * TAU
+			var a1 := float(i + 1) / float(segs) * TAU
+			var w0 := c + Vector2(cos(a0), sin(a0)) * rad
+			var w1 := c + Vector2(cos(a1), sin(a1)) * rad
+			var uv0 := Vector2(
+				(w0.x - dest.position.x) / maxf(dest.size.x, 0.001),
+				(w0.y - dest.position.y) / maxf(dest.size.y, 0.001)
+			)
+			var uv1 := Vector2(
+				(w1.x - dest.position.x) / maxf(dest.size.x, 0.001),
+				(w1.y - dest.position.y) / maxf(dest.size.y, 0.001)
+			)
+			node.draw_polygon(
+				PackedVector2Array([c, w0, w1]),
+				PackedColorArray([colw, colw, colw]),
+				PackedVector2Array([uvc, uv0, uv1]),
+				tex
+			)
 		return
 	if str(_clip.get("kind", "")) == "rect":
 		var r: Rect2 = _clip.rect
 		var inter := dest.intersection(r)
 		if inter.size.x <= 0.0 or inter.size.y <= 0.0:
 			return
-		# Source region of texture corresponding to intersection
 		var u0 := (inter.position.x - dest.position.x) / maxf(dest.size.x, 0.001)
 		var v0 := (inter.position.y - dest.position.y) / maxf(dest.size.y, 0.001)
 		var u1 := (inter.end.x - dest.position.x) / maxf(dest.size.x, 0.001)
@@ -761,22 +953,33 @@ func draw_image(img, dx, dy, dw=null, dh=null) -> void:
 		)
 		node.draw_texture_rect_region(tex, inter, src)
 		return
-	# poly clip: textured polygon from clip poly
 	if str(_clip.get("kind", "")) == "poly":
 		var poly: PackedVector2Array = _clip.poly
 		if poly.size() < 3:
 			return
-		var uvs2 := PackedVector2Array()
-		for wp in poly:
-			uvs2.append(Vector2(
-				(wp.x - dest.position.x) / maxf(dest.size.x, 0.001),
-				(wp.y - dest.position.y) / maxf(dest.size.y, 0.001)
-			))
-		var cols2 := PackedColorArray()
-		cols2.resize(poly.size())
-		for i in poly.size():
-			cols2[i] = Color(1, 1, 1, _alpha)
-		node.draw_polygon(poly, cols2, uvs2, tex)
+		var colw2 := Color(1, 1, 1, _alpha)
+		var p0: Vector2 = poly[0]
+		var uv0b := Vector2(
+			(p0.x - dest.position.x) / maxf(dest.size.x, 0.001),
+			(p0.y - dest.position.y) / maxf(dest.size.y, 0.001)
+		)
+		for i in range(1, poly.size() - 1):
+			var p1: Vector2 = poly[i]
+			var p2: Vector2 = poly[i + 1]
+			var uv1b := Vector2(
+				(p1.x - dest.position.x) / maxf(dest.size.x, 0.001),
+				(p1.y - dest.position.y) / maxf(dest.size.y, 0.001)
+			)
+			var uv2b := Vector2(
+				(p2.x - dest.position.x) / maxf(dest.size.x, 0.001),
+				(p2.y - dest.position.y) / maxf(dest.size.y, 0.001)
+			)
+			node.draw_polygon(
+				PackedVector2Array([p0, p1, p2]),
+				PackedColorArray([colw2, colw2, colw2]),
+				PackedVector2Array([uv0b, uv1b, uv2b]),
+				tex
+			)
 		return
 	node.draw_texture_rect(tex, dest, false)
 
@@ -808,5 +1011,5 @@ func createRadialGradient(x0, y0, r0, x1, y1, r1) -> CanvasGradient:
 	return create_radial_gradient(x0, y0, r0, x1, y1, r1)
 
 func measure_text(text) -> Dictionary:
-	var f := ThemeDB.fallback_font
+	var f := _active_font()
 	return {"width": f.get_string_size(str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size).x}

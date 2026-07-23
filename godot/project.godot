@@ -13,6 +13,7 @@ config/icon="res://assets/textures/clear-0.png"
 [autoload]
 
 Config="*res://autoload/Config.gd"
+FontBank="*res://autoload/FontBank.gd"
 GameState="*res://autoload/GameState.gd"
 DataRegistry="*res://autoload/DataRegistry.gd"
 ProgressStore="*res://autoload/ProgressStore.gd"

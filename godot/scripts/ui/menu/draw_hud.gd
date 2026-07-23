@@ -516,16 +516,14 @@ func _draw_boss_or_progress(x: float, cy: float, w: float) -> void:
 		ctx.fill()
 
 func _draw_heart(cx: float, cy: float, r: float) -> void:
-	ctx.fill_style("#ff6ec7")
+	## HTML drawHeart — cubic bezier heart (not circle pair)
+	ctx.fill_style("#ff4d8d")
 	ctx.begin_path()
-	ctx.arc(cx - r * 0.45, cy, r * 0.55, 0, TAU)
-	ctx.arc(cx + r * 0.45, cy, r * 0.55, 0, TAU)
-	ctx.fill()
-	ctx.begin_path()
-	ctx.move_to(cx - r, cy + r * 0.1)
-	ctx.line_to(cx, cy + r * 1.15)
-	ctx.line_to(cx + r, cy + r * 0.1)
-	ctx.close_path()
+	ctx.move_to(cx, cy + r * 0.3)
+	ctx.bezier_curve_to(cx, cy - r * 0.5, cx - r, cy - r * 0.5, cx - r, cy + r * 0.1)
+	ctx.bezier_curve_to(cx - r, cy + r * 0.7, cx, cy + r, cx, cy + r * 1.3)
+	ctx.bezier_curve_to(cx, cy + r, cx + r, cy + r * 0.7, cx + r, cy + r * 0.1)
+	ctx.bezier_curve_to(cx + r, cy - r * 0.5, cx, cy - r * 0.5, cx, cy + r * 0.3)
 	ctx.fill()
 
 func _draw_panel_landscape() -> void:

@@ -23,7 +23,8 @@
     "port:gate:p6": "node tools/port/phase_gates/check_p6.mjs",
     "port:gate:p7": "node tools/port/phase_gates/check_p7.mjs",
     "port:gate:p8": "node tools/port/phase_gates/check_p8.mjs",
-    "port:gate:p9": "node tools/port/phase_gates/check_p9.mjs"
+    "port:gate:p9": "node tools/port/phase_gates/check_p9.mjs",
+    "port:inventory": "node tools/port/inventory_public.mjs"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
@@ -41,7 +42,7 @@
       }
     ]
   },
-  "description": "Bobina: Kill All Mumus \u2014 killallmumus.com",
+  "description": "Bobina: Kill All Mumus — killallmumus.com",
   "engines": {
     "node": ">=20.9.0"
   }

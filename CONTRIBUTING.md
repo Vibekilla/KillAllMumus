@@ -62,3 +62,21 @@ git push --force-with-lease origin main
 ```
 
 Prefer `git revert` on main when possible.
+
+## Feature branch lifecycle
+
+1. Work on `feature/<name>` (source of truth for game client remains **`public/index.html`** until Godot cutover).
+2. Open PR → review → **merge** to `main` or `dev`.
+3. **Delete the branch** after successful merge:
+
+```bash
+scripts/branch-cleanup-after-merge.sh feature/<name> --base main
+```
+
+Do not leave merged feature branches on origin.
+
+## Godot 1:1 port policy
+
+- **No fallbacks / stubs / simplified stand-ins** for gameplay or draw code.
+- Run `node tools/port/inventory_public.mjs` before claiming parity — every `draw*` in `public/index.html` must map to a Godot file.
+- Canvas API lives in `godot/scripts/render/CanvasCompat.gd` and must match HTML fill/stroke/clip/text/emoji behavior.

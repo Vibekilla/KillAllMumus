@@ -27,6 +27,7 @@ var _fx
 var _melee_fx
 var _stage_bg
 var _fire
+var _portrait_bust
 
 func setup(c) -> void:
 	ctx = c
@@ -53,13 +54,17 @@ func setup(c) -> void:
 	_melee_fx = _load("res://scripts/render/drawers/drawMeleeFx.gd")
 	_stage_bg = _load("res://scripts/render/drawers/drawStageBg.gd")
 	_fire = _load("res://scripts/render/drawers/fire.gd")
+	_portrait_bust = _load("res://scripts/render/drawers/drawPortraitBust.gd")
 	if _title and _bobina and _title.has_method("set_bobina"):
 		_title.set_bobina(_bobina)
+	var portrait_drawers := {
+		"ape": _ape, "robotnik": _robotnik, "mumina": _mumina, "lily": _lily,
+		"police": _police, "bogdanoff": _bogdanoff, "devil": _devil, "wynn": _wynn,
+	}
 	if _boss and _boss.has_method("set_drawers"):
-		_boss.set_drawers({
-			"ape": _ape, "robotnik": _robotnik, "mumina": _mumina, "lily": _lily,
-			"police": _police, "bogdanoff": _bogdanoff, "devil": _devil, "wynn": _wynn,
-		})
+		_boss.set_drawers(portrait_drawers)
+	if _portrait_bust and _portrait_bust.has_method("set_drawers"):
+		_portrait_bust.set_drawers(portrait_drawers)
 
 func _load(path: String):
 	var sc = load(path)
@@ -148,36 +153,18 @@ func draw_item(it: Dictionary) -> void:
 		_item.drawItem(it)
 
 func draw_boss(b: Dictionary) -> void:
-	## 1:1 HTML drawBoss — via drawBoss.gd (hell portal + portrait dispatch)
-	if _boss and _boss.has_method("drawBoss"):
-		_boss.drawBoss(b)
+	## 1:1 HTML drawBoss — via drawBoss.gd only (no alternate implementation)
+	if _boss == null:
+		push_error("PortedDraw.draw_boss: drawBoss.gd missing — public parity broken")
 		return
-	# fallback if drawer missing
-	var d: Dictionary = b.get("data", {})
-	if typeof(d) != TYPE_DICTIONARY:
-		d = {}
-	var flash: bool = float(b.get("flash", 0)) > 0.0
-	ctx.save()
-	ctx.translate(float(b.get("x", 0)), float(b.get("y", 0)))
-	var portrait := str(d.get("portrait", b.get("portrait", "ape")))
-	match portrait:
-		"ape":
-			if _ape: _ape.drawApe(b, flash)
-		"robotnik":
-			if _robotnik: _robotnik.drawRobotnik(b, flash)
-		"mumina":
-			if _mumina: _mumina.drawMumina(b, flash)
-		"lily":
-			if _lily: _lily.drawLily(b, flash)
-		"police":
-			if _police: _police.drawPolice(b, flash)
-		"bogdanoff":
-			if _bogdanoff: _bogdanoff.drawBogdanoff(b, flash)
-		"devil":
-			if _devil: _devil.drawDevil(b, flash)
-		_:
-			if _wynn: _wynn.drawWynn(b, flash)
-	ctx.restore()
+	_boss.drawBoss(b)
+
+func draw_portrait_bust(px, py, size, type, color) -> void:
+	## 1:1 HTML drawPortraitBust
+	if _portrait_bust == null:
+		push_error("PortedDraw.draw_portrait_bust: drawer missing")
+		return
+	_portrait_bust.drawPortraitBust(px, py, size, type, color)
 
 func draw_fx(fx_list: Array = []) -> void:
 	if _fx and _fx.has_method("drawFx"):

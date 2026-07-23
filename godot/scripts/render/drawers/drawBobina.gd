@@ -2746,10 +2746,9 @@ func drawBobina(p) -> void:
 	ctx.move_to(-4, hy - 8)
 	ctx.quadratic_curve_to(2, hy - 9, 7, hy - 5)
 	ctx.stroke()
-	# brows — softer, raised & gently arched for the open-eyed smile (reads friendly, not intense); default otherwise
-	if smile  or  squee:
-		pass
-		# TODO_PORT: /* brows sit under the bangs / closed eyes — no separate brow */
+	# brows — HTML: smile||squee leave brows under bangs (no stroke); annoyed / default drawn
+	if smile or squee:
+		pass  # HTML empty block for smile||squee brows
 	elif annoyed:
 		ctx.stroke_style(hair)
 		ctx.line_width(1.2)
@@ -2972,8 +2971,11 @@ func drawBobina(p) -> void:
 		ctx.close_path()
 		ctx.fill()
 	else:
-		pass
-	# TODO_PORT: ((ctx.fillStyle = skinSh), ctx.beginPath(), ctx.arc(0, hy + 7, 0.7, 0, 7), ctx.fill())
+		# HTML default nose freckle (non-custom face)
+		ctx.fill_style(skinSh)
+		ctx.begin_path()
+		ctx.arc(0, hy + 7, 0.7, 0, TAU)
+		ctx.fill()
 	if uwu:
 		# :3 / w cat mouth (black)
 		ctx.stroke_style(ln)
