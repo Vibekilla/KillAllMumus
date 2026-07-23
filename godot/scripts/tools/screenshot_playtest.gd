@@ -162,12 +162,12 @@ func _run() -> void:
 					await process_frame
 		await _save(str(st_name[1]))
 
-	# Phase 2: Bobina expression previews (HTML VICTORY_FACES indices)
+	# Phase 2: Bobina expression + pose + blink dual previews (HTML VICTORY_FACES / OUTFIT_POSES)
 	if not fast and title and "model" in title and title.model:
 		GameState.set_state(GameState.State.OUTFITS)
 		_force_ui_size(_main)
 		# MenuHelpers.VICTORY_FACES: 0 Auto, 1 :3 uwu, 2 Smile, 3 >v< squee, 4 Giggle, 5 Annoyed
-		for face_i in [2, 1, 3, 5]:
+		for face_i in [0, 1, 2, 3, 4, 5]:
 			title.model.victory_face = face_i
 			title.model.outfit_preview = "og"
 			title.model.outfit_pose = 0
@@ -175,6 +175,41 @@ func _run() -> void:
 			for _i in range(8):
 				await process_frame
 			await _save("godot_bobina_face_%d" % face_i)
+		# Poses (idle / dance / cheer) with smile face for stable compare
+		title.model.victory_face = 2
+		for pose_i in [0, 1, 4]:
+			title.model.outfit_pose = pose_i
+			title.model.outfit_preview = "og"
+			title.queue_redraw()
+			for _i in range(10):
+				await process_frame
+			await _save("godot_bobina_pose_%d" % pose_i)
+		# Blink open vs closed: pause SimClock so tick stays in blink window (tick % 230 < 7)
+		title.model.victory_face = 2  # smile — blink applies
+		title.model.outfit_pose = 0
+		var sc = _A("SimClock")
+		if sc:
+			var was_paused: bool = bool(sc.paused) if "paused" in sc else false
+			sc.paused = true
+			sc.tick = 10  # open eyes
+			if title.has_method("set_process"):
+				pass
+			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+				title.menus.set_tick(10)
+			title.queue_redraw()
+			for _i in range(6):
+				await process_frame
+				title.queue_redraw()
+			await _save("godot_bobina_blink_open")
+			sc.tick = 3  # closed lids
+			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+				title.menus.set_tick(3)
+			title.queue_redraw()
+			for _i in range(6):
+				await process_frame
+				title.queue_redraw()
+			await _save("godot_bobina_blink_closed")
+			sc.paused = was_paused
 
 	# Restore emblems for rest of dual (play may earn more)
 	if _ps:

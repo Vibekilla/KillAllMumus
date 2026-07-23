@@ -125,8 +125,8 @@ godot/
 | --- | --- | --- |
 | 1.1 | Menus / outfit previews: cache complex drawers (esp. full `drawBobina`) into SubViewport / bake on state change | **done** — `BobinaDrawCache` + outfit stage bake |
 | 1.2 | In-game Bobina: same caching for outfit + expression + pose | **done** — `get_play_texture` + face bins; dash/bomb live |
-| 1.3 | World / HUD / FX: throttle redraws; keep CanvasCompat hot paths | **partial** — WorldDraw 20 Hz shop/clear/intro, 6 Hz pause; HUD 30 Hz; PLAY still 60 Hz |
-| 1.4 | Target: 60 FPS desktop, ≥30–45 FPS web | **open** — probe on llvmpipe still ~3 FPS play (software GL); re-measure on GPU |
+| 1.3 | World / HUD / FX: throttle redraws; keep CanvasCompat hot paths | **partial** — WorldDraw 20 Hz shop/clear/intro, 6 Hz pause; HUD 30 Hz; PLAY 60 Hz entities; **StageBgDrawCache** amortizes bg+fx (~15–20 Hz bake) |
+| 1.4 | Target: 60 FPS desktop, ≥30–45 FPS web | **open** — probe on llvmpipe software GL; re-measure on GPU / web |
 
 ### FPS root cause notes (Phase 0.3 / 1)
 
@@ -135,15 +135,15 @@ Probe: `npm run port:fps` (Xvfb + Mesa **llvmpipe** software GL — not represen
 | Scene | Wall ms/frame (llvmpipe) | Notes |
 | --- | --- | --- |
 | title | ~73 ms (~14 FPS) | full title draw path |
-| play | ~299 ms (~3.3 FPS) | WorldDraw + entities + Bobina |
+| play | ~299 ms (~3.3 FPS) baseline before StageBg cache | WorldDraw + entities + Bobina |
 
 Code-path root causes:
 
 1. **Full `drawBobina` every redraw** — primary cost (menus ×4.7, play every tick).  
 2. **WorldDraw single pass** — full field each sim tick on PLAY (correct for parity).  
 3. **Title** — tick-throttled (~30 Hz idle).  
-4. **Mitigations landed** — `BobinaDrawCache` for menus + play (face-bucketed); shop/stage-clear/intro WorldDraw 20 Hz; pause 6 Hz; HUD 30 Hz.  
-5. **Still needed** — enemy/bullet batching, more PLAY-path budget, measure on hardware GPU / web.
+4. **Mitigations landed** — `BobinaDrawCache` for menus + play (face-bucketed); **`StageBgDrawCache`** PF bake for stage bg/motifs/fx; shop/stage-clear/intro WorldDraw 20 Hz; pause 6 Hz; HUD 30 Hz; particle color batch.  
+5. **Still needed** — enemy sprite batching, measure on hardware GPU / web (Phase 1.4).
 
 ```bash
 npm run port:gates          # structure Phases 0–8
@@ -157,11 +157,11 @@ Exact HTML timing and pixels:
 
 | # | Requirement | Status |
 | --- | --- | --- |
-| 2.1 | Breath, head bob, body sway, movement-driven leg kick + arm swing | open |
-| 2.2 | Blink: `(tick % 230) < 7 && !squee` | open |
-| 2.3 | Expressions `smile` / `uwu` / `giggle` / `annoyed` / `squee` (eyes/mouth/blush/brows/iris at every scale) | open |
+| 2.1 | Breath, head bob, body sway, movement-driven leg kick + arm swing | **partial** — in `drawBobina`; dual pose shots idle/dance/cheer |
+| 2.2 | Blink: `(tick % 230) < 7 and not squee` | **partial** — ported + dual open/closed shots; fix JS `!squee` → GDScript `not` |
+| 2.3 | Expressions `smile` / `uwu` / `giggle` / `annoyed` / `squee` (eyes/mouth/blush/brows/iris at every scale) | **partial** — all VICTORY_FACES dual shots; scale matrix open |
 | 2.4 | Every outfit continuous animation (tails, wings, veils, tendrils, …) | open |
-| 2.5 | Full pose system + victory-face mapping + `hold` prop + GIF overlays (`talk`, leekspin, confused) | open |
+| 2.5 | Full pose system + victory-face mapping + `hold` prop + GIF overlays (`talk`, leekspin, confused) | **partial** — pose dual subset; hold/GIF open |
 
 ### Phase 3 — Exhaustive visual systems
 

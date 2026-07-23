@@ -18,17 +18,22 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 
 - [x] Menu / outfit preview: cache full `drawBobina` (SubViewport bake — `BobinaDrawCache`)
 - [x] In-game Bobina cache (`get_play_texture`, face bins, stale-frame fallback; dash/bomb live)
+- [x] Stage bg amortize (`StageBgDrawCache` — PF bake of gradient + motifs + StageBgFx)
+- [x] Particle color batching in WorldDraw
 - [x] World / HUD / FX redraw throttle + CanvasCompat hot paths (partial — tick gates)
 - [ ] 60 FPS desktop target met (llvmpipe probe still low; need GPU re-measure)
 - [ ] ≥30–45 FPS web target met
 
 ## Phase 2 — Bobina animation
 
-- [ ] Breath / head bob / body sway / leg kick / arm swing (HTML timing)
-- [ ] Blink `(tick % 230) < 7 && !squee`
-- [ ] Expressions: smile, uwu, giggle, annoyed, squee (all scales)
-- [ ] Outfit continuous FX (tails, wings, veils, tendrils, …)
-- [ ] Poses + victory face + hold prop + GIF overlays (talk, leekspin, confused)
+- [x] Structure: expressions + blink period in `drawBobina` (`port:gate:2`)
+- [x] Dual face shots: Auto / :3 / Smile / squee / Giggle / Annoyed
+- [x] Dual pose shots: idle / dance / cheer
+- [x] Dual blink open vs closed (SimClock tick window)
+- [x] Blink formula ported: `(tick % 230) < 7 and not squee`
+- [ ] Breath / head bob / body sway / leg kick dual timing sign-off
+- [ ] Outfit continuous anim dual (tails/wings/veils per outfit)
+- [ ] hold prop + talk/leekspin/confused GIF overlays dual
 
 ## Phase 3 — Exhaustive visuals
 

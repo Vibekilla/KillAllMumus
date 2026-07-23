@@ -29,6 +29,9 @@ g.ok(read("godot/scripts/ui/TitleScreen.gd").includes("BobinaDrawCache"), "Title
 g.ok(read("godot/scripts/ui/menu/draw_menus.gd").includes("bobina_cache"), "draw_menus uses bobina_cache");
 g.ok(world.includes("bobina_cache") && world.includes("get_play_texture"), "WorldDraw in-game Bobina cache");
 g.ok(world.includes("% 3") || world.includes("% 3") || world.includes("%3"), "WorldDraw non-combat throttle");
+g.ok(exists("godot/scripts/render/StageBgDrawCache.gd"), "StageBgDrawCache.gd");
+g.ok(exists("godot/scripts/render/StageBgBakeHost.gd"), "StageBgBakeHost.gd");
+g.ok(world.includes("stage_bg_cache") && world.includes("get_texture"), "WorldDraw stage bg cache blit");
 g.ok(exists("godot/scripts/tools/fps_probe.gd"), "fps_probe.gd for Phase 1.4");
 
 const proj = read("godot/project.godot");

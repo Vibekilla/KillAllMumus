@@ -2708,13 +2708,13 @@ func drawBobina(p) -> void:
 	ctx.begin_path()
 	ctx.ellipse(0, hy + 3, 8.6, 9, 0, 0, 7)
 	ctx.fill()
-	if !custom:
+	if not custom:
 		ctx.fill_style(skinSh)
 		ctx.begin_path()
 		ctx.ellipse(0, hy + 9, 4, 2.6, 0, 0, PI)
 		ctx.fill()
 	# bear ears (black, brown inner) — skipped for outfits whose headwear covers/replaces them (no double ears)
-	if !EAR_HIDE.has(str(outfit)):
+	if not EAR_HIDE.has(str(outfit)):
 		ctx.fill_style(hair)
 		ctx.begin_path()
 		ctx.arc(-8, hy - 8, 5, 0, 7)
@@ -2816,7 +2816,7 @@ func drawBobina(p) -> void:
 		ctx.arc(6, hy + 6.5, 2.2, 0, 7)
 		ctx.fill()
 	# eyes (big anime, brown)
-	var blink = tick % 230 < 7  and  !squee
+	var blink = (tick % 230) < 7 and not squee
 	if uwu:
 		# happy closed ^ ^ eyes with lash flicks — raised slightly to match the smile face's proportions
 		ctx.stroke_style(ln)

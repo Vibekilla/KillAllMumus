@@ -11,7 +11,13 @@ for (const expr of ["uwu", "smile", "annoyed", "squee", "giggle"]) {
   g.ok(bob.includes(expr), `expression ${expr}`);
 }
 g.ok(bob.includes("% 230") || bob.includes("%230"), "blink period 230");
+g.ok(/not\s+squee/.test(bob) || bob.includes("not squee"), "blink uses GDScript not squee (not JS !)");
 g.ok(bob.includes("selected_outfit") || bob.includes("outfit"), "outfit-aware");
+
+const shot = read("godot/scripts/tools/screenshot_playtest.gd");
+g.ok(shot.includes("godot_bobina_face_") || shot.includes("bobina_face"), "dual face shots");
+g.ok(shot.includes("godot_bobina_pose_") || shot.includes("bobina_pose"), "dual pose shots");
+g.ok(shot.includes("blink_open") && shot.includes("blink_closed"), "dual blink open/closed shots");
 
 const fx = read("godot/scripts/render/drawers/drawCombatFx.gd");
 g.ok(fx.includes("func poseParams"), "poseParams");

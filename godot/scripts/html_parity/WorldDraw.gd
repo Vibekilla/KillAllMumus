@@ -16,6 +16,7 @@ var hud: RefCounted
 var combat_fx: RefCounted
 var item_draw: RefCounted
 var bobina_cache: Node = null
+var stage_bg_cache: Node = null
 var tick: int = 0
 var _bullet_pool: Node = null
 var _last_tick: int = -1
@@ -41,6 +42,12 @@ func _ready() -> void:
 		bobina_cache = load("res://scripts/render/BobinaDrawCache.gd").new()
 		bobina_cache.name = "BobinaDrawCache"
 		add_child(bobina_cache)
+	# Phase 1.3: amortize stage bg + motifs + StageBgFx (~15–20 Hz bake)
+	stage_bg_cache = get_node_or_null("StageBgDrawCache")
+	if stage_bg_cache == null:
+		stage_bg_cache = load("res://scripts/render/StageBgDrawCache.gd").new()
+		stage_bg_cache.name = "StageBgDrawCache"
+		add_child(stage_bg_cache)
 	call_deferred("_bind_pool")
 
 func _bind_pool() -> void:
@@ -81,6 +88,25 @@ func _in_pf(x: float, y: float, margin: float = 24.0) -> bool:
 		and y - margin <= pf.position.y + pf.size.y
 	)
 
+func _draw_stage_bg_cached_or_live(pf: Rect2) -> void:
+	## Phase 1.3: blit PF-sized StageBg bake; live drawer until first tex lands.
+	if stage_bg_cache != null and stage_bg_cache.has_method("get_texture"):
+		var tex: Texture2D = stage_bg_cache.get_texture(tick)
+		if tex != null and ctx.has_method("draw_image"):
+			ctx.draw_image(tex, pf.position.x, pf.position.y, pf.size.x, pf.size.y)
+			# Soft PF border (draw_hud.drawStageBg also strokes this)
+			ctx.stroke_style("rgba(255,120,190,0.35)")
+			ctx.line_width(2)
+			ctx.begin_path()
+			if ctx.has_method("round_rect"):
+				ctx.round_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y, 4)
+			else:
+				ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
+			ctx.stroke()
+			return
+	if hud.has_method("drawStageBg"):
+		hud.drawStageBg()
+
 func _draw() -> void:
 	if ctx == null or ported == null:
 		return
@@ -106,9 +132,8 @@ func _draw() -> void:
 	ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	ctx.clip()
 
-	# --- stage bg + boss ambience ---
-	if hud.has_method("drawStageBg"):
-		hud.drawStageBg()
+	# --- stage bg (cached) + boss ambience (live) ---
+	_draw_stage_bg_cached_or_live(pf)
 	if GameState.state == GameState.State.PLAY or GameState.state == GameState.State.PAUSED:
 		if hud.has_method("drawBossAmbience"):
 			hud.drawBossAmbience()
@@ -189,13 +214,21 @@ func _draw() -> void:
 		ported.drawFx(CombatHelpers.fx)
 
 	if CombatHelpers:
+		# Batch particles by color to cut fill_style thrash on dense sparks
+		var by_col: Dictionary = {}
 		for p in CombatHelpers.particles:
-			var life := float(p.get("life", 0))
-			ctx.global_alpha(clampf(life / 30.0, 0.0, 1.0))
-			ctx.fill_style(str(p.get("c", "#ff8ac0")))
-			ctx.begin_path()
-			ctx.arc(float(p.get("x", 0)), float(p.get("y", 0)), 2.2, 0, TAU)
-			ctx.fill()
+			var col := str(p.get("c", "#ff8ac0"))
+			if not by_col.has(col):
+				by_col[col] = []
+			by_col[col].append(p)
+		for col in by_col.keys():
+			ctx.fill_style(str(col))
+			for p in by_col[col]:
+				var life := float(p.get("life", 0))
+				ctx.global_alpha(clampf(life / 30.0, 0.0, 1.0))
+				ctx.begin_path()
+				ctx.arc(float(p.get("x", 0)), float(p.get("y", 0)), 2.2, 0, TAU)
+				ctx.fill()
 			ctx.global_alpha(1.0)
 		if ported.has_method("drawMeleeFx"):
 			var mfx: Array = []
