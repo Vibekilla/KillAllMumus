@@ -145,9 +145,11 @@ jobs:
           ### Feature notes
           ${NOTES:-"- (no commits ahead of dev yet)"}
 
-          ### After merge
-          1. Promote \`dev\` → \`main\` when ready for production
-          2. Successful \`main\` deploy refreshes \`dev\` as rollback mirror
+          ### Ship lifecycle
+          Prefer `./scripts/ship-feature.sh` (push → PR → merge → delete feature branch).
+          Promote to live: `./scripts/ship-feature.sh --promote` when ready.
+
+          After main deploy, CI refreshes dev as rollback mirror.
           EOF
           )
           if gh pr list --head "$BRANCH" --base dev --json number --jq 'length' | grep -q '^0$'; then
