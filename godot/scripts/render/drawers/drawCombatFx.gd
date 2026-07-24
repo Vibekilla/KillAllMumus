@@ -45,7 +45,7 @@ func drawOptions(player_local: bool = true) -> void:
 		ctx.restore()
 
 func drawPowerAura(p: Dictionary) -> void:
-	## HTML drawPowerAura — psychedelic power bubble (local coords: p.x/p.y often 0)
+	## HTML drawPowerAura — psychedelic soap-bubble (1:1 structure from public/index.html)
 	var power := float(p.get("power", GameState.power))
 	var pf := clampf((power - 1.0) / 5.0, 0.0, 1.0)
 	if pf < 0.02:
@@ -56,18 +56,26 @@ func drawPowerAura(p: Dictionary) -> void:
 	var rot := face + PI / 2.0
 	var R := (30.0 + pf * 15.0) * (1.0 + sin(t * 0.09) * 0.05 * (0.4 + pf))
 	var hue0 := fmod(t * 2.4, 360.0)
-	# bodyCtr relative to local origin
-	var ctr := CombatHelpers.body_ctr({"x": float(p.get("x", 0)), "y": float(p.get("y", 0)), "face": face})
+	var ctr: Vector2 = CombatHelpers.body_ctr({"x": float(p.get("x", 0)), "y": float(p.get("y", 0)), "face": face})
 	ctx.save()
 	ctx.translate(ctr.x, ctr.y)
 	ctx.global_composite_operation("lighter")
-	# outer glow (approx radial)
-	ctx.fill_style(_hex_a(oc[0], 0.12 + pf * 0.16))
+	# outer aura glow — outfit-tinted radial
+	if ctx.has_method("createRadialGradient"):
+		var gg = ctx.createRadialGradient(0, 0, R * 0.3, 0, 0, R * 1.6)
+		gg.add_color_stop(0, _hex_a(oc[0], 0.12 + pf * 0.16))
+		gg.add_color_stop(0.55, _hex_a(oc[1] if oc.size() > 1 else oc[0], 0.10 + pf * 0.16))
+		gg.add_color_stop(1, _hex_a(oc[1] if oc.size() > 1 else oc[0], 0.0))
+		ctx.fill_style(gg)
+	else:
+		ctx.fill_style(_hex_a(oc[0], 0.12 + pf * 0.16))
 	ctx.begin_path()
 	ctx.arc(0, 0, R * 1.6, 0, TAU)
 	ctx.fill()
+	# bubble surface (rotates with body)
 	ctx.save()
 	ctx.rotate(rot)
+	# iridescent oil-slick bands
 	var bands := 6 + int(floor(pf * 4.0))
 	for i in range(bands, 0, -1):
 		var rr := R * (float(i) / float(bands) + 0.03)
@@ -77,32 +85,135 @@ func drawPowerAura(p: Dictionary) -> void:
 		ctx.begin_path()
 		ctx.arc(0, 0, rr, 0, TAU)
 		ctx.stroke()
-	# swirling ribbons
-	var swirls := 2 + int(floor(pf * 3.0))
+	# swirling psychedelic ribbons (segment hues)
 	ctx.line_cap("round")
+	var swirls := 2 + int(floor(pf * 3.0))
 	for k in range(swirls):
-		var hue2 := fmod(hue0 + float(k) * 70.0, 360.0)
-		ctx.stroke_style("hsla(%d,100%%,65%%,%s)" % [int(hue2), str(0.18 + pf * 0.22)])
-		ctx.line_width(1.6 + pf * 1.4)
+		var dir := 1.0 if (k % 2) else -1.0
+		var base := t * (0.02 + float(k) * 0.006) * dir + float(k) * 2.2
+		var has_prev := false
+		var px0 := 0.0
+		var py0 := 0.0
+		var s := 0.0
+		while s <= 1.2:
+			var a := base + s * 3.6
+			var rr2 := R * (0.5 + 0.42 * sin(s * 5.0 + t * 0.11 + float(k)))
+			var x := cos(a) * rr2
+			var y := sin(a) * rr2
+			if has_prev:
+				var hue2 := fmod(hue0 + s * 180.0 + float(k) * 70.0, 360.0)
+				ctx.stroke_style("hsla(%d,100%%,64%%,%s)" % [int(hue2), str(0.38 + pf * 0.34)])
+				ctx.line_width(1.6 + pf * 1.5)
+				ctx.begin_path()
+				ctx.move_to(px0, py0)
+				ctx.line_to(x, y)
+				ctx.stroke()
+			px0 = x
+			py0 = y
+			has_prev = true
+			s += 0.075
+	# rotating rainbow soap-bubble rim
+	var rim := 26
+	ctx.line_width(2.0 + pf * 1.6)
+	for i in range(rim):
+		var a0 := float(i) / float(rim) * TAU + t * 0.02
+		var a1 := float(i + 1) / float(rim) * TAU + t * 0.02
+		var hue_r := fmod(hue0 + float(i) / float(rim) * 360.0, 360.0)
+		ctx.stroke_style("hsla(%d,100%%,66%%,%s)" % [int(hue_r), str(0.4 + pf * 0.34)])
 		ctx.begin_path()
-		for a_i in range(33):
-			var a := float(a_i) / 32.0 * TAU
-			var wob := 1.0 + sin(a * 3.0 + t * 0.12 + float(k)) * 0.08 * pf
-			var rr2 := R * (0.72 + 0.12 * sin(a * 2.0 + t * 0.08 + float(k) * 1.3)) * wob
-			var px := cos(a + t * 0.04 * (1.0 + float(k) * 0.2)) * rr2
-			var py := sin(a + t * 0.04 * (1.0 + float(k) * 0.2)) * rr2
-			if a_i == 0:
-				ctx.move_to(px, py)
-			else:
-				ctx.line_to(px, py)
+		ctx.arc(0, 0, R * 0.98, a0, a1)
+		ctx.stroke()
+	# twinkling sparkles
+	var spk := 5 + int(floor(pf * 7.0))
+	for i in range(spk):
+		var a_s := float(i) * 2.399 + t * 0.03
+		var rr_s := R * (0.28 + 0.62 * fmod(float(i) * 0.37, 1.0))
+		var sx := cos(a_s) * rr_s
+		var sy := sin(a_s) * rr_s * 0.92
+		var sn := sin(t * 0.28 + float(i) * 1.7)
+		var tw := sn * sn if sn > 0.0 else 0.0
+		if tw < 0.02:
+			continue
+		var sz := (0.9 + pf * 1.2) * tw
+		var hue_s := fmod(hue0 + float(i) * 47.0, 360.0)
+		ctx.fill_style("hsla(%d,100%%,72%%,%s)" % [int(hue_s), str(0.75 * tw)])
+		ctx.begin_path()
+		ctx.arc(sx, sy, sz, 0, TAU)
+		ctx.fill()
+		ctx.stroke_style("hsla(%d,100%%,82%%,%s)" % [int(fmod(hue_s + 30.0, 360.0)), str(0.5 * tw)])
+		ctx.line_width(0.8)
+		ctx.begin_path()
+		ctx.move_to(sx - sz * 2.4, sy)
+		ctx.line_to(sx + sz * 2.4, sy)
+		ctx.move_to(sx, sy - sz * 2.4)
+		ctx.line_to(sx, sy + sz * 2.4)
 		ctx.stroke()
 	ctx.restore()
-	# inner highlight ring
-	ctx.stroke_style(_hex_a("#fff", 0.15 + pf * 0.2))
-	ctx.line_width(1.2)
+	# glossy sheen highlight
+	var shHue := fmod(hue0 + 150.0, 360.0)
+	var shA := (0.30 + pf * 0.22) * (0.7 + 0.3 * sin(t * 0.13))
+	if ctx.has_method("createRadialGradient"):
+		var sg = ctx.createRadialGradient(-R * 0.34, -R * 0.42, 0, -R * 0.34, -R * 0.42, R * 0.52)
+		sg.add_color_stop(0, "hsla(%d,100%%,90%%,%s)" % [int(shHue), str(shA)])
+		sg.add_color_stop(0.55, "hsla(%d,100%%,72%%,%s)" % [int(shHue), str(shA * 0.4)])
+		sg.add_color_stop(1, "hsla(0,0%,100%,0)")
+		ctx.fill_style(sg)
+	else:
+		ctx.fill_style("hsla(%d,100%%,90%%,%s)" % [int(shHue), str(shA * 0.5)])
 	ctx.begin_path()
-	ctx.arc(0, 0, R * 0.55, 0, TAU)
-	ctx.stroke()
+	ctx.arc(-R * 0.34, -R * 0.42, R * 0.52, 0, TAU)
+	ctx.fill()
+	# LV5+ overflow bubble
+	if power >= 5.0:
+		var p5 := 0.5 + 0.5 * sin(t * 0.09)
+		var R2 := R * (1.34 + 0.05 * p5)
+		if ctx.has_method("createRadialGradient"):
+			var fg = ctx.createRadialGradient(0, 0, R * 0.96, 0, 0, R2)
+			fg.add_color_stop(0, "rgba(0,0,0,0)")
+			fg.add_color_stop(0.6, "hsla(%d,100%%,66%%,0.10)" % int(fmod(hue0 + 80.0, 360.0)))
+			fg.add_color_stop(1, "hsla(%d,100%%,66%%,0.15)" % int(fmod(hue0 + 200.0, 360.0)))
+			ctx.fill_style(fg)
+			ctx.begin_path()
+			ctx.arc(0, 0, R2, 0, TAU)
+			ctx.fill()
+		var rim2 := 30
+		ctx.line_width(2.2 + 0.8 * p5)
+		for i in range(rim2):
+			var a0b := float(i) / float(rim2) * TAU - t * 0.016
+			var a1b := float(i + 1) / float(rim2) * TAU - t * 0.016
+			var hue_b := fmod(hue0 + 150.0 + float(i) / float(rim2) * 360.0, 360.0)
+			ctx.stroke_style("hsla(%d,100%%,68%%,%s)" % [int(hue_b), str(0.30 + 0.12 * p5)])
+			ctx.begin_path()
+			ctx.arc(0, 0, R2, a0b, a1b)
+			ctx.stroke()
+		for k in range(3):
+			var ph := fmod(t * 0.014 + float(k) / 3.0, 1.0)
+			var rr_k := R * (1.0 + ph * 1.5)
+			ctx.stroke_style("hsla(%d,100%%,70%%,%s)" % [int(fmod(hue0 + ph * 360.0, 360.0)), str((1.0 - ph) * 0.4)])
+			ctx.line_width(2.0 * (1.0 - ph) + 0.5)
+			ctx.begin_path()
+			ctx.arc(0, 0, rr_k, 0, TAU)
+			ctx.stroke()
+		for i in range(5):
+			var a_o := t * (0.018 + float(i) * 0.004) + float(i) * 1.257
+			var orb := R * (1.24 + 0.1 * sin(t * 0.1 + float(i)))
+			var bx := cos(a_o) * orb
+			var by := sin(a_o) * orb
+			var br := R * 0.14 * (0.85 + 0.3 * sin(t * 0.2 + float(i)))
+			var bh := fmod(hue0 + float(i) * 72.0, 360.0)
+			ctx.fill_style("hsla(%d,100%%,80%%,0.14)" % int(bh))
+			ctx.begin_path()
+			ctx.arc(bx, by, br, 0, TAU)
+			ctx.fill()
+			ctx.stroke_style("hsla(%d,100%%,74%%,0.6)" % int(bh))
+			ctx.line_width(1.2)
+			ctx.begin_path()
+			ctx.arc(bx, by, br, 0, TAU)
+			ctx.stroke()
+			ctx.fill_style("rgba(255,255,255,0.7)")
+			ctx.begin_path()
+			ctx.arc(bx - br * 0.35, by - br * 0.4, br * 0.24, 0, TAU)
+			ctx.fill()
 	ctx.restore()
 
 func drawPowerRadiance(p: Dictionary) -> void:

@@ -133,6 +133,94 @@ func _save(name: String) -> void:
 	print("[SHOT] ", name, " err=", err, " ", img.get_width(), "x", img.get_height(),
 		" path=", ProjectSettings.globalize_path(path))
 
+## Wipe combat clutter so dual stills match HTML forced states (no leftover portal/mobs/FX).
+func _dual_sanitize(player, pool) -> void:
+	var GS = _A("GameState")
+	var StageFlow = _A("StageFlow")
+	if StageFlow:
+		if StageFlow.has_method("reset_run"):
+			StageFlow.reset_run()
+		else:
+			StageFlow.clear_portal = null
+			StageFlow.clear_shop = null
+			StageFlow.clear_msg_t = 0.0
+			StageFlow.dialog = null
+		if GS:
+			GS.set_meta("stage_cleared", false)
+	for e in root.get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e):
+			e.queue_free()
+	for b in root.get_tree().get_nodes_in_group("bosses"):
+		if is_instance_valid(b):
+			b.queue_free()
+	for sp in root.get_tree().get_nodes_in_group("enemy_spawner"):
+		if not is_instance_valid(sp):
+			continue
+		if sp.has_method("clear"):
+			sp.clear()
+		# Pin spawner off for dual stills (clear alone is not enough if stage restarts)
+		if "spawning" in sp:
+			sp.spawning = false
+		if "boss_spawned" in sp:
+			sp.boss_spawned = true
+		if "stage_time" in sp:
+			sp.stage_time = 99999.0
+	if pool and pool.has_method("clear_all"):
+		pool.clear_all()
+	elif pool and pool.has_method("clear"):
+		pool.clear()
+	var items = _A("ItemSystem")
+	if items:
+		if "items" in items:
+			items.items.clear()
+		if "floaters" in items:
+			items.floaters.clear()
+		if "burns" in items:
+			items.burns.clear()
+		if "emotes" in items:
+			items.emotes.clear()
+	var ch = _A("CombatHelpers")
+	if ch:
+		if "particles" in ch:
+			ch.particles.clear()
+		if "score_texts" in ch:
+			ch.score_texts.clear()
+		if "melee_fx" in ch:
+			ch.melee_fx.clear()
+		if "flash_msg" in ch:
+			ch.flash_msg = {}
+	if player:
+		if "invuln" in player:
+			player.invuln = 99999.0
+		player.global_position = Vector2(304, 400)
+		if "focus" in player:
+			player.focus = false
+		if "shield_t" in player:
+			player.shield_t = 0.0
+		if "rapid_t" in player:
+			player.rapid_t = 0.0
+		if "vial_t" in player:
+			player.vial_t = 0.0
+		if "vial_hits" in player:
+			player.vial_hits = 0
+		if "phase_t" in player:
+			player.phase_t = 0.0
+		if "dash" in player:
+			player.dash = 0.0
+		if "trail" in player:
+			player.trail = []
+		if "bomb_fx" in player:
+			player.bomb_fx = 0.0
+		var ms = player.get("melee")
+		if ms and "swipe_fx" in ms:
+			ms.swipe_fx.clear()
+		var sp = player.get("specials")
+		if sp and "fx" in sp:
+			sp.fx.clear()
+	if GS:
+		GS.set_state(GS.State.PLAY)
+		GS.lives = 99
+
 func _run() -> void:
 	await process_frame
 	var GameState = _A("GameState")
@@ -678,13 +766,15 @@ func _run() -> void:
 		GameState.weapons.clear()
 		for w in weps:
 			GameState.weapons.append(w)
+		_dual_sanitize(player, pool)
+		for _i in range(8):
+			await process_frame
+			_dual_sanitize(player, pool)
 		if _want("weapons"):
 			for wep in weps:
+				_dual_sanitize(player, pool)
+				GameState.power = 6.0
 				GameState.current_weapon = wep
-				if pool and pool.has_method("clear_all"):
-					pool.clear_all()
-				elif pool and pool.has_method("clear"):
-					pool.clear()
 				for i in range(18):
 					await process_frame
 					if "invuln" in player:
@@ -695,8 +785,8 @@ func _run() -> void:
 		if _want("melee"):
 			var mkeys: Array = ["katana", "lash", "scythe", "hammer", "claws"]
 			for mk in mkeys:
-				if pool and pool.has_method("clear_all"):
-					pool.clear_all()
+				_dual_sanitize(player, pool)
+				GameState.power = 6.0
 				var ms = player.get("melee")
 				if ms:
 					ms.cooldown = 0.0
@@ -712,9 +802,9 @@ func _run() -> void:
 			var skeys: Array = ["laser", "mech", "bearzooka", "vault", "stampede", "badger", "sixth", "revenge", "kiss", "kraken", "void"]
 			var sp = player.get("specials")
 			for sk in skeys:
+				_dual_sanitize(player, pool)
+				GameState.power = 6.0
 				GameState.special_meter = 100.0
-				if pool and pool.has_method("clear_all"):
-					pool.clear_all()
 				if sp and sp.has_method("use"):
 					sp.use(sk, player, pool)
 				for _i in range(16):
@@ -724,12 +814,10 @@ func _run() -> void:
 				await _save("godot_special_%s" % sk)
 
 		if _want("aura"):
-			GameState.set_state(GameState.State.PLAY)
-			if "invuln" in player:
-				player.invuln = 99999.0
-			player.global_position = Vector2(304, 400)
-			if pool and pool.has_method("clear_all"):
-				pool.clear_all()
+			_dual_sanitize(player, pool)
+			for _i in range(8):
+				await process_frame
+				_dual_sanitize(player, pool)
 			for pwr in [1.0, 3.0, 6.0]:
 				GameState.power = pwr
 				player.focus = false
@@ -740,8 +828,16 @@ func _run() -> void:
 				player.phase_t = 0.0
 				player.dash = 0.0
 				player.bomb_fx = 0.0
+				player.trail = []
 				for _i in range(8):
 					await process_frame
+					# Keep field empty while aura settles
+					for e in root.get_tree().get_nodes_in_group("enemies"):
+						if is_instance_valid(e) and not e.is_in_group("bosses"):
+							e.queue_free()
+					var chp = _A("CombatHelpers")
+					if chp and "particles" in chp:
+						chp.particles.clear()
 				await _save("godot_aura_power_%d" % int(pwr))
 			GameState.power = 4.0
 			player.focus = true
@@ -790,6 +886,12 @@ func _run() -> void:
 			player.bomb_fx = 0.0
 
 		if _want("items"):
+			_dual_sanitize(player, pool)
+			GameState.power = 1.0
+			for _i in range(8):
+				await process_frame
+				_dual_sanitize(player, pool)
+			GameState.power = 1.0
 			var items_sys = _A("ItemSystem")
 			if items_sys:
 				items_sys.items.clear()
@@ -819,6 +921,14 @@ func _run() -> void:
 						if it is Dictionary:
 							it["vx"] = 0.0
 							it["vy"] = 0.0
+					for e in root.get_tree().get_nodes_in_group("enemies"):
+						if is_instance_valid(e) and not e.is_in_group("bosses"):
+							e.queue_free()
+					if pool and pool.has_method("clear_all"):
+						pool.clear_all()
+					var chp2 = _A("CombatHelpers")
+					if chp2 and "particles" in chp2:
+						chp2.particles.clear()
 				await _save("godot_items_grid")
 				items_sys.items.clear()
 
@@ -828,13 +938,14 @@ func _run() -> void:
 		var DataRegistry = _A("DataRegistry")
 
 		if _want("elites"):
+			_dual_sanitize(player, pool)
+			GameState.power = 1.0
+			for _i in range(8):
+				await process_frame
+				_dual_sanitize(player, pool)
+			GameState.power = 1.0
 			var elites: Array = ["cheer", "ape", "badnik", "pup", "scammer", "voideye", "goon"]
 			var EnemyScene = load("res://scenes/enemies/Enemy.tscn")
-			for e in root.get_tree().get_nodes_in_group("enemies"):
-				if is_instance_valid(e) and not e.is_in_group("bosses"):
-					e.queue_free()
-			for _i in range(3):
-				await process_frame
 			if EnemyScene and playfield:
 				for ei in range(elites.size()):
 					var ek: String = str(elites[ei])
@@ -858,9 +969,18 @@ func _run() -> void:
 				for _i in range(10):
 					await process_frame
 					for e in root.get_tree().get_nodes_in_group("enemies"):
-						if is_instance_valid(e) and not e.is_in_group("bosses"):
-							if "vel" in e:
-								e.vel = Vector2.ZERO
+						if not is_instance_valid(e) or e.is_in_group("bosses"):
+							continue
+						if str(e.get("kind")) != "elite":
+							e.queue_free()
+							continue
+						if "vel" in e:
+							e.vel = Vector2.ZERO
+					if pool and pool.has_method("clear_all"):
+						pool.clear_all()
+					var chp3 = _A("CombatHelpers")
+					if chp3 and "particles" in chp3:
+						chp3.particles.clear()
 				await _save("godot_elites_grid")
 				for e in root.get_tree().get_nodes_in_group("enemies"):
 					if is_instance_valid(e) and not e.is_in_group("bosses"):
@@ -872,10 +992,9 @@ func _run() -> void:
 			var BossScene = load("res://scenes/enemies/Boss.tscn")
 			if BossScene and playfield and DataRegistry:
 				for si in range(mini(7, DataRegistry.stages.size())):
-					for b in root.get_tree().get_nodes_in_group("bosses"):
-						if is_instance_valid(b):
-							b.queue_free()
-					for _i in range(2):
+					_dual_sanitize(player, pool)
+					GameState.power = 1.0
+					for _i in range(3):
 						await process_frame
 					GameState.stage_index = si
 					var stage: Dictionary = DataRegistry.get_stage(si)
