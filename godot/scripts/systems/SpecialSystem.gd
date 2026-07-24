@@ -86,8 +86,11 @@ func _activate(key: String, player: Node2D, bullet_pool: Node) -> void:
 					"hit": {},
 				})
 		"sixth":
-			# time warp — slow enemy bullets via GameState flag
-			GameState.set_meta("slowmo", 300.0)
+			# HTML: slowmoT=300 + screenShake + power sfx; world crawls, Bobina full speed
+			if CombatHelpers and CombatHelpers.has_method("start_slowmo"):
+				CombatHelpers.start_slowmo(300.0)
+			else:
+				GameState.set_meta("slowmo", 300.0)
 		"revenge":
 			for i in 5:
 				var bx = pf.position.x + 50 + ((float(i) + 0.5) / 5.0) * (pf.size.x - 100) + randf_range(-18, 18)
@@ -124,13 +127,7 @@ func _update_fx(delta: float) -> void:
 		player = get_tree().get_first_node_in_group("player") as Node2D
 	var pf: Rect2 = Config.playfield()
 
-	if GameState.has_meta("slowmo"):
-		var sm: float = float(GameState.get_meta("slowmo"))
-		sm -= df
-		if sm <= 0.0:
-			GameState.remove_meta("slowmo")
-		else:
-			GameState.set_meta("slowmo", sm)
+	# slowmo timer owned by CombatHelpers.tick_slowmo (sim frame) — do not double-decrement
 
 	var keep: Array = []
 	for f in fx:

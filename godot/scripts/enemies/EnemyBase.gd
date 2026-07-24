@@ -57,6 +57,10 @@ func _physics_process(delta: float) -> void:
 	if has_meta("dual_freeze") and bool(get_meta("dual_freeze")):
 		vel = Vector2.ZERO
 		return
+	# HTML Sixth Sense: skip this frame for mobs/elites per slowAcc gates
+	if CombatHelpers and CombatHelpers.has_method("slowmo_allows_enemy"):
+		if not CombatHelpers.slowmo_allows_enemy(kind):
+			return
 	age_frames += delta * FRAME
 	if flash > 0.0:
 		flash -= delta * FRAME

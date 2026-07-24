@@ -44,6 +44,9 @@ func _on_sim_tick(_dt: float) -> void:
 	# Emblem toast timers advance every sim frame (HTML drawEmblemToasts e.t++)
 	if ProgressStore and ProgressStore.has_method("tick_emblem_toasts"):
 		ProgressStore.tick_emblem_toasts(1.0)
+	# Sixth Sense gates (once per sim frame) — entities read CombatHelpers.slow_*_w
+	if CombatHelpers and CombatHelpers.has_method("tick_slowmo"):
+		CombatHelpers.tick_slowmo()
 	if state != State.PLAY:
 		return
 	# HTML: if(run.special<100) run.special=Math.min(100, run.special+0.012)

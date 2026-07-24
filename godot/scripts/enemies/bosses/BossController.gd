@@ -99,6 +99,12 @@ func _physics_process(delta: float) -> void:
 	if has_meta("dual_freeze") and bool(get_meta("dual_freeze")):
 		_want_redraw()
 		return
+	# HTML Sixth Sense: bosses tick at 0.75x (slowAccB)
+	if CombatHelpers and CombatHelpers.has_method("slowmo_allows_enemy"):
+		if not dead and intro <= 0.0 and not hell:
+			if not CombatHelpers.slowmo_allows_enemy("boss"):
+				_want_redraw()
+				return
 	var p := get_tree().get_first_node_in_group("player") as Node2D
 	var pf: Rect2 = Config.playfield()
 

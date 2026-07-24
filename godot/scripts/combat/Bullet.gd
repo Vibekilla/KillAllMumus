@@ -163,34 +163,39 @@ func _nade_boom() -> void:
 func _physics_process(delta: float) -> void:
 	if not active:
 		return
-	# homing (HTML: pull toward nearest, clamp speed ~12 px/frame)
-	if home:
-		var t := _nearest_target()
-		if t:
-			var a := (t - global_position).angle()
-			velocity += Vector2.from_angle(a) * 0.8 * FRAME * FRAME * delta
-			var sp := velocity.length()
-			if sp > 0.01:
-				velocity = velocity * ((12.0 * FRAME) / sp)
-	# lotus curl
-	if absf(curl) > 0.0001:
-		var c := cos(curl)
-		var sn := sin(curl)
-		var nx := velocity.x * c - velocity.y * sn
-		var ny := velocity.x * sn + velocity.y * c
-		velocity = Vector2(nx, ny)
-	# wave weave
-	if wv > 0.0:
-		wph += 0.34 * FRAME * delta
-		var m := velocity.length()
-		if m < 0.01:
-			m = 1.0
-		var px := -velocity.y / m
-		var py := velocity.x / m
-		var o := cos(wph) * wv * FRAME
-		position += velocity * delta + Vector2(px, py) * o * delta
-	else:
-		position += velocity * delta
+	# HTML: enemy bullets only move when _mobW during Sixth Sense; hit/graze still run
+	var skip_move := false
+	if team == Team.ENEMY and CombatHelpers and CombatHelpers.has_method("slowmo_allows_enemy_bullet"):
+		skip_move = not CombatHelpers.slowmo_allows_enemy_bullet()
+	if not skip_move:
+		# homing (HTML: pull toward nearest, clamp speed ~12 px/frame)
+		if home:
+			var t := _nearest_target()
+			if t:
+				var a := (t - global_position).angle()
+				velocity += Vector2.from_angle(a) * 0.8 * FRAME * FRAME * delta
+				var sp := velocity.length()
+				if sp > 0.01:
+					velocity = velocity * ((12.0 * FRAME) / sp)
+		# lotus curl
+		if absf(curl) > 0.0001:
+			var c := cos(curl)
+			var sn := sin(curl)
+			var nx := velocity.x * c - velocity.y * sn
+			var ny := velocity.x * sn + velocity.y * c
+			velocity = Vector2(nx, ny)
+		# wave weave
+		if wv > 0.0:
+			wph += 0.34 * FRAME * delta
+			var m := velocity.length()
+			if m < 0.01:
+				m = 1.0
+			var px := -velocity.y / m
+			var py := velocity.x / m
+			var o := cos(wph) * wv * FRAME
+			position += velocity * delta + Vector2(px, py) * o * delta
+		else:
+			position += velocity * delta
 
 	if life_frames >= 0.0:
 		life_frames -= delta * FRAME

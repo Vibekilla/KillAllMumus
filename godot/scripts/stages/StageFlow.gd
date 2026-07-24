@@ -173,8 +173,24 @@ func start_dialog(lines: Array, boss_data: Dictionary) -> void:
 		"queue": lines.duplicate(),
 		"i": 0,
 		"timer": CombatHelpers.line_time(str(first.get("t", ""))),
+		"hurt": false,
 	}
 	dialog_started.emit(lines, boss_data)
+
+func bobina_say(text: String, frames: float = 60.0, hurt: bool = false) -> void:
+	## HTML bobinaSay — quick hurt/banter line in dialog bar (won't clobber non-hurt dialog)
+	if dialog != null and not bool(dialog.get("hurt", false)):
+		return
+	if GameState.speedrun and not hurt:
+		return
+	dialog = {
+		"boss": null,
+		"queue": [{"w": 1, "t": text}],
+		"i": 0,
+		"timer": frames,
+		"hurt": hurt,
+	}
+	dialog_started.emit(dialog["queue"], {})
 
 func tick_dialog(delta: float) -> void:
 	if dialog == null:

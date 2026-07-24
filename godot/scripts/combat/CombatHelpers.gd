@@ -9,6 +9,75 @@ var particles: Array = []  # {x,y,vx,vy,life,c}
 var score_texts: Array = []  # {x,y,txt,color,life}
 var flash_msg: Dictionary = {}  # {t, txt}
 var kill_extend_count: int = 0
+## HTML Sixth Sense: slowmoT + per-class accumulators (mobs 0.4x · elites 0.5x · bosses 0.75x)
+var slow_acc: float = 0.0
+var slow_acc_e: float = 0.0
+var slow_acc_b: float = 0.0
+var slow_mob_w: bool = true
+var slow_elite_w: bool = true
+var slow_boss_w: bool = true
+
+func start_slowmo(frames: float = 300.0) -> void:
+	## HTML sp.key==='sixth' → slowmoT=300
+	GameState.set_meta("slowmo", frames)
+	slow_acc = 0.0
+	slow_acc_e = 0.0
+	slow_acc_b = 0.0
+	slow_mob_w = true
+	slow_elite_w = true
+	slow_boss_w = true
+	screen_shake = maxf(screen_shake, 5.0)
+	if AudioBus:
+		AudioBus.sfx("power")
+
+func tick_slowmo() -> void:
+	## Call once per sim frame (HTML update loop before enemies/bullets)
+	slow_mob_w = true
+	slow_elite_w = true
+	slow_boss_w = true
+	if not GameState.has_meta("slowmo"):
+		return
+	var sm := float(GameState.get_meta("slowmo"))
+	if sm <= 0.0:
+		GameState.remove_meta("slowmo")
+		return
+	sm -= 1.0
+	if sm <= 0.0:
+		GameState.remove_meta("slowmo")
+	else:
+		GameState.set_meta("slowmo", sm)
+	# skip frames → effective rates
+	slow_acc += 0.4
+	if slow_acc >= 1.0:
+		slow_acc -= 1.0
+	else:
+		slow_mob_w = false
+	slow_acc_e += 0.5
+	if slow_acc_e >= 1.0:
+		slow_acc_e -= 1.0
+	else:
+		slow_elite_w = false
+	slow_acc_b += 0.75
+	if slow_acc_b >= 1.0:
+		slow_acc_b -= 1.0
+	else:
+		slow_boss_w = false
+
+func slowmo_allows_enemy(kind: String) -> bool:
+	## kind: lil/big → mob, elite → elite, boss → boss
+	if not GameState.has_meta("slowmo"):
+		return true
+	if kind == "elite":
+		return slow_elite_w
+	if kind == "boss":
+		return slow_boss_w
+	return slow_mob_w
+
+func slowmo_allows_enemy_bullet() -> bool:
+	## HTML: enemy bullets only advance when _mobW
+	if not GameState.has_meta("slowmo"):
+		return true
+	return slow_mob_w
 
 func threat_mul() -> float:
 	## HTML threatMul

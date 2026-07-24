@@ -487,8 +487,12 @@ func take_hit(dmg: float = 1.0) -> void:
 	var line: String = str(HURT_LINES[randi() % HURT_LINES.size()])
 	if GameState.lives < 0:
 		line = "I won’t give up on Bobo!"
-	if CombatHelpers:
+	# HTML bobinaSay(line, frames, true) — dialog bar, not just flash
+	if StageFlow and StageFlow.has_method("bobina_say"):
+		StageFlow.bobina_say(line, 90.0 if GameState.lives < 0 else 55.0, true)
+	elif CombatHelpers:
 		CombatHelpers.flash(line, 90.0 if GameState.lives < 0 else 55.0)
+	if CombatHelpers:
 		for i in range(40):
 			CombatHelpers.particles.append({
 				"x": global_position.x, "y": global_position.y,
