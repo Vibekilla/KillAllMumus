@@ -51,7 +51,7 @@ const fast = has("--fast") || !full;
 /** Groups that require --full (or explicit --shots) when no filter is set. */
 const FULL_ONLY = new Set([
   "wardrobe", "faces", "anims", "combat", "weapons", "melee", "specials",
-  "aura", "items", "elites", "bosses", "mumus", "power6",
+  "aura", "items", "elites", "bosses", "mumus", "mechanics", "power6",
 ]);
 
 const SHOT_ALIASES = {
@@ -65,6 +65,7 @@ const SHOT_ALIASES = {
   elite: "elites", elites: "elites",
   boss: "bosses", bosses: "bosses",
   mumu: "mumus", mumus: "mumus", lil: "mumus",
+  mechanics: "mechanics", bleed: "mechanics", graze: "mechanics",
   face: "faces", faces: "faces",
   anim: "anims", anims: "anims", breath: "anims", pose: "anims", blink: "anims",
   menus: "core", menu: "core", flow: "core", ends: "core", title: "core", core: "core",
@@ -126,7 +127,7 @@ function wantAny(...groups) {
 
 /** Combat / field captures need a live play session. */
 function needPlaySession() {
-  return wantAny("weapons", "melee", "specials", "aura", "items", "elites", "bosses", "mumus", "power6", "combat", "faces");
+  return wantAny("weapons", "melee", "specials", "aura", "items", "elites", "bosses", "mumus", "mechanics", "power6", "combat", "faces");
 }
 
 function ensureDir(d) {
@@ -497,7 +498,7 @@ async function captureHtml() {
   }
 
   // Phase 3 combat / field duals (each group independently selectable via --shots)
-  if (wantAny("power6", "weapons", "melee", "specials", "aura", "items", "elites", "bosses", "mumus")) {
+  if (wantAny("power6", "weapons", "melee", "specials", "aura", "items", "elites", "bosses", "mumus", "mechanics")) {
     try {
       await ensurePlay();
       if (want("power6")) {
@@ -855,6 +856,11 @@ function writeIndex() {
   if (want("mumus")) {
     if (godotShots.includes("godot_mumus_grid.png") || htmlShots.includes("html_mumus_grid.png")) {
       pairs.push(["html_mumus_grid.png", "godot_mumus_grid.png", "Mumus grid (lil/big/icy)"]);
+    }
+  }
+  if (want("mechanics")) {
+    if (godotShots.includes("godot_mechanics_bleed_graze.png")) {
+      pairs.push(["", "godot_mechanics_bleed_graze.png", "Mechanics · power bleed + graze"]);
     }
   }
   if (want("bosses")) {

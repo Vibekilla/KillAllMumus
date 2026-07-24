@@ -209,6 +209,9 @@ func _physics_process(delta: float) -> void:
 	# Visual is local-centered; presentation is WorldDraw / drawers — not a placeholder art path
 
 func _try_graze() -> void:
+	## HTML: once per bullet (b.grazed) — +1 graze, score, special meter
+	if grazed or not grazeable or team != Team.ENEMY:
+		return
 	var tree := get_tree()
 	if tree == null:
 		return

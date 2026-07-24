@@ -29,6 +29,7 @@ ItemSystem="*res://scripts/systems/ItemSystem.gd"
 StageFlow="*res://scripts/stages/StageFlow.gd"
 JoyPad="*res://scripts/input/JoyPad.gd"
 InputRouter="*res://scripts/input/InputRouter.gd"
+WebVisibilityPause="*res://scripts/platform/WebVisibilityPause.gd"
 
 [display]
 

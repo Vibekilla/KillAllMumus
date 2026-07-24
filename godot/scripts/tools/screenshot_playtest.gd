@@ -79,7 +79,7 @@ func _want(group: String) -> bool:
 	if not _shot_filter:
 		match g:
 			"wardrobe", "faces", "anims", "weapons", "melee", "specials", \
-			"aura", "items", "elites", "bosses", "power6", "combat":
+			"aura", "items", "elites", "bosses", "mumus", "mechanics", "power6", "combat":
 				return not _fast
 			_:
 				return true
@@ -89,7 +89,7 @@ func _need_play() -> bool:
 	return (
 		_want("weapons") or _want("melee") or _want("specials") or _want("aura")
 		or _want("items") or _want("elites") or _want("bosses") or _want("power6")
-		or _want("faces") or _want("core")
+		or _want("faces") or _want("core") or _want("mechanics") or _want("mumus")
 	)
 
 func _shot_dir() -> String:
@@ -880,8 +880,8 @@ func _run() -> void:
 				player.fire_sys.try_fire(player, player.bullet_pool, false)
 		await _save("godot_play_power6")
 
-	# ── Phase 3: weapons / melee / specials / auras / items / elites / bosses ──
-	if player and (_want("weapons") or _want("melee") or _want("specials") or _want("aura") or _want("items") or _want("elites") or _want("bosses")):
+	# ── Phase 3/4: weapons / melee / specials / auras / items / elites / bosses / mechanics / mumus ──
+	if player and (_want("weapons") or _want("melee") or _want("specials") or _want("aura") or _want("items") or _want("elites") or _want("bosses") or _want("mechanics") or _want("mumus")):
 		GameState.set_state(GameState.State.PLAY)
 		GameState.power = 6.0
 		GameState.lives = 99
@@ -1550,6 +1550,60 @@ func _run() -> void:
 						boss.queue_free()
 				for _i in range(2):
 					await process_frame
+
+		# Phase 4 mechanics dual — power bleed + graze (GameState owns numbers)
+		if _want("mechanics"):
+			_dual_sanitize(player, pool)
+			GameState.stage_index = 0
+			GameState.set_state(GameState.State.PLAY)
+			GameState.set_meta("stage_cleared", false)
+			GameState.power = 6.0
+			GameState.graze = 0
+			GameState.session_score = 0
+			GameState.total_kills = 0
+			GameState.special_meter = 50.0
+			player.global_position = Vector2(304, 400)
+			player.aim = -PI / 2.0
+			player.set_meta("dual_lock_pose", true)
+			player.set_meta("dual_aim", -PI / 2.0)
+			# Bleed ~90 sim frames without stage clear
+			for _i in range(90):
+				if GameState.has_method("_on_sim_tick"):
+					GameState._on_sim_tick(1.0 / 60.0)
+			# Spawn enemy bullets in graze ring (outside hit core ~4–12px, inside graze ~12–20px)
+			var grazers: Array = []
+			if pool and pool.has_method("spawn"):
+				var TEAM_ENEMY: int = 1
+				for gi in range(12):
+					var ang: float = float(gi) / 12.0 * TAU
+					var bx: float = player.global_position.x + cos(ang) * 14.0
+					var by: float = player.global_position.y + sin(ang) * 14.0
+					var b = pool.spawn(Vector2(bx, by), Vector2.ZERO, 1.0, Color("ff6ec7"), TEAM_ENEMY)
+					if b:
+						if "grazed" in b:
+							b.grazed = false
+						if "lifetime" in b:
+							b.lifetime = 999.0
+						if "life_frames" in b:
+							b.life_frames = 9999.0
+						if "active" in b:
+							b.active = true
+						if "team" in b:
+							b.team = TEAM_ENEMY
+						grazers.append(b)
+			for _i in range(12):
+				await process_frame
+				player.global_position = Vector2(304, 400)
+				player.aim = -PI / 2.0
+				# Force graze check (bullets with vel=0 may skip if not processing)
+				for b2 in grazers:
+					if is_instance_valid(b2) and b2.has_method("_try_graze"):
+						b2._try_graze()
+			print("[SHOT] mechanics power=", GameState.power, " graze=", GameState.graze, " special=", GameState.special_meter)
+			await _save("godot_mechanics_bleed_graze")
+			if pool and pool.has_method("clear_all"):
+				pool.clear_all()
+			GameState.graze = 0
 
 		# Lil/big mumu grid dual
 		if _want("mumus"):
