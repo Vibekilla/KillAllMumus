@@ -1,6 +1,12 @@
 extends SceneTree
 ## Headless Godot visual capture via SubViewport + Xvfb (GL).
 ##   xvfb-run -a godot --path godot --script res://scripts/tools/screenshot_playtest.gd
+##
+## Env (set by tools/port/dual_playtest.mjs):
+##   PLAYTEST_FAST=1|0   PLAYTEST_FULL=1|0
+##   PLAYTEST_SHOTS=aura,items,elites,bosses   (empty = default matrix)
+## Groups: core, wardrobe, faces, anims, weapons, melee, specials, aura,
+##         items, elites, bosses, power6  (+ aliases shield→aura, outfit→wardrobe, …)
 
 const OUT_SUB := "playtest_shots"
 const VIEW_W := 960
@@ -8,12 +14,83 @@ const VIEW_H := 540
 
 var _sv: SubViewport
 var _main: Node
+## Empty = no filter (respect fast/full defaults). Non-empty = only listed groups.
+var _shot_set: Dictionary = {}
+var _shot_filter: bool = false
+var _fast: bool = true
 
 func _init() -> void:
 	call_deferred("_run")
 
 func _A(n: String) -> Node:
 	return root.get_node_or_null("/root/" + n)
+
+func _parse_shot_filter() -> void:
+	var raw := OS.get_environment("PLAYTEST_SHOTS").strip_edges()
+	_shot_set.clear()
+	_shot_filter = false
+	if raw.is_empty():
+		return
+	_shot_filter = true
+	for part in raw.split(","):
+		var s := str(part).strip_edges().to_lower()
+		if s.is_empty():
+			continue
+		var c := _canon_shot(s)
+		_shot_set[c] = true
+		if c == "combat" or s == "combat":
+			_shot_set["weapons"] = true
+			_shot_set["melee"] = true
+			_shot_set["specials"] = true
+			_shot_set["power6"] = true
+
+func _canon_shot(s: String) -> String:
+	match s:
+		"outfit", "outfits", "wardrobe":
+			return "wardrobe"
+		"weapon", "weapons", "wep":
+			return "weapons"
+		"special", "specials":
+			return "specials"
+		"item", "items":
+			return "items"
+		"elite", "elites":
+			return "elites"
+		"boss", "bosses":
+			return "bosses"
+		"face", "faces":
+			return "faces"
+		"anim", "anims", "breath", "pose", "blink":
+			return "anims"
+		"menus", "menu", "flow", "ends", "title", "core", "play":
+			return "core"
+		"shield", "focus", "rapid", "vial", "phase", "dash", "bomb", "power", "aura":
+			return "aura"
+		"melee":
+			return "melee"
+		"power6", "combat":
+			return s
+		_:
+			return s
+
+func _want(group: String) -> bool:
+	## No filter: core always; full-only groups when PLAYTEST_FULL / not fast.
+	var g := _canon_shot(group)
+	if not _shot_filter:
+		match g:
+			"wardrobe", "faces", "anims", "weapons", "melee", "specials", \
+			"aura", "items", "elites", "bosses", "power6", "combat":
+				return not _fast
+			_:
+				return true
+	return _shot_set.has(g)
+
+func _need_play() -> bool:
+	return (
+		_want("weapons") or _want("melee") or _want("specials") or _want("aura")
+		or _want("items") or _want("elites") or _want("bosses") or _want("power6")
+		or _want("faces") or _want("core")
+	)
 
 func _shot_dir() -> String:
 	var d := "user://" + OUT_SUB
@@ -97,11 +174,17 @@ func _run() -> void:
 	for _i in range(8):
 		await process_frame
 
-	var fast := OS.get_environment("PLAYTEST_FAST") != "0"
+	_fast = OS.get_environment("PLAYTEST_FAST") != "0"
 	if OS.get_environment("PLAYTEST_FULL") == "1":
-		fast = false
+		_fast = false
+	_parse_shot_filter()
+	var fast := _fast
 	var play_frames := 90 if fast else 200
 	var fire_frames := 40 if fast else 100
+	if _shot_filter:
+		print("[SHOT] filter=", ",".join(_shot_set.keys()))
+	else:
+		print("[SHOT] filter=all fast=", fast)
 
 	# Title — dismiss soundgate like HTML dual clicks #sg-mute
 	GameState.set_state(GameState.State.TITLE)
@@ -119,7 +202,8 @@ func _run() -> void:
 		title.queue_redraw()
 	for _i in range(4):
 		await process_frame
-	await _save("godot_title")
+	if _want("core"):
+		await _save("godot_title")
 
 	# Dual fairness: HTML guest has only free skins; strip emblem unlocks for menu shots
 	# (in-memory only — process exits; do not queue_save). emblems is Dictionary id→bool.
@@ -134,187 +218,187 @@ func _run() -> void:
 		title.model.victory_face = 0
 		title.model.outfit_pose = 0
 
-	# Meta menus (always — dual compares these to HTML)
-	for st_name in [
-		[GameState.State.OUTFITS, "godot_menu_outfits"],
-		[GameState.State.ARSENAL, "godot_menu_arsenal"],
-		[GameState.State.EMBLEMS, "godot_menu_emblems"],
-		[GameState.State.LEADERBOARD, "godot_menu_leaderboard"],
-	]:
-		GameState.set_state(st_name[0])
-		_force_ui_size(_main)
-		if title and title.has_method("queue_redraw"):
-			title.queue_redraw()
-		var wait_n := 6 if fast else 10
-		# Leaderboard needs HTTP settle (or fail → error copy)
-		if st_name[0] == GameState.State.LEADERBOARD:
-			wait_n = 45 if fast else 90
-		for _i in range(wait_n):
-			await process_frame
-		# If still loading under playtest, force error empty state for stable dual
-		if st_name[0] == GameState.State.LEADERBOARD and title and "model" in title:
-			var m = title.model
-			if m and str(m.lb_state) == "loading":
-				m.lb_state = "error"
-				m.lb_cache = []
+	# Meta menus (core dual; skipped on sliced combat duals)
+	if _want("core"):
+		for st_name in [
+			[GameState.State.OUTFITS, "godot_menu_outfits"],
+			[GameState.State.ARSENAL, "godot_menu_arsenal"],
+			[GameState.State.EMBLEMS, "godot_menu_emblems"],
+			[GameState.State.LEADERBOARD, "godot_menu_leaderboard"],
+		]:
+			GameState.set_state(st_name[0])
+			_force_ui_size(_main)
+			if title and title.has_method("queue_redraw"):
 				title.queue_redraw()
-				for _i in range(3):
-					await process_frame
-		await _save(str(st_name[1]))
+			var wait_n := 6 if fast else 10
+			# Leaderboard needs HTTP settle (or fail → error copy)
+			if st_name[0] == GameState.State.LEADERBOARD:
+				wait_n = 45 if fast else 90
+			for _i in range(wait_n):
+				await process_frame
+			# If still loading under playtest, force error empty state for stable dual
+			if st_name[0] == GameState.State.LEADERBOARD and title and "model" in title:
+				var m = title.model
+				if m and str(m.lb_state) == "loading":
+					m.lb_state = "error"
+					m.lb_cache = []
+					title.queue_redraw()
+					for _i in range(3):
+						await process_frame
+			await _save(str(st_name[1]))
 
-	# Phase 2: Bobina expression + pose + blink dual previews (HTML VICTORY_FACES / OUTFIT_POSES)
-	if not fast and title and "model" in title and title.model:
+	# Phase 2: Bobina anims + wardrobe (independently filterable via --shots)
+	if (_want("anims") or _want("wardrobe")) and title and "model" in title and title.model:
 		GameState.set_state(GameState.State.OUTFITS)
 		_force_ui_size(_main)
-		# MenuHelpers.VICTORY_FACES: 0 Auto, 1 :3 uwu, 2 Smile, 3 >v< squee, 4 Giggle, 5 Annoyed
-		for face_i in [0, 1, 2, 3, 4, 5]:
-			title.model.victory_face = face_i
-			title.model.outfit_preview = "og"
-			title.model.outfit_pose = 0
-			title.queue_redraw()
-			for _i in range(8):
-				await process_frame
-			await _save("godot_bobina_face_%d" % face_i)
-		# Poses (idle / dance / cheer) with smile face for stable compare
-		title.model.victory_face = 2
-		for pose_i in [0, 1, 4]:
-			title.model.outfit_pose = pose_i
-			title.model.outfit_preview = "og"
-			title.queue_redraw()
-			for _i in range(10):
-				await process_frame
-			await _save("godot_bobina_pose_%d" % pose_i)
-		# Blink open vs closed: pause SimClock so tick stays in blink window (tick % 230 < 7)
-		title.model.victory_face = 2  # smile — blink applies
-		title.model.outfit_pose = 0
-		var sc = _A("SimClock")
-		if sc:
-			var was_paused: bool = bool(sc.paused) if "paused" in sc else false
-			sc.paused = true
-			sc.sim_frame = 10  # open eyes (tick alias ok)
-			if title.has_method("set_process"):
-				pass
-			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
-				title.menus.set_tick(10)
-			title.queue_redraw()
-			for _i in range(6):
-				await process_frame
-				title.queue_redraw()
-			await _save("godot_bobina_blink_open")
-			sc.sim_frame = 3  # closed lids
-			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
-				title.menus.set_tick(3)
-			title.queue_redraw()
-			for _i in range(6):
-				await process_frame
-				title.queue_redraw()
-			await _save("godot_bobina_blink_closed")
-			sc.paused = was_paused
-
-		# --- Phase 2.1 / 2.4 / 2.5: breath, all poses, continuous outfits, coffee hold, GIFs ---
 		var sc2 = _A("SimClock")
-		if sc2:
-			sc2.paused = true
-		# Breath dual (idle pose): two breath-phase ticks — sin(t*0.045) peaks differ
-		title.model.victory_face = 2
-		title.model.outfit_pose = 0
-		title.model.outfit_preview = "og"
-		for breath_tick in [0, 35]:
-			if sc2:
-				sc2.sim_frame = breath_tick
-			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
-				title.menus.set_tick(breath_tick)
-			title.queue_redraw()
-			for _i in range(6):
-				await process_frame
+		if _want("anims"):
+			# MenuHelpers.VICTORY_FACES: 0 Auto, 1 :3 uwu, 2 Smile, 3 >v< squee, 4 Giggle, 5 Annoyed
+			for face_i in [0, 1, 2, 3, 4, 5]:
+				title.model.victory_face = face_i
+				title.model.outfit_preview = "og"
+				title.model.outfit_pose = 0
 				title.queue_redraw()
-			await _save("godot_bobina_breath_%d" % breath_tick)
-		# Remaining poses: twirl / bounce / This Is Fine (coffee + fire)
-		for pose_i in [2, 3, 5]:
-			title.model.outfit_pose = pose_i
-			title.model.outfit_preview = "og"
-			if sc2:
-				sc2.sim_frame = 40
-			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
-				title.menus.set_tick(40)
-			title.queue_redraw()
-			for _i in range(10):
-				await process_frame
-				title.queue_redraw()
-			await _save("godot_bobina_pose_%d" % pose_i)
-		# Full wardrobe via OUTFITS menu (HTML drawOutfits) — one stable tick per skin @ ×4.7 stage
-		title.model.outfit_pose = 0
-		title.model.victory_face = 2  # smile
-		if sc2:
-			sc2.sim_frame = 24
-		if "menus" in title and title.menus and title.menus.has_method("set_tick"):
-			title.menus.set_tick(24)
-		var wardrobe: Array = []
-		var dr = _A("DataRegistry")
-		if dr and "outfits" in dr:
-			for o in dr.outfits:
-				wardrobe.append(str(o.get("key", "")))
-		if wardrobe.is_empty():
-			wardrobe = ["og", "maid", "nanosuit", "badger", "viking", "ourbit", "bullbina", "monke",
-				"pickle", "emblem", "labrat", "neko", "kigurumi", "cheese", "business", "jester",
-				"samurai", "bride", "angel", "golden", "succubus", "voidling", "honeybee", "banana",
-				"squirrely", "honeypot", "empress", "cabal"]
-		for outfit_key in wardrobe:
-			if outfit_key == "":
-				continue
-			title.model.outfit_preview = outfit_key
-			title.queue_redraw()
-			for _i in range(5):
-				await process_frame
-				title.queue_redraw()
-			await _save("godot_menu_outfit_%s" % outfit_key)
-		# Continuous-anim skins: second tick for wing/tail/veil motion dual inside same menu
-		for outfit_key in ["angel", "succubus", "voidling", "honeypot", "bride", "empress", "cabal"]:
-			title.model.outfit_preview = outfit_key
-			title.model.outfit_pose = 0
+				for _i in range(8):
+					await process_frame
+				await _save("godot_bobina_face_%d" % face_i)
+			# Poses (idle / dance / cheer) with smile face for stable compare
 			title.model.victory_face = 2
-			for anim_tick in [8, 48]:
-				if sc2:
-					sc2.sim_frame = anim_tick
+			for pose_i in [0, 1, 4]:
+				title.model.outfit_pose = pose_i
+				title.model.outfit_preview = "og"
+				title.queue_redraw()
+				for _i in range(10):
+					await process_frame
+				await _save("godot_bobina_pose_%d" % pose_i)
+			# Blink open vs closed: pause SimClock so tick stays in blink window (tick % 230 < 7)
+			title.model.victory_face = 2  # smile — blink applies
+			title.model.outfit_pose = 0
+			var sc = _A("SimClock")
+			if sc:
+				var was_paused: bool = bool(sc.paused) if "paused" in sc else false
+				sc.paused = true
+				sc.sim_frame = 10  # open eyes (tick alias ok)
 				if "menus" in title and title.menus and title.menus.has_method("set_tick"):
-					title.menus.set_tick(anim_tick)
+					title.menus.set_tick(10)
 				title.queue_redraw()
 				for _i in range(6):
 					await process_frame
 					title.queue_redraw()
-				await _save("godot_menu_outfit_anim_%s_%d" % [outfit_key, anim_tick])
+				await _save("godot_bobina_blink_open")
+				sc.sim_frame = 3  # closed lids
+				if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+					title.menus.set_tick(3)
+				title.queue_redraw()
+				for _i in range(6):
+					await process_frame
+					title.queue_redraw()
+				await _save("godot_bobina_blink_closed")
+				sc.paused = was_paused
+			if sc2:
+				sc2.paused = true
+			# Breath dual (idle pose): two breath-phase ticks — sin(t*0.045) peaks differ
+			title.model.victory_face = 2
+			title.model.outfit_pose = 0
+			title.model.outfit_preview = "og"
+			for breath_tick in [0, 35]:
+				if sc2:
+					sc2.sim_frame = breath_tick
+				if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+					title.menus.set_tick(breath_tick)
+				title.queue_redraw()
+				for _i in range(6):
+					await process_frame
+					title.queue_redraw()
+				await _save("godot_bobina_breath_%d" % breath_tick)
+			# Remaining poses: twirl / bounce / This Is Fine (coffee + fire)
+			for pose_i in [2, 3, 5]:
+				title.model.outfit_pose = pose_i
+				title.model.outfit_preview = "og"
+				if sc2:
+					sc2.sim_frame = 40
+				if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+					title.menus.set_tick(40)
+				title.queue_redraw()
+				for _i in range(10):
+					await process_frame
+					title.queue_redraw()
+				await _save("godot_bobina_pose_%d" % pose_i)
+		if _want("wardrobe"):
+			# Full wardrobe via OUTFITS menu (HTML drawOutfits) — one stable tick per skin @ ×4.7 stage
+			if sc2:
+				sc2.paused = true
+			title.model.outfit_pose = 0
+			title.model.victory_face = 2  # smile
+			if sc2:
+				sc2.sim_frame = 24
+			if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+				title.menus.set_tick(24)
+			var wardrobe: Array = []
+			var dr = _A("DataRegistry")
+			if dr and "outfits" in dr:
+				for o in dr.outfits:
+					wardrobe.append(str(o.get("key", "")))
+			if wardrobe.is_empty():
+				wardrobe = ["og", "maid", "nanosuit", "badger", "viking", "ourbit", "bullbina", "monke",
+					"pickle", "emblem", "labrat", "neko", "kigurumi", "cheese", "business", "jester",
+					"samurai", "bride", "angel", "golden", "succubus", "voidling", "honeybee", "banana",
+					"squirrely", "honeypot", "empress", "cabal"]
+			for outfit_key in wardrobe:
+				if outfit_key == "":
+					continue
+				title.model.outfit_preview = outfit_key
+				title.queue_redraw()
+				for _i in range(5):
+					await process_frame
+					title.queue_redraw()
+				await _save("godot_menu_outfit_%s" % outfit_key)
+			# Continuous-anim skins: second tick for wing/tail/veil motion dual inside same menu
+			for outfit_key in ["angel", "succubus", "voidling", "honeypot", "bride", "empress", "cabal"]:
+				title.model.outfit_preview = outfit_key
+				title.model.outfit_pose = 0
+				title.model.victory_face = 2
+				for anim_tick in [8, 48]:
+					if sc2:
+						sc2.sim_frame = anim_tick
+					if "menus" in title and title.menus and title.menus.has_method("set_tick"):
+						title.menus.set_tick(anim_tick)
+					title.queue_redraw()
+					for _i in range(6):
+						await process_frame
+						title.queue_redraw()
+					await _save("godot_menu_outfit_anim_%s_%d" % [outfit_key, anim_tick])
 		if sc2:
 			sc2.paused = false
-
-		# GIF overlays: talk (dialog), leek (stage clear already), confused floater
-		# StageFlow already resolved at _run start
-		if StageFlow and StageFlow.has_method("start_dialog"):
-			GameState.set_state(GameState.State.PLAY)
-			StageFlow.start_dialog([
-				{"w": 1, "t": "Phase 2 talk GIF dual — hewo!"},
-			], {})
-			_force_ui_size(_main)
-			for _i in range(12):
-				await process_frame
-			await _save("godot_gif_talk")
-			StageFlow.dialog = null
-		var items = _A("ItemSystem")
-		if items:
-			GameState.set_state(GameState.State.PLAY)
-			items.floaters.clear()
-			items.floaters.append({
-				"x": 304.0, "y": 280.0, "life": 30.0, "vy": 0.0, "scale": 1.0,
-			})
-			_force_ui_size(_main)
-			var wd = _main.get_node_or_null("WorldCanvas")
-			if wd and wd.has_method("queue_redraw"):
-				wd.queue_redraw()
-			for _i in range(10):
-				await process_frame
-				if wd:
+		if _want("anims"):
+			# GIF overlays: talk (dialog), confused floater
+			if StageFlow and StageFlow.has_method("start_dialog"):
+				GameState.set_state(GameState.State.PLAY)
+				StageFlow.start_dialog([
+					{"w": 1, "t": "Phase 2 talk GIF dual — hewo!"},
+				], {})
+				_force_ui_size(_main)
+				for _i in range(12):
+					await process_frame
+				await _save("godot_gif_talk")
+				StageFlow.dialog = null
+			var items = _A("ItemSystem")
+			if items:
+				GameState.set_state(GameState.State.PLAY)
+				items.floaters.clear()
+				items.floaters.append({
+					"x": 304.0, "y": 280.0, "life": 30.0, "vy": 0.0, "scale": 1.0,
+				})
+				_force_ui_size(_main)
+				var wd = _main.get_node_or_null("WorldCanvas")
+				if wd and wd.has_method("queue_redraw"):
 					wd.queue_redraw()
-			await _save("godot_gif_confused")
-			items.floaters.clear()
+				for _i in range(10):
+					await process_frame
+					if wd:
+						wd.queue_redraw()
+				await _save("godot_gif_confused")
+				items.floaters.clear()
 		# Return to outfits for later dual restore
 		GameState.set_state(GameState.State.OUTFITS)
 		_force_ui_size(_main)
@@ -324,69 +408,76 @@ func _run() -> void:
 		_ps.emblems = _saved_emblems
 
 	# Settings + NG select (title meta screens HTML dual also captures)
-	GameState.set_state(GameState.State.SETTINGS)
-	_force_ui_size(_main)
-	for _i in range(6 if fast else 10):
-		await process_frame
-	await _save("godot_menu_settings")
+	if _want("core"):
+		GameState.set_state(GameState.State.SETTINGS)
+		_force_ui_size(_main)
+		for _i in range(6 if fast else 10):
+			await process_frame
+		await _save("godot_menu_settings")
 
-	GameState.set_state(GameState.State.NG_SELECT)
-	_force_ui_size(_main)
-	if title and title.has_method("queue_redraw"):
-		title.queue_redraw()
-	for _i in range(6 if fast else 10):
-		await process_frame
-	await _save("godot_menu_ngselect")
+		GameState.set_state(GameState.State.NG_SELECT)
+		_force_ui_size(_main)
+		if title and title.has_method("queue_redraw"):
+			title.queue_redraw()
+		for _i in range(6 if fast else 10):
+			await process_frame
+		await _save("godot_menu_ngselect")
 
 	# Clean run: intro first (HTML order), then play with invuln so dual never hits gameover
-	GameState.difficulty = 0
-	GameState.ng_plus = 0
-	GameState.start_run()  # → INTRO
-	_force_ui_size(_main)
+	var player = null
 	var flow = _main.get_node_or_null("UI/FlowUI")
-	if flow and flow.has_method("queue_redraw"):
-		flow.queue_redraw()
-	for _i in range(6 if fast else 10):
-		await process_frame
-	await _save("godot_flow_intro")
+	if _need_play():
+		GameState.difficulty = 0
+		GameState.ng_plus = 0
+		GameState.start_run()  # → INTRO
+		_force_ui_size(_main)
+		if flow and flow.has_method("queue_redraw"):
+			flow.queue_redraw()
+		for _i in range(6 if fast else 10):
+			await process_frame
+		if _want("core"):
+			await _save("godot_flow_intro")
 
-	GameState.set_state(GameState.State.PLAY)
-	if StageFlow and StageFlow.has_method("on_stage_start"):
-		StageFlow.on_stage_start()
-	var player = _sv.get_tree().get_first_node_in_group("player")
-	if player == null:
-		player = root.get_tree().get_first_node_in_group("player")
-	if player:
-		player.global_position = Vector2(304, 400)
-		player.z_index = 20
-		# Dual playtest: stay alive so godot_play is real combat, not gameover
-		if "invuln" in player:
-			player.invuln = 99999.0
-		GameState.lives = 99
-		var spr = player.get_node_or_null("Sprite")
-		if spr:
-			spr.z_index = 20
-	for i in range(play_frames):
-		await process_frame
-		if player and "invuln" in player:
-			player.invuln = 99999.0
-		if player and player.get("fire_sys") and player.get("bullet_pool"):
-			player.fire_sys.try_fire(player, player.bullet_pool, false)
-	print("[SHOT] enemies=", root.get_tree().get_nodes_in_group("enemies").size(),
-		" player=", player != null, " pos=", player.global_position if player else Vector2.ZERO,
-		" state=", GameState.State.keys()[GameState.state])
-	# Ensure still PLAY (player_hit must not have ended the run)
-	if GameState.state != GameState.State.PLAY:
 		GameState.set_state(GameState.State.PLAY)
+		if StageFlow and StageFlow.has_method("on_stage_start"):
+			StageFlow.on_stage_start()
+		player = _sv.get_tree().get_first_node_in_group("player")
+		if player == null:
+			player = root.get_tree().get_first_node_in_group("player")
 		if player:
 			player.global_position = Vector2(304, 400)
+			player.z_index = 20
+			# Dual playtest: stay alive so godot_play is real combat, not gameover
 			if "invuln" in player:
 				player.invuln = 99999.0
-		for _i in range(4):
+			GameState.lives = 99
+			var spr = player.get_node_or_null("Sprite")
+			if spr:
+				spr.z_index = 20
+		# Short settle when sliced (no full play firing); long when core
+		var settle := play_frames if _want("core") else (12 if fast else 24)
+		for i in range(settle):
 			await process_frame
-	await _save("godot_play")
+			if player and "invuln" in player:
+				player.invuln = 99999.0
+			if player and player.get("fire_sys") and player.get("bullet_pool") and _want("core"):
+				player.fire_sys.try_fire(player, player.bullet_pool, false)
+		print("[SHOT] enemies=", root.get_tree().get_nodes_in_group("enemies").size(),
+			" player=", player != null, " pos=", player.global_position if player else Vector2.ZERO,
+			" state=", GameState.State.keys()[GameState.state])
+		# Ensure still PLAY (player_hit must not have ended the run)
+		if GameState.state != GameState.State.PLAY:
+			GameState.set_state(GameState.State.PLAY)
+			if player:
+				player.global_position = Vector2(304, 400)
+				if "invuln" in player:
+					player.invuln = 99999.0
+			for _i in range(4):
+				await process_frame
+		if _want("core"):
+			await _save("godot_play")
 	# Phase 2 minor: play-scale (×1) expression dual — force dual_expr on player
-	if not fast and player:
+	if _want("faces") and player:
 		var exprs = [null, "uwu", "smile", "squee", "giggle", "annoyed"]
 		# Map VICTORY_FACES indices 0..5
 		for face_i in range(exprs.size()):
@@ -410,7 +501,7 @@ func _run() -> void:
 			player.remove_meta("dual_expr")
 
 	# Phase 2 leftover: HUD-mini (~0.46) expression dual on leaderboard rows
-	if not fast and title and "model" in title and title.model:
+	if _want("faces") and title and "model" in title and title.model:
 		# Arm dual mode BEFORE LEADERBOARD so fetch does not wipe synthetic rows
 		title.model.dual_hud_face = 0
 		var rows: Array = []
@@ -440,111 +531,110 @@ func _run() -> void:
 			await _save("godot_hud_face_%d" % face_i)
 		title.model.dual_hud_face = -1
 
-	# Pause overlay (HTML #pausescreen during play) — re-center after force_ui_size
-	GameState.set_state(GameState.State.PAUSED)
-	_force_ui_size(_main)
-	var pause_ui = _main.get_node_or_null("UI/PauseMenu")
-	if pause_ui and pause_ui.has_method("_center_panel") and pause_ui.get("panel"):
-		pause_ui._center_panel(pause_ui.panel as PanelContainer, 380.0)
-	# Clear emblem toast so dual matches HTML (toast under pause dim, not over card)
-	var ch = _A("CombatHelpers")
-	if ch and "flash_msg" in ch:
-		ch.flash_msg = {}
-	var ps = _A("ProgressStore")
-	if ps and ps.has_meta("emblem_toasts"):
-		ps.set_meta("emblem_toasts", [])
-	for _i in range(6 if fast else 10):
-		await process_frame
+	# Pause / shop / ends — core flow dual only
+	if _want("core") and player:
+		GameState.set_state(GameState.State.PAUSED)
+		_force_ui_size(_main)
+		var pause_ui = _main.get_node_or_null("UI/PauseMenu")
 		if pause_ui and pause_ui.has_method("_center_panel") and pause_ui.get("panel"):
 			pause_ui._center_panel(pause_ui.panel as PanelContainer, 380.0)
-	await _save("godot_flow_pause")
-	GameState.set_state(GameState.State.PLAY)
+		var ch = _A("CombatHelpers")
+		if ch and "flash_msg" in ch:
+			ch.flash_msg = {}
+		var ps = _A("ProgressStore")
+		if ps and ps.has_meta("emblem_toasts"):
+			ps.set_meta("emblem_toasts", [])
+		for _i in range(6 if fast else 10):
+			await process_frame
+			if pause_ui and pause_ui.has_method("_center_panel") and pause_ui.get("panel"):
+				pause_ui._center_panel(pause_ui.panel as PanelContainer, 380.0)
+		await _save("godot_flow_pause")
+		GameState.set_state(GameState.State.PLAY)
 
-	if StageFlow and StageFlow.has_method("spawn_clear_gate"):
-		StageFlow.spawn_clear_gate()
-	GameState.set_state(GameState.State.PLAY)
-	_force_ui_size(_main)
-	if flow and flow.has_method("queue_redraw"):
-		flow.queue_redraw()
-	for _i in range(6 if fast else 10):
-		await process_frame
-	await _save("godot_flow_cleargate")
+		if StageFlow and StageFlow.has_method("spawn_clear_gate"):
+			StageFlow.spawn_clear_gate()
+		GameState.set_state(GameState.State.PLAY)
+		_force_ui_size(_main)
+		if flow and flow.has_method("queue_redraw"):
+			flow.queue_redraw()
+		for _i in range(6 if fast else 10):
+			await process_frame
+		await _save("godot_flow_cleargate")
 
-	if StageFlow and StageFlow.has_method("enter_shop"):
-		StageFlow.enter_shop()
-	else:
-		GameState.set_state(GameState.State.SHOP)
-	_force_ui_size(_main)
-	if flow and flow.has_method("queue_redraw"):
-		flow.queue_redraw()
-	for _i in range(6 if fast else 10):
-		await process_frame
-	await _save("godot_flow_shop")
+		if StageFlow and StageFlow.has_method("enter_shop"):
+			StageFlow.enter_shop()
+		else:
+			GameState.set_state(GameState.State.SHOP)
+		_force_ui_size(_main)
+		if flow and flow.has_method("queue_redraw"):
+			flow.queue_redraw()
+		for _i in range(6 if fast else 10):
+			await process_frame
+		await _save("godot_flow_shop")
 
-	# clear_info keys match StageFlow.on_boss_defeated / HTML clearInfo
-	GameState.session_score = 13300
-	GameState.total_kills = 39
-	if StageFlow:
-		StageFlow.clear_info = {
-			"stage": 0,
-			"killsThisStage": 39,
-			"total": 39,
-			"emblems": [],
-		}
-		StageFlow.kills_this_stage = 39
-	GameState.set_state(GameState.State.STAGE_CLEAR)
-	_force_ui_size(_main)
-	if flow and flow.has_method("queue_redraw"):
-		flow.queue_redraw()
-	for _i in range(6 if fast else 10):
-		await process_frame
-	await _save("godot_flow_stageclear")
+		GameState.session_score = 13300
+		GameState.total_kills = 39
+		if StageFlow:
+			StageFlow.clear_info = {
+				"stage": 0,
+				"killsThisStage": 39,
+				"total": 39,
+				"emblems": [],
+			}
+			StageFlow.kills_this_stage = 39
+		GameState.set_state(GameState.State.STAGE_CLEAR)
+		_force_ui_size(_main)
+		if flow and flow.has_method("queue_redraw"):
+			flow.queue_redraw()
+		for _i in range(6 if fast else 10):
+			await process_frame
+		await _save("godot_flow_stageclear")
 
-	# End screens — mirror HTML dual: no name-entry chrome (canvas-only compare)
-	var end_ui = _main.get_node_or_null("UI/EndScreen")
-	var p2 = _A("P2Meta")
-	if p2:
-		p2.name_entry_open = false
-		p2.just_saved_score = false
-		p2.end_won = false
-	if end_ui and end_ui.get("handle_edit"):
-		end_ui.handle_edit.visible = false
-	GameState.session_score = 125000
-	GameState.total_kills = 420
-	GameState.lives = 0
-	GameState.set_state(GameState.State.GAMEOVER)
-	if p2:
-		p2.name_entry_open = false
-		p2.end_won = false
-	if end_ui and end_ui.get("handle_edit"):
-		end_ui.handle_edit.visible = false
-	_force_ui_size(_main)
-	if end_ui and end_ui.has_method("queue_redraw"):
-		end_ui.queue_redraw()
-	for _i in range(8 if fast else 12):
-		await process_frame
-	await _save("godot_end_gameover")
+		var end_ui = _main.get_node_or_null("UI/EndScreen")
+		var p2 = _A("P2Meta")
+		if p2:
+			p2.name_entry_open = false
+			p2.just_saved_score = false
+			p2.end_won = false
+		if end_ui and end_ui.get("handle_edit"):
+			end_ui.handle_edit.visible = false
+		GameState.session_score = 125000
+		GameState.total_kills = 420
+		GameState.lives = 0
+		GameState.set_state(GameState.State.GAMEOVER)
+		if p2:
+			p2.name_entry_open = false
+			p2.end_won = false
+		if end_ui and end_ui.get("handle_edit"):
+			end_ui.handle_edit.visible = false
+		_force_ui_size(_main)
+		if end_ui and end_ui.has_method("queue_redraw"):
+			end_ui.queue_redraw()
+		for _i in range(8 if fast else 12):
+			await process_frame
+		await _save("godot_end_gameover")
 
-	GameState.session_score = 2500000
-	GameState.total_kills = 9001
-	if p2:
-		p2.name_entry_open = false
-		p2.end_won = true
-	if end_ui and end_ui.get("handle_edit"):
-		end_ui.handle_edit.visible = false
-	GameState.set_state(GameState.State.WIN)
-	if p2:
-		p2.name_entry_open = false
-	if end_ui and end_ui.get("handle_edit"):
-		end_ui.handle_edit.visible = false
-	_force_ui_size(_main)
-	if end_ui and end_ui.has_method("queue_redraw"):
-		end_ui.queue_redraw()
-	for _i in range(8 if fast else 12):
-		await process_frame
-	await _save("godot_end_win")
-	if not fast:
-		# Outfit previews on title (mini Bobina) + force outfits menu for model parity
+		GameState.session_score = 2500000
+		GameState.total_kills = 9001
+		if p2:
+			p2.name_entry_open = false
+			p2.end_won = true
+		if end_ui and end_ui.get("handle_edit"):
+			end_ui.handle_edit.visible = false
+		GameState.set_state(GameState.State.WIN)
+		if p2:
+			p2.name_entry_open = false
+		if end_ui and end_ui.get("handle_edit"):
+			end_ui.handle_edit.visible = false
+		_force_ui_size(_main)
+		if end_ui and end_ui.has_method("queue_redraw"):
+			end_ui.queue_redraw()
+		for _i in range(8 if fast else 12):
+			await process_frame
+		await _save("godot_end_win")
+
+	if _want("anims") or _want("wardrobe"):
+		# Outfit previews on title (mini Bobina) — light subset
 		for outfit in ["og", "maid", "honeypot", "cabal"]:
 			GameState.selected_outfit = outfit
 			GameState.set_state(GameState.State.TITLE)
@@ -556,7 +646,7 @@ func _run() -> void:
 				await process_frame
 			await _save("godot_outfit_" + outfit)
 
-		# Fresh play at power 6 for combat dual
+	if _want("power6") and player:
 		GameState.start_run()
 		GameState.set_state(GameState.State.PLAY)
 		GameState.power = 6.0
@@ -574,8 +664,8 @@ func _run() -> void:
 				player.fire_sys.try_fire(player, player.bullet_pool, false)
 		await _save("godot_play_power6")
 
-	# ── Phase 3: weapons / melee / specials dual ──
-	if not fast and player:
+	# ── Phase 3: weapons / melee / specials / auras / items / elites / bosses ──
+	if player and (_want("weapons") or _want("melee") or _want("specials") or _want("aura") or _want("items") or _want("elites") or _want("bosses")):
 		GameState.set_state(GameState.State.PLAY)
 		GameState.power = 6.0
 		GameState.lives = 99
@@ -584,54 +674,228 @@ func _run() -> void:
 		player.global_position = Vector2(304, 400)
 		var pool = player.get("bullet_pool")
 		var fire = player.get("fire_sys")
-		# Ensure all weapons unlocked for dual fire
 		var weps: Array = ["laser", "homing", "wave", "scatter", "gatling", "grenade", "voidripper", "lotus", "shock", "spread"]
 		GameState.weapons.clear()
 		for w in weps:
 			GameState.weapons.append(w)
-		for wep in weps:
-			GameState.current_weapon = wep
+		if _want("weapons"):
+			for wep in weps:
+				GameState.current_weapon = wep
+				if pool and pool.has_method("clear_all"):
+					pool.clear_all()
+				elif pool and pool.has_method("clear"):
+					pool.clear()
+				for i in range(18):
+					await process_frame
+					if "invuln" in player:
+						player.invuln = 99999.0
+					if fire and pool:
+						fire.try_fire(player, pool, false)
+				await _save("godot_wep_%s" % wep)
+		if _want("melee"):
+			var mkeys: Array = ["katana", "lash", "scythe", "hammer", "claws"]
+			for mk in mkeys:
+				if pool and pool.has_method("clear_all"):
+					pool.clear_all()
+				var ms = player.get("melee")
+				if ms:
+					ms.cooldown = 0.0
+					ms.charge = 1.0
+					ms.holding = false
+					ms.release(player, mk, -PI / 2.0)
+				for _i in range(10):
+					await process_frame
+					if "invuln" in player:
+						player.invuln = 99999.0
+				await _save("godot_melee_%s" % mk)
+		if _want("specials"):
+			var skeys: Array = ["laser", "mech", "bearzooka", "vault", "stampede", "badger", "sixth", "revenge", "kiss", "kraken", "void"]
+			var sp = player.get("specials")
+			for sk in skeys:
+				GameState.special_meter = 100.0
+				if pool and pool.has_method("clear_all"):
+					pool.clear_all()
+				if sp and sp.has_method("use"):
+					sp.use(sk, player, pool)
+				for _i in range(16):
+					await process_frame
+					if "invuln" in player:
+						player.invuln = 99999.0
+				await _save("godot_special_%s" % sk)
+
+		if _want("aura"):
+			GameState.set_state(GameState.State.PLAY)
+			if "invuln" in player:
+				player.invuln = 99999.0
+			player.global_position = Vector2(304, 400)
 			if pool and pool.has_method("clear_all"):
 				pool.clear_all()
-			elif pool and pool.has_method("clear"):
-				pool.clear()
-			for i in range(18):
+			for pwr in [1.0, 3.0, 6.0]:
+				GameState.power = pwr
+				player.focus = false
+				player.shield_t = 0.0
+				player.rapid_t = 0.0
+				player.vial_t = 0.0
+				player.vial_hits = 0
+				player.phase_t = 0.0
+				player.dash = 0.0
+				player.bomb_fx = 0.0
+				for _i in range(8):
+					await process_frame
+				await _save("godot_aura_power_%d" % int(pwr))
+			GameState.power = 4.0
+			player.focus = true
+			player.invuln = 40.0
+			for _i in range(6):
 				await process_frame
-				if "invuln" in player:
-					player.invuln = 99999.0
-				if fire and pool:
-					fire.try_fire(player, pool, false)
-			await _save("godot_wep_%s" % wep)
-		# Melee charged swipe each weapon
-		var mkeys: Array = ["katana", "lash", "scythe", "hammer", "claws"]
-		for mk in mkeys:
-			if pool and pool.has_method("clear_all"):
-				pool.clear_all()
-			var ms = player.get("melee")
-			if ms:
-				ms.cooldown = 0.0
-				ms.charge = 1.0
-				ms.holding = false
-				ms.release(player, mk, -PI / 2.0)
-			for _i in range(10):
+			await _save("godot_aura_focus")
+			player.focus = false
+			player.invuln = 99999.0
+			player.shield_t = 120.0
+			for _i in range(6):
 				await process_frame
-				if "invuln" in player:
-					player.invuln = 99999.0
-			await _save("godot_melee_%s" % mk)
-		# Specials full FX
-		var skeys: Array = ["laser", "mech", "bearzooka", "vault", "stampede", "badger", "sixth", "revenge", "kiss", "kraken", "void"]
-		var sp = player.get("specials")
-		for sk in skeys:
-			GameState.special_meter = 100.0
-			if pool and pool.has_method("clear_all"):
-				pool.clear_all()
-			if sp and sp.has_method("use"):
-				sp.use(sk, player, pool)
-			for _i in range(16):
+			await _save("godot_aura_shield")
+			player.shield_t = 0.0
+			player.rapid_t = 120.0
+			for _i in range(6):
 				await process_frame
-				if "invuln" in player:
-					player.invuln = 99999.0
-			await _save("godot_special_%s" % sk)
+			await _save("godot_aura_rapid")
+			player.rapid_t = 0.0
+			player.vial_t = 120.0
+			player.vial_hits = 3
+			for _i in range(6):
+				await process_frame
+			await _save("godot_aura_vial")
+			player.vial_t = 0.0
+			player.vial_hits = 0
+			player.phase_t = 120.0
+			for _i in range(6):
+				await process_frame
+			await _save("godot_aura_phase")
+			player.phase_t = 0.0
+			player.dash = 12.0
+			player.dash_ang = -PI / 2.0
+			player.trail = []
+			for i in range(8):
+				player.trail.push_front({"wx": player.global_position.x, "wy": player.global_position.y + float(i) * 6.0})
+			for _i in range(4):
+				await process_frame
+			await _save("godot_aura_dash")
+			player.dash = 0.0
+			player.trail = []
+			player.bomb_fx = 30.0
+			for _i in range(4):
+				await process_frame
+			await _save("godot_aura_bomb")
+			player.bomb_fx = 0.0
+
+		if _want("items"):
+			var items_sys = _A("ItemSystem")
+			if items_sys:
+				items_sys.items.clear()
+				var item_types: Array = [
+					"power", "fullpower", "point", "life", "bomb", "shield", "rapid", "skull", "weapon",
+				]
+				var cfg_node = _A("Config")
+				var pf_rect: Rect2 = cfg_node.playfield() if cfg_node and cfg_node.has_method("playfield") else Rect2(48, 14, 512, 516)
+				var col_n := 3
+				for ii in range(item_types.size()):
+					var tx := pf_rect.position.x + 80.0 + float(ii % col_n) * 140.0
+					var ty := pf_rect.position.y + 100.0 + float(ii / col_n) * 100.0
+					var extra := {}
+					if str(item_types[ii]) == "skull":
+						extra["val"] = 10
+					if str(item_types[ii]) == "weapon":
+						extra["wep"] = "laser"
+					items_sys.drop_item(tx, ty, str(item_types[ii]), extra)
+					if items_sys.items.size():
+						var last: Dictionary = items_sys.items[items_sys.items.size() - 1]
+						last["vx"] = 0.0
+						last["vy"] = 0.0
+						last["homing"] = false
+				for _i in range(8):
+					await process_frame
+					for it in items_sys.items:
+						if it is Dictionary:
+							it["vx"] = 0.0
+							it["vy"] = 0.0
+				await _save("godot_items_grid")
+				items_sys.items.clear()
+
+		var cfg2 = _A("Config")
+		var pf2: Rect2 = cfg2.playfield() if cfg2 and cfg2.has_method("playfield") else Rect2(48, 14, 512, 516)
+		var playfield = _main.get_node_or_null("Playfield")
+		var DataRegistry = _A("DataRegistry")
+
+		if _want("elites"):
+			var elites: Array = ["cheer", "ape", "badnik", "pup", "scammer", "voideye", "goon"]
+			var EnemyScene = load("res://scenes/enemies/Enemy.tscn")
+			for e in root.get_tree().get_nodes_in_group("enemies"):
+				if is_instance_valid(e) and not e.is_in_group("bosses"):
+					e.queue_free()
+			for _i in range(3):
+				await process_frame
+			if EnemyScene and playfield:
+				for ei in range(elites.size()):
+					var ek: String = str(elites[ei])
+					var en = EnemyScene.instantiate()
+					playfield.add_child(en)
+					var ex := pf2.position.x + 80.0 + float(ei % 4) * 100.0
+					var ey := pf2.position.y + 120.0 + float(ei / 4) * 140.0
+					if en.has_method("setup"):
+						en.setup(pool, Vector2(ex, ey), {
+							"kind": "elite",
+							"hp": 9999.0,
+							"vel": Vector2.ZERO,
+							"icy": false,
+							"r": 26.0,
+							"score": 900,
+							"hover": ey,
+							"elite": ek,
+						})
+					if "vel" in en:
+						en.vel = Vector2.ZERO
+				for _i in range(10):
+					await process_frame
+					for e in root.get_tree().get_nodes_in_group("enemies"):
+						if is_instance_valid(e) and not e.is_in_group("bosses"):
+							if "vel" in e:
+								e.vel = Vector2.ZERO
+				await _save("godot_elites_grid")
+				for e in root.get_tree().get_nodes_in_group("enemies"):
+					if is_instance_valid(e) and not e.is_in_group("bosses"):
+						e.queue_free()
+				for _i in range(3):
+					await process_frame
+
+		if _want("bosses"):
+			var BossScene = load("res://scenes/enemies/Boss.tscn")
+			if BossScene and playfield and DataRegistry:
+				for si in range(mini(7, DataRegistry.stages.size())):
+					for b in root.get_tree().get_nodes_in_group("bosses"):
+						if is_instance_valid(b):
+							b.queue_free()
+					for _i in range(2):
+						await process_frame
+					GameState.stage_index = si
+					var stage: Dictionary = DataRegistry.get_stage(si)
+					var boss = BossScene.instantiate()
+					playfield.add_child(boss)
+					boss.setup(pool, Vector2(pf2.get_center().x, pf2.position.y + 140), stage)
+					if "intro" in boss:
+						boss.intro = 0.0
+					if "dead" in boss:
+						boss.dead = false
+					for _i in range(12):
+						await process_frame
+						if "intro" in boss:
+							boss.intro = 0.0
+					var bname := str(stage.get("boss", {}).get("portrait", "boss%d" % si))
+					await _save("godot_boss_%s" % bname)
+					if is_instance_valid(boss):
+						boss.queue_free()
+				for _i in range(2):
+					await process_frame
 
 	print("[SHOT] done dir=", ProjectSettings.globalize_path(_shot_dir()))
 	print("[SHOT] PASS")

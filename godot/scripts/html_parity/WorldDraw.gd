@@ -440,20 +440,34 @@ func _draw_enemy(e: Node) -> void:
 
 func _draw_boss_node(b: Node) -> void:
 	var data = b.get("data") if b.get("data") != null else {}
+	# BossController uses snake_case (max_hp / hud_name); HTML drawBoss uses maxhp / hudName
+	var maxhp := 1.0
+	if b.get("max_hp") != null:
+		maxhp = float(b.max_hp)
+	elif b.get("maxhp") != null:
+		maxhp = float(b.maxhp)
+	var hud := ""
+	if b.get("hud_name") != null and str(b.hud_name) != "":
+		hud = str(b.hud_name)
+	elif b.get("hudName") != null:
+		hud = str(b.hudName)
 	var st := {
 		"x": b.global_position.x,
 		"y": b.global_position.y,
 		"r": float(b.get("radius")) if b.get("radius") != null else 40.0,
 		"t": float(b.get("t")) if b.get("t") != null else float(tick),
 		"hp": float(b.get("hp")) if b.get("hp") != null else 1.0,
-		"maxhp": float(b.get("maxhp")) if b.get("maxhp") != null else 1.0,
+		"maxhp": maxhp,
 		"phase": int(b.get("phase")) if b.get("phase") != null else 0,
 		"intro": float(b.get("intro")) if b.get("intro") != null else 0.0,
 		"dead": bool(b.get("dead")) if b.get("dead") != null else false,
 		"data": data if data is Dictionary else {},
-		"hudName": str(b.get("hudName")) if b.get("hudName") != null else "",
+		"hudName": hud,
 		"portrait": str(data.get("portrait", "")) if data is Dictionary else "",
 		"flash": float(b.get("flash")) if b.get("flash") != null else 0.0,
+		"face": float(b.get("face")) if b.get("face") != null else (PI / 2.0),
+		"twin": bool(b.get("twin")) if b.get("twin") != null else false,
+		"active": str(b.get("active_twin")) if b.get("active_twin") != null else "",
 	}
 	ported.drawBoss(st)
 
@@ -491,11 +505,21 @@ func _draw_bullet_node(b: Node) -> void:
 		})
 
 func _player_state(player: Node) -> Dictionary:
+	# HTML trail points are absolute {x,y}; Player stores world {wx,wy}
+	var trail_abs: Array = []
+	if player.get("trail") != null:
+		for q in player.trail:
+			if q is Dictionary:
+				trail_abs.append({
+					"x": float(q.get("x", q.get("wx", player.global_position.x))),
+					"y": float(q.get("y", q.get("wy", player.global_position.y))),
+				})
 	var st := {
 		"x": player.global_position.x,
 		"y": player.global_position.y,
 		"outfit": GameState.selected_outfit,
 		"tick": tick,
+		"power": float(GameState.power),
 		"focus": bool(player.focus) if player.get("focus") != null else false,
 		"iframe": float(player.invuln) if player.get("invuln") != null else 0.0,
 		"vx": player.velocity.x if player.get("velocity") != null else 0.0,
@@ -505,6 +529,8 @@ func _player_state(player: Node) -> Dictionary:
 		"bombFx": float(player.bomb_fx) if player.get("bomb_fx") != null else 0.0,
 		"dash": float(player.dash) if player.get("dash") != null else 0.0,
 		"dashAng": float(player.dash_ang) if player.get("dash_ang") != null else 0.0,
+		"slashDash": bool(player.slash_dash) if player.get("slash_dash") != null else false,
+		"trail": trail_abs,
 		"phase_t": float(player.phase_t) if player.get("phase_t") != null else 0.0,
 		"phaseT": float(player.phase_t) if player.get("phase_t") != null else 0.0,
 		"shield_t": float(player.shield_t) if player.get("shield_t") != null else 0.0,

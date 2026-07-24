@@ -83,11 +83,22 @@ const shotGd = exists("godot/scripts/tools/screenshot_playtest.gd")
 g.ok(shotGd.includes("godot_wep_") || shotGd.includes("wep_"), "dual weapon shots in playtest");
 g.ok(shotGd.includes("godot_melee_") || shotGd.includes("melee_"), "dual melee shots in playtest");
 g.ok(shotGd.includes("godot_special_") || shotGd.includes("special_"), "dual special shots in playtest");
+g.ok(shotGd.includes("godot_aura_") || shotGd.includes("aura_power"), "dual aura shots in playtest");
+g.ok(shotGd.includes("godot_items_grid") || shotGd.includes("items_grid"), "dual items grid in playtest");
+g.ok(shotGd.includes("godot_elites_grid") || shotGd.includes("elites_grid"), "dual elites grid in playtest");
+g.ok(shotGd.includes("godot_boss_") || shotGd.includes("BossScene"), "dual boss shots in playtest");
 g.ok(world.includes("swipe_fx") || world.includes("melee.swipe") || world.includes("swipe_fx"), "WorldDraw merges MeleeSystem swipe_fx");
+g.ok(world.includes("trail") && world.includes("power"), "WorldDraw passes trail+power for aura/dash dual");
 const dual = read("tools/port/dual_playtest.mjs");
 g.ok(dual.includes("setWeapon") || dual.includes("html_wep_"), "dual HTML weapon path");
 g.ok(dual.includes("setMelee") || dual.includes("html_melee_"), "dual HTML melee path");
 g.ok(dual.includes("setSpecial") || dual.includes("html_special_"), "dual HTML special path");
+g.ok(dual.includes("setAura") || dual.includes("html_aura_"), "dual HTML aura path");
+g.ok(dual.includes("dropItemsGrid") || dual.includes("html_items_grid"), "dual HTML items path");
+g.ok(dual.includes("spawnElitesGrid") || dual.includes("html_elites_grid"), "dual HTML elites path");
+g.ok(dual.includes("spawnBossPortrait") || dual.includes("html_boss_"), "dual HTML boss path");
+g.ok(dual.includes("PLAYTEST_SHOTS") && dual.includes("--shots"), "dual --shots filter CLI");
+g.ok(shotGd.includes("PLAYTEST_SHOTS") && shotGd.includes("_want"), "playtest honors PLAYTEST_SHOTS");
 
 g.finish();
 
