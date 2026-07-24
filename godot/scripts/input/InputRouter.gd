@@ -29,7 +29,6 @@ func _map_key(e: InputEventKey) -> String:
 		KEY_ENTER, KEY_KP_ENTER: return "start"
 		KEY_ESCAPE: return "menu"
 		KEY_T: return "tweet"
-		KEY_F: return "fire"  # auto-fire toggle (HTML)
 		_: return ""
 
 func _html_name(action: String) -> String:
@@ -113,14 +112,7 @@ func key_press(k: String) -> void:
 				p3.specials.use(str(GameState.specials[0]), p3, p3.get("bullet_pool"))
 		if k == "cycle":
 			CombatHelpers.cycle_special()
-		if k == "fire":
-			# HTML touch FIRE button — toggle autoFire (default OFF)
-			var st: Dictionary = ProgressStore.progress.get("settings", {})
-			st["autofire"] = not bool(st.get("autofire", false))
-			ProgressStore.progress["settings"] = st
-			ProgressStore.queue_save()
-			if AudioBus:
-				AudioBus.sfx("item")
+		# "fire" touch chrome holds shoot via Main._inject_action — no autofire toggle
 	# Tweet on end screens
 	if k == "tweet" and state in [GameState.State.WIN, GameState.State.GAMEOVER]:
 		if P2Meta and P2Meta.has_method("tweet_result"):

@@ -949,7 +949,7 @@ func _draw_panel_landscape() -> void:
 	ctx.font("10px monospace")
 	var footer_y := y + ph
 	if JoyPad and JoyPad.touch_ui_on:
-		ctx.fill_text("Stick moves · FIRE toggles auto-shoot", x + 16, footer_y - 30)
+		ctx.fill_text("Stick moves · hold FIRE to shoot", x + 16, footer_y - 30)
 		ctx.fill_text("MELEE · SPEC · BOMB · FOCUS (2× = dash)", x + 16, footer_y - 18)
 	else:
 		ctx.fill_text("Mouse/arrows move · HOLD %s fire" % MenuHelpers.kb("shoot"), x + 16, footer_y - 30)

@@ -180,9 +180,8 @@ func _draw_pause_chip() -> void:
 	btns.append({"x": x, "y": y, "w": w, "h": h, "key": "pause"})
 
 func _fire_label() -> String:
-	var st: Dictionary = ProgressStore.progress.get("settings", {}) if ProgressStore else {}
-	var af := bool(st.get("autofire", false))
-	return "🔥\nFIRE" if af else "🔥\nOFF"
+	## Hold to fire (maps to shoot action) — no separate autofire mode
+	return "🔥\nFIRE"
 
 func _swap_label() -> String:
 	var icon := "⇄"

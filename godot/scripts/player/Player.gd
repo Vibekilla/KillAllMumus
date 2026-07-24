@@ -151,16 +151,12 @@ func _physics_process(delta: float) -> void:
 	else:
 		aim = lerp_angle(aim, -PI / 2.0, 0.08)
 
-	# fire — HTML: keys.shoot || (isTouch ? autoFire : pointer.down)
-	# Desktop: hold Z / LMB only. Touch: optional autoFire (default OFF).
-	var autofire := false
-	if ProgressStore:
-		var st: Dictionary = ProgressStore.progress.get("settings", {})
-		autofire = bool(st.get("autofire", false))
-	var is_touch := JoyPad != null and bool(JoyPad.active)
-	var want_fire := Input.is_action_pressed("shoot") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	if is_touch and autofire:
-		want_fire = true
+	# Fire = hold shoot keybind (settings) or LMB. No continuous "autofire" mode in the port.
+	# Touch on-screen FIRE injects the shoot action while held (Main._inject_action).
+	var want_fire := (
+		Input.is_action_pressed("shoot")
+		or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	)
 	if want_fire and fire_sys:
 		if fire_sys.try_fire(self, bullet_pool, focus):
 			AudioBus.sfx("shoot")

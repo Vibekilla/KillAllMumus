@@ -35,10 +35,10 @@ cd /var/www/killallmumus.com   # live checkout (main)
 
 - Service: `systemctl --user status killallmumus-dev` (Express on **3001**, tree `/var/www/dev`)
 - Nginx: `deploy/nginx/dev.killallmumus.com` → install via `bash deploy/install-nginx-dev.sh`
-- Env: `/var/www/dev/.env` with `PORT=3001`, `PUBLIC_ORIGIN=https://dev.killallmumus.com`, `USE_GODOT=0`
-- DNS (GoDaddy): **A** record `dev` → this host (`15.204.81.219`), then  
-  `sudo certbot --nginx -d dev.killallmumus.com`
-- Godot test path (always): `https://dev.killallmumus.com/godot/` or `?test`
+- Env: `/var/www/dev/.env` with `PORT=3001`, `PUBLIC_ORIGIN=https://dev.killallmumus.com`, **`USE_GODOT=1`** (Godot default; HTML at `/legacy/`)
+- Live stays **`USE_GODOT` off** (`html-legacy`) until Phase 7 sign-off
+- DNS (GoDaddy): **A** record `dev` → this host; HTTPS via certbot
+- Godot: `https://dev.killallmumus.com/` · HTML fallback: `/legacy/` · also `/godot/`
 
 ## Daily flow
 

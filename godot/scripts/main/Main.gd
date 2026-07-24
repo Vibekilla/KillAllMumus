@@ -99,7 +99,10 @@ func _inject_action(k: String, pressed: bool) -> void:
 	match k:
 		"cycle":
 			action = "cycle_special"
-		"fire", "pause", "start", "menu", "tweet":
+		"fire":
+			# On-screen FIRE = hold shoot (no separate autofire mode)
+			action = "shoot"
+		"pause", "start", "menu", "tweet":
 			# one-shot via key_press only
 			return
 	if not InputMap.has_action(action):
