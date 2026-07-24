@@ -1479,6 +1479,30 @@ func _run() -> void:
 							chb.particles.clear()
 					var bname := str(stage.get("boss", {}).get("portrait", "boss%d" % si))
 					await _save("godot_boss_%s" % bname)
+					# Live ambience still (first boss only): leave dual_freeze OFF so mandala shows
+					if si == 0 and is_instance_valid(boss):
+						boss.remove_meta("dual_freeze")
+						if "stun" in boss:
+							boss.stun = 99999.0
+						if "special_t" in boss:
+							boss.special_t = 0.0
+						if "hp" in boss and "max_hp" in boss:
+							boss.hp = float(boss.max_hp) * 0.55  # mid-fight rage cue
+						for _j in range(8):
+							await process_frame
+							player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
+							player.aim = PI / 2.0
+							if is_instance_valid(boss):
+								boss.global_position = boss_pos
+								if "face" in boss:
+									boss.face = PI / 2.0
+								if "mtx" in boss:
+									boss.mtx = boss_pos.x
+								if "mty" in boss:
+									boss.mty = boss_pos.y
+							if pool and pool.has_method("clear_all"):
+								pool.clear_all()
+						await _save("godot_boss_ape_live")
 					if is_instance_valid(boss):
 						boss.queue_free()
 				for _i in range(2):

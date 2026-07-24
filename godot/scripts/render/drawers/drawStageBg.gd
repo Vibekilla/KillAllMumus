@@ -185,12 +185,21 @@ func drawStageBgFx(s: int = -1) -> void:
 			_fx_lair(t, cx, cy, H, bi, drift)
 	ctx.restore()
 
+func _hsla_rgba(h_deg: float, s: float, l_pct: float, a: float) -> String:
+	## Correct CSS HSL (not HSV) → rgba for CanvasCompat
+	var col: Color = ColorUtil.hsl_to_color(h_deg, s, l_pct / 100.0, a)
+	return "rgba(%d,%d,%d,%s)" % [
+		int(round(col.r * 255.0)), int(round(col.g * 255.0)), int(round(col.b * 255.0)),
+		str(clampf(a, 0.0, 1.0)),
+	]
+
 func _fx_jungle(t, cx, cy, H, W, bi, drift, pf: Rect2) -> void:
 	for L in range(4):
 		var rr = (0.2 + float(L) * 0.2) * H * (1.0 + sin(t * 0.01 + float(L) + bg_seed) * 0.05)
 		var a0 = t * 0.003 * (1.0 if L % 2 else -1.0) + float(L) * 0.6 + bg_seed
 		var N = 5 + L
-		ctx.stroke_style("hsla(%d,55%%,%d%%,%s)" % [140 + L * 16 + int(drift), 18 + L * 5, str(0.13 + 0.07 * bi)])
+		# HTML: dark green rings, L≈18–33%, α≈0.13–0.20
+		ctx.stroke_style(_hsla_rgba(140.0 + float(L) * 16.0 + drift, 0.55, 18.0 + float(L) * 5.0, 0.13 + 0.07 * bi))
 		ctx.line_width(2.4)
 		ctx.begin_path()
 		for i in range(N + 1):
@@ -207,7 +216,7 @@ func _fx_jungle(t, cx, cy, H, W, bi, drift, pf: Rect2) -> void:
 		var px = pf.position.x + fmod(float(i) * 83.0 + t * 0.6, W)
 		var py = pf.position.y + fmod(float(i) * 127.0 + t * 1.4, H)
 		var r = 5.0 + float(i % 4) * 3.0
-		ctx.fill_style("hsla(%d,50%%,24%%,%s)" % [115 + i * 6 + int(drift), str(0.09 + 0.05 * bi)])
+		ctx.fill_style(_hsla_rgba(115.0 + float(i) * 6.0 + drift, 0.50, 24.0, 0.09 + 0.05 * bi))
 		ctx.save()
 		ctx.translate(px, py)
 		ctx.rotate(t * 0.02 + float(i))

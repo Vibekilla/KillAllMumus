@@ -223,25 +223,25 @@ func drawBossAmbience() -> void:
 	if dual_soft:
 		ctx.restore()
 		return
-	# 2) mandala rings + spokes — low-alpha rgba (CSS HSL was mis-parsed as HSV → neon)
+	# Clear any leaked portrait shadows before thin ambience strokes
+	if ctx.has_method("shadow_blur"):
+		ctx.shadow_blur(0)
+	if ctx.has_method("shadow_color"):
+		ctx.shadow_color("rgba(0,0,0,0)")
+	# 2) HTML mandala: low-lightness HSL strokes (sat~65–70%, L~12–23%, α~0.11–0.30)
+	# Use ColorUtil HSL→RGB then rgba() so CanvasCompat never hits the old HSV bug path.
 	ctx.save()
 	ctx.translate(cx, cy)
 	var seg := 10
-	var base_r := int(float(crgb[0]) * 0.35)
-	var base_g := int(float(crgb[1]) * 0.22)
-	var base_b := int(float(crgb[2]) * 0.12)
 	for L in range(3):
 		var dir := -1.0 if (L % 2) else 1.0
 		var rr := (0.2 + float(L) * 0.15) * H * (1.0 + sin(t * 0.02 + float(L)) * 0.05)
 		var rot_l := t * 0.005 * spd * dir + float(L) * 0.5
-		var ra := 0.07 + 0.04 * rage
-		ctx.stroke_style("rgba(%d,%d,%d,%s)" % [
-			clampi(base_r + L * 4, 0, 55),
-			clampi(base_g + L * 2, 0, 40),
-			clampi(base_b + L * 1, 0, 30),
-			str(ra),
-		])
-		ctx.line_width(1.5)
+		var hue_l := fmod(bh + float(L) * 22.0, 360.0)
+		var lit_l := (15.0 + float(L) * 4.0) / 100.0
+		var al_l := 0.16 + 0.14 * rage
+		ctx.stroke_style(_hsla_rgba(hue_l, 0.68, lit_l, al_l))
+		ctx.line_width(2.0)
 		ctx.begin_path()
 		for i in range(seg + 1):
 			var a := rot_l + float(i) / float(seg) * TAU
@@ -253,34 +253,40 @@ func drawBossAmbience() -> void:
 				ctx.line_to(px, py)
 		ctx.close_path()
 		ctx.stroke()
-	# spokes — HTML: very faint
-	var spoke_a := 0.08 + 0.06 * rage
-	ctx.stroke_style("rgba(%d,%d,%d,%s)" % [base_r, base_g, base_b, str(spoke_a)])
-	ctx.line_width(1.0)
+	# spokes — HTML: hsla(bh,65%,14%,0.11+0.1*rage)
+	ctx.stroke_style(_hsla_rgba(bh, 0.65, 0.14, 0.11 + 0.1 * rage))
+	ctx.line_width(1.4)
 	var rot_s := t * 0.005 * spd
 	ctx.begin_path()
 	for i in range(seg):
 		var as_ := rot_s + float(i) / float(seg) * TAU
 		ctx.move_to(0, 0)
-		ctx.line_to(cos(as_) * H * 0.45, sin(as_) * H * 0.45)
+		ctx.line_to(cos(as_) * H * 0.5, sin(as_) * H * 0.5)
 	ctx.stroke()
 	# 3) expanding dark spell-rings
 	for k in range(3):
 		var ph := fmod(t * 0.008 * spd + float(k) / 3.0, 1.0)
 		var rr2 := 24.0 + ph * H * 0.7
-		var ring_a := (1.0 - ph) * 0.16 * (0.5 + rage * 0.3)
-		ctx.stroke_style("rgba(%d,%d,%d,%s)" % [
-			clampi(base_r + k * 6, 0, 70),
-			clampi(base_g + k * 3, 0, 50),
-			clampi(base_b + k * 2, 0, 35),
-			str(ring_a),
-		])
-		ctx.line_width(1.6 * (1.0 - ph) + 0.5)
+		var hue_k := fmod(bh + float(k) * 16.0, 360.0)
+		var lit_k := clampf((20.0 - ph * 8.0) / 100.0, 0.08, 0.22)
+		var al_k := (1.0 - ph) * 0.3 * (0.6 + rage * 0.4)
+		ctx.stroke_style(_hsla_rgba(hue_k, 0.70, lit_k, al_k))
+		ctx.line_width(2.4 * (1.0 - ph) + 0.7)
 		ctx.begin_path()
 		ctx.arc(0, 0, rr2, 0, TAU)
 		ctx.stroke()
 	ctx.restore()
 	ctx.restore()
+
+func _hsla_rgba(h_deg: float, s: float, l: float, a: float) -> String:
+	## ColorUtil CSS HSL → rgba() string for reliable CanvasCompat strokes
+	var col: Color = ColorUtil.hsl_to_color(h_deg, s, l, a)
+	return "rgba(%d,%d,%d,%s)" % [
+		int(round(col.r * 255.0)),
+		int(round(col.g * 255.0)),
+		int(round(col.b * 255.0)),
+		str(clampf(a, 0.0, 1.0)),
+	]
 
 func drawPanel() -> void:
 	## HTML drawPanel — portrait | touch | landscape

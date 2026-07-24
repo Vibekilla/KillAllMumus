@@ -149,6 +149,9 @@ func begin_frame() -> void:
 	_clip = {}
 	_last_full_arc = {}
 	_last_full_ellipse = {}
+	# Reset shadow — leaked gold boss-portrait shadows were neon-spoking ambience strokes
+	_shadow_col = Color(0, 0, 0, 0)
+	_shadow_blur = 0.0
 
 func _c(col: Color) -> Color:
 	var c := col

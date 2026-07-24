@@ -91,13 +91,14 @@ func _in_pf(x: float, y: float, margin: float = 24.0) -> bool:
 
 func _draw_stage_bg_cached_or_live(pf: Rect2) -> void:
 	## Phase 1.3: blit PF-sized StageBg bake; live drawer until first tex lands.
-	# Dual boss stills: always live-draw so dual_freeze soft motifs apply (cache is neon-hot)
-	var dual_bg := false
+	# Boss fights: always live-draw so HSL-correct StageBgFx + dual_freeze soft path apply
+	# (stale cache can hold pre-fix neon mandalas and wipe out ambience parity)
+	var boss_live := false
 	for b in get_tree().get_nodes_in_group("bosses"):
-		if is_instance_valid(b) and b.has_meta("dual_freeze") and bool(b.get_meta("dual_freeze")):
-			dual_bg = true
+		if is_instance_valid(b) and not bool(b.get("dead")):
+			boss_live = true
 			break
-	if not dual_bg and stage_bg_cache != null and stage_bg_cache.has_method("get_texture"):
+	if not boss_live and stage_bg_cache != null and stage_bg_cache.has_method("get_texture"):
 		var tex: Texture2D = stage_bg_cache.get_texture(tick)
 		if tex != null and ctx.has_method("draw_image"):
 			ctx.draw_image(tex, pf.position.x, pf.position.y, pf.size.x, pf.size.y)
