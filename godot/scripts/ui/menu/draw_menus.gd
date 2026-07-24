@@ -508,7 +508,7 @@ func drawArsenal() -> void:
 		["w", "WEAPONS", "#ff8ac0", "[" + MenuHelpers.kb("swap") + "] cycles these in a run"],
 		["s", "SPECIALS", "#b98cff", "[" + MenuHelpers.kb("special") + "] use · cycle swaps"],
 		["m", "MELEE", "#ff8a6a", "[" + MenuHelpers.kb("melee") + "] swipe"],
-		["i", "ITEMS", "#ffd27a", "switch / hold to use consumables"],
+		["i", "ITEMS", "#ffd27a", "switch / tap to use consumables"],
 	]
 	var tabW = 142.0
 	var tabGap = 10.0

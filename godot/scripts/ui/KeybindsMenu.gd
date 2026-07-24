@@ -13,7 +13,7 @@ const ACTIONS := [
 	{"action": "pause", "label": "Pause"},
 	{"action": "interact", "label": "Interact"},
 	{"action": "item_switch", "label": "Item switch"},
-	{"action": "item_use", "label": "Item use"},
+	{"action": "item_use", "label": "Use item (tap)"},
 ]
 
 const DEFAULTS := {

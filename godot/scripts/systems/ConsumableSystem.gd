@@ -1,14 +1,13 @@
 extends Node
-## HTML consumables: cycle with item_switch, hold item_use 0.8s to consume (+ 3s CD).
+## Consumables: cycle with item_switch, TAP item_use to consume (+ 3s CD, no hold).
 
 var selected: int = 0
-## HTML player._eCd / _eT / _eHeld / _eUsed (frame units @ 60 Hz)
+## Cooldown in frames @ 60 Hz (HTML player._eCd). Hold progress vars retired.
 var e_cd: float = 0.0
-var e_t: float = 0.0
-var e_held: bool = false
-var e_used: bool = false
+var e_t: float = 0.0  # unused — kept for HUD dual safety
+var e_held: bool = false  # unused
+var e_used: bool = false  # unused
 
-const HOLD_FRAMES := 48.0   # 0.8s
 const COOLDOWN_FRAMES := 180.0  # 3s
 
 func inventory() -> Dictionary:
@@ -128,28 +127,22 @@ func consume_selected() -> bool:
 		return false
 
 func tick(delta: float) -> void:
-	## HTML update() consumable hold/use loop (frame units)
+	## Tap item_use once to consume (3s cooldown). Works in cleared prep too.
 	if GameState.state != GameState.State.PLAY and GameState.state != GameState.State.STAGE_CLEAR:
 		return
 	var df := delta * 60.0
 	if e_cd > 0.0:
 		e_cd = maxf(0.0, e_cd - df)
-	if Input.is_action_pressed("item_use"):
-		if not e_held:
-			e_held = true
-			e_t = 0.0
-			e_used = false
-		e_t += df
-		if e_t >= HOLD_FRAMES and not e_used:
-			e_used = true
-			if e_cd > 0.0:
-				if AudioBus:
-					AudioBus.sfx("hit")
-				CombatHelpers.flash("⌛ Item cooling down — %ds" % int(ceili(e_cd / 60.0)), 60.0)
-			elif consume_selected():
-				e_cd = COOLDOWN_FRAMES
-	elif e_held:
-		e_held = false
+	e_held = false
+	e_t = 0.0
+	e_used = false
+	if Input.is_action_just_pressed("item_use"):
+		if e_cd > 0.0:
+			if AudioBus:
+				AudioBus.sfx("hit")
+			CombatHelpers.flash("⌛ Item cooling down — %ds" % int(ceili(e_cd / 60.0)), 60.0)
+		elif consume_selected():
+			e_cd = COOLDOWN_FRAMES
 
 func _apply_effect(key: String, p: Node = null) -> void:
 	## HTML CONSUMABLES[i].apply()

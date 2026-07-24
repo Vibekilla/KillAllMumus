@@ -925,21 +925,15 @@ func _draw_panel_landscape() -> void:
 		ctx.fill_style("#6a5a72")
 		ctx.font("9px monospace")
 		ctx.fill_text("— none equipped —", x + 16, cy + 12)
-	# hold / cooldown bar under chips
+	# cooldown bar under chips (tap-to-use — no hold charge)
 	var bar_w := maxf(0.0, float(arsenal_i.size()) * 34.0 - 4.0)
-	var hp := 0.0
-	if consum and not cur_c.is_empty() and bool(consum.get("e_held")) and not bool(consum.get("e_used")):
-		hp = minf(1.0, float(consum.get("e_t") if consum.get("e_t") != null else 0.0) / 48.0)
-	if hp > 0.0 and bar_w > 0.0:
-		ctx.fill_style(str(cur_c.get("col", cur_c.get("color", "#ffd27a"))))
-		ctx.fill_rect(x + 16, cy + 19, bar_w * hp, 2.5)
-	elif consum and float(consum.get("e_cd") if consum.get("e_cd") != null else 0.0) > 0.0 and bar_w > 0.0:
+	if consum and float(consum.get("e_cd") if consum.get("e_cd") != null else 0.0) > 0.0 and bar_w > 0.0:
 		ctx.fill_style("#6a5a72")
 		ctx.fill_rect(x + 16, cy + 19, bar_w * clampf(float(consum.e_cd) / 180.0, 0.0, 1.0), 2.5)
 	ctx.fill_style("#6a5a72")
 	ctx.font("9px monospace")
 	ctx.text_align("right")
-	ctx.fill_text("[%s] switch · hold [%s]" % [MenuHelpers.kb("item_switch"), MenuHelpers.kb("item_use")], x + w - 14, cy + 13)
+	ctx.fill_text("[%s] switch · [%s] use" % [MenuHelpers.kb("item_switch"), MenuHelpers.kb("item_use")], x + w - 14, cy + 13)
 	ctx.text_align("left")
 	cy += 30
 	# LIVES + life-frag pips

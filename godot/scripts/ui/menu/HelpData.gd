@@ -23,7 +23,7 @@ static func _controls() -> Array:
 		_item("💣", "Bomb", MenuHelpers.kb("bomb")),
 		_item("⚡", "Special", "%s use · %s cycle" % [MenuHelpers.kb("special"), MenuHelpers.kb("cycle")]),
 		_item("🗡", "Melee", "Hold %s to charge · release to slash" % MenuHelpers.kb("melee")),
-		_item("🎁", "Items", "%s switch · hold %s to use (~0.8s)" % [MenuHelpers.kb("item_switch"), MenuHelpers.kb("item_use")]),
+		_item("🎁", "Items", "%s switch · tap %s to use" % [MenuHelpers.kb("item_switch"), MenuHelpers.kb("item_use")]),
 		_item("🎯", "Focus / Dash", "Hold Focus to slow · double-tap to dash"),
 		_item("⚙", "Rebind", "Settings → Controls (also Pause)"),
 	]
