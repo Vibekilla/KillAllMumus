@@ -31,6 +31,35 @@ static func rgb_hue(r: float, g: float, b: float) -> float:
 		h = (r - g) / d + 4.0
 	return h * 60.0
 
+static func hsl_to_color(h_deg: float, s: float, l: float, a: float = 1.0) -> Color:
+	## Standard CSS HSL → RGB (s,l in 0..1, h in degrees)
+	h_deg = fposmod(h_deg, 360.0)
+	s = clampf(s, 0.0, 1.0)
+	l = clampf(l, 0.0, 1.0)
+	if s <= 0.00001:
+		return Color(l, l, l, a)
+	var q := (l * (1.0 + s)) if l < 0.5 else (l + s - l * s)
+	var p := 2.0 * l - q
+	var hk := h_deg / 360.0
+	var tr := hk + 1.0 / 3.0
+	var tg := hk
+	var tb := hk - 1.0 / 3.0
+	return Color(_hue_to_rgb(p, q, tr), _hue_to_rgb(p, q, tg), _hue_to_rgb(p, q, tb), a)
+
+static func _hue_to_rgb(p: float, q: float, t: float) -> float:
+	var tt := t
+	if tt < 0.0:
+		tt += 1.0
+	if tt > 1.0:
+		tt -= 1.0
+	if tt < 1.0 / 6.0:
+		return p + (q - p) * 6.0 * tt
+	if tt < 0.5:
+		return q
+	if tt < 2.0 / 3.0:
+		return p + (q - p) * (2.0 / 3.0 - tt) * 6.0
+	return p
+
 static func parse_css(c) -> Color:
 	## HTML fillStyle / strokeStyle strings: #hex, rgb(), rgba(), hsl(), hsla()
 	if c is Color:
@@ -62,7 +91,8 @@ static func parse_css(c) -> Color:
 			var sat := float(parts2[1].strip_edges().replace("%", "")) / 100.0
 			var lit := float(parts2[2].strip_edges().replace("%", "")) / 100.0
 			var a2 := float(parts2[3].strip_edges()) if parts2.size() > 3 else 1.0
-			return Color.from_hsv(fposmod(h, 360.0) / 360.0, sat, lit, a2)
+			# CSS HSL — NOT HSV (Color.from_hsv mis-reads L as V → neon spokes)
+			return hsl_to_color(h, sat, lit, a2)
 	if s.begins_with("#"):
 		return Color.html(s)
 	return Color.WHITE

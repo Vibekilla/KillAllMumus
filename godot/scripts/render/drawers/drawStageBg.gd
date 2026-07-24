@@ -150,15 +150,19 @@ func drawStageBgFx(s: int = -1) -> void:
 		if boss and is_instance_valid(boss) and not bool(boss.get("dead")):
 			var intro_v = boss.get("intro")
 			if intro_v == null or float(intro_v) <= 0.0:
-				var rage = 0.8
-				var st2 = boss.get("special_t")
-				if st2 != null and float(st2) > 0.0:
-					rage += 0.4
-				var mhp = boss.get("max_hp")
-				var hp = boss.get("hp")
-				if mhp != null and hp != null and float(mhp) > 0.0:
-					rage += (1.0 - float(hp) / float(mhp)) * 0.35
-				bi = minf(1.4, rage)
+				if boss.has_meta("dual_freeze") and bool(boss.get_meta("dual_freeze")):
+					# Dual portrait stills: skip psychedelic Fx (HTML dual is nearly plain)
+					return
+				else:
+					var rage = 0.8
+					var st2 = boss.get("special_t")
+					if st2 != null and float(st2) > 0.0:
+						rage += 0.4
+					var mhp = boss.get("max_hp")
+					var hp = boss.get("hp")
+					if mhp != null and hp != null and float(mhp) > 0.0:
+						rage += (1.0 - float(hp) / float(mhp)) * 0.35
+					bi = minf(1.4, rage)
 	var drift = sin(t * 0.006 + bg_seed) * 30.0 + bg_hue_seed
 	ctx.save()
 	ctx.begin_path()

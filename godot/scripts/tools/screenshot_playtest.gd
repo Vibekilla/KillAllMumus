@@ -1396,13 +1396,24 @@ func _run() -> void:
 				for si in range(mini(7, DataRegistry.stages.size())):
 					_dual_sanitize(player, pool)
 					GameState.power = 1.0
+					GameState.session_score = 0
+					GameState.total_kills = 0
+					GameState.graze = 0
+					# HTML dual: Bobina above boss, field empty
+					player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
+					player.aim = PI / 2.0  # face down toward boss
+					player.set_meta("dual_lock_pose", true)
+					player.set_meta("dual_aim", PI / 2.0)
 					for _i in range(3):
 						await process_frame
+						_dual_sanitize(player, pool)
+						player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
+						player.aim = PI / 2.0
 					GameState.stage_index = si
 					var stage: Dictionary = DataRegistry.get_stage(si)
 					var boss = BossScene.instantiate()
 					playfield.add_child(boss)
-					var boss_pos := Vector2(pf2.get_center().x, pf2.position.y + 140)
+					var boss_pos := Vector2(pf2.get_center().x, pf2.position.y + 200)
 					boss.setup(pool, boss_pos, stage)
 					# Visible body, pinned pose (no roam / no attack / no spin-facing)
 					if "intro" in boss:
@@ -1421,8 +1432,17 @@ func _run() -> void:
 						boss.mty = boss_pos.y
 					if "face" in boss:
 						boss.face = PI / 2.0  # face down (HTML rest face)
-					for _i in range(14):
+					if "hp" in boss and "max_hp" in boss:
+						boss.hp = float(boss.max_hp)  # full bar dual still
+					boss.set_meta("dual_freeze", true)
+					for _i in range(10):
 						await process_frame
+						player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
+						player.aim = PI / 2.0
+						player.velocity = Vector2.ZERO
+						GameState.session_score = 0
+						GameState.total_kills = 0
+						GameState.graze = 0
 						if is_instance_valid(boss):
 							boss.global_position = boss_pos
 							if "intro" in boss:
@@ -1440,25 +1460,18 @@ func _run() -> void:
 							if "face" in boss:
 								boss.face = PI / 2.0
 							if "t" in boss:
-								# freeze pattern timers from advancing attack cadence
-								boss.t = int(boss.t)
-						# Drop wave trash + boss bullets so portrait is readable
+								boss.t = 0  # stable ambience rotation
+							if "hp" in boss and "max_hp" in boss:
+								boss.hp = float(boss.max_hp)
 						for e in root.get_tree().get_nodes_in_group("enemies"):
 							if is_instance_valid(e) and not e.is_in_group("bosses"):
-								e.queue_free()
-						# Also sweep Playfield strays (some spawns skip groups briefly)
-						if playfield:
-							for c in playfield.get_children():
-								if not is_instance_valid(c):
-									continue
-								if c.is_in_group("player") or c.is_in_group("bosses"):
-									continue
-								if c.is_in_group("enemies") or str(c.get_class()).find("Area") >= 0:
-									if c != boss and c.get("kind") != null:
-										c.queue_free()
+								_dual_free_node(e)
 						for spn in root.get_tree().get_nodes_in_group("enemy_spawner"):
-							if is_instance_valid(spn) and "spawning" in spn:
-								spn.spawning = false
+							if is_instance_valid(spn):
+								if "spawning" in spn:
+									spn.spawning = false
+								if "dual_lock" in spn:
+									spn.dual_lock = true
 						if pool and pool.has_method("clear_all"):
 							pool.clear_all()
 						var chb = _A("CombatHelpers")
@@ -1470,6 +1483,66 @@ func _run() -> void:
 						boss.queue_free()
 				for _i in range(2):
 					await process_frame
+
+		# Lil/big mumu grid dual
+		if _want("mumus"):
+			_dual_sanitize(player, pool)
+			GameState.stage_index = 0  # jungle bg (not last boss stage)
+			GameState.power = 1.0
+			GameState.session_score = 0
+			GameState.total_kills = 0
+			player.global_position = Vector2(304, 460)
+			player.aim = -PI / 2.0
+			player.set_meta("dual_lock_pose", true)
+			var EnemyScene2 = load("res://scenes/enemies/Enemy.tscn")
+			if EnemyScene2 and playfield:
+				var kinds: Array = [
+					{"kind": "lil", "r": 15.0, "icy": false},
+					{"kind": "lil", "r": 15.0, "icy": true},
+					{"kind": "big", "r": 22.0, "icy": false},
+					{"kind": "big", "r": 22.0, "icy": true},
+					{"kind": "lil", "r": 15.0, "icy": false},
+					{"kind": "lil", "r": 15.0, "icy": false},
+				]
+				for mi in range(kinds.size()):
+					var mk: Dictionary = kinds[mi]
+					var en2 = EnemyScene2.instantiate()
+					playfield.add_child(en2)
+					var mx := pf2.position.x + 100.0 + float(mi % 3) * 120.0
+					var my := pf2.position.y + 130.0 + float(mi / 3) * 130.0
+					en2.setup(pool, Vector2(mx, my), {
+						"kind": str(mk.kind),
+						"hp": 9999.0,
+						"vel": Vector2.ZERO,
+						"icy": bool(mk.icy),
+						"r": float(mk.r),
+						"score": 100,
+						"hover": my,
+					})
+					en2.set_meta("dual_freeze", true)
+					if "vel" in en2:
+						en2.vel = Vector2.ZERO
+					if "stun" in en2:
+						en2.stun = 0.0
+					if "age_frames" in en2:
+						en2.age_frames = 30.0 + float(mi) * 8.0
+				for _i in range(8):
+					await process_frame
+					player.global_position = Vector2(304, 460)
+					player.aim = -PI / 2.0
+					GameState.session_score = 0
+					GameState.total_kills = 0
+					for e in root.get_tree().get_nodes_in_group("enemies"):
+						if is_instance_valid(e) and not e.is_in_group("bosses"):
+							e.set_meta("dual_freeze", true)
+							if "vel" in e:
+								e.vel = Vector2.ZERO
+					if pool and pool.has_method("clear_all"):
+						pool.clear_all()
+				await _save("godot_mumus_grid")
+				for e in root.get_tree().get_nodes_in_group("enemies"):
+					if is_instance_valid(e) and not e.is_in_group("bosses"):
+						_dual_free_node(e)
 
 	print("[SHOT] done dir=", ProjectSettings.globalize_path(_shot_dir()))
 	print("[SHOT] PASS")

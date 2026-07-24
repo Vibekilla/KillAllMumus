@@ -63,17 +63,20 @@ func _bi_bucket() -> int:
 		var intro_v = boss.get("intro")
 		if intro_v != null and float(intro_v) > 0.0:
 			continue
-		var rage := 0.8
-		var st2 = boss.get("special_t")
-		if st2 != null and float(st2) > 0.0:
-			rage += 0.4
-		var mhp = boss.get("max_hp")
-		var hp = boss.get("hp")
-		if mhp == null:
-			mhp = boss.get("maxhp")
-		if mhp != null and hp != null and float(mhp) > 0.0:
-			rage += (1.0 - float(hp) / float(mhp)) * 0.35
-		bi = minf(1.4, rage)
+		if boss.has_meta("dual_freeze") and bool(boss.get_meta("dual_freeze")):
+			bi = 0.22
+		else:
+			var rage := 0.8
+			var st2 = boss.get("special_t")
+			if st2 != null and float(st2) > 0.0:
+				rage += 0.4
+			var mhp = boss.get("max_hp")
+			var hp = boss.get("hp")
+			if mhp == null:
+				mhp = boss.get("maxhp")
+			if mhp != null and hp != null and float(mhp) > 0.0:
+				rage += (1.0 - float(hp) / float(mhp)) * 0.35
+			bi = minf(1.4, rage)
 		break
 	return int(floor(bi * 4.0))
 

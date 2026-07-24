@@ -44,12 +44,10 @@ func _draw() -> void:
 		return
 	ctx.begin_frame()
 	hud.set_tick(tick)
-	# HTML: drawStageBg then drawBossAmbience (then entities, then fx)
+	# Stage bg only here (under entities). Boss ambience / veil / slowmo are drawn
+	# once in WorldDraw — drawing them here too double-stacked and neon-spoked the field.
 	hud.drawStageBg()
 	if GameState.state == GameState.State.PLAY:
-		hud.drawBossAmbience()
-		hud.drawPhaseVeil()
-		hud.drawSlowmoFx()
 		var tree := get_tree()
 		if tree:
 			for b in tree.get_nodes_in_group("bosses"):

@@ -52,10 +52,36 @@ class CanvasGradient:
 				var sat := float(parts2[1].strip_edges().replace("%", "")) / 100.0
 				var lit := float(parts2[2].strip_edges().replace("%", "")) / 100.0
 				var a2 := float(parts2[3].strip_edges()) if parts2.size() > 3 else 1.0
-				return Color.from_hsv(fposmod(h, 360.0) / 360.0, sat, lit, a2)
+				# CSS HSL (not HSV) — inline so nested class has no outer deps
+				h = fposmod(h, 360.0)
+				sat = clampf(sat, 0.0, 1.0)
+				lit = clampf(lit, 0.0, 1.0)
+				if sat <= 0.00001:
+					return Color(lit, lit, lit, a2)
+				var q := (lit * (1.0 + sat)) if lit < 0.5 else (lit + sat - lit * sat)
+				var p := 2.0 * lit - q
+				var hk := h / 360.0
+				var tr := hk + 1.0 / 3.0
+				var tg := hk
+				var tb := hk - 1.0 / 3.0
+				return Color(_hsl_chan(p, q, tr), _hsl_chan(p, q, tg), _hsl_chan(p, q, tb), a2)
 		if s.begins_with("#"):
 			return Color.html(s)
 		return Color.WHITE
+
+	static func _hsl_chan(p: float, q: float, t: float) -> float:
+		var tt := t
+		if tt < 0.0:
+			tt += 1.0
+		if tt > 1.0:
+			tt -= 1.0
+		if tt < 1.0 / 6.0:
+			return p + (q - p) * 6.0 * tt
+		if tt < 0.5:
+			return q
+		if tt < 2.0 / 3.0:
+			return p + (q - p) * (2.0 / 3.0 - tt) * 6.0
+		return p
 
 
 	func sample(t: float) -> Color:

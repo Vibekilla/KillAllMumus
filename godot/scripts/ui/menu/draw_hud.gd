@@ -115,15 +115,18 @@ func drawStageBgFx(s: int) -> void:
 	if boss and not bool(boss.get("dead")):
 		var intro_v2 = boss.get("intro")
 		if intro_v2 == null or float(intro_v2) <= 0.0:
-			var rage := 0.8
-			var st2 = boss.get("special_t")
-			if st2 != null and float(st2) > 0.0:
-				rage += 0.4
-			var mhp2 = boss.get("max_hp")
-			var hp2 = boss.get("hp")
-			if mhp2 != null and hp2 != null and float(mhp2) > 0.0:
-				rage += (1.0 - float(hp2) / float(mhp2)) * 0.35
-			bi = minf(1.4, rage)
+			if boss.has_meta("dual_freeze") and bool(boss.get_meta("dual_freeze")):
+				bi = 0.22  # dual portrait still — keep stage motifs quiet
+			else:
+				var rage := 0.8
+				var st2 = boss.get("special_t")
+				if st2 != null and float(st2) > 0.0:
+					rage += 0.4
+				var mhp2 = boss.get("max_hp")
+				var hp2 = boss.get("hp")
+				if mhp2 != null and hp2 != null and float(mhp2) > 0.0:
+					rage += (1.0 - float(hp2) / float(mhp2)) * 0.35
+				bi = minf(1.4, rage)
 	match s:
 		0:  # jungle rings
 			for L in range(4):
@@ -197,38 +200,48 @@ func drawBossAmbience() -> void:
 	if mhp != null and hp != null and float(mhp) > 0.0:
 		rage += (1.0 - float(hp) / float(mhp)) * 0.5
 	rage = minf(1.6, rage)
+	# Dual stills: calm portrait (HTML dual has only a soft vignette)
+	var dual_soft := boss.has_meta("dual_freeze") and bool(boss.get_meta("dual_freeze"))
+	if dual_soft:
+		rage = 0.35
 	var spd := 1.0 + rage * 0.5
 	var t := float(tick)
 	ctx.save()
 	ctx.begin_path()
 	ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	ctx.clip()
-	# 1) darken field for bullet contrast — boss-hued vignette
-	if ctx.has_method("createRadialGradient"):
-		var vg = ctx.createRadialGradient(cx, cy, H * 0.14, cx, cy, H * 0.92)
-		vg.add_color_stop(0, "rgba(0,0,0,0)")
-		vg.add_color_stop(0.68, "hsla(%d,60%%,5%%,%s)" % [int(bh), str(0.26 + 0.14 * rage)])
-		vg.add_color_stop(1, "hsla(%d,68%%,3%%,%s)" % [int(bh), str(0.58 + 0.14 * rage)])
-		ctx.fill_style(vg)
-	else:
-		ctx.fill_style("hsla(%d,60%%,5%%,%s)" % [int(bh), str(0.26 + 0.14 * rage)])
+	# 1) darken field — use rgba so we never depend on HSL stroke path for the heavy fill
+	var crgb: Array = _hex_rgb(col_s)
+	var dim_a := 0.22 + 0.12 * rage
+	ctx.fill_style("rgba(%d,%d,%d,%s)" % [
+		int(float(crgb[0]) * 0.12), int(float(crgb[1]) * 0.08), int(float(crgb[2]) * 0.06), str(dim_a)
+	])
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
-	ctx.fill_style("rgba(3,1,6,%s)" % str(0.1 + 0.12 * rage))
+	ctx.fill_style("rgba(3,1,6,%s)" % str(0.12 + 0.1 * rage))
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
-	# 2) low-lightness rotating mandala + spokes (HTML seg=10)
+	# Dual portrait stills: vignette only (HTML dual is nearly plain field + boss)
+	if dual_soft:
+		ctx.restore()
+		return
+	# 2) mandala rings + spokes — low-alpha rgba (CSS HSL was mis-parsed as HSV → neon)
 	ctx.save()
 	ctx.translate(cx, cy)
 	var seg := 10
+	var base_r := int(float(crgb[0]) * 0.35)
+	var base_g := int(float(crgb[1]) * 0.22)
+	var base_b := int(float(crgb[2]) * 0.12)
 	for L in range(3):
 		var dir := -1.0 if (L % 2) else 1.0
 		var rr := (0.2 + float(L) * 0.15) * H * (1.0 + sin(t * 0.02 + float(L)) * 0.05)
 		var rot_l := t * 0.005 * spd * dir + float(L) * 0.5
-		ctx.stroke_style("hsla(%d,68%%,%d%%,%s)" % [
-			int(fmod(bh + float(L) * 22.0, 360.0)),
-			15 + L * 4,
-			str(0.16 + 0.14 * rage),
+		var ra := 0.07 + 0.04 * rage
+		ctx.stroke_style("rgba(%d,%d,%d,%s)" % [
+			clampi(base_r + L * 4, 0, 55),
+			clampi(base_g + L * 2, 0, 40),
+			clampi(base_b + L * 1, 0, 30),
+			str(ra),
 		])
-		ctx.line_width(2.0)
+		ctx.line_width(1.5)
 		ctx.begin_path()
 		for i in range(seg + 1):
 			var a := rot_l + float(i) / float(seg) * TAU
@@ -240,26 +253,29 @@ func drawBossAmbience() -> void:
 				ctx.line_to(px, py)
 		ctx.close_path()
 		ctx.stroke()
-	# spokes
-	ctx.stroke_style("hsla(%d,65%%,14%%,%s)" % [int(bh), str(0.11 + 0.1 * rage)])
-	ctx.line_width(1.4)
+	# spokes — HTML: very faint
+	var spoke_a := 0.08 + 0.06 * rage
+	ctx.stroke_style("rgba(%d,%d,%d,%s)" % [base_r, base_g, base_b, str(spoke_a)])
+	ctx.line_width(1.0)
 	var rot_s := t * 0.005 * spd
 	ctx.begin_path()
 	for i in range(seg):
 		var as_ := rot_s + float(i) / float(seg) * TAU
 		ctx.move_to(0, 0)
-		ctx.line_to(cos(as_) * H * 0.5, sin(as_) * H * 0.5)
+		ctx.line_to(cos(as_) * H * 0.45, sin(as_) * H * 0.45)
 	ctx.stroke()
 	# 3) expanding dark spell-rings
 	for k in range(3):
 		var ph := fmod(t * 0.008 * spd + float(k) / 3.0, 1.0)
 		var rr2 := 24.0 + ph * H * 0.7
-		ctx.stroke_style("hsla(%d,70%%,%d%%,%s)" % [
-			int(fmod(bh + float(k) * 16.0, 360.0)),
-			int(20.0 - ph * 8.0),
-			str((1.0 - ph) * 0.3 * (0.6 + rage * 0.4)),
+		var ring_a := (1.0 - ph) * 0.16 * (0.5 + rage * 0.3)
+		ctx.stroke_style("rgba(%d,%d,%d,%s)" % [
+			clampi(base_r + k * 6, 0, 70),
+			clampi(base_g + k * 3, 0, 50),
+			clampi(base_b + k * 2, 0, 35),
+			str(ring_a),
 		])
-		ctx.line_width(2.4 * (1.0 - ph) + 0.7)
+		ctx.line_width(1.6 * (1.0 - ph) + 0.5)
 		ctx.begin_path()
 		ctx.arc(0, 0, rr2, 0, TAU)
 		ctx.stroke()

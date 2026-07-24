@@ -51,7 +51,7 @@ const fast = has("--fast") || !full;
 /** Groups that require --full (or explicit --shots) when no filter is set. */
 const FULL_ONLY = new Set([
   "wardrobe", "faces", "anims", "combat", "weapons", "melee", "specials",
-  "aura", "items", "elites", "bosses", "power6",
+  "aura", "items", "elites", "bosses", "mumus", "power6",
 ]);
 
 const SHOT_ALIASES = {
@@ -64,6 +64,7 @@ const SHOT_ALIASES = {
   item: "items", items: "items",
   elite: "elites", elites: "elites",
   boss: "bosses", bosses: "bosses",
+  mumu: "mumus", mumus: "mumus", lil: "mumus",
   face: "faces", faces: "faces",
   anim: "anims", anims: "anims", breath: "anims", pose: "anims", blink: "anims",
   menus: "core", menu: "core", flow: "core", ends: "core", title: "core", core: "core",
@@ -125,7 +126,7 @@ function wantAny(...groups) {
 
 /** Combat / field captures need a live play session. */
 function needPlaySession() {
-  return wantAny("weapons", "melee", "specials", "aura", "items", "elites", "bosses", "power6", "combat", "faces");
+  return wantAny("weapons", "melee", "specials", "aura", "items", "elites", "bosses", "mumus", "power6", "combat", "faces");
 }
 
 function ensureDir(d) {
@@ -496,7 +497,7 @@ async function captureHtml() {
   }
 
   // Phase 3 combat / field duals (each group independently selectable via --shots)
-  if (wantAny("power6", "weapons", "melee", "specials", "aura", "items", "elites", "bosses")) {
+  if (wantAny("power6", "weapons", "melee", "specials", "aura", "items", "elites", "bosses", "mumus")) {
     try {
       await ensurePlay();
       if (want("power6")) {
@@ -643,6 +644,40 @@ async function captureHtml() {
         await page.waitForTimeout(fast ? 140 : 220);
         await page.screenshot({ path: path.join(htmlDir, "html_elites_grid.png") });
         console.log("[HTML] elites_grid");
+      }
+      if (want("mumus")) {
+        await page.evaluate(() => {
+          if (window.__kamDual) {
+            window.__kamDual.clearField && window.__kamDual.clearField();
+            window.__kamDual.setState && window.__kamDual.setState("play");
+            if (typeof player !== "undefined" && player) {
+              player.x = PF.x + PF.w / 2; player.y = PF.y + PF.h - 60;
+              player.face = -Math.PI / 2; player.aim = -Math.PI / 2;
+            }
+            // Spawn a small grid of lil/big/icy mumus for dual art
+            if (typeof spawnLil === "function" || typeof enemies !== "undefined") {
+              enemies = [];
+              const kinds = [
+                { kind: "lil", icy: false }, { kind: "lil", icy: true }, { kind: "big", icy: false },
+                { kind: "big", icy: true }, { kind: "lil", icy: false }, { kind: "lil", icy: false },
+              ];
+              for (let i = 0; i < kinds.length; i++) {
+                const k = kinds[i];
+                const x = PF.x + 100 + (i % 3) * 120;
+                const y = PF.y + 130 + Math.floor(i / 3) * 130;
+                const r = k.kind === "big" ? 22 : 15;
+                enemies.push({
+                  x, y, r, kind: k.kind, icy: k.icy, t: 40 + i * 8, flash: 0, hp: 999, maxhp: 999,
+                  vx: 0, vy: 0, stun: 9999, charm: 0, dead: false,
+                });
+              }
+            }
+            if (window.__kamDual.setAura) window.__kamDual.setAura({ power: 1, iframe: 9999 });
+          }
+        });
+        await page.waitForTimeout(fast ? 140 : 220);
+        await page.screenshot({ path: path.join(htmlDir, "html_mumus_grid.png") });
+        console.log("[HTML] mumus_grid");
       }
       if (want("bosses")) {
         for (let si = 0; si < 7; si++) {
@@ -794,6 +829,11 @@ function writeIndex() {
   if (want("elites")) {
     if (godotShots.includes("godot_elites_grid.png") || htmlShots.includes("html_elites_grid.png")) {
       pairs.push(["html_elites_grid.png", "godot_elites_grid.png", "Elites grid"]);
+    }
+  }
+  if (want("mumus")) {
+    if (godotShots.includes("godot_mumus_grid.png") || htmlShots.includes("html_mumus_grid.png")) {
+      pairs.push(["html_mumus_grid.png", "godot_mumus_grid.png", "Mumus grid (lil/big/icy)"]);
     }
   }
   if (want("bosses")) {
