@@ -8,7 +8,7 @@
 | 0 | Foundation / docs / dual as living checklist | **active** — docs + `port:gates` 0–8 |
 | 1 | Performance (cache Bobina, throttle redraws) | **in progress** — Bobina cache + StageBg cache + particle batch; GPU/web FPS still open |
 | 2 | Bobina animation (breath, blink, expressions, outfits, poses) | **done structure** — menu/play/HUD-mini dual; ready for Phase 3 |
-| 3 | Exhaustive visuals (weapons / specials / melee / auras / powerups / bosses / meta) | **in progress** — dual harness + WorldDraw melee/special FX wire |
+| 3 | Exhaustive visuals (weapons / specials / melee / auras / powerups / bosses / meta) | **in progress** — dual isolation clean; pshot laser/gat/wave visible; aura/items/bosses stills OK; melee/specials FX polish next |
 | 4 | Exhaustive mechanics + boss AI + stage flow + progress | **open** |
 | 5 | Audio (16 sfx + music bridge) | **open** |
 | 6 | UI overlays & meta | **open** |
