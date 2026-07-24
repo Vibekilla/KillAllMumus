@@ -516,32 +516,43 @@ func _fx_tentacle(f: Dictionary) -> void:
 	ctx.restore()
 
 func _fx_servitor(f: Dictionary) -> void:
-	var ft = float(f.get("t", 0))
-	var sz = float(f.get("sz", 1))
-	var fade = minf(1.0, (600.0 - ft) / 16.0) * minf(1.0, ft / 20.0)
+	## HTML Call of the Void eye — spokes + iris + HP bar (1:1 structure)
+	var ft := float(f.get("t", 600))
+	var sz := float(f.get("sz", 2.2))
+	# Mid-life fully opaque; avoid t≈600 fade-in of 0 when dual settles fast
+	var fade := clampf(minf(1.0, (600.0 - ft) / 16.0) * minf(1.0, ft / 20.0), 0.15, 1.0)
+	if ft > 560.0:
+		fade = maxf(fade, 0.85)  # still readable just after spawn
 	ctx.save()
 	ctx.translate(float(f.get("x", 0)), float(f.get("y", 0)))
 	ctx.save()
 	ctx.scale(sz, sz)
+	# Glow (layered arcs — no fragile gradient under scale)
 	ctx.save()
 	ctx.global_composite_operation("lighter")
 	ctx.global_alpha(fade * 0.55)
-	ctx.fill_style("rgba(157,107,255,0.45)")
+	ctx.fill_style("rgba(157,107,255,0.55)")
+	ctx.begin_path()
+	ctx.arc(0, 0, 14, 0, TAU)
+	ctx.fill()
+	ctx.fill_style("rgba(157,107,255,0.28)")
 	ctx.begin_path()
 	ctx.arc(0, 0, 18, 0, TAU)
 	ctx.fill()
 	ctx.restore()
 	ctx.global_alpha(fade)
+	# Tentacle spokes
 	ctx.stroke_style("#3a1a5a")
 	ctx.line_width(2.2)
 	ctx.line_cap("round")
 	for k in range(8):
-		var a = float(tick) * 0.05 + float(k) * 0.785
-		var ln = 9.0 + sin(float(tick) * 0.11 + float(k)) * 3.8
+		var a := float(tick) * 0.05 + float(k) * 0.785
+		var ln := 9.0 + sin(float(tick) * 0.11 + float(k)) * 3.8
 		ctx.begin_path()
 		ctx.move_to(0, 0)
 		ctx.line_to(cos(a) * ln, sin(a) * ln)
 		ctx.stroke()
+	# Eye body
 	ctx.fill_style("#2a1040")
 	ctx.begin_path()
 	ctx.arc(0, 0, 7.5, 0, TAU)
@@ -554,15 +565,15 @@ func _fx_servitor(f: Dictionary) -> void:
 	ctx.begin_path()
 	ctx.arc(cos(float(tick) * 0.1) * 1.7, sin(float(tick) * 0.1) * 1.7, 2.3, 0, TAU)
 	ctx.fill()
-	ctx.restore()
-	# HP bar
+	ctx.restore()  # unscale
+	# HP bar above head
 	ctx.global_alpha(fade)
-	var bw = 32.0
-	var bh = 5.0
-	var bx = -bw / 2.0
-	var by = -12.0 * sz - 10.0
-	var maxhp = float(f.get("maxhp", f.get("hp", 1)))
-	var hf = clampf(float(f.get("hp", maxhp)) / maxf(1.0, maxhp), 0.0, 1.0)
+	var bw := 32.0
+	var bh := 5.0
+	var bx := -bw * 0.5
+	var by := -12.0 * sz - 10.0
+	var maxhp := float(f.get("maxhp", f.get("hp", 26)))
+	var hf := clampf(float(f.get("hp", maxhp)) / maxf(1.0, maxhp), 0.0, 1.0)
 	ctx.fill_style("rgba(0,0,0,0.55)")
 	ctx.fill_rect(bx - 1, by - 1, bw + 2, bh + 2)
 	ctx.fill_style("#241038")
@@ -570,3 +581,4 @@ func _fx_servitor(f: Dictionary) -> void:
 	ctx.fill_style("#b57aff" if hf > 0.5 else ("#ffb04a" if hf > 0.25 else "#ff5b6e"))
 	ctx.fill_rect(bx, by, bw * hf, bh)
 	ctx.restore()
+	ctx.global_alpha(1.0)

@@ -250,8 +250,9 @@ func _update_fx(delta: float) -> void:
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"kiss":
+				# HTML: f.t--; f.r+=8
 				f["t"] = float(f["t"]) - df
-				f["r"] = float(f.get("r", 0)) + 4.0 * df
+				f["r"] = float(f.get("r", 0)) + 8.0 * df
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			_:

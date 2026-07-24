@@ -758,6 +758,25 @@ func _run() -> void:
 			await process_frame
 		await _save("godot_flow_cleargate")
 
+		# Shop dual: starter loadout + low heads (HTML guest parity — buy prices show)
+		if ps:
+			if ps.has_method("set_heads"):
+				ps.set_heads(0)
+			elif "progress" in ps:
+				ps.progress["heads"] = 0
+			if "progress" in ps:
+				ps.progress["arsenal"] = {
+					"w": ["laser"],
+					"s": ["mech", "bearzooka"],
+					"m": ["katana"],
+					"i": ["honeycomb"],
+				}
+			GameState.weapons.clear()
+			GameState.weapons.append("laser")
+			GameState.specials.clear()
+			GameState.specials.append("mech")
+			GameState.specials.append("bearzooka")
+			GameState.current_weapon = "laser"
 		if StageFlow and StageFlow.has_method("enter_shop"):
 			StageFlow.enter_shop()
 		else:
@@ -932,6 +951,23 @@ func _run() -> void:
 					ms.charge = 1.0
 					ms.holding = false
 					ms.release(player, mk, -PI / 2.0)
+					# Ensure a bright slash is present even if charge-fx path is thin
+					if ms.get("swipe_fx") is Array and ms.swipe_fx.is_empty():
+						var mdef: Dictionary = {}
+						var DR = _A("DataRegistry")
+						if DR and "melee" in DR:
+							for md in DR.melee:
+								if str(md.get("key")) == mk:
+									mdef = md
+									break
+						ms.swipe_fx.append({
+							"x": player.global_position.x, "y": player.global_position.y,
+							"dir": -PI / 2.0,
+							"reach": float(mdef.get("reach", 155)),
+							"half": float(mdef.get("arc", 2.0)) * 0.5,
+							"col": str(mdef.get("col", "#ff2b4d")),
+							"key": mk, "life": 16.0, "t": 4.0, "charge": 1.0,
+						})
 				# Peak of slash is early (t≈3–5 of life 16)
 				for _i in range(3):
 					await process_frame
@@ -943,11 +979,11 @@ func _run() -> void:
 					GameState.power = 6.0
 					GameState.session_score = 0
 					GameState.total_kills = 0
-					# Freeze swipe age at peak for still
 					if ms and ms.get("swipe_fx") is Array:
 						for f in ms.swipe_fx:
 							if f is Dictionary:
-								f["t"] = 4.0
+								f["t"] = 3.0
+								f["life"] = 16.0
 				await _save("godot_melee_%s" % mk)
 		if _want("specials"):
 			var skeys: Array = ["laser", "mech", "bearzooka", "vault", "stampede", "badger", "sixth", "revenge", "kiss", "kraken", "void"]
@@ -964,7 +1000,7 @@ func _run() -> void:
 				if sp and sp.has_method("use"):
 					used = bool(sp.use(sk, player, pool))
 				print("[SHOT] special=", sk, " used=", used, " fx=", (sp.fx.size() if sp and sp.get("fx") is Array else -1))
-				# Settle a few frames then pin laser/mech timers at readable mid-life
+				# Settle a few frames then pin FX *after* last tick so orbit/r don't drift before save
 				for _i in range(4):
 					await process_frame
 					for e in root.get_tree().get_nodes_in_group("enemies"):
@@ -976,6 +1012,7 @@ func _run() -> void:
 					GameState.session_score = 0
 					GameState.total_kills = 0
 				if sp and sp.get("fx") is Array:
+					var si := 0
 					for f in sp.fx:
 						if typeof(f) != TYPE_DICTIONARY:
 							continue
@@ -989,9 +1026,31 @@ func _run() -> void:
 							f["t"] = 200.0
 						elif typ == "bearzooka":
 							f["t"] = 120.0
-						elif typ in ["bull", "badger", "blackhole", "kiss", "tentacle", "servitor"]:
+						elif typ == "servitor":
+							f["t"] = 520.0
+							f["ct"] = float(si) * 15.0  # desync orbit phase
+							f["hp"] = float(f.get("maxhp", 26))
+							var a_orb := float(si) / 4.0 * TAU - PI / 2.0
+							f["x"] = player.global_position.x + cos(a_orb) * 58.0
+							f["y"] = player.global_position.y + sin(a_orb) * 58.0
+							si += 1
+						elif typ == "kiss":
+							f["t"] = 36.0
+							f["r"] = 160.0
+						elif typ == "blackhole":
+							f["t"] = 100.0
+							f["r"] = 15.0
+							f["dt"] = 40.0
+						elif typ == "tentacle":
+							f["t"] = 280.0
+						elif typ in ["bull", "badger"]:
 							if float(f.get("t", 0)) < 40.0:
 								f["t"] = 80.0
+						elif typ == "wave":
+							f["delay"] = 0.0
+							if float(f.get("r", 0)) < 40.0:
+								f["r"] = 80.0 + float(si) * 30.0
+							si += 1
 				var ch_flash = _A("CombatHelpers")
 				if ch_flash:
 					if not ("flash_msg" in ch_flash) or ch_flash.flash_msg.is_empty() or str(ch_flash.flash_msg.get("txt", "")) == "":
@@ -1002,8 +1061,25 @@ func _run() -> void:
 							ch_flash.flash("★ %s!" % nm.to_upper(), 70.0)
 						else:
 							ch_flash.flash_msg = {"t": 70.0, "txt": "★ %s!" % nm.to_upper()}
+				# Pause specials sim so pin holds for the capture frame
+				if sp:
+					sp.set_process(false)
+					sp.set_physics_process(false)
 				await process_frame
+				# Re-pin after idle frame (no SpecialSystem tick)
+				if sp and sp.get("fx") is Array and sk == "void":
+					var sj := 0
+					for f2 in sp.fx:
+						if typeof(f2) == TYPE_DICTIONARY and str(f2.get("type")) == "servitor":
+							var a2 := float(sj) / 4.0 * TAU - PI / 2.0
+							f2["x"] = player.global_position.x + cos(a2) * 58.0
+							f2["y"] = player.global_position.y + sin(a2) * 58.0
+							f2["t"] = 520.0
+							sj += 1
 				await _save("godot_special_%s" % sk)
+				if sp:
+					sp.set_process(true)
+					sp.set_physics_process(true)
 
 		if _want("aura"):
 			_dual_sanitize(player, pool)
