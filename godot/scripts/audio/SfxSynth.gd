@@ -61,15 +61,18 @@ func play(type: String, vmul: float = 1.0) -> void:
 		"thud":
 			_beep(170, 46, 0.18, "square", 0.15 * vm)
 		"boom":
+			# HTML: two saws f*3 → f over 0.42s
 			_beep(330, 110, 0.46, "sawtooth", 0.16 * vm)
-			_beep_delayed(216, 72, 0.46, "sawtooth", 0.14 * vm, 0.02)
+			_beep_delayed(216, 72, 0.46, "sawtooth", 0.16 * vm, 0.02)
 		"claw":
+			# HTML triple scratch at 1900/2300/1650
 			var clawf := [1900.0, 2300.0, 1650.0]
 			for i in clawf.size():
 				_beep_delayed(clawf[i], clawf[i] * 0.5, 0.08, "sawtooth", 0.055 * vm, float(i) * 0.045)
 		"warp":
+			# HTML: 180 → 1400 (0.18s) → 90 (0.5s total) single osc — approximate with two legs
 			_beep(180, 1400, 0.18, "sine", 0.13 * vm)
-			_beep_delayed(1400, 90, 0.32, "sine", 0.1 * vm, 0.18)
+			_beep_delayed(1400, 90, 0.32, "sine", 0.13 * vm, 0.18)
 		_:
 			_beep(440, 220, 0.08, "square", 0.04 * vm)
 

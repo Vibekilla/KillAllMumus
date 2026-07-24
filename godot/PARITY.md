@@ -230,8 +230,8 @@ Intros, dialog + portraits, shop + Honey Badger, stage-clear + leekspin + maid d
 
 | # | Requirement | Status |
 | --- | --- | --- |
-| 5.1 | All 16 `sfx()` envelopes | open |
-| 5.2 | Music bridge: soundgate → lofi, mute, volume | open |
+| 5.1 | All HTML `sfx()` envelopes (shoot/hit/kill/graze/item/power/extend/bomb/hurt/card/win/slash/whip/thud/boom/claw/warp) | **done** structure — `SfxSynth` 1:1; melee `snd` wired |
+| 5.2 | Music bridge: soundgate → lofi, mute, volume | **partial** — web YT bridge + SoundGate; desktop no stream |
 
 ### Phase 6 — UI overlays & meta
 

@@ -77,6 +77,16 @@ func release(player: Node2D, melee_key: String, dir: float = -PI / 2.0) -> void:
 	if ch >= 0.85:
 		melee_charge_fx(player, m, dir, reach, half, dmg, kb)
 
+	# HTML: screenShake + sfx(m.snd||'kill') + sfx('graze')
+	if CombatHelpers:
+		CombatHelpers.screen_shake = maxf(
+			CombatHelpers.screen_shake,
+			2.5 + ch * 5.0 + (float(m.get("kb", 5)) / 9.0) * 2.5
+		)
+	if AudioBus:
+		AudioBus.sfx(str(m.get("snd", "slash")))
+		AudioBus.sfx("graze")
+
 	cooldown = float(m.get("cd", 18))
 	if hit_any:
 		melee_hit.emit(dmg)
