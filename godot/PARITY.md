@@ -223,7 +223,7 @@ Intros, dialog + portraits, shop + Honey Badger, stage-clear + leekspin + maid d
 | 4.3 | Item / burn / floater systems, consumables hold-to-use, emblem tick / unlock | open |
 | 4.4 | Stage flow: intro → waves → clear gate → shop → dialog → next / win | open |
 | 4.5 | ProgressStore (local + cloud), arsenal / shop, emblems, heads, estats — persist across refresh | open |
-| 4.6 | Input: keyboard, gamepad, touch (exact HTML feel) | open |
+| 4.6 | Input: keyboard, gamepad, touch (exact HTML feel) | **partial** — keyboard+touch+Xbox defaults (`GamepadMap`); keybinds show key · pad glyphs |
 | 4.7 | Fire input unified (hold shoot / LMB / touch hold) — no separate autofire toggle (Steam/mobile/desktop same) | **done** intentional |
 
 ### Phase 5 — Audio

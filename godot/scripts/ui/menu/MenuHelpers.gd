@@ -45,22 +45,30 @@ static func fmt_score(n) -> String:
 	return s + units[u]
 
 static func kb(action: String) -> String:
+	## Prefer keyboard label for HUD (compact); falls back to gamepad glyph
+	var JoypadLabels = load("res://scripts/input/JoypadLabels.gd")
 	var map := {
-		"shoot": "shoot", "swap": "swap_weapon", "special": "special",
+		"shoot": "shoot", "swap": "swap", "swap_weapon": "swap", "special": "special",
 		"cycle": "cycle_special", "melee": "melee", "meleeswap": "meleeswap",
 		"item_switch": "item_switch", "item_use": "item_use", "interact": "interact", "bomb": "bomb",
 	}
 	var act := str(map.get(action, action))
 	if not InputMap.has_action(act):
-		# HTML DEFAULT_BINDS
 		var defaults := {
-			"shoot": "Z", "swap_weapon": "C", "special": "V", "cycle_special": "B",
+			"shoot": "Z", "swap": "C", "special": "V", "cycle_special": "B",
 			"melee": "SPACE", "meleeswap": "D", "bomb": "X", "item_switch": "A", "item_use": "Q", "interact": "E",
 		}
 		return str(defaults.get(act, act.to_upper()))
 	for e in InputMap.action_get_events(act):
 		if e is InputEventKey:
-			return OS.get_keycode_string((e as InputEventKey).physical_keycode if (e as InputEventKey).physical_keycode else (e as InputEventKey).keycode)
+			if JoypadLabels:
+				return JoypadLabels.event_label(e)
+			var k := e as InputEventKey
+			return OS.get_keycode_string(k.physical_keycode if k.physical_keycode else k.keycode)
+	for e2 in InputMap.action_get_events(act):
+		if e2 is InputEventJoypadButton or e2 is InputEventJoypadMotion:
+			if JoypadLabels:
+				return JoypadLabels.event_label(e2)
 	return act.to_upper()
 
 static func emblem_count() -> int:

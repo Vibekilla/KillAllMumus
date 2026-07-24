@@ -1,5 +1,8 @@
 extends Control
-## HTML #keybinds — rebind game actions (DEFAULT_BINDS parity).
+## HTML #keybinds — rebind game actions (keyboard + gamepad).
+
+const GamepadMap = preload("res://scripts/input/GamepadMap.gd")
+const JoypadLabels = preload("res://scripts/input/JoypadLabels.gd")
 
 const ACTIONS := [
 	{"action": "shoot", "label": "Fire"},
@@ -74,23 +77,28 @@ func _build_list() -> void:
 		_row_btns[act] = btn
 
 func _key_name(action: String) -> String:
+	## "Z · A" style — keyboard primary, first gamepad glyph secondary
 	if not InputMap.has_action(action):
 		return "?"
-	# Prefer keyboard label; show gamepad if only joy bound
+	var key_s := ""
+	var joy_s := ""
 	for e in InputMap.action_get_events(action):
-		if e is InputEventKey:
-			var k := e as InputEventKey
-			var code := k.physical_keycode if k.physical_keycode != 0 else k.keycode
-			return OS.get_keycode_string(code)
-	for e in InputMap.action_get_events(action):
-		if e is InputEventJoypadButton:
-			return "Pad%d" % int((e as InputEventJoypadButton).button_index)
+		if e is InputEventKey and key_s == "":
+			key_s = JoypadLabels.event_label(e)
+		elif (e is InputEventJoypadButton or e is InputEventJoypadMotion) and joy_s == "":
+			joy_s = JoypadLabels.event_label(e)
+	if key_s != "" and joy_s != "":
+		return "%s · %s" % [key_s, joy_s]
+	if key_s != "":
+		return key_s
+	if joy_s != "":
+		return joy_s
 	return "—"
 
 func _start_rebind(action: String) -> void:
 	_waiting_action = action
 	if _row_btns.has(action):
-		_row_btns[action].text = "…"
+		_row_btns[action].text = "press key/pad…"
 	if AudioBus:
 		AudioBus.sfx("item")
 
@@ -98,22 +106,49 @@ func _input(event: InputEvent) -> void:
 	if not visible or _waiting_action == "":
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		var k := event as InputEventKey
-		if k.keycode == KEY_ESCAPE:
-			# Esc is bindable in HTML — allow it
-			pass
-		_apply_bind(_waiting_action, k)
+		_apply_key_bind(_waiting_action, event as InputEventKey)
+		_waiting_action = ""
+		_refresh_labels()
+		get_viewport().set_input_as_handled()
+	elif event is InputEventJoypadButton and event.pressed and not event.is_echo():
+		_apply_joy_bind(_waiting_action, event as InputEventJoypadButton)
 		_waiting_action = ""
 		_refresh_labels()
 		get_viewport().set_input_as_handled()
 
-func _apply_bind(action: String, key: InputEventKey) -> void:
+func _apply_key_bind(action: String, key: InputEventKey) -> void:
+	## Replace keyboard events only — keep gamepad binds
 	if not InputMap.has_action(action):
 		InputMap.add_action(action)
+	var keep: Array = []
+	for e in InputMap.action_get_events(action):
+		if e is InputEventJoypadButton or e is InputEventJoypadMotion:
+			keep.append(e)
 	InputMap.action_erase_events(action)
 	var ev := InputEventKey.new()
 	ev.physical_keycode = key.physical_keycode if key.physical_keycode != 0 else key.keycode
 	ev.keycode = 0
+	InputMap.action_add_event(action, ev)
+	for e2 in keep:
+		InputMap.action_add_event(action, e2)
+	_save_binds()
+	if AudioBus:
+		AudioBus.sfx("graze")
+
+func _apply_joy_bind(action: String, joy: InputEventJoypadButton) -> void:
+	## Replace joypad-button events only — keep keyboard + axes
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	var keep: Array = []
+	for e in InputMap.action_get_events(action):
+		if e is InputEventKey or e is InputEventJoypadMotion:
+			keep.append(e)
+	InputMap.action_erase_events(action)
+	for e2 in keep:
+		InputMap.action_add_event(action, e2)
+	var ev := InputEventJoypadButton.new()
+	ev.button_index = joy.button_index
+	ev.pressed = true
 	InputMap.action_add_event(action, ev)
 	_save_binds()
 	if AudioBus:
@@ -146,6 +181,8 @@ func _on_reset() -> void:
 		ev.physical_keycode = int(DEFAULTS[action])
 		ev.keycode = 0
 		InputMap.action_add_event(action, ev)
+	# Restore Steam/desktop gamepad layer
+	GamepadMap.ensure_defaults()
 	_waiting_action = ""
 	_refresh_labels()
 	_save_binds()
