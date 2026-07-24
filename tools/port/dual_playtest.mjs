@@ -345,6 +345,46 @@ async function captureHtml() {
       }
       await page.screenshot({ path: path.join(htmlDir, "html_play_firing.png") });
       console.log("[HTML] play_firing");
+      // Phase 3: each weapon visual
+      const weps = ["laser","homing","wave","scatter","gatling","grenade","voidripper","lotus","shock","spread"];
+      for (const w of weps) {
+        await page.evaluate((k) => {
+          if (window.__kamDual) {
+            window.__kamDual.setState("play");
+            if (window.__kamDual.setPower) window.__kamDual.setPower(6);
+            if (window.__kamDual.setWeapon) window.__kamDual.setWeapon(k);
+            if (window.__kamDual.fireBurst) window.__kamDual.fireBurst(10);
+          }
+        }, w);
+        await page.waitForTimeout(fast ? 200 : 350);
+        await page.screenshot({ path: path.join(htmlDir, `html_wep_${w}.png`) });
+      }
+      console.log("[HTML] weapons", weps.length);
+      // Melee charged (indices match MELEE array order)
+      const meleeKeys = ["katana","lash","scythe","hammer","claws"];
+      for (let i = 0; i < meleeKeys.length; i++) {
+        await page.evaluate((idx) => {
+          if (window.__kamDual && window.__kamDual.setMelee) window.__kamDual.setMelee(idx);
+          if (typeof doMeleeSwipe === "function" && typeof player !== "undefined" && player) {
+            try { doMeleeSwipe(true); } catch (e) {}
+          } else if (typeof player !== "undefined" && player) {
+            try { player.meleeCharge = 1; } catch (e) {}
+          }
+        }, i);
+        await page.waitForTimeout(fast ? 180 : 280);
+        await page.screenshot({ path: path.join(htmlDir, `html_melee_${meleeKeys[i]}.png`) });
+      }
+      console.log("[HTML] melee", meleeKeys.length);
+      // Specials
+      const specs = ["laser","mech","bearzooka","vault","stampede","badger","sixth","revenge","kiss","kraken","void"];
+      for (const s of specs) {
+        await page.evaluate((k) => {
+          if (window.__kamDual && window.__kamDual.setSpecial) window.__kamDual.setSpecial(k);
+        }, s);
+        await page.waitForTimeout(fast ? 220 : 400);
+        await page.screenshot({ path: path.join(htmlDir, `html_special_${s}.png`) });
+      }
+      console.log("[HTML] specials", specs.length);
     } catch (e) {
       console.log("[HTML] play_firing skip", e.message || e);
     }
@@ -423,6 +463,20 @@ function writeIndex() {
     ["html_end_win.png", "godot_end_win.png", "Win"],
   ];
   if (!fast) pairs.push(["html_play_firing.png", "godot_play_power6.png", "Combat"]);
+  if (!fast) {
+    for (const w of ["laser","homing","wave","scatter","gatling","grenade","voidripper","lotus","shock","spread"]) {
+      const h = `html_wep_${w}.png`, g = `godot_wep_${w}.png`;
+      if (godotShots.includes(g)) pairs.push([h, g, `Weapon · ${w}`]);
+    }
+    for (const m of ["katana","lash","scythe","hammer","claws"]) {
+      const h = `html_melee_${m}.png`, g = `godot_melee_${m}.png`;
+      if (godotShots.includes(g)) pairs.push([h, g, `Melee · ${m}`]);
+    }
+    for (const s of ["laser","mech","bearzooka","vault","stampede","badger","sixth","revenge","kiss","kraken","void"]) {
+      const h = `html_special_${s}.png`, g = `godot_special_${s}.png`;
+      if (godotShots.includes(g)) pairs.push([h, g, `Special · ${s}`]);
+    }
+  }
   // Outfit menu wardrobe (HTML drawOutfits vs Godot) — full dual when --full
   if (!fast) {
     for (const f of godotShots.filter((x) => x.startsWith("godot_menu_outfit_") && !x.includes("anim"))) {

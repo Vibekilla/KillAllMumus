@@ -211,8 +211,17 @@ func _draw() -> void:
 		_draw_player(player)
 
 	# --- fx / particles / melee / score / bomb / slowmo ---
-	if ported.has_method("drawFx") and CombatHelpers and "fx" in CombatHelpers:
-		ported.drawFx(CombatHelpers.fx)
+	# Special FX live on player.specials.fx (drawFx also pulls them); pass CombatHelpers.fx too
+	if ported.has_method("drawFx"):
+		var fx_list: Array = []
+		if CombatHelpers and "fx" in CombatHelpers:
+			fx_list = CombatHelpers.fx.duplicate() if CombatHelpers.fx is Array else []
+		if player and is_instance_valid(player) and player.get("specials") != null:
+			var sp = player.specials
+			if sp and sp.get("fx") is Array:
+				for f in sp.fx:
+					fx_list.append(f)
+		ported.drawFx(fx_list)
 
 	if CombatHelpers:
 		# Batch particles by color to cut fill_style thrash on dense sparks
@@ -234,7 +243,13 @@ func _draw() -> void:
 		if ported.has_method("drawMeleeFx"):
 			var mfx: Array = []
 			if "melee_fx" in CombatHelpers:
-				mfx = CombatHelpers.melee_fx
+				mfx = CombatHelpers.melee_fx.duplicate() if CombatHelpers.melee_fx is Array else []
+			# MeleeSystem.swipe_fx is the live slash list (HTML meleeFx)
+			if player and is_instance_valid(player) and player.get("melee") != null:
+				var ms = player.melee
+				if ms and ms.get("swipe_fx") is Array:
+					for f in ms.swipe_fx:
+						mfx.append(f)
 			ported.drawMeleeFx(mfx, player)
 		for s in CombatHelpers.score_texts:
 			var life2 := float(s.get("life", 0))

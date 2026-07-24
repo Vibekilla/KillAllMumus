@@ -75,4 +75,19 @@ if (exists(bankPath)) {
   }
 }
 
+
+// Phase 3 dual harness (product gate still port:dual --full)
+const shotGd = exists("godot/scripts/tools/screenshot_playtest.gd")
+  ? read("godot/scripts/tools/screenshot_playtest.gd")
+  : "";
+g.ok(shotGd.includes("godot_wep_") || shotGd.includes("wep_"), "dual weapon shots in playtest");
+g.ok(shotGd.includes("godot_melee_") || shotGd.includes("melee_"), "dual melee shots in playtest");
+g.ok(shotGd.includes("godot_special_") || shotGd.includes("special_"), "dual special shots in playtest");
+g.ok(world.includes("swipe_fx") || world.includes("melee.swipe") || world.includes("swipe_fx"), "WorldDraw merges MeleeSystem swipe_fx");
+const dual = read("tools/port/dual_playtest.mjs");
+g.ok(dual.includes("setWeapon") || dual.includes("html_wep_"), "dual HTML weapon path");
+g.ok(dual.includes("setMelee") || dual.includes("html_melee_"), "dual HTML melee path");
+g.ok(dual.includes("setSpecial") || dual.includes("html_special_"), "dual HTML special path");
+
 g.finish();
+

@@ -574,6 +574,65 @@ func _run() -> void:
 				player.fire_sys.try_fire(player, player.bullet_pool, false)
 		await _save("godot_play_power6")
 
+	# ── Phase 3: weapons / melee / specials dual ──
+	if not fast and player:
+		GameState.set_state(GameState.State.PLAY)
+		GameState.power = 6.0
+		GameState.lives = 99
+		if "invuln" in player:
+			player.invuln = 99999.0
+		player.global_position = Vector2(304, 400)
+		var pool = player.get("bullet_pool")
+		var fire = player.get("fire_sys")
+		# Ensure all weapons unlocked for dual fire
+		var weps: Array = ["laser", "homing", "wave", "scatter", "gatling", "grenade", "voidripper", "lotus", "shock", "spread"]
+		GameState.weapons.clear()
+		for w in weps:
+			GameState.weapons.append(w)
+		for wep in weps:
+			GameState.current_weapon = wep
+			if pool and pool.has_method("clear_all"):
+				pool.clear_all()
+			elif pool and pool.has_method("clear"):
+				pool.clear()
+			for i in range(18):
+				await process_frame
+				if "invuln" in player:
+					player.invuln = 99999.0
+				if fire and pool:
+					fire.try_fire(player, pool, false)
+			await _save("godot_wep_%s" % wep)
+		# Melee charged swipe each weapon
+		var mkeys: Array = ["katana", "lash", "scythe", "hammer", "claws"]
+		for mk in mkeys:
+			if pool and pool.has_method("clear_all"):
+				pool.clear_all()
+			var ms = player.get("melee")
+			if ms:
+				ms.cooldown = 0.0
+				ms.charge = 1.0
+				ms.holding = false
+				ms.release(player, mk, -PI / 2.0)
+			for _i in range(10):
+				await process_frame
+				if "invuln" in player:
+					player.invuln = 99999.0
+			await _save("godot_melee_%s" % mk)
+		# Specials full FX
+		var skeys: Array = ["laser", "mech", "bearzooka", "vault", "stampede", "badger", "sixth", "revenge", "kiss", "kraken", "void"]
+		var sp = player.get("specials")
+		for sk in skeys:
+			GameState.special_meter = 100.0
+			if pool and pool.has_method("clear_all"):
+				pool.clear_all()
+			if sp and sp.has_method("use"):
+				sp.use(sk, player, pool)
+			for _i in range(16):
+				await process_frame
+				if "invuln" in player:
+					player.invuln = 99999.0
+			await _save("godot_special_%s" % sk)
+
 	print("[SHOT] done dir=", ProjectSettings.globalize_path(_shot_dir()))
 	print("[SHOT] PASS")
 	quit(0)

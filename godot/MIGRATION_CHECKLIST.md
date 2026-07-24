@@ -46,6 +46,9 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 
 ## Phase 3 — Exhaustive visuals
 
+- [x] Dual harness: `godot_wep_*` / `godot_melee_*` / `godot_special_*` + HTML pairs
+- [x] WorldDraw merges MeleeSystem.swipe_fx + SpecialSystem.fx into draw path
+
 ### Weapons
 - [ ] spread (Emblem Amulets)
 - [ ] laser (Red Death)
