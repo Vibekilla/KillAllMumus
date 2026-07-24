@@ -90,6 +90,7 @@ func _need_play() -> bool:
 		_want("weapons") or _want("melee") or _want("specials") or _want("aura")
 		or _want("items") or _want("elites") or _want("bosses") or _want("power6")
 		or _want("faces") or _want("core") or _want("mechanics") or _want("mumus")
+		or _want("pickups")
 	)
 
 func _shot_dir() -> String:
@@ -881,7 +882,7 @@ func _run() -> void:
 		await _save("godot_play_power6")
 
 	# ── Phase 3/4: weapons / melee / specials / auras / items / elites / bosses / mechanics / mumus ──
-	if player and (_want("weapons") or _want("melee") or _want("specials") or _want("aura") or _want("items") or _want("elites") or _want("bosses") or _want("mechanics") or _want("mumus")):
+	if player and (_want("weapons") or _want("melee") or _want("specials") or _want("aura") or _want("items") or _want("elites") or _want("bosses") or _want("mechanics") or _want("mumus") or _want("pickups")):
 		GameState.set_state(GameState.State.PLAY)
 		GameState.power = 6.0
 		GameState.lives = 99
@@ -1550,6 +1551,49 @@ func _run() -> void:
 						boss.queue_free()
 				for _i in range(2):
 					await process_frame
+
+		# Phase 4 pickups dual — magnet / collect line vacuum
+		if _want("pickups") or _want("mechanics"):
+			_dual_sanitize(player, pool)
+			GameState.stage_index = 0
+			GameState.set_state(GameState.State.PLAY)
+			GameState.set_meta("stage_cleared", false)
+			# dual_mode freezes ItemSystem magnet — off for this still
+			if GameState.has_meta("dual_mode"):
+				GameState.remove_meta("dual_mode")
+			GameState.power = 2.0
+			player.global_position = Vector2(304, 400)
+			player.aim = -PI / 2.0
+			player.set_meta("dual_lock_pose", true)
+			player.focus = false
+			if "dead" in player:
+				player.dead = false
+			var itemsys = _A("ItemSystem")
+			var cline: float = 110.0
+			var cfg_a = _A("Config")
+			if cfg_a and "COLLECT_LINE" in cfg_a:
+				cline = float(cfg_a.COLLECT_LINE)
+			if itemsys:
+				itemsys.items.clear()
+				# Scatter power/point drops mid-field
+				for i in range(6):
+					itemsys.drop_item(220.0 + float(i) * 30.0, 280.0, "power" if i % 2 == 0 else "point")
+				# Player at collect line → HTML autoAll vacuum
+				player.global_position = Vector2(304, cline - 8.0)
+				for _i in range(50):
+					await process_frame
+					player.global_position = Vector2(304, cline - 8.0)
+					player.focus = false
+					if "dead" in player:
+						player.dead = false
+					if itemsys.has_method("tick"):
+						itemsys.tick(1.0 / 60.0)
+				print("[SHOT] pickups remaining=", itemsys.items.size(), " power=", GameState.power)
+			await _save("godot_pickups_vacuum")
+			if itemsys:
+				itemsys.items.clear()
+			player.focus = false
+			player.global_position = Vector2(304, 400)
 
 		# Phase 4 mechanics dual — power bleed + graze (GameState owns numbers)
 		if _want("mechanics"):

@@ -239,15 +239,20 @@ func _update_items(df: float) -> void:
 			it["vy"] = 0.0
 			it["homing"] = false
 		return
+	# HTML updateItems: autoAll = p && !p.dead && p.y < COLLECT_LINE; magnet = focus?150:70
 	var auto_all := false
 	var magnet := 70.0
+	var p_alive := false
 	if p and is_instance_valid(p):
-		auto_all = p.global_position.y < Config.COLLECT_LINE
-		magnet = 150.0 if bool(p.get("focus")) else 70.0
+		var dead_v = p.get("dead")
+		p_alive = dead_v == null or not bool(dead_v)
+		if p_alive:
+			auto_all = p.global_position.y < Config.COLLECT_LINE
+			magnet = 150.0 if bool(p.get("focus")) else 70.0
 	var keep: Array = []
 	for it in items:
 		it["t"] = float(it.get("t", 0)) + df
-		if p and is_instance_valid(p):
+		if p_alive:
 			var dx := p.global_position.x - float(it.x)
 			var dy := p.global_position.y - float(it.y)
 			var d := sqrt(dx * dx + dy * dy)

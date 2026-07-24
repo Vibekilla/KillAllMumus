@@ -30,6 +30,7 @@ StageFlow="*res://scripts/stages/StageFlow.gd"
 JoyPad="*res://scripts/input/JoyPad.gd"
 InputRouter="*res://scripts/input/InputRouter.gd"
 WebVisibilityPause="*res://scripts/platform/WebVisibilityPause.gd"
+WebBrowserInputGuard="*res://scripts/platform/WebBrowserInputGuard.gd"
 
 [display]
 
