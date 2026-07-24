@@ -133,10 +133,31 @@ func _save(name: String) -> void:
 	print("[SHOT] ", name, " err=", err, " ", img.get_width(), "x", img.get_height(),
 		" path=", ProjectSettings.globalize_path(path))
 
+## Strip combat nodes out of the sim immediately (queue_free alone leaves 1+ frame strays).
+func _dual_free_node(n: Node) -> void:
+	if not is_instance_valid(n):
+		return
+	n.set_process(false)
+	n.set_physics_process(false)
+	if n is CanvasItem:
+		(n as CanvasItem).visible = false
+	if n is CollisionObject2D:
+		(n as CollisionObject2D).set_deferred("monitoring", false)
+		(n as CollisionObject2D).set_deferred("monitorable", false)
+	for g in n.get_groups():
+		n.remove_from_group(str(g))
+	var p := n.get_parent()
+	if p:
+		p.remove_child(n)
+	n.queue_free()
+
 ## Wipe combat clutter so dual stills match HTML forced states (no leftover portal/mobs/FX).
 func _dual_sanitize(player, pool) -> void:
 	var GS = _A("GameState")
 	var StageFlow = _A("StageFlow")
+	if GS:
+		GS.set_meta("dual_mode", true)
+		GS.set_meta("stage_cleared", false)
 	if StageFlow:
 		if StageFlow.has_method("reset_run"):
 			StageFlow.reset_run()
@@ -145,30 +166,29 @@ func _dual_sanitize(player, pool) -> void:
 			StageFlow.clear_shop = null
 			StageFlow.clear_msg_t = 0.0
 			StageFlow.dialog = null
-		if GS:
-			GS.set_meta("stage_cleared", false)
-	for e in root.get_tree().get_nodes_in_group("enemies"):
-		if is_instance_valid(e):
-			e.queue_free()
-	for b in root.get_tree().get_nodes_in_group("bosses"):
-		if is_instance_valid(b):
-			b.queue_free()
+	# Lock spawner FIRST so set_state(PLAY) cannot re-arm waves
 	for sp in root.get_tree().get_nodes_in_group("enemy_spawner"):
 		if not is_instance_valid(sp):
 			continue
-		if sp.has_method("lock_for_dual"):
-			sp.lock_for_dual()
-		elif sp.has_method("clear"):
-			sp.clear()
-		# Pin spawner off for dual stills (clear alone is not enough if stage restarts)
-		if "spawning" in sp:
-			sp.spawning = false
 		if "dual_lock" in sp:
 			sp.dual_lock = true
+		if "spawning" in sp:
+			sp.spawning = false
 		if "boss_spawned" in sp:
 			sp.boss_spawned = true
 		if "stage_time" in sp:
 			sp.stage_time = 99999.0
+		if sp.has_method("lock_for_dual"):
+			sp.lock_for_dual()
+		elif sp.has_method("clear"):
+			sp.clear()
+	# Immediate free — queue_free leaves strays that absorb shots / drop loot
+	for e in root.get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e):
+			_dual_free_node(e)
+	for b in root.get_tree().get_nodes_in_group("bosses"):
+		if is_instance_valid(b):
+			_dual_free_node(b)
 	if pool and pool.has_method("clear_all"):
 		pool.clear_all()
 	elif pool and pool.has_method("clear"):
@@ -193,6 +213,8 @@ func _dual_sanitize(player, pool) -> void:
 			ch.melee_fx.clear()
 		if "flash_msg" in ch:
 			ch.flash_msg = {}
+		if "fx" in ch and ch.fx is Array:
+			ch.fx.clear()
 	if player:
 		if "invuln" in player:
 			player.invuln = 99999.0
@@ -222,8 +244,16 @@ func _dual_sanitize(player, pool) -> void:
 		if sp and "fx" in sp:
 			sp.fx.clear()
 	if GS:
-		GS.set_state(GS.State.PLAY)
+		# Avoid re-emitting PLAY (Main.start_waves_if_ready) when already playing
+		if GS.state != GS.State.PLAY:
+			GS.set_state(GS.State.PLAY)
 		GS.lives = 99
+		GS.bombs = 3
+		GS.session_score = 0
+		GS.total_kills = 0
+		GS.graze = 0
+		if "special_meter" in GS:
+			GS.special_meter = 0.0
 	# Dual stills: no autofire + clear emblem toast chrome
 	var PStore = _A("ProgressStore")
 	if PStore:
@@ -240,6 +270,7 @@ func _dual_sanitize(player, pool) -> void:
 		player.set_meta("dual_aim", -PI / 2.0)
 		player.set_meta("dual_hold_fx", true)
 		player.set_meta("dual_expr", "")  # Auto/smile like HTML play stills
+		player.set_meta("dual_focus", false)
 		if "aim" in player:
 			player.aim = -PI / 2.0
 		if "velocity" in player:
@@ -256,6 +287,48 @@ func _dual_sanitize(player, pool) -> void:
 				spn.dual_lock = true
 			if spn and "spawning" in spn:
 				spn.spawning = false
+
+## Mid-shot field hold: kill strays + pin Bobina; optionally keep player bullets.
+func _dual_hold_field(player, pool, keep_player_shots: bool = false) -> void:
+	for e in root.get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e) and not e.is_in_group("bosses"):
+			_dual_free_node(e)
+	for sp in root.get_tree().get_nodes_in_group("enemy_spawner"):
+		if is_instance_valid(sp):
+			if "dual_lock" in sp:
+				sp.dual_lock = true
+			if "spawning" in sp:
+				sp.spawning = false
+	if pool and pool.has_method("iter_active") and not keep_player_shots:
+		if pool.has_method("clear_all"):
+			pool.clear_all()
+	elif pool and pool.has_method("iter_active") and keep_player_shots:
+		# Drop enemy-team bullets only so weapon stills stay readable
+		for b in pool.iter_active():
+			if is_instance_valid(b) and int(b.team) != 0:
+				if b.has_method("deactivate"):
+					b.deactivate()
+				elif "active" in b:
+					b.active = false
+	var ch = _A("CombatHelpers")
+	if ch:
+		if "particles" in ch:
+			ch.particles.clear()
+		if "score_texts" in ch:
+			ch.score_texts.clear()
+	var GS = _A("GameState")
+	if GS:
+		GS.session_score = 0
+		GS.total_kills = 0
+		GS.graze = 0
+		GS.lives = 99
+	if player:
+		player.set_meta("dual_lock_pose", true)
+		player.set_meta("dual_aim", -PI / 2.0)
+		player.aim = -PI / 2.0
+		player.global_position = Vector2(304, 400)
+		player.velocity = Vector2.ZERO
+		player.invuln = 99999.0
 
 func _run() -> void:
 	await process_frame
@@ -812,28 +885,64 @@ func _run() -> void:
 				_dual_sanitize(player, pool)
 				GameState.power = 6.0
 				GameState.current_weapon = wep
-				for i in range(18):
-					await process_frame
-					if "invuln" in player:
-						player.invuln = 99999.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
+				player.velocity = Vector2.ZERO
+				# Dense burst like HTML fireBurst — ignore fire-rate CD; short settle so
+				# fast weapons (laser/gatling) are still mid-column when we snap.
+				if fire and "fire_cd_frames" in fire:
+					fire.fire_cd_frames = 0.0
+				for i in range(10):
+					GameState.power = 6.0
+					player.aim = -PI / 2.0
+					player.global_position = Vector2(304, 400)
 					if fire and pool:
+						if "fire_cd_frames" in fire:
+							fire.fire_cd_frames = 0.0
 						fire.try_fire(player, pool, false)
+					await process_frame
+					# Keep field clear of strays but do NOT touch player shots
+					for e in root.get_tree().get_nodes_in_group("enemies"):
+						if is_instance_valid(e) and not e.is_in_group("bosses"):
+							_dual_free_node(e)
+					GameState.session_score = 0
+					GameState.total_kills = 0
+				# Freeze projectiles for a readable still (HTML fireBurst is near-instant)
+				if pool and pool.has_method("iter_active"):
+					for b in pool.iter_active():
+						if is_instance_valid(b) and int(b.team) == 0:
+							if "velocity" in b:
+								b.velocity = Vector2.ZERO
+							if b.has_method("set_physics_process"):
+								b.set_physics_process(false)
+				await process_frame
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
 				await _save("godot_wep_%s" % wep)
 		if _want("melee"):
 			var mkeys: Array = ["katana", "lash", "scythe", "hammer", "claws"]
 			for mk in mkeys:
 				_dual_sanitize(player, pool)
 				GameState.power = 6.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
 				var ms = player.get("melee")
 				if ms:
 					ms.cooldown = 0.0
 					ms.charge = 1.0
 					ms.holding = false
 					ms.release(player, mk, -PI / 2.0)
-				for _i in range(10):
+				# Capture near peak of swipe (don't wait until FX dies)
+				for _i in range(5):
 					await process_frame
-					if "invuln" in player:
-						player.invuln = 99999.0
+					for e in root.get_tree().get_nodes_in_group("enemies"):
+						if is_instance_valid(e) and not e.is_in_group("bosses"):
+							_dual_free_node(e)
+					player.aim = -PI / 2.0
+					player.global_position = Vector2(304, 400)
+					GameState.power = 6.0
+					GameState.session_score = 0
+					GameState.total_kills = 0
 				await _save("godot_melee_%s" % mk)
 		if _want("specials"):
 			var skeys: Array = ["laser", "mech", "bearzooka", "vault", "stampede", "badger", "sixth", "revenge", "kiss", "kraken", "void"]
@@ -842,12 +951,20 @@ func _run() -> void:
 				_dual_sanitize(player, pool)
 				GameState.power = 6.0
 				GameState.special_meter = 100.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
 				if sp and sp.has_method("use"):
 					sp.use(sk, player, pool)
-				for _i in range(16):
+				for _i in range(10):
 					await process_frame
-					if "invuln" in player:
-						player.invuln = 99999.0
+					for e in root.get_tree().get_nodes_in_group("enemies"):
+						if is_instance_valid(e) and not e.is_in_group("bosses"):
+							_dual_free_node(e)
+					player.aim = -PI / 2.0
+					player.global_position = Vector2(304, 400)
+					GameState.power = 6.0
+					GameState.session_score = 0
+					GameState.total_kills = 0
 				await _save("godot_special_%s" % sk)
 
 		if _want("aura"):
@@ -1003,6 +1120,11 @@ func _run() -> void:
 				await process_frame
 				_dual_sanitize(player, pool)
 			GameState.power = 1.0
+			# Park Bobina below the grid so she doesn't vacuum drops (HTML dual same idea)
+			player.global_position = Vector2(304, 480)
+			player.aim = -PI / 2.0
+			player.velocity = Vector2.ZERO
+			player.set_meta("dual_lock_pose", true)
 			var items_sys = _A("ItemSystem")
 			if items_sys:
 				items_sys.items.clear()
@@ -1026,20 +1148,22 @@ func _run() -> void:
 						last["vx"] = 0.0
 						last["vy"] = 0.0
 						last["homing"] = false
+						last["t"] = 0.0
 				for _i in range(8):
 					await process_frame
+					player.global_position = Vector2(304, 480)
+					player.aim = -PI / 2.0
+					player.velocity = Vector2.ZERO
+					player.set_meta("dual_lock_pose", true)
+					GameState.power = 1.0
 					for it in items_sys.items:
 						if it is Dictionary:
 							it["vx"] = 0.0
 							it["vy"] = 0.0
-					for e in root.get_tree().get_nodes_in_group("enemies"):
-						if is_instance_valid(e) and not e.is_in_group("bosses"):
-							e.queue_free()
-					if pool and pool.has_method("clear_all"):
-						pool.clear_all()
-					var chp2 = _A("CombatHelpers")
-					if chp2 and "particles" in chp2:
-						chp2.particles.clear()
+							it["homing"] = false
+					_dual_hold_field(player, pool, false)
+					# hold_field re-pins to (304,400) — park below again for items
+					player.global_position = Vector2(304, 480)
 				await _save("godot_items_grid")
 				items_sys.items.clear()
 

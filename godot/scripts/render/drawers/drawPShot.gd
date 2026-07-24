@@ -88,14 +88,18 @@ func drawPShot(s) -> void:
 	ctx.save()
 	ctx.translate(sx, sy)
 	if bool(s.get("gat", false)):
+		ctx.rotate(atan2(vy, vx) + PI / 2.0)
 		ctx.shadow_color("#7ed957")
 		ctx.shadow_blur(10)
-		ctx.fill_style("#d6ffb0")
-		ctx.begin_path()
-		ctx.round_rect(-1.6, -8, 3.2, 16, 2)
-		ctx.fill()
+		for dy2 in [-4.0, -1.5, 1.5, 4.0]:
+			ctx.fill_style("#d6ffb0")
+			ctx.begin_path()
+			ctx.arc(0, dy2, 2.2, 0, TAU)
+			ctx.fill()
 		ctx.fill_style("#3fbf2f")
-		ctx.fill_rect(-0.8, -8, 1.6, 16)
+		ctx.begin_path()
+		ctx.arc(0, 0, 1.1, 0, TAU)
+		ctx.fill()
 		ctx.restore()
 		return
 	if bool(s.get("nade", false)):
@@ -174,22 +178,28 @@ func drawPShot(s) -> void:
 		ctx.restore()
 		return
 	if bool(s.get("laser", false)):
+		# Face travel; one arc per fill (multi-subpath fills triangulate badly)
+		ctx.rotate(atan2(vy, vx) + PI / 2.0)
 		ctx.shadow_color("#ff3b5c")
 		ctx.shadow_blur(11)
-		ctx.fill_style("#ffd2da")
-		ctx.begin_path()
-		ctx.round_rect(-2, -9, 4, 18, 2)
-		ctx.fill()
-		ctx.fill_style("#ff2f52")
-		ctx.fill_rect(-1, -9, 2, 18)
+		for dy in [-5.0, -2.5, 0.0, 2.5, 5.0]:
+			ctx.fill_style("#ffd2da")
+			ctx.begin_path()
+			ctx.arc(0, dy, 2.8, 0, TAU)
+			ctx.fill()
+			ctx.fill_style("#ff2f52")
+			ctx.begin_path()
+			ctx.arc(0, dy, 1.4, 0, TAU)
+			ctx.fill()
 		ctx.restore()
 		return
 	if float(s.get("wv", 0)) > 0.0:
+		ctx.rotate(atan2(vy, vx) + PI / 2.0)
 		ctx.shadow_color("#7ed957")
 		ctx.shadow_blur(9)
 		ctx.fill_style("#daffb4")
 		ctx.begin_path()
-		ctx.ellipse(0, 0, 3.6, 4.4, 0, 0, TAU)
+		ctx.arc(0, 0, 4.0, 0, TAU)
 		ctx.fill()
 		ctx.fill_style("#4fb02f")
 		ctx.begin_path()
@@ -202,7 +212,10 @@ func drawPShot(s) -> void:
 		ctx.shadow_blur(9)
 		ctx.fill_style("#fff4a8")
 		ctx.begin_path()
-		ctx.ellipse(0, 0, 3.4, 5.8, 0, 0, TAU)
+		ctx.arc(0, -1.5, 3.6, 0, TAU)
+		ctx.fill()
+		ctx.begin_path()
+		ctx.arc(0, 1.5, 3.6, 0, TAU)
 		ctx.fill()
 		ctx.fill_style("#ffcf1a")
 		ctx.begin_path()
@@ -210,7 +223,9 @@ func drawPShot(s) -> void:
 		ctx.fill()
 		ctx.restore()
 		return
-	if s.get("life", null) != null:
+	# life_frames is always a float on bullets (-1 = unlimited); only treat >=0 as timed orbs
+	var life_v = s.get("life", null)
+	if life_v != null and float(life_v) >= 0.0:
 		ctx.shadow_color("#e0a060")
 		ctx.shadow_blur(7)
 		ctx.fill_style("#f2d3a6")
@@ -230,7 +245,7 @@ func drawPShot(s) -> void:
 	ctx.fill_style("#fff4d6" if foc else "#ffe6a6")
 	var w := 4.0 if foc else 3.4
 	ctx.begin_path()
-	ctx.ellipse(0, 0, w, w * 1.7, 0, 0, TAU)
+	ctx.arc(0, 0, w, 0, TAU)
 	ctx.fill()
 	ctx.fill_style("#ffb63a")
 	ctx.begin_path()

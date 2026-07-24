@@ -494,7 +494,8 @@ func _draw_bullet_node(b: Node) -> void:
 			"voidbolt": bool(b.voidbolt) if b.get("voidbolt") != null else false,
 			"wv": float(b.wv) if b.get("wv") != null else 0.0,
 			"col": col_hex,
-			"life": b.life_frames if b.get("life_frames") != null else null,
+			# life_frames defaults to -1 (unlimited); only pass when timed
+			"life": (float(b.life_frames) if float(b.life_frames) >= 0.0 else null) if b.get("life_frames") != null else null,
 		}
 		ported.drawPShot(st)
 	else:

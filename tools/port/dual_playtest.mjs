@@ -523,8 +523,13 @@ async function captureHtml() {
           await page.evaluate((k) => {
             if (window.__kamDual) {
               window.__kamDual.setState("play");
+              if (window.__kamDual.clearField) window.__kamDual.clearField();
               if (window.__kamDual.setPower) window.__kamDual.setPower(6);
               if (window.__kamDual.setWeapon) window.__kamDual.setWeapon(k);
+              if (typeof player !== "undefined" && player) {
+                player.face = -Math.PI / 2; player.aim = -Math.PI / 2;
+                player.x = PF.x + PF.w / 2; player.y = PF.y + PF.h - 120;
+              }
               if (window.__kamDual.fireBurst) window.__kamDual.fireBurst(10);
             }
           }, w);
@@ -537,6 +542,14 @@ async function captureHtml() {
         const meleeKeys = ["katana","lash","scythe","hammer","claws"];
         for (let i = 0; i < meleeKeys.length; i++) {
           await page.evaluate((idx) => {
+            if (window.__kamDual) {
+              if (window.__kamDual.clearField) window.__kamDual.clearField();
+              if (window.__kamDual.setPower) window.__kamDual.setPower(6);
+            }
+            if (typeof player !== "undefined" && player) {
+              player.face = -Math.PI / 2; player.aim = -Math.PI / 2;
+              player.x = PF.x + PF.w / 2; player.y = PF.y + PF.h - 120;
+            }
             if (window.__kamDual && window.__kamDual.setMelee) window.__kamDual.setMelee(idx);
             if (typeof doMeleeSwipe === "function" && typeof player !== "undefined" && player) {
               try { doMeleeSwipe(true); } catch (e) {}
@@ -553,7 +566,15 @@ async function captureHtml() {
         const specs = ["laser","mech","bearzooka","vault","stampede","badger","sixth","revenge","kiss","kraken","void"];
         for (const s of specs) {
           await page.evaluate((k) => {
-            if (window.__kamDual && window.__kamDual.setSpecial) window.__kamDual.setSpecial(k);
+            if (window.__kamDual) {
+              if (window.__kamDual.clearField) window.__kamDual.clearField();
+              if (window.__kamDual.setPower) window.__kamDual.setPower(6);
+              if (typeof player !== "undefined" && player) {
+                player.face = -Math.PI / 2; player.aim = -Math.PI / 2;
+                player.x = PF.x + PF.w / 2; player.y = PF.y + PF.h - 120;
+              }
+              window.__kamDual.setSpecial(k);
+            }
           }, s);
           await page.waitForTimeout(fast ? 220 : 400);
           await page.screenshot({ path: path.join(htmlDir, `html_special_${s}.png`) });

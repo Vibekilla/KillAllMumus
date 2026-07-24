@@ -231,6 +231,14 @@ func tick(delta: float) -> void:
 
 func _update_items(df: float) -> void:
 	var p := _player()
+	# Dual stills: freeze pickups in place (no magnet / collect / drift)
+	var dual := bool(GameState.get_meta("dual_mode", false)) if GameState else false
+	if dual:
+		for it in items:
+			it["vx"] = 0.0
+			it["vy"] = 0.0
+			it["homing"] = false
+		return
 	var auto_all := false
 	var magnet := 70.0
 	if p and is_instance_valid(p):

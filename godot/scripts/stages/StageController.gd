@@ -36,10 +36,16 @@ func begin_current_stage() -> void:
 		_start_waves()
 
 func start_waves_if_ready() -> void:
-	if GameState.state == GameState.State.PLAY:
-		_start_waves()
+	if GameState.state != GameState.State.PLAY:
+		return
+	# Dual / screenshot stills: never re-arm waves
+	if spawner and ("dual_lock" in spawner) and bool(spawner.dual_lock):
+		return
+	_start_waves()
 
 func _start_waves() -> void:
+	if spawner and ("dual_lock" in spawner) and bool(spawner.dual_lock):
+		return
 	if spawner and spawner.has_method("start_stage"):
 		spawner.start_stage(GameState.stage_index)
 
