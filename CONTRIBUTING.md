@@ -17,18 +17,28 @@ Feature branches and PRs are **optional**. Prefer direct commits on `dev`.
 
 ## Layout on this server
 
-| Path | Branch | Purpose |
-| --- | --- | --- |
-| `/var/www/killallmumus.com` | `main` | Live tree (deploy serves this) |
-| `/var/www/dev` | `dev` | Worktree for active development |
+| Path | Branch | Purpose | Public URL |
+| --- | --- | --- | --- |
+| `/var/www/killallmumus.com` | `main` | Live tree | https://killallmumus.com (`:3000`) |
+| `/var/www/dev` | `dev` | Active development | https://dev.killallmumus.com (`:3001`) |
 
 ```bash
 cd /var/www/dev          # normal coding
 # edit, commit, push origin dev
+systemctl --user restart killallmumus-dev   # pick up server.js / public changes
 
 cd /var/www/killallmumus.com   # live checkout (main)
 ./scripts/promote-to-live.sh   # merge dev → main and push live
 ```
+
+### Dev site (`dev.killallmumus.com`)
+
+- Service: `systemctl --user status killallmumus-dev` (Express on **3001**, tree `/var/www/dev`)
+- Nginx: `deploy/nginx/dev.killallmumus.com` → install via `bash deploy/install-nginx-dev.sh`
+- Env: `/var/www/dev/.env` with `PORT=3001`, `PUBLIC_ORIGIN=https://dev.killallmumus.com`, `USE_GODOT=0`
+- DNS (GoDaddy): **A** record `dev` → this host (`15.204.81.219`), then  
+  `sudo certbot --nginx -d dev.killallmumus.com`
+- Godot test path (always): `https://dev.killallmumus.com/godot/` or `?test`
 
 ## Daily flow
 
