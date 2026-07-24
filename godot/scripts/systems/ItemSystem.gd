@@ -342,7 +342,7 @@ func _update_burns(df: float) -> void:
 	burns = keep
 
 func chain_lightning(sx: float, sy: float, dmg: float, jumps: int, col: String = "#8fd0ff") -> void:
-	## HTML chainLightning
+	## HTML chainLightning — damage hops + meleeFx bolt stroke
 	var x := sx
 	var y := sy
 	var hit: Dictionary = {}
@@ -373,23 +373,23 @@ func chain_lightning(sx: float, sy: float, dmg: float, jumps: int, col: String =
 		y = best.global_position.y
 		pts.append({"x": x, "y": y})
 		for s in range(4):
-			CombatHelpers.particles.append({
-				"x": x, "y": y,
-				"vx": (randf() - 0.5) * 4.0, "vy": (randf() - 0.5) * 4.0,
-				"life": 12.0, "c": col if s % 2 == 0 else "#fff",
-			})
-	# bolt fx via meleeFx-style — store as floater chain particles
-	if pts.size() > 1:
-		for i in range(pts.size() - 1):
-			var a: Dictionary = pts[i]
-			var b: Dictionary = pts[i + 1]
-			for k in range(6):
-				var u := float(k) / 6.0
+			if CombatHelpers:
 				CombatHelpers.particles.append({
-					"x": lerpf(float(a.x), float(b.x), u),
-					"y": lerpf(float(a.y), float(b.y), u),
-					"vx": 0.0, "vy": 0.0, "life": 12.0, "c": col,
+					"x": x, "y": y,
+					"vx": (randf() - 0.5) * 4.0, "vy": (randf() - 0.5) * 4.0,
+					"life": 12.0, "c": col if s % 2 == 0 else "#fff",
 				})
+	# HTML: if(pts.length>1) meleeFx.push({bolt:true,pts,col,life:12,t:0})
+	if pts.size() > 1:
+		var bolt := {"bolt": true, "pts": pts, "col": col, "life": 12.0, "t": 0.0}
+		if CombatHelpers and "melee_fx" in CombatHelpers:
+			CombatHelpers.melee_fx.append(bolt)
+		# Also feed player MeleeSystem so WorldDraw merge path always sees it
+		var pl = tree.get_first_node_in_group("player")
+		if pl and pl.get("melee") != null:
+			var ms = pl.melee
+			if ms and "swipe_fx" in ms:
+				ms.swipe_fx.append(bolt.duplicate(true))
 
 func nade_boom(x: float, y: float) -> void:
 	## HTML nadeBoom

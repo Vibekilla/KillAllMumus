@@ -54,43 +54,61 @@ func drawMeleeFx(melee_fx: Array = [], player: Node = null) -> void:
 			_draw_charge_ring(player, chg)
 
 func _draw_bolt(f: Dictionary, pr: float) -> void:
-	var al = 1.0 - pr
+	var al: float = maxf(0.25, 1.0 - pr)
 	var pts: Array = f.get("pts", [])
+	if pts.size() < 2:
+		return
+	var col := str(f.get("col", "#b06cff"))
 	ctx.save()
 	ctx.global_composite_operation("lighter")
-	ctx.stroke_style(str(f.get("col", "#8fd0ff")))
-	ctx.shadow_color(str(f.get("col", "#8fd0ff")))
-	ctx.shadow_blur(8)
 	ctx.line_cap("round")
 	ctx.line_join("round")
-	ctx.global_alpha(al)
-	ctx.line_width(2.4)
+	# Glow pass
+	ctx.global_alpha(al * 0.9)
+	ctx.stroke_style(col)
+	ctx.shadow_color(col)
+	ctx.shadow_blur(14)
+	ctx.line_width(4.2)
+	ctx.begin_path()
+	for i in range(pts.size()):
+		var p0: Dictionary = pts[i] if typeof(pts[i]) == TYPE_DICTIONARY else {"x": 0, "y": 0}
+		if i == 0:
+			ctx.move_to(float(p0.get("x", 0)), float(p0.get("y", 0)))
+		else:
+			ctx.line_to(float(p0.get("x", 0)), float(p0.get("y", 0)))
+	ctx.stroke()
+	# Jagged mid pass
+	ctx.shadow_blur(6)
+	ctx.line_width(2.6)
 	for i in range(1, pts.size()):
 		var a: Dictionary = pts[i - 1] if typeof(pts[i - 1]) == TYPE_DICTIONARY else {"x": 0, "y": 0}
 		var b: Dictionary = pts[i] if typeof(pts[i]) == TYPE_DICTIONARY else {"x": 0, "y": 0}
-		var ax = float(a.get("x", 0))
-		var ay = float(a.get("y", 0))
-		var bx = float(b.get("x", 0))
-		var by = float(b.get("y", 0))
+		var ax := float(a.get("x", 0))
+		var ay := float(a.get("y", 0))
+		var bx := float(b.get("x", 0))
+		var by := float(b.get("y", 0))
 		ctx.begin_path()
 		ctx.move_to(ax, ay)
 		for s in range(1, 5):
-			var tt = float(s) / 4.0
-			ctx.line_to(
-				ax + (bx - ax) * tt + (randf() - 0.5) * 9.0,
-				ay + (by - ay) * tt + (randf() - 0.5) * 9.0
-			)
+			var tt := float(s) / 4.0
+			# Deterministic jitter (rand each frame looked noisy / sometimes vanished)
+			var jx := sin(float(tick) * 0.7 + float(i) * 2.1 + float(s)) * 7.0
+			var jy := cos(float(tick) * 0.55 + float(i) * 1.7 + float(s)) * 7.0
+			ctx.line_to(ax + (bx - ax) * tt + jx, ay + (by - ay) * tt + jy)
 		ctx.stroke()
+	# White core
 	ctx.shadow_blur(0)
 	ctx.stroke_style("#fff")
-	ctx.line_width(1)
-	for i in range(1, pts.size()):
-		var a2: Dictionary = pts[i - 1] if typeof(pts[i - 1]) == TYPE_DICTIONARY else {"x": 0, "y": 0}
-		var b2: Dictionary = pts[i] if typeof(pts[i]) == TYPE_DICTIONARY else {"x": 0, "y": 0}
-		ctx.begin_path()
-		ctx.move_to(float(a2.get("x", 0)), float(a2.get("y", 0)))
-		ctx.line_to(float(b2.get("x", 0)), float(b2.get("y", 0)))
-		ctx.stroke()
+	ctx.line_width(1.2)
+	ctx.global_alpha(al)
+	ctx.begin_path()
+	for i in range(pts.size()):
+		var p1: Dictionary = pts[i] if typeof(pts[i]) == TYPE_DICTIONARY else {"x": 0, "y": 0}
+		if i == 0:
+			ctx.move_to(float(p1.get("x", 0)), float(p1.get("y", 0)))
+		else:
+			ctx.line_to(float(p1.get("x", 0)), float(p1.get("y", 0)))
+	ctx.stroke()
 	ctx.restore()
 	ctx.global_alpha(1.0)
 

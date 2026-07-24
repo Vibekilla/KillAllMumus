@@ -952,23 +952,29 @@ func _run() -> void:
 					ms.holding = false
 					ms.release(player, mk, -PI / 2.0)
 					# Ensure a bright slash is present even if charge-fx path is thin
-					if ms.get("swipe_fx") is Array and ms.swipe_fx.is_empty():
-						var mdef: Dictionary = {}
-						var DR = _A("DataRegistry")
-						if DR and "melee" in DR:
-							for md in DR.melee:
-								if str(md.get("key")) == mk:
-									mdef = md
-									break
-						ms.swipe_fx.append({
-							"x": player.global_position.x, "y": player.global_position.y,
-							"dir": -PI / 2.0,
-							"reach": float(mdef.get("reach", 155)),
-							"half": float(mdef.get("arc", 2.0)) * 0.5,
-							"col": str(mdef.get("col", "#ff2b4d")),
-							"key": mk, "life": 16.0, "t": 4.0, "charge": 1.0,
-						})
-				# Peak of slash is early (t≈3–5 of life 16)
+					if ms.get("swipe_fx") is Array:
+						var has_slash := false
+						for fx0 in ms.swipe_fx:
+							if fx0 is Dictionary and not bool(fx0.get("bolt", false)) and not bool(fx0.get("ring", false)):
+								has_slash = true
+								break
+						if not has_slash:
+							var mdef: Dictionary = {}
+							var DR = _A("DataRegistry")
+							if DR and "melee" in DR:
+								for md in DR.melee:
+									if str(md.get("key")) == mk:
+										mdef = md
+										break
+							ms.swipe_fx.append({
+								"x": player.global_position.x, "y": player.global_position.y,
+								"dir": -PI / 2.0,
+								"reach": float(mdef.get("reach", 155)),
+								"half": float(mdef.get("arc", 2.0)) * 0.5,
+								"col": str(mdef.get("col", "#ff2b4d")),
+								"key": mk, "life": 16.0, "t": 3.0, "charge": 1.0,
+							})
+				# Peak of slash is early (t≈3 of life 16); freeze bolts too
 				for _i in range(3):
 					await process_frame
 					for e in root.get_tree().get_nodes_in_group("enemies"):
@@ -982,8 +988,8 @@ func _run() -> void:
 					if ms and ms.get("swipe_fx") is Array:
 						for f in ms.swipe_fx:
 							if f is Dictionary:
-								f["t"] = 3.0
-								f["life"] = 16.0
+								f["t"] = 2.0
+								f["life"] = 16.0 if not bool(f.get("bolt", false)) else 12.0
 				await _save("godot_melee_%s" % mk)
 		if _want("specials"):
 			var skeys: Array = ["laser", "mech", "bearzooka", "vault", "stampede", "badger", "sixth", "revenge", "kiss", "kraken", "void"]
@@ -1290,10 +1296,18 @@ func _run() -> void:
 		if _want("elites"):
 			_dual_sanitize(player, pool)
 			GameState.power = 1.0
+			GameState.session_score = 0
+			GameState.total_kills = 0
+			GameState.graze = 0
 			for _i in range(8):
 				await process_frame
 				_dual_sanitize(player, pool)
 			GameState.power = 1.0
+			GameState.session_score = 0
+			GameState.total_kills = 0
+			player.global_position = Vector2(304, 460)
+			player.aim = -PI / 2.0
+			player.set_meta("dual_lock_pose", true)
 			var elites: Array = ["cheer", "ape", "badnik", "pup", "scammer", "voideye", "goon"]
 			var EnemyScene = load("res://scenes/enemies/Enemy.tscn")
 			if EnemyScene and playfield:
@@ -1318,14 +1332,30 @@ func _run() -> void:
 						en.vel = Vector2.ZERO
 				for _i in range(10):
 					await process_frame
+					player.global_position = Vector2(304, 460)
+					player.aim = -PI / 2.0
+					player.velocity = Vector2.ZERO
+					GameState.session_score = 0
+					GameState.total_kills = 0
+					GameState.graze = 0
+					GameState.power = 1.0
 					for e in root.get_tree().get_nodes_in_group("enemies"):
 						if not is_instance_valid(e) or e.is_in_group("bosses"):
 							continue
 						if str(e.get("kind")) != "elite":
-							e.queue_free()
+							_dual_free_node(e)
 							continue
 						if "vel" in e:
 							e.vel = Vector2.ZERO
+						# Pin grid positions
+						var idx := elites.find(str(e.get("elite")) if e.get("elite") != null else "")
+						if idx < 0:
+							# fall back by order in group
+							pass
+						else:
+							e.global_position = Vector2(
+								pf2.position.x + 80.0 + float(idx % 4) * 100.0,
+								pf2.position.y + 120.0 + float(idx / 4) * 140.0)
 					if pool and pool.has_method("clear_all"):
 						pool.clear_all()
 					var chp3 = _A("CombatHelpers")
@@ -1334,7 +1364,7 @@ func _run() -> void:
 				await _save("godot_elites_grid")
 				for e in root.get_tree().get_nodes_in_group("enemies"):
 					if is_instance_valid(e) and not e.is_in_group("bosses"):
-						e.queue_free()
+						_dual_free_node(e)
 				for _i in range(3):
 					await process_frame
 

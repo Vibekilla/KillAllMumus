@@ -16,6 +16,11 @@ func can_use(_key: String) -> bool:
 func tick(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
+	# Dual stills: hold FX in place (player dual_lock_pose + dual_hold_fx)
+	var pl = get_tree().get_first_node_in_group("player") if get_tree() else null
+	if pl and pl.has_meta("dual_lock_pose") and bool(pl.get_meta("dual_lock_pose")) \
+			and pl.has_meta("dual_hold_fx") and bool(pl.get_meta("dual_hold_fx")):
+		return
 	fx_tick += 1
 	_update_fx(delta)
 

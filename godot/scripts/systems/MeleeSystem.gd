@@ -102,7 +102,30 @@ func _charge_fx(player: Node2D, m: Dictionary, dir: float, reach: float, half: f
 					if e.has_method("take_damage"):
 						e.take_damage(dmg * 0.5)
 		"chain":
-			ItemSystem.chain_lightning(origin.x, origin.y, 3.0, 6, str(m.get("col", "#8fd0ff")))
+			# Prefer melee col for bolt; HTML uses m.col
+			var ccol := str(m.get("col", "#b06cff"))
+			ItemSystem.chain_lightning(origin.x, origin.y, dmg, 6, ccol)
+			# If field empty (dual stills / no targets), still show a whip-chain path
+			var has_bolt := false
+			for f in swipe_fx:
+				if f is Dictionary and bool(f.get("bolt", false)):
+					has_bolt = true
+					break
+			if not has_bolt:
+				# Decorative chain for empty-field / dual stills — fan of zigzags up-aim
+				var pts: Array = [{"x": origin.x, "y": origin.y}]
+				var cx := origin.x
+				var cy := origin.y
+				var base := dir
+				for j in range(6):
+					var side := 1.0 if (j % 2 == 0) else -1.0
+					cx = origin.x + cos(base) * (36.0 + float(j) * 26.0) + side * (18.0 + float(j) * 4.0)
+					cy = origin.y + sin(base) * (36.0 + float(j) * 26.0)
+					pts.append({"x": cx, "y": cy})
+				var bolt2 := {"bolt": true, "pts": pts, "col": ccol, "life": 14.0, "t": 0.0}
+				swipe_fx.append(bolt2)
+				if CombatHelpers and "melee_fx" in CombatHelpers:
+					CombatHelpers.melee_fx.append(bolt2.duplicate(true))
 		"blackhole":
 			# pull nearby
 			for e in player.get_tree().get_nodes_in_group("enemies"):
