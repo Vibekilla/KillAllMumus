@@ -1330,11 +1330,19 @@ func _run() -> void:
 						})
 					if "vel" in en:
 						en.vel = Vector2.ZERO
-				for _i in range(10):
+					if "elite_type" in en:
+						en.elite_type = ek
+					en.set_meta("dual_freeze", true)
+					if "stun" in en:
+						en.stun = 0.0  # dual_freeze handles AI; stun would draw stars
+					if "age_frames" in en:
+						en.age_frames = 40.0  # stable bob phase
+				for _i in range(8):
 					await process_frame
 					player.global_position = Vector2(304, 460)
 					player.aim = -PI / 2.0
 					player.velocity = Vector2.ZERO
+					player.set_meta("dual_lock_pose", true)
 					GameState.session_score = 0
 					GameState.total_kills = 0
 					GameState.graze = 0
@@ -1345,14 +1353,15 @@ func _run() -> void:
 						if str(e.get("kind")) != "elite":
 							_dual_free_node(e)
 							continue
+						e.set_meta("dual_freeze", true)
 						if "vel" in e:
 							e.vel = Vector2.ZERO
-						# Pin grid positions
-						var idx := elites.find(str(e.get("elite")) if e.get("elite") != null else "")
-						if idx < 0:
-							# fall back by order in group
-							pass
-						else:
+						if "stun" in e:
+							e.stun = 0.0
+						# Pin grid by elite_type (not "elite")
+						var et := str(e.get("elite_type")) if e.get("elite_type") != null else ""
+						var idx := elites.find(et)
+						if idx >= 0:
 							e.global_position = Vector2(
 								pf2.position.x + 80.0 + float(idx % 4) * 100.0,
 								pf2.position.y + 120.0 + float(idx / 4) * 140.0)
@@ -1361,6 +1370,19 @@ func _run() -> void:
 					var chp3 = _A("CombatHelpers")
 					if chp3 and "particles" in chp3:
 						chp3.particles.clear()
+				# Full-power float near badnik (HTML dual often shows this label)
+				var chp4 = _A("CombatHelpers")
+				if chp4 and chp4.has_method("pop"):
+					var bpos := Vector2(pf2.position.x + 80.0 + 2.0 * 100.0, pf2.position.y + 120.0 - 28.0)
+					chp4.pop(bpos.x, bpos.y, "FULL POWER", "#ffd27a")
+					# Keep floater alive for still
+					if "score_texts" in chp4:
+						for st in chp4.score_texts:
+							if st is Dictionary and str(st.get("txt", "")) == "FULL POWER":
+								st["life"] = 90.0
+								st["y"] = bpos.y
+								st["x"] = bpos.x
+				await process_frame
 				await _save("godot_elites_grid")
 				for e in root.get_tree().get_nodes_in_group("enemies"):
 					if is_instance_valid(e) and not e.is_in_group("bosses"):

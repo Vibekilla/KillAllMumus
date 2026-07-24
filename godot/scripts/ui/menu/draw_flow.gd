@@ -98,23 +98,29 @@ func drawStageClear(info: Dictionary) -> void:
 		ctx.restore()
 	var yb := byy + bh + 16.0
 	# HTML leek-spin celebration GIF (native #leek overlay → canvas frames)
+	# Soft pink plate under leek so it reads like HTML's rounded celebration tile
 	var leek = AssetBank.get_tex("leek") if AssetBank else null
 	if leek:
 		var lh := 100.0
 		var lw := roundf(lh * float(leek.get_width()) / maxf(1.0, float(leek.get_height())))
+		var lx := W / 2.0 - lw / 2.0
+		# Subtle pink plate (HTML gif sits on a soft rounded surface in practice)
+		ctx.fill_style("rgba(255,180,210,0.18)")
+		ctx.begin_path()
+		ctx.arc(W / 2.0, yb + lh * 0.5, maxf(lw, lh) * 0.62, 0, TAU)
+		ctx.fill()
 		ctx.save()
 		ctx.shadow_color("rgba(255,150,200,0.55)")
 		ctx.shadow_blur(18)
 		ctx.begin_path()
-		ctx.round_rect(W / 2.0 - lw / 2.0, yb, lw, lh, 10)
+		# Clip via rect (round_rect clip can fail triangulation)
+		ctx.rect(lx, yb, lw, lh)
 		ctx.clip()
-		ctx.draw_image(leek, W / 2.0 - lw / 2.0, yb, lw, lh)
+		ctx.draw_image(leek, lx, yb, lw, lh)
 		ctx.restore()
 		ctx.stroke_style("#ff9ecb")
 		ctx.line_width(2)
-		ctx.begin_path()
-		ctx.round_rect(W / 2.0 - lw / 2.0, yb, lw, lh, 10)
-		ctx.stroke()
+		ctx.stroke_rect(lx, yb, lw, lh)
 		yb += lh + 36.0
 	else:
 		yb += 8.0

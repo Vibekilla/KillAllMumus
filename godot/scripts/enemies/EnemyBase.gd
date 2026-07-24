@@ -53,6 +53,10 @@ func setup(pool: Node, pos: Vector2, opts: Dictionary = {}) -> void:
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
+	# Dual stills: freeze AI / fire / drift so elite art is readable
+	if has_meta("dual_freeze") and bool(get_meta("dual_freeze")):
+		vel = Vector2.ZERO
+		return
 	age_frames += delta * FRAME
 	if flash > 0.0:
 		flash -= delta * FRAME

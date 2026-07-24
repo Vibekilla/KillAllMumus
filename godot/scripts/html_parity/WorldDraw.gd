@@ -414,9 +414,10 @@ func _draw_enemy(e: Node) -> void:
 		ported.drawElite(st)
 	else:
 		ported.drawMumu(st)
-	# stun stars
+	# stun stars (skip dual-frozen elites — dual uses stun as a freeze latch)
+	var dual_fr := e.has_meta("dual_freeze") and bool(e.get_meta("dual_freeze"))
 	var stun := float(e.get("stun")) if e.get("stun") != null else 0.0
-	if stun > 0.0:
+	if stun > 0.0 and not dual_fr:
 		ctx.save()
 		ctx.translate(st["x"], st["y"] - st["r"] - 5.0)
 		ctx.text_align("center")
