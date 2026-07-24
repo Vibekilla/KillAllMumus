@@ -41,6 +41,21 @@ func clear_enemy_near(pos: Vector2, radius: float) -> void:
 		if b.active and int(b.team) == 1 and b.global_position.distance_to(pos) <= radius:
 			b.deactivate()
 
+func filter_enemy_in_cone(pos: Vector2, radius: float, dir: float, half: float) -> void:
+	## HTML burn bullet cancel: d < reach*0.9 && angDiff < half
+	for b in _pool:
+		if not b.active or int(b.team) != 1:
+			continue
+		var dx: float = b.global_position.x - pos.x
+		var dy: float = b.global_position.y - pos.y
+		var d := sqrt(dx * dx + dy * dy)
+		if d > radius:
+			continue
+		var ang := atan2(dy, dx)
+		var ad := absf(wrapf(ang - dir, -PI, PI))
+		if ad < half:
+			b.deactivate()
+
 func clear_all() -> void:
 	for b in _pool:
 		if b.active:

@@ -35,6 +35,16 @@ var trail: Array = []  # dash comet trail (local points)
 var slash_dash: bool = false
 var armed_special: int = 0
 var _shift_tap_t: float = 999.0
+## HTML death / respawn cycle (p.dead, p.respawn)
+var dead: bool = false
+var respawn: float = 0.0
+const HURT_LINES := [
+	"Ngh—!", "Ow!", "Tch—!", "That stings!", "Is that all?!", "Not today!",
+	"Rugged?! Never!", "Down bad — not down out.", "That’s a dip, not a top.",
+	"Cope — I respawn.", "Paper hands? Me? Never.", "Buy the dip… of my HP.",
+	"Bobo needs me — get up!", "Not my final form.", "Comeback loading…",
+	"You call that a candle?", "Diamond paws, diamond will.",
+]
 
 func _ready() -> void:
 	add_to_group("player")
@@ -102,6 +112,15 @@ func _physics_process(delta: float) -> void:
 		consumables.tick(delta)
 
 	var df := delta * FRAME
+	# HTML: while dead, only tick respawn then re-init
+	if dead:
+		velocity = Vector2.ZERO
+		respawn = maxf(0.0, respawn - df)
+		sprite.modulate.a = 0.25
+		if respawn <= 0.0 and GameState.lives >= 0:
+			_respawn_player()
+		return
+
 	if invuln > 0.0:
 		invuln -= df
 		sprite.modulate.a = 0.4 + 0.6 * absf(sin(invuln * 0.5))
@@ -184,8 +203,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		aim = lerp_angle(aim, -PI / 2.0, 0.08)
 
-	# Fire = hold shoot keybind (settings) or LMB. No continuous "autofire" mode in the port.
-	# Touch on-screen FIRE injects the shoot action while held (Main._inject_action).
+	# Unified fire: hold shoot or LMB (same on desktop / touch / Steam — no separate autofire mode).
+	# Touch FIRE button holds shoot via Main._inject_action.
 	var want_fire := (
 		Input.is_action_pressed("shoot")
 		or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
@@ -193,7 +212,7 @@ func _physics_process(delta: float) -> void:
 	if want_fire and fire_sys:
 		if fire_sys.try_fire(self, bullet_pool, focus):
 			AudioBus.sfx("shoot")
-		GameState.special_meter = minf(100.0, GameState.special_meter + delta * 6.5)
+		# Special meter is HTML trickle +0.012/frame (GameState sim) + graze/kills — not per-fire
 
 	if Input.is_action_just_pressed("bomb"):
 		_try_bomb()
@@ -206,7 +225,7 @@ func _physics_process(delta: float) -> void:
 		CombatHelpers.swap_weapon()
 	if Input.is_action_just_pressed("cycle_special"):
 		CombatHelpers.cycle_special()
-	# HTML: item_switch cycles consumable; item_use hold handled in consumables.tick
+	# HTML: item_switch cycles; item_use is tap-to-consume (ConsumableSystem.tick)
 	if Input.is_action_just_pressed("item_switch"):
 		if consumables:
 			consumables.cycle()
@@ -416,26 +435,100 @@ func _try_bomb() -> void:
 		StageFlow.note_bomb()
 	bombed.emit()
 
-func take_hit(_dmg: float = 1.0) -> void:
-	if invuln > 0.0 or phase_t > 0.0:
+func take_hit(dmg: float = 1.0) -> void:
+	## HTML hitPlayer — vial soak, shield chip, death+respawn, power scatter
+	if invuln > 0.0 or dead or phase_t > 0.0:
 		return
-	# HTML Unholy Vial: absorb next N bullets during vialT
+	var hearts := maxi(1, int(round(dmg)))
+	# Unholy Vial: absorb next N bullets during vialT
 	if vial_t > 0.0 and vial_hits > 0:
 		vial_hits -= 1
-		invuln = maxf(invuln, 20.0)
+		invuln = maxf(invuln, 26.0)
+		if AudioBus:
+			AudioBus.sfx("hit")
+		if CombatHelpers:
+			for i in range(12):
+				CombatHelpers.particles.append({
+					"x": global_position.x, "y": global_position.y,
+					"vx": (randf() - 0.5) * 6.0, "vy": (randf() - 0.5) * 6.0,
+					"life": 18.0, "c": "#9d6bff" if (i % 2) == 0 else "#4a1e7a",
+				})
 		if vial_hits <= 0:
 			vial_t = 0.0
 		return
+	# Shield absorbs the whole hit, loses 120 frames of shield time
 	if shield_t > 0.0:
-		shield_t = 0.0
-		invuln = 60.0
+		shield_t = maxf(0.0, shield_t - 120.0)
+		invuln = maxf(invuln, 40.0)
+		if AudioBus:
+			AudioBus.sfx("hit")
+		if CombatHelpers:
+			for i in range(10):
+				CombatHelpers.particles.append({
+					"x": global_position.x, "y": global_position.y,
+					"vx": (randf() - 0.5) * 6.0, "vy": (randf() - 0.5) * 6.0,
+					"life": 16.0, "c": "#e8a860",
+				})
 		return
-	invuln = 120.0
-	AudioBus.sfx("hurt")
-	GameState.player_hit()
+	# Real hit → death cycle (HTML p.dead / p.respawn)
 	if StageFlow:
 		StageFlow.note_player_hit()
-	# HTML hitPlayer: run.power = Math.max(1, run.power - 1.0)
+	GameState.player_hit(hearts)
+	if AudioBus:
+		AudioBus.sfx("hurt")
+	dead = true
+	respawn = 70.0
+	velocity = Vector2.ZERO
+	dash = 0.0
+	trail.clear()
+	if hearts > 1 and CombatHelpers:
+		CombatHelpers.flash("✖ ELITE HIT — %d HEARTS!" % hearts, 80.0)
+		CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 7.0)
+	var line: String = str(HURT_LINES[randi() % HURT_LINES.size()])
+	if GameState.lives < 0:
+		line = "I won’t give up on Bobo!"
+	if CombatHelpers:
+		CombatHelpers.flash(line, 90.0 if GameState.lives < 0 else 55.0)
+		for i in range(40):
+			CombatHelpers.particles.append({
+				"x": global_position.x, "y": global_position.y,
+				"vx": (randf() - 0.5) * 9.0, "vy": (randf() - 0.5) * 9.0,
+				"life": 36.0, "c": "#ff9ecb",
+			})
+	# Drop power on death (scatter items)
+	var lost := maxf(0.0, GameState.power - 1.0)
 	GameState.power = maxf(1.0, GameState.power - 1.0)
+	if ItemSystem:
+		var n_drop := mini(8, int(round(lost * 10.0)) + 3)
+		for i in range(n_drop):
+			ItemSystem.drop_item(
+				global_position.x + (randf() - 0.5) * 40.0,
+				global_position.y - 10.0,
+				"power"
+			)
+	# Push enemy bullets out of a 100px radius
+	if bullet_pool and bullet_pool.has_method("clear_enemy_near"):
+		bullet_pool.clear_enemy_near(global_position, 100.0)
 	if GameState.lives < 0:
 		died.emit()
+
+func _respawn_player() -> void:
+	## HTML initPlayer after death when lives remain
+	dead = false
+	respawn = 0.0
+	var pf: Rect2 = Config.playfield()
+	global_position = Vector2(pf.position.x + pf.size.x * 0.5, pf.position.y + pf.size.y - 70.0)
+	invuln = 120.0
+	aim = -PI / 2.0
+	focus = false
+	dash = 0.0
+	dash_cd = 0.0
+	slash_dash = false
+	trail.clear()
+	knock = 0.0
+	bomb_fx = 0.0
+	vial_hits = 0
+	vial_t = 0.0
+	phase_t = 0.0
+	velocity = Vector2.ZERO
+	sprite.modulate.a = 1.0

@@ -315,22 +315,31 @@ func _update_burns(df: float) -> void:
 		bn["dt"] = float(bn.get("dt", 0)) + df
 		var prev_dt = float(bn.dt) - df
 		if int(floor(float(bn.dt) / 6.0)) > int(floor(prev_dt / 6.0)):
-			# damage tick every ~6 frames
+			# damage tick every ~6 frames (HTML updateBurns cone)
 			if tree:
+				var bnx := float(bn.x)
+				var bny := float(bn.y)
+				var br := float(bn.reach)
+				var bdir := float(bn.dir)
+				var bhalf := float(bn.half)
 				for e in tree.get_nodes_in_group("enemies"):
 					if not is_instance_valid(e):
 						continue
-					var dx: float = e.global_position.x - float(bn.x)
-					var dy: float = e.global_position.y - float(bn.y)
+					var dx: float = e.global_position.x - bnx
+					var dy: float = e.global_position.y - bny
 					var d := sqrt(dx * dx + dy * dy)
-					if d < float(bn.reach) and CombatHelpers.ang_diff(atan2(dy, dx), float(bn.dir)) < float(bn.half):
+					if d < br and CombatHelpers.ang_diff(atan2(dy, dx), bdir) < bhalf:
 						if e.has_method("take_damage"):
 							e.take_damage(2.0)
-							e.set("flash", 4.0)
-				# clear enemy bullets near burn cone
+							if "flash" in e:
+								# HTML: boss.flash=2, mobs flash=4
+								e.flash = 2.0 if e.is_in_group("bosses") else 4.0
+				# HTML: cancel bullets only inside the burn cone (not a full circle)
 				var pool := _bullet_pool()
-				if pool and pool.has_method("clear_enemy_near"):
-					pool.clear_enemy_near(Vector2(float(bn.x), float(bn.y)), float(bn.reach) * 0.9)
+				if pool and pool.has_method("filter_enemy_in_cone"):
+					pool.filter_enemy_in_cone(Vector2(bnx, bny), br * 0.9, bdir, bhalf)
+				elif pool and pool.has_method("clear_enemy_near"):
+					pool.clear_enemy_near(Vector2(bnx, bny), br * 0.9)
 			# particles
 			var a := float(bn.dir) - float(bn.half) + randf() * float(bn.half) * 2.0
 			var rr := float(bn.reach) * (0.3 + randf() * 0.7)

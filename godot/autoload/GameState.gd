@@ -40,9 +40,12 @@ func _bind_sim_clock() -> void:
 		SimClock.sim_tick.connect(_on_sim_tick)
 
 func _on_sim_tick(_dt: float) -> void:
-	## HTML update(): power bleed 0.00085/frame when power>1, not in dialog, not stage-cleared
+	## HTML update(): special trickle always in play; power bleed when power>1, not dialog, not cleared
 	if state != State.PLAY:
 		return
+	# HTML: if(run.special<100) run.special=Math.min(100, run.special+0.012)
+	if special_meter < 100.0:
+		special_meter = minf(100.0, special_meter + 0.012)
 	if power <= 1.0:
 		return
 	var cleared := bool(get_meta("stage_cleared", false))
@@ -153,9 +156,10 @@ func use_bomb() -> bool:
 	ProgressStore.estats_add("bombs", 1)
 	return true
 
-func player_hit() -> void:
+func player_hit(dmg: int = 1) -> void:
+	## HTML hitPlayer lives loss (elite can take 2 hearts)
 	run_no_death = false
-	lives -= 1
+	lives -= maxi(1, dmg)
 	if lives < 0:
 		end_run(false)
 
