@@ -146,8 +146,9 @@ func _physics_process(delta: float) -> void:
 		dash -= df
 		velocity = Vector2.from_angle(dash_ang) * 18.0 * FRAME
 		trail.push_front({"wx": global_position.x, "wy": global_position.y})
-		if trail.size() > 18:
-			trail.resize(18)
+		if trail.size() > 16:
+			trail.resize(16)
+		_dash_plow()
 		if dash <= 0.0:
 			_dash_land()
 			slash_dash = false
@@ -256,42 +257,161 @@ func _clamp_to_playfield() -> void:
 	global_position.y = clampf(global_position.y, pf.position.y + 8, pf.end.y - 8)
 
 func _do_dash() -> void:
-	var mouse := get_global_mouse_position()
-	dash_ang = (mouse - global_position).angle()
-	dash = 10.0
-	dash_cd = 48.0
-	invuln = maxf(invuln, 14.0)
-	# full-charge melee hold + dash = slash dash (HTML)
-	slash_dash = melee != null and float(melee.get("charge")) >= 0.85
-	trail.clear()
-
-func _dash_land() -> void:
-	# HTML dashLandExplosion + kill nearby mumus on landing
-	if CombatHelpers:
-		CombatHelpers.dash_land_explosion(self, slash_dash)
-	for e in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(e) or e.is_in_group("bosses"):
-			continue
-		if global_position.distance_to(e.global_position) < 48.0 and e.has_method("take_damage"):
-			e.take_damage(12.0)
-
-func _try_bomb() -> void:
-	if not GameState.use_bomb():
+	## HTML doDash — face/mouse aim, slash-dash on full melee hold
+	if dash > 0.0 or dash_cd > 0.0:
 		return
-	if bullet_pool:
-		bullet_pool.clear_enemy()
-	# damage all enemies
+	var ang := aim if aim != 0.0 else -PI / 2.0
+	var mouse := get_global_mouse_position()
+	var dmouse := mouse - global_position
+	if dmouse.length() > 8.0:
+		ang = dmouse.angle()
+	# HTML: slash = meleeHeld && meleeChg >= 0.99
+	var slash := melee != null and bool(melee.get("holding")) and float(melee.get("charge")) >= 0.99
+	dash_ang = ang
+	slash_dash = slash
+	dash = 16.0 if slash else 12.0
+	dash_cd = 52.0 if slash else 40.0
+	invuln = maxf(invuln, 22.0 if slash else 15.0)
+	trail.clear()
+	ProgressStore.estats_add("dashes", 1)
+	if int(ProgressStore.estats.get("dashes", 0)) >= 50:
+		ProgressStore.unlock_emblem("dash_50")
+	if slash:
+		if CombatHelpers:
+			CombatHelpers.flash("✦ SLASH DASH!", 42.0)
+			CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 6.0)
+		ProgressStore.unlock_emblem("slash_dash")
+		var mk := "katana"
+		var ar: Dictionary = ProgressStore.progress.get("arsenal", {})
+		var ms: Array = ar.get("m", ["katana"])
+		if ms.size():
+			mk = str(ms[0])
+		# HTML doMeleeSwipe(1.0, ang) at dash start, then lock melee CD
+		if melee.has_method("release"):
+			melee.holding = true
+			melee.charge = 1.0
+			melee.cooldown = 0.0
+			melee.release(self, mk, ang)
+			melee.cooldown = maxf(float(melee.cooldown), 24.0)
+		if AudioBus:
+			AudioBus.sfx("card")
+			AudioBus.sfx(str(_melee_def(mk).get("snd", "slash")))
+		if CombatHelpers:
+			for i in range(24):
+				CombatHelpers.particles.append({
+					"x": global_position.x, "y": global_position.y,
+					"vx": -cos(ang) * 4.0 + (randf() - 0.5) * 3.6,
+					"vy": -sin(ang) * 4.0 + (randf() - 0.5) * 3.6,
+					"life": 22.0, "c": "#ffe08a",
+				})
+	else:
+		if AudioBus:
+			AudioBus.sfx("graze")
+			AudioBus.sfx("power")
+		if CombatHelpers:
+			for i in range(14):
+				CombatHelpers.particles.append({
+					"x": global_position.x, "y": global_position.y,
+					"vx": -cos(ang) * 4.0 + (randf() - 0.5) * 2.5,
+					"vy": -sin(ang) * 4.0 + (randf() - 0.5) * 2.5,
+					"life": 18.0, "c": "#9ad4ff",
+				})
+
+func _melee_def(key: String) -> Dictionary:
+	if DataRegistry:
+		for m in DataRegistry.melee:
+			if str(m.get("key", "")) == key:
+				return m
+		if DataRegistry.melee.size():
+			return DataRegistry.melee[0]
+	return {}
+
+func _dash_plow() -> void:
+	## HTML: dash kills mumus / chips boss; slash cuts bullets + trail melee arcs
+	var rad := 26.0 if slash_dash else 16.0
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):
 			continue
 		if e.is_in_group("bosses"):
+			var br: float = 36.0
+			if "radius" in e:
+				br = float(e.radius)
+			var hit_r := br + (18.0 if slash_dash else 14.0)
+			if global_position.distance_to(e.global_position) < hit_r:
+				if e.has_method("take_damage"):
+					e.take_damage(5.0 if slash_dash else 2.0)
+					if "flash" in e:
+						e.flash = 4.0
+			continue
+		var er: float = 15.0
+		if "radius" in e:
+			er = float(e.radius)
+		if global_position.distance_to(e.global_position) < er + rad:
 			if e.has_method("take_damage"):
-				e.take_damage(float(e.get("max_hp")) * 0.09)
+				e.take_damage(999.0)
+	if slash_dash:
+		if bullet_pool and bullet_pool.has_method("clear_enemy_near"):
+			bullet_pool.clear_enemy_near(global_position, 34.0)
+		# slash arcs every 4 frames along the path
+		if int(dash) % 4 == 0:
+			var mk2 := "katana"
+			var ar2: Dictionary = ProgressStore.progress.get("arsenal", {})
+			var ms2: Array = ar2.get("m", ["katana"])
+			if ms2.size():
+				mk2 = str(ms2[0])
+			var m: Dictionary = _melee_def(mk2)
+			if CombatHelpers:
+				CombatHelpers.melee_fx.append({
+					"x": global_position.x, "y": global_position.y,
+					"dir": dash_ang,
+					"reach": float(m.get("reach", 155)) * 0.9,
+					"half": float(m.get("arc", 2.0)) * 0.5,
+					"col": str(m.get("col", "#ff2b4d")),
+					"key": str(m.get("key", mk2)),
+					"life": 12.0, "t": 0.0, "charge": 1.0,
+				})
+
+func _dash_land() -> void:
+	## HTML dashLandExplosion on touchdown
+	if CombatHelpers:
+		CombatHelpers.dash_land_explosion(self, slash_dash)
+
+func _try_bomb() -> void:
+	## HTML doBomb — clear bullets, chip all enemies, BOBINA BLAST juice
+	if not GameState.use_bomb():
+		return
+	if bullet_pool:
+		bullet_pool.clear_enemy()
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e):
+			continue
+		if e.is_in_group("bosses"):
+			var intro_v := float(e.intro) if "intro" in e else 0.0
+			var dead_v := bool(e.dead) if "dead" in e else false
+			if e.has_method("take_damage") and intro_v <= 0.0 and not dead_v:
+				var mh := float(e.max_hp) if "max_hp" in e else 100.0
+				e.take_damage(floorf(mh * 0.09))
+				if "flash" in e:
+					e.flash = 6.0
 		elif e.has_method("take_damage"):
 			e.take_damage(8.0)
-	invuln = 140.0
+			if "flash" in e:
+				e.flash = 6.0
+	invuln = maxf(invuln, 140.0)
 	bomb_fx = 46.0
-	AudioBus.sfx("bomb")
+	if AudioBus:
+		AudioBus.sfx("bomb")
+	if CombatHelpers:
+		CombatHelpers.flash("BOBINA BLAST!", 50.0)
+		for i in range(60):
+			var cols := ["#ff6ec7", "#ffd27a", "#fff"]
+			CombatHelpers.particles.append({
+				"x": global_position.x, "y": global_position.y,
+				"vx": (randf() - 0.5) * 14.0, "vy": (randf() - 0.5) * 14.0,
+				"life": 40.0, "c": cols[i % 3],
+			})
+	if int(ProgressStore.estats.get("bombs", 0)) >= 50:
+		ProgressStore.unlock_emblem("bomb_50")
 	if StageFlow:
 		StageFlow.note_bomb()
 	bombed.emit()

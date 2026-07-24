@@ -75,6 +75,8 @@ func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 		}
 		active_twin = "igor"
 		hud_name = "Igor Bogdanoff"
+		# HTML: boss.swapCd=420+((Math.random()*180)|0)
+		swap_cd = 420.0 + float(randi() % 180)
 	intro = 20.0 if GameState.speedrun else 90.0
 	var pf: Rect2 = Config.playfield()
 	mtx = pf.get_center().x
@@ -144,11 +146,11 @@ func _physics_process(delta: float) -> void:
 	if swap_cd > 0.0:
 		swap_cd -= delta * FRAME
 
-	# twin swap
+	# HTML: voluntary twin hand-off when swapCd hits 0 (if other still up & HP > 16%)
 	if twin and swap_cd <= 0.0:
 		var other := "grichka" if active_twin == "igor" else "igor"
-		if not bool(tw[other].get("done", false)) and hp > max_hp * 0.16 and t % 300 == 0 and randf() < 0.35:
-			_twin_swap(other)
+		if not bool(tw[other].get("done", false)) and hp > max_hp * 0.16:
+			_twin_swap(other, false)
 
 	# roam
 	if t % 100 == 0:
@@ -435,18 +437,44 @@ func _boss_special(cx: float, cy: float, p: Node2D) -> void:
 				for a in 9:
 					BulletPatterns.eb(bullet_pool, cx, cy, float(a) / 9.0 * TAU, 2.0, 6, "#ff5b3c")
 
-func _twin_swap(other: String) -> void:
-	if StageFlow:
-		StageFlow.twin_swap(self)
-	tw[active_twin]["hp"] = hp
+func _twin_swap(other: String, death_handoff: bool = false) -> void:
+	## HTML twinSwap (voluntary) vs one-twin-felled survivor seize
+	if not death_handoff:
+		# bank current HP before retreat
+		tw[active_twin]["hp"] = hp
 	active_twin = other
 	hp = float(tw[other].get("hp", max_hp))
 	max_hp = float(tw[other].get("max", max_hp))
 	hud_name = ("Igor" if other == "igor" else "Grichka") + " Bogdanoff"
-	swap_cd = 480 + randi() % 180
-	flash = 14.0
+	spin = 0.0
 	if bullet_pool:
 		bullet_pool.clear_enemy()
+	var pf: Rect2 = Config.playfield()
+	if death_handoff:
+		# HTML death handoff: swapCd 480+rand*180, flash 14, win sfx, RISES banner
+		swap_cd = 480.0 + float(randi() % 180)
+		flash = 14.0
+		if AudioBus:
+			AudioBus.sfx("win")
+		if CombatHelpers:
+			CombatHelpers.flash(
+				"⚔ %s RISES — beat BOTH!" % ("IGOR" if other == "igor" else "GRICHKA"),
+				130.0
+			)
+			for i in range(40):
+				CombatHelpers.particles.append({
+					"x": global_position.x, "y": global_position.y,
+					"vx": (randf() - 0.5) * 10.0, "vy": (randf() - 0.5) * 10.0,
+					"life": 34.0, "c": "#ff6ec7",
+				})
+	else:
+		# HTML twinSwap: swapCd 420+rand*240, flash 10, card sfx, takes-the-strings + taunt
+		swap_cd = 420.0 + float(randi() % 240)
+		flash = 10.0
+		mtx = pf.position.x + 55.0 + randf() * (pf.size.x - 110.0)
+		mty = pf.position.y + 55.0 + randf() * (pf.size.y - 135.0)
+		if StageFlow:
+			StageFlow.twin_swap(self)
 
 func take_damage(amount: float, opts: Dictionary = {}) -> void:
 	## amount is raw shot dmg; opts may include voidbolt (already-scaled path from Bullet preferred)
@@ -499,9 +527,8 @@ func _on_hp_zero() -> void:
 		tw[active_twin]["done"] = true
 		var other := "grichka" if active_twin == "igor" else "igor"
 		if not bool(tw[other].get("done", false)):
-			_twin_swap(other)
-			hp = float(tw[other].get("max", max_hp))
-			tw[other]["hp"] = hp
+			# HTML: survivor keeps banked HP (not full heal)
+			_twin_swap(other, true)
 			return
 	dead = true
 	hp = 0

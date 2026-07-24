@@ -192,23 +192,35 @@ func tick_dialog(delta: float) -> void:
 			dialog["timer"] = CombatHelpers.line_time(txt)
 
 func twin_swap(boss: Node) -> void:
-	## HTML twinSwap — extra FX on top of BossController swap
+	## HTML twinSwap voluntary FX — flash, particles, card sfx, taunt dialog
 	if boss == null:
 		return
-	var other := "grichka" if str(boss.get("active_twin")) == "igor" else "igor"
+	# BossController already switched active_twin to the incoming twin
+	var other := "igor"
+	if "active_twin" in boss:
+		other = str(boss.active_twin)
 	CombatHelpers.flash("⟳ %s takes the strings" % ("IGOR" if other == "igor" else "GRICHKA"), 90.0)
 	if AudioBus:
 		AudioBus.sfx("card")
 	var col := "#b48ce0" if other == "igor" else "#e0b84a"
+	var bx := float(boss.global_position.x) if boss is Node2D else 0.0
+	var by := float(boss.global_position.y) if boss is Node2D else 0.0
 	for i in range(26):
 		CombatHelpers.particles.append({
-			"x": boss.global_position.x, "y": boss.global_position.y,
+			"x": bx, "y": by,
 			"vx": (randf() - 0.5) * 8.0, "vy": (randf() - 0.5) * 8.0,
 			"life": 28.0, "c": col,
 		})
 	var pool := get_tree().get_first_node_in_group("bullet_pool") if get_tree() else null
 	if pool and pool.has_method("clear_enemy"):
 		pool.clear_enemy()
+	# HTML: taunt only (no retort) if dialog free
+	if dialog == null and "data" in boss and boss.data is Dictionary:
+		var bd: Dictionary = boss.data
+		var taunts = bd.get("taunts", [])
+		if taunts is Array and (taunts as Array).size() > 0:
+			var tlist: Array = taunts
+			start_dialog([{"w": 0, "t": str(tlist[randi() % tlist.size()])}], bd)
 
 func tick(delta: float) -> void:
 	if clear_msg_t > 0.0:
