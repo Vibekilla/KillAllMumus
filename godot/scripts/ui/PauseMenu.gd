@@ -137,14 +137,23 @@ func _center_panel(pc: PanelContainer, w: float) -> void:
 	pc.anchor_top = 0.0
 	pc.anchor_right = 0.0
 	pc.anchor_bottom = 0.0
-	pc.custom_minimum_size = Vector2(w, 0)
 	pc.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	pc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	# Measure after style applied
+	# HTML .ps-card max-height ~92vh — fit content; prefer full buttons over broken scroll reparent
+	var max_h := vs.y * 0.92
+	# Undo any prior ScrollContainer wrap (broken dual attempts)
+	var scroll := pc.get_node_or_null("Scroll") as ScrollContainer
+	if scroll:
+		var inner := scroll.get_node_or_null("VBox") as VBoxContainer
+		if inner:
+			inner.reparent(pc)
+		scroll.queue_free()
 	pc.reset_size()
 	var ph := maxf(pc.get_combined_minimum_size().y, pc.size.y)
 	if ph < 120.0:
 		ph = 420.0
+	ph = minf(ph, max_h)
+	pc.custom_minimum_size = Vector2(w, 0)
 	pc.size = Vector2(w, ph)
 	pc.position = Vector2(roundf((vs.x - w) * 0.5), roundf((vs.y - ph) * 0.5))
 	move_child(pc, get_child_count() - 1)

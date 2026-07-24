@@ -385,6 +385,29 @@ func _run() -> void:
 		for _i in range(4):
 			await process_frame
 	await _save("godot_play")
+	# Phase 2 minor: play-scale (×1) expression dual — force dual_expr on player
+	if not fast and player:
+		var exprs = [null, "uwu", "smile", "squee", "giggle", "annoyed"]
+		# Map VICTORY_FACES indices 0..5
+		for face_i in range(exprs.size()):
+			var ex = exprs[face_i]
+			if ex == null:
+				player.set_meta("dual_expr", "")  # Auto → null smile path
+			else:
+				player.set_meta("dual_expr", ex)
+			player.global_position = Vector2(304, 400)
+			if "invuln" in player:
+				player.invuln = 99999.0
+			var wd = _main.get_node_or_null("WorldCanvas")
+			if wd and wd.get("bobina_cache") and wd.bobina_cache.has_method("clear_cache"):
+				wd.bobina_cache.clear_cache()
+			for _i in range(12):
+				await process_frame
+				if wd:
+					wd.queue_redraw()
+			await _save("godot_play_face_%d" % face_i)
+		if player.has_meta("dual_expr"):
+			player.remove_meta("dual_expr")
 
 	# Pause overlay (HTML #pausescreen during play) — re-center after force_ui_size
 	GameState.set_state(GameState.State.PAUSED)

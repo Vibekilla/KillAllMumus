@@ -476,7 +476,7 @@ func _draw_bullet_node(b: Node) -> void:
 		})
 
 func _player_state(player: Node) -> Dictionary:
-	return {
+	var st := {
 		"x": player.global_position.x,
 		"y": player.global_position.y,
 		"outfit": GameState.selected_outfit,
@@ -500,6 +500,15 @@ func _player_state(player: Node) -> Dictionary:
 		"vialT": float(player.vial_t) if player.get("vial_t") != null else 0.0,
 		"dead": false,
 	}
+	# Dual / celebration: optional expr override (HTML play is null = Auto/smile)
+	if player.has_meta("dual_expr"):
+		var de = player.get_meta("dual_expr")
+		if de != null and str(de) != "":
+			st["expr"] = str(de)
+		# dual_expr meta set to empty string means explicit Auto (null expr → smile)
+	elif player.get("expr") != null:
+		st["expr"] = player.get("expr")
+	return st
 
 func _draw_bobina_cached_or_live(st: Dictionary) -> void:
 	## Phase 1.2: SubViewport-baked drawBobina when state is cacheable.

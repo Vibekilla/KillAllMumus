@@ -28,6 +28,7 @@ g.ok(menus.includes("clip()"), "outfit menu stage clip like HTML");
 g.ok(menus.includes("_draw_posed_figure") || menus.includes("draw_posed"), "outfit posed figure");
 g.ok(shot.includes("godot_gif_talk") || shot.includes("gif_talk"), "dual talk GIF");
 g.ok(shot.includes("godot_gif_confused") || shot.includes("gif_confused"), "dual confused GIF");
+g.ok(shot.includes("play_face_") || shot.includes("godot_play_face_"), "dual play-scale expression faces");
 g.ok(shot.includes("outfit_pose = 5") || shot.includes("pose_i in [2, 3, 5]"), "dual coffee / This Is Fine pose");
 
 const bank = read("godot/scripts/html_parity/AssetBank.gd");

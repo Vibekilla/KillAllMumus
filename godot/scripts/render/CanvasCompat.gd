@@ -195,9 +195,10 @@ func _effective_lw() -> float:
 	var m := (absf(sc.x) + absf(sc.y)) * 0.5
 	if m < 0.001:
 		m = 1.0
-	# Soft compress: full scale up to 1.5×, then sqrt-dampen above that
-	if m > 1.5:
-		m = 1.5 + sqrt(m - 1.5) * 0.85
+	# Soft compress: full scale up to 1.35×, then stronger sqrt dampen; hard cap ~2.1×
+	if m > 1.35:
+		m = 1.35 + sqrt(m - 1.35) * 0.55
+	m = minf(m, 2.1)
 	return maxf(0.5, _lw * m)
 
 func global_alpha(a: float) -> void:

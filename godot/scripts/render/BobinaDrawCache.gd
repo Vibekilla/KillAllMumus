@@ -69,24 +69,27 @@ func get_texture(outfit: String, expr, pose: int, tick: int, scale: float, state
 	return _get_or_enqueue(key, outfit, expr, tick, scale, state)
 
 ## Playfield Bobina: quantize facing + focus; iframe/alpha applied by caller at blit.
+## Optional st.expr (dual play-scale faces / celebration) is part of the cache key.
 func get_play_texture(st: Dictionary) -> Texture2D:
 	_ensure_viewport()
 	var outfit := str(st.get("outfit", "og"))
 	var face := _face_bucket(float(st.get("face", -PI / 2.0)))
 	var focus := 1 if bool(st.get("focus", false)) else 0
 	var tick := int(st.get("tick", 0))
-	var extra := "f%.3f|fo%d" % [face, focus]
-	var key := cache_key(outfit, null, 0, tick, 1.0, extra)
+	var expr = st.get("expr", null)
+	var expr_key := str(expr) if expr != null and str(expr) != "" else "null"
+	var extra := "f%.3f|fo%d|e%s" % [face, focus, expr_key]
+	var key := cache_key(outfit, expr if expr_key != "null" else null, 0, tick, 1.0, extra)
 	if _ready_tex.has(key):
 		_touch(key)
 		return _ready_tex[key]
-	# Stale-but-close frame: same outfit/face/focus, any tick bucket (avoids live drawBobina)
-	var prefix := "%s|null|0|" % outfit
+	# Stale-but-close: same outfit/face/focus/expr, any tick bucket
+	var prefix := "%s|%s|0|" % [outfit, expr_key]
 	var suffix := "|1.0|%s" % extra
 	var fallback: Texture2D = null
 	for k in _ready_tex.keys():
 		var ks := str(k)
-		if ks.begins_with(prefix) and ks.ends_with(suffix):
+		if ks.ends_with(suffix) and ("|%s|" % expr_key) in ks:
 			fallback = _ready_tex[k]
 			_touch(ks)
 			break
@@ -97,7 +100,11 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 	bake["y"] = 0
 	bake["bombFx"] = 0
 	bake["dash"] = 0
-	_get_or_enqueue(key, outfit, null, tick, 1.0, bake)
+	if expr_key != "null":
+		bake["expr"] = expr
+	else:
+		bake.erase("expr")
+	_get_or_enqueue(key, outfit, expr if expr_key != "null" else null, tick, 1.0, bake)
 	return fallback  # null only until first bake for this facing lands
 
 func _get_or_enqueue(key: String, outfit: String, expr, tick: int, scale: float, state: Dictionary) -> Texture2D:
@@ -131,8 +138,16 @@ func has_play_texture(st: Dictionary) -> bool:
 	var face := _face_bucket(float(st.get("face", -PI / 2.0)))
 	var focus := 1 if bool(st.get("focus", false)) else 0
 	var tick := int(st.get("tick", 0))
-	var extra := "f%.3f|fo%d" % [face, focus]
-	return _ready_tex.has(cache_key(outfit, null, 0, tick, 1.0, extra))
+	var expr = st.get("expr", null)
+	var expr_key := str(expr) if expr != null and str(expr) != "" else "null"
+	var extra := "f%.3f|fo%d|e%s" % [face, focus, expr_key]
+	return _ready_tex.has(cache_key(outfit, expr if expr_key != "null" else null, 0, tick, 1.0, extra))
+
+func clear_cache() -> void:
+	## Dual playtest: drop bakes when forcing expr/outfit matrix
+	_ready_tex.clear()
+	_order.clear()
+	_queue.clear()
 
 func _touch(key: String) -> void:
 	var i := _order.find(key)

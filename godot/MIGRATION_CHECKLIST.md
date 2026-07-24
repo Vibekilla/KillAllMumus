@@ -39,7 +39,10 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [x] GIF overlays: talk (dialog), confused (floater), leek (stage clear); AssetBank on SimClock
 - [x] Full wardrobe dual via **OUTFITS menu** (HTML `drawOutfits` ×4.7 stage — all 28 skins)
 - [x] Outfit menu chrome parity: gradient panel, radial spotlight, round-rect clip
-- [ ] Multi-scale expression matrix outside outfits menu (play ×1 / HUD mini) — separate from wardrobe dual
+- [x] Play-scale (×1) expression dual (`godot_play_face_0..5` via player dual_expr)
+- [x] Pause card: full dim, center, hide HUD, 92vh height clamp
+- [x] Smile lid stroke dampened at ×4.7 preview (anti-glasses)
+- [ ] HUD-mini scale dual (optional / leaderboard icons)
 
 ## Phase 3 — Exhaustive visuals
 
