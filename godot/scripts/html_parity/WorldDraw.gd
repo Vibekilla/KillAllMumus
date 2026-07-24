@@ -514,6 +514,19 @@ func _player_state(player: Node) -> Dictionary:
 					"x": float(q.get("x", q.get("wx", player.global_position.x))),
 					"y": float(q.get("y", q.get("wy", player.global_position.y))),
 				})
+	# Dual stills: force upright face + zero walk so Bobina matches HTML freeze pose
+	var dual_lock: bool = player.has_meta("dual_lock_pose") and bool(player.get_meta("dual_lock_pose"))
+	var face_v: float = -PI / 2.0
+	if dual_lock:
+		if player.has_meta("dual_aim"):
+			face_v = float(player.get_meta("dual_aim"))
+	elif player.get("aim") != null:
+		face_v = float(player.aim)
+	var vx_v: float = 0.0
+	var vy_v: float = 0.0
+	if not dual_lock and player.get("velocity") != null:
+		vx_v = float(player.velocity.x)
+		vy_v = float(player.velocity.y)
 	var st := {
 		"x": player.global_position.x,
 		"y": player.global_position.y,
@@ -522,9 +535,9 @@ func _player_state(player: Node) -> Dictionary:
 		"power": float(GameState.power),
 		"focus": bool(player.focus) if player.get("focus") != null else false,
 		"iframe": float(player.invuln) if player.get("invuln") != null else 0.0,
-		"vx": player.velocity.x if player.get("velocity") != null else 0.0,
-		"vy": player.velocity.y if player.get("velocity") != null else 0.0,
-		"face": float(player.aim) if player.get("aim") != null else (-PI / 2.0),
+		"vx": vx_v,
+		"vy": vy_v,
+		"face": face_v,
 		"walk": 0.0,
 		"bombFx": float(player.bomb_fx) if player.get("bomb_fx") != null else 0.0,
 		"dash": float(player.dash) if player.get("dash") != null else 0.0,

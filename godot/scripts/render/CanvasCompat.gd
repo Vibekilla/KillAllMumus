@@ -130,11 +130,18 @@ func _c(col: Color) -> Color:
 	# Approximate Canvas GCO on Godot CanvasItem (no true blend modes mid-draw)
 	match _gco:
 		"lighter", "screen", "plus-lighter":
-			# brighten: lift alpha + slight channel boost for glow FX
-			c.a = minf(1.0, c.a * 1.35 + 0.08)
-			c.r = minf(1.0, c.r * 1.08 + 0.04)
-			c.g = minf(1.0, c.g * 1.08 + 0.04)
-			c.b = minf(1.0, c.b * 1.08 + 0.04)
+			# Additive-ish on dark bg. Never floor alpha — a +0.08 floor turned
+			# HTML faint map-bleed (α≈0.03–0.09) into opaque purple mud.
+			if c.a < 0.15:
+				c.a = minf(1.0, c.a * 1.12)
+				c.r = minf(1.0, c.r * 1.04)
+				c.g = minf(1.0, c.g * 1.04)
+				c.b = minf(1.0, c.b * 1.04)
+			else:
+				c.a = minf(1.0, c.a * 1.22 + 0.02)
+				c.r = minf(1.0, c.r * 1.06 + 0.02)
+				c.g = minf(1.0, c.g * 1.06 + 0.02)
+				c.b = minf(1.0, c.b * 1.06 + 0.02)
 		"multiply", "darken":
 			c.a = minf(1.0, c.a * 0.85)
 			c.r *= 0.92

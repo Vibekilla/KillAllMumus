@@ -10,6 +10,8 @@ var spawning: bool = false
 var boss_spawned: bool = false
 var roll: int = -1  # last pack index spawned (-1 = none yet)
 var _next_spawn_at: float = 0.0
+## Dual / screenshot stills: hard stop all wave activity
+var dual_lock: bool = false
 
 const FRAME := 60.0
 const EnemyScene := preload("res://scenes/enemies/Enemy.tscn")
@@ -22,6 +24,8 @@ func setup(pool: Node, pf: Node2D) -> void:
 		SimClock.sim_tick.connect(_on_sim_tick)
 
 func start_stage(_stage_index: int) -> void:
+	if dual_lock:
+		return
 	stage_time = 0.0
 	roll = -1
 	_next_spawn_at = 0.0  # first pack immediately
@@ -35,9 +39,20 @@ func clear() -> void:
 		if is_instance_valid(e) and not e.is_in_group("bosses"):
 			e.queue_free()
 
+func lock_for_dual() -> void:
+	## Pin spawner off for dual screenshots
+	dual_lock = true
+	spawning = false
+	boss_spawned = true
+	stage_time = 99999.0
+	clear()
+
+func unlock_dual() -> void:
+	dual_lock = false
+
 func _on_sim_tick(_dt: float) -> void:
 	## Wave timers in HTML frames @ 60 Hz — one unit per fixed sim step.
-	if not spawning or GameState.state != GameState.State.PLAY:
+	if dual_lock or not spawning or GameState.state != GameState.State.PLAY:
 		return
 	stage_time += 1.0
 	_spawn_waves()
@@ -54,7 +69,7 @@ func _on_sim_tick(_dt: float) -> void:
 		stage_ready_for_boss.emit()
 
 func _spawn_waves() -> void:
-	if playfield == null:
+	if dual_lock or playfield == null:
 		return
 	var s := GameState.stage_index
 	var st := stage_time

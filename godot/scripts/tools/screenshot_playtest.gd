@@ -156,11 +156,15 @@ func _dual_sanitize(player, pool) -> void:
 	for sp in root.get_tree().get_nodes_in_group("enemy_spawner"):
 		if not is_instance_valid(sp):
 			continue
-		if sp.has_method("clear"):
+		if sp.has_method("lock_for_dual"):
+			sp.lock_for_dual()
+		elif sp.has_method("clear"):
 			sp.clear()
 		# Pin spawner off for dual stills (clear alone is not enough if stage restarts)
 		if "spawning" in sp:
 			sp.spawning = false
+		if "dual_lock" in sp:
+			sp.dual_lock = true
 		if "boss_spawned" in sp:
 			sp.boss_spawned = true
 		if "stage_time" in sp:
@@ -232,10 +236,26 @@ func _dual_sanitize(player, pool) -> void:
 		if PStore.has_meta("emblem_toasts"):
 			PStore.set_meta("emblem_toasts", [])
 	if player:
+		player.set_meta("dual_lock_pose", true)
+		player.set_meta("dual_aim", -PI / 2.0)
+		player.set_meta("dual_hold_fx", true)
+		player.set_meta("dual_expr", "")  # Auto/smile like HTML play stills
 		if "aim" in player:
 			player.aim = -PI / 2.0
-		if "face" in player:
-			player.set("face", -PI / 2.0)
+		if "velocity" in player:
+			player.velocity = Vector2.ZERO
+		if "dash" in player:
+			player.dash = 0.0
+		if "trail" in player:
+			player.trail = []
+	# Hard-stop StageController from re-arming waves mid-still
+	for sc in root.get_tree().get_nodes_in_group("stage_controller"):
+		if is_instance_valid(sc) and "spawner" in sc and sc.spawner:
+			var spn = sc.spawner
+			if spn and "dual_lock" in spn:
+				spn.dual_lock = true
+			if spn and "spawning" in spn:
+				spn.spawning = false
 
 func _run() -> void:
 	await process_frame
@@ -778,6 +798,7 @@ func _run() -> void:
 		player.global_position = Vector2(304, 400)
 		var pool = player.get("bullet_pool")
 		var fire = player.get("fire_sys")
+		var playfield = _main.get_node_or_null("Playfield")
 		var weps: Array = ["laser", "homing", "wave", "scatter", "gatling", "grenade", "voidripper", "lotus", "shock", "spread"]
 		GameState.weapons.clear()
 		for w in weps:
@@ -834,8 +855,16 @@ func _run() -> void:
 			for _i in range(8):
 				await process_frame
 				_dual_sanitize(player, pool)
+			player.set_meta("dual_lock_pose", true)
+			player.set_meta("dual_aim", -PI / 2.0)
+			player.set_meta("dual_hold_fx", true)
+			player.set_meta("dual_expr", "")
+			player.global_position = Vector2(304, 400)
+			player.aim = -PI / 2.0
+			player.velocity = Vector2.ZERO
 			for pwr in [1.0, 3.0, 6.0]:
 				GameState.power = pwr
+				player.set_meta("dual_focus", false)
 				player.focus = false
 				player.shield_t = 0.0
 				player.rapid_t = 0.0
@@ -845,44 +874,99 @@ func _run() -> void:
 				player.dash = 0.0
 				player.bomb_fx = 0.0
 				player.trail = []
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
+				player.velocity = Vector2.ZERO
+				player.invuln = 99999.0
 				for _i in range(8):
 					await process_frame
-					# Keep field empty while aura settles
+					_dual_sanitize(player, pool)
+					player.set_meta("dual_lock_pose", true)
+					player.set_meta("dual_hold_fx", true)
+					player.aim = -PI / 2.0
+					player.global_position = Vector2(304, 400)
+					player.velocity = Vector2.ZERO
+					player.focus = false
+					player.dash = 0.0
+					player.trail = []
 					for e in root.get_tree().get_nodes_in_group("enemies"):
 						if is_instance_valid(e) and not e.is_in_group("bosses"):
 							e.queue_free()
+					if playfield:
+						for c in playfield.get_children():
+							if not is_instance_valid(c):
+								continue
+							if c.is_in_group("player") or c.is_in_group("bosses"):
+								continue
+							if c.is_in_group("enemies") or c.get("kind") != null:
+								c.queue_free()
 					var chp = _A("CombatHelpers")
 					if chp and "particles" in chp:
 						chp.particles.clear()
 				await _save("godot_aura_power_%d" % int(pwr))
+			# Variant stills — pin each FX flag like HTML __kamDual.setAura
 			GameState.power = 4.0
+			player.set_meta("dual_focus", true)
 			player.focus = true
 			player.invuln = 40.0
+			player.shield_t = 0.0
+			player.rapid_t = 0.0
+			player.vial_t = 0.0
+			player.phase_t = 0.0
+			player.dash = 0.0
+			player.bomb_fx = 0.0
+			player.trail = []
 			for _i in range(6):
 				await process_frame
+				_dual_sanitize(player, pool)
+				player.set_meta("dual_focus", true)
+				player.set_meta("dual_hold_fx", true)
+				player.focus = true
+				player.invuln = 40.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
+				player.velocity = Vector2.ZERO
 			await _save("godot_aura_focus")
+			player.set_meta("dual_focus", false)
 			player.focus = false
 			player.invuln = 99999.0
 			player.shield_t = 120.0
 			for _i in range(6):
 				await process_frame
+				player.shield_t = 120.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
+				player.velocity = Vector2.ZERO
+				for e in root.get_tree().get_nodes_in_group("enemies"):
+					if is_instance_valid(e) and not e.is_in_group("bosses"):
+						e.queue_free()
 			await _save("godot_aura_shield")
 			player.shield_t = 0.0
 			player.rapid_t = 120.0
 			for _i in range(6):
 				await process_frame
+				player.rapid_t = 120.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
 			await _save("godot_aura_rapid")
 			player.rapid_t = 0.0
 			player.vial_t = 120.0
 			player.vial_hits = 3
 			for _i in range(6):
 				await process_frame
+				player.vial_t = 120.0
+				player.vial_hits = 3
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
 			await _save("godot_aura_vial")
 			player.vial_t = 0.0
 			player.vial_hits = 0
 			player.phase_t = 120.0
 			for _i in range(6):
 				await process_frame
+				player.phase_t = 120.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
 			await _save("godot_aura_phase")
 			player.phase_t = 0.0
 			player.dash = 12.0
@@ -892,12 +976,23 @@ func _run() -> void:
 				player.trail.push_front({"wx": player.global_position.x, "wy": player.global_position.y + float(i) * 6.0})
 			for _i in range(4):
 				await process_frame
+				player.dash = 12.0
+				player.dash_ang = -PI / 2.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
+				player.velocity = Vector2.ZERO
+				if player.trail.is_empty():
+					for i in range(8):
+						player.trail.push_front({"wx": player.global_position.x, "wy": player.global_position.y + float(i) * 6.0})
 			await _save("godot_aura_dash")
 			player.dash = 0.0
 			player.trail = []
 			player.bomb_fx = 30.0
 			for _i in range(4):
 				await process_frame
+				player.bomb_fx = 30.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
 			await _save("godot_aura_bomb")
 			player.bomb_fx = 0.0
 
@@ -950,7 +1045,8 @@ func _run() -> void:
 
 		var cfg2 = _A("Config")
 		var pf2: Rect2 = cfg2.playfield() if cfg2 and cfg2.has_method("playfield") else Rect2(48, 14, 512, 516)
-		var playfield = _main.get_node_or_null("Playfield")
+		if playfield == null:
+			playfield = _main.get_node_or_null("Playfield")
 		var DataRegistry = _A("DataRegistry")
 
 		if _want("elites"):

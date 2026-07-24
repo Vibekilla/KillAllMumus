@@ -60,6 +60,38 @@ func setup(pool: Node) -> void:
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
+	# Dual screenshot lock: pin pose/facing; no mouse-follow / fire / move.
+	# Does NOT clear dash/trail/bomb — playtest sets those for stills.
+	if has_meta("dual_lock_pose") and bool(get_meta("dual_lock_pose")):
+		velocity = Vector2.ZERO
+		if has_meta("dual_aim"):
+			aim = float(get_meta("dual_aim"))
+		else:
+			aim = -PI / 2.0
+		if has_meta("dual_focus"):
+			focus = bool(get_meta("dual_focus"))
+		# Hold still timers when dual_hold_fx is set (stable aura stills)
+		var hold_fx := has_meta("dual_hold_fx") and bool(get_meta("dual_hold_fx"))
+		if not hold_fx:
+			if invuln > 0.0 and invuln < 9000.0:
+				invuln = maxf(0.0, invuln - delta * FRAME)
+			if bomb_fx > 0.0:
+				bomb_fx = maxf(0.0, bomb_fx - delta * FRAME)
+			if shield_t > 0.0:
+				shield_t = maxf(0.0, shield_t - delta * FRAME)
+			if rapid_t > 0.0:
+				rapid_t = maxf(0.0, rapid_t - delta * FRAME)
+			if vial_t > 0.0:
+				vial_t = maxf(0.0, vial_t - delta * FRAME)
+			if phase_t > 0.0:
+				phase_t = maxf(0.0, phase_t - delta * FRAME)
+			if dash > 0.0:
+				dash = maxf(0.0, dash - delta * FRAME)
+		if specials:
+			specials.tick(delta)
+		if melee:
+			melee.tick(delta)
+		return
 	if emblems:
 		emblems.tick_play()
 	if specials:

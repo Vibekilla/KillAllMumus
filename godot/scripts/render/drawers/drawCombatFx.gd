@@ -163,7 +163,7 @@ func drawPowerAura(p: Dictionary) -> void:
 	ctx.begin_path()
 	ctx.arc(-R * 0.34, -R * 0.42, R * 0.52, 0, TAU)
 	ctx.fill()
-	# LV5+ overflow bubble
+	# LV5+ overflow — 1:1 HTML (second soap bubble + ripples + orbiting mini-bubbles)
 	if power >= 5.0:
 		var p5 := 0.5 + 0.5 * sin(t * 0.09)
 		var R2 := R * (1.34 + 0.05 * p5)
@@ -217,7 +217,7 @@ func drawPowerAura(p: Dictionary) -> void:
 	ctx.restore()
 
 func drawPowerRadiance(p: Dictionary) -> void:
-	## HTML drawPowerRadiance
+	## HTML drawPowerRadiance — faint map-bleed only; soap bubble is drawPowerAura
 	if float(p.get("power", GameState.power)) < 0.0:
 		pass
 	var pf := clampf((float(p.get("power", GameState.power)) - 1.0) / 5.0, 0.0, 1.0)
@@ -229,20 +229,28 @@ func drawPowerRadiance(p: Dictionary) -> void:
 	var hue0 := fmod(t * 2.4, 360.0)
 	ctx.save()
 	ctx.global_composite_operation("lighter")
+	# HTML: radial gradient HR=55+pf*95, center α=0.035+pf*0.06 → edge 0
 	var HR := 55.0 + pf * 95.0
-	ctx.fill_style("hsla(%d,90%%,60%%,%s)" % [int(hue0), str(0.035 + pf * 0.06)])
+	if ctx.has_method("createRadialGradient"):
+		var hg = ctx.createRadialGradient(ctr.x, ctr.y, 10.0, ctr.x, ctr.y, HR)
+		hg.add_color_stop(0, "hsla(%d,90%%,60%%,%s)" % [int(hue0), str(0.035 + pf * 0.06)])
+		hg.add_color_stop(1, "hsla(%d,90%%,60%%,0)" % int(hue0))
+		ctx.fill_style(hg)
+	else:
+		ctx.fill_style("hsla(%d,90%%,60%%,%s)" % [int(hue0), str(0.02 + pf * 0.03)])
 	ctx.begin_path()
 	ctx.arc(ctr.x, ctr.y, HR, 0, TAU)
 	ctx.fill()
-	# HTML: smoother wavy rings (smaller step → less polygonal mud)
-	var rings := 2 + int(floor(pf * 3.0))
+	# HTML wavy rings — CanvasCompat can't true-add; keep peak α lower + radius tighter
+	# so the soap bubble reads as the hero (HTML ring extent is mostly invisible on dark bg)
+	var rings := 2 + int(floor(pf * 2.0))
 	for k in range(rings):
-		var ph := fmod(t * 0.009 + float(k) / float(rings), 1.0)
-		var rr := 22.0 + ph * (66.0 + pf * 120.0)
-		var al := (1.0 - ph) * (0.05 + pf * 0.09)
+		var ph := fmod(t * 0.009 + float(k) / float(maxi(1, rings)), 1.0)
+		var rr := 22.0 + ph * (42.0 + pf * 58.0)
+		var al := (1.0 - ph) * (0.028 + pf * 0.05)
 		var hue := fmod(hue0 + float(k) * 55.0, 360.0)
 		ctx.stroke_style("hsla(%d,95%%,66%%,%s)" % [int(hue), str(al)])
-		ctx.line_width(1.4 * (1.0 - ph) + 0.4)
+		ctx.line_width(1.1 * (1.0 - ph) + 0.35)
 		ctx.begin_path()
 		var first := true
 		var a := 0.0
