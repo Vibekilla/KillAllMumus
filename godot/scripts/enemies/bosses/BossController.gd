@@ -67,6 +67,8 @@ func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 	phases = 3 if GameState.stage_index > 0 else 2
 	if portrait == "bogdanoff":
 		twin = true
+		special_used = true  # HTML: twins skip generic special phase
+		phases = 1
 		tw = {
 			"igor": {"hp": max_hp, "max": max_hp, "done": false},
 			"grichka": {"hp": max_hp, "max": max_hp, "done": false},
@@ -84,8 +86,9 @@ var _draw_age: int = 0
 
 func _want_redraw() -> void:
 	_draw_age += 1
+	# Throttle redraw requests (was accidentally recursive)
 	if _draw_age % 2 == 0:
-		_want_redraw()
+		queue_redraw()
 
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
@@ -182,13 +185,9 @@ func _physics_process(delta: float) -> void:
 	else:
 		_patterns(s, ph, hm, cx, cy, p)
 
-	# special at 45%
-	if not special_used and hp <= max_hp * 0.45:
-		special_used = true
-		special_t = 200.0
-		if bullet_pool:
-			bullet_pool.clear_enemy()
-		flash = 10.0
+	# HTML: special at 45% HP — flashMsg, taunt dialog, bullet cancel, particles
+	if not special_used and not twin and hp <= max_hp * 0.45:
+		_trigger_boss_special()
 
 	# phase transitions
 	var per_phase := max_hp / float(phases)
@@ -197,6 +196,34 @@ func _physics_process(delta: float) -> void:
 		if bullet_pool:
 			bullet_pool.clear_enemy()
 		flash = 8.0
+		if AudioBus:
+			AudioBus.sfx("card")
+
+func _trigger_boss_special() -> void:
+	## HTML updateBoss specialUsed block
+	special_used = true
+	special_t = 200.0
+	if bullet_pool:
+		bullet_pool.clear_enemy()
+	flash = 10.0
+	if AudioBus:
+		AudioBus.sfx("card")
+	var sp_name := str(data.get("special", "SPECIAL"))
+	if CombatHelpers:
+		CombatHelpers.flash("★ SPECIAL: %s" % sp_name, 120.0)
+	# Taunt dialog if present
+	var taunt := str(data.get("taunt", ""))
+	if taunt != "" and StageFlow and StageFlow.has_method("start_dialog") and StageFlow.dialog == null:
+		StageFlow.start_dialog([{"w": 0, "t": taunt}], data)
+	# Burst particles
+	if CombatHelpers:
+		var col := str(data.get("color", "#ffd27a"))
+		for i in range(40):
+			CombatHelpers.particles.append({
+				"x": global_position.x, "y": global_position.y,
+				"vx": (randf() - 0.5) * 11.0, "vy": (randf() - 0.5) * 11.0,
+				"life": 34.0, "c": col,
+			})
 
 
 func _patterns(s: int, ph: int, hm: float, cx: float, cy: float, p: Node2D) -> void:

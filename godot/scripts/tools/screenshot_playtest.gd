@@ -1480,6 +1480,44 @@ func _run() -> void:
 							chb.particles.clear()
 					var bname := str(stage.get("boss", {}).get("portrait", "boss%d" % si))
 					await _save("godot_boss_%s" % bname)
+					# Boss special dual (stage 0 ape): force 45% special window
+					if si == 0 and is_instance_valid(boss) and boss.has_method("_trigger_boss_special"):
+						boss.set_meta("dual_freeze", false)
+						if "hp" in boss and "max_hp" in boss:
+							boss.hp = float(boss.max_hp) * 0.40
+						if "special_used" in boss:
+							boss.special_used = false
+						if "special_t" in boss:
+							boss.special_t = 0.0
+						boss._trigger_boss_special()
+						# Pin special mid-window; allow pattern t to advance a few frames
+						if "special_t" in boss:
+							boss.special_t = 160.0
+						for _j in range(8):
+							await process_frame
+							player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
+							if is_instance_valid(boss):
+								boss.global_position = boss_pos
+								if "special_t" in boss and float(boss.special_t) < 100.0:
+									boss.special_t = 160.0
+								# Freeze roam during dual after patterns fire
+								if "mtx" in boss:
+									boss.mtx = boss_pos.x
+								if "mty" in boss:
+									boss.mty = boss_pos.y
+							if pool and pool.has_method("clear_all"):
+								pool.clear_all()
+						# Freeze for capture
+						boss.set_meta("dual_freeze", true)
+						if "face" in boss:
+							boss.face = PI / 2.0
+						await process_frame
+						await _save("godot_boss_special")
+						if StageFlow:
+							StageFlow.dialog = null
+						var ch_sp = _A("CombatHelpers")
+						if ch_sp and "flash_msg" in ch_sp:
+							ch_sp.flash_msg = {}
 					# Live ambience still (first boss only): leave dual_freeze OFF so mandala shows
 					if si == 0 and is_instance_valid(boss):
 						boss.remove_meta("dual_freeze")
