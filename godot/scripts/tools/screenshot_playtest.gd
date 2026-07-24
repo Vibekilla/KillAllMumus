@@ -220,6 +220,14 @@ func _dual_sanitize(player, pool) -> void:
 	if GS:
 		GS.set_state(GS.State.PLAY)
 		GS.lives = 99
+	# Dual stills: kill autofire so red shot rain doesn't pollute frames
+	var PStore = _A("ProgressStore")
+	if PStore and "progress" in PStore:
+		var st: Dictionary = PStore.progress.get("settings", {})
+		if typeof(st) != TYPE_DICTIONARY:
+			st = {}
+		st["autofire"] = false
+		PStore.progress["settings"] = st
 
 func _run() -> void:
 	await process_frame
@@ -1001,14 +1009,32 @@ func _run() -> void:
 					var boss = BossScene.instantiate()
 					playfield.add_child(boss)
 					boss.setup(pool, Vector2(pf2.get_center().x, pf2.position.y + 140), stage)
+					# Visible body, frozen AI (HTML dual is dialog-intro still — no bullet storm)
 					if "intro" in boss:
 						boss.intro = 0.0
 					if "dead" in boss:
 						boss.dead = false
-					for _i in range(12):
+					if "stun" in boss:
+						boss.stun = 99999.0
+					if "special_t" in boss:
+						boss.special_t = 0.0
+					for _i in range(14):
 						await process_frame
 						if "intro" in boss:
 							boss.intro = 0.0
+						if "stun" in boss:
+							boss.stun = 99999.0
+						if "special_t" in boss:
+							boss.special_t = 0.0
+						# Drop wave trash + boss bullets so portrait is readable
+						for e in root.get_tree().get_nodes_in_group("enemies"):
+							if is_instance_valid(e) and not e.is_in_group("bosses"):
+								e.queue_free()
+						if pool and pool.has_method("clear_all"):
+							pool.clear_all()
+						var chb = _A("CombatHelpers")
+						if chb and "particles" in chb:
+							chb.particles.clear()
 					var bname := str(stage.get("boss", {}).get("portrait", "boss%d" % si))
 					await _save("godot_boss_%s" % bname)
 					if is_instance_valid(boss):
