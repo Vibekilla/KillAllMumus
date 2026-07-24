@@ -120,12 +120,19 @@ func _physics_process(delta: float) -> void:
 		if int(dead_t) % 3 == 0:
 			# death burst visual via redraw flash
 			flash = 4.0
-		# Final boss (Wynn): HTML startWynnHell instead of instant clear
-		if portrait == "wynn" and not hell and dead_t > 30.0:
-			start_wynn_hell()
+			if CombatHelpers:
+				CombatHelpers.burst(
+					global_position.x + (randf() - 0.5) * radius * 2.0,
+					global_position.y + (randf() - 0.5) * radius * 2.0,
+					str(data.get("color", "#ffd27a"))
+				)
+		# Wynn hell runs in its own branch (started from _on_hp_zero)
+		if hell:
+			_update_wynn_hell(delta)
 			_want_redraw()
 			return
-		if dead_t > 90.0:
+		# HTML: if(b.deadT>150) spawnClearGate()
+		if dead_t > 150.0:
 			defeated.emit(boss_id)
 			queue_free()
 		_want_redraw()
@@ -475,17 +482,29 @@ func _on_hp_zero() -> void:
 	dead_t = 0.0
 	if bullet_pool:
 		bullet_pool.clear_enemy()
+	if AudioBus:
+		AudioBus.sfx("win")
 	ProgressStore.estats_add("bosses", 1)
+	if ProgressStore.estats.get("bosses", 0) >= 1:
+		ProgressStore.unlock_emblem("boss_first")
+	if ProgressStore.estats.get("bosses", 0) >= 15:
+		ProgressStore.unlock_emblem("boss_hunter")
+	if portrait == "bogdanoff":
+		ProgressStore.unlock_emblem("bog_slayer")
 	GameState.add_score(int(5000 * GameState.score_mul()))
 	# HTML grants loot rain (not a flat power+1); loot pickups apply via add_power/fullpower
 	GameState.lives = mini(DataRegistry.max_lives(), GameState.lives + 1)
 	GameState.bombs = mini(DataRegistry.max_bombs(), GameState.bombs + 1)
+	# HTML: wynn → startWynnHell immediately; else optional victory monologue
 	if portrait == "wynn":
-		# defer portal until short death flash, then startWynnHell
-		pass
+		start_wynn_hell()
+	elif data.get("victory") and StageFlow and StageFlow.has_method("start_dialog"):
+		var vt := str(data.get("victory", ""))
+		if vt != "" and StageFlow.dialog == null:
+			StageFlow.start_dialog([{"w": 1, "t": vt}], data)
 
 func start_wynn_hell() -> void:
-	## HTML startWynnHell
+	## HTML startWynnHell — portal grows while monologue plays; sink after dialog ends
 	hell = true
 	hell_t = 0.0
 	hell_done = 0.0
@@ -494,7 +513,7 @@ func start_wynn_hell() -> void:
 	hell_scale = 1.0
 	hell_shake = 0.0
 	hy = global_position.y
-	if StageFlow:
+	if StageFlow and StageFlow.has_method("start_dialog"):
 		StageFlow.start_dialog([
 			{"w": 1, "t": "That’s the sound of the house going bankrupt. Dank Memes plus Time. Bolieve it."},
 			{"w": 2, "t": "James Wynn. Your ledger is settled. The Cabal’s debt comes due — in full."},
@@ -518,17 +537,22 @@ func _update_wynn_hell(delta: float) -> void:
 			"c": cols[randi() % 3],
 		})
 	hell_shake = sin(hell_t * 0.7) * minf(3.5, hell_t * 0.03) if hell_t < 210.0 else 0.0
+	# Screen shake while portal rages
+	if hell_t < 210.0 and CombatHelpers and CombatHelpers.has_method("add_screen_shake"):
+		CombatHelpers.screen_shake = maxf(float(CombatHelpers.screen_shake), absf(hell_shake))
 	var dialog_open := StageFlow != null and StageFlow.dialog != null
 	if not dialog_open:
+		# After monologue: sink into portal then win
 		hell_done += df
 		hell_spin += 0.42 * df
 		global_position.y = hy + hell_done * 0.5
 		hell_scale = maxf(0.0, 1.0 - hell_done / 74.0)
 		if hell_done > 96.0:
+			# HTML: onBossDefeated() only (final stage → win). Do not emit defeated
+			# (StageController → spawn_clear_gate would double-call on final).
 			hell = false
 			if StageFlow:
 				StageFlow.on_boss_defeated()
-			defeated.emit(boss_id)
 			queue_free()
 
 func _draw() -> void:

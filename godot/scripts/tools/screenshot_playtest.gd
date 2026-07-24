@@ -1518,6 +1518,38 @@ func _run() -> void:
 						var ch_sp = _A("CombatHelpers")
 						if ch_sp and "flash_msg" in ch_sp:
 							ch_sp.flash_msg = {}
+					# Wynn hell dual (final stage only)
+					if si == 6 and is_instance_valid(boss) and str(stage.get("boss", {}).get("portrait", "")) == "wynn":
+						if StageFlow:
+							StageFlow.dialog = null
+						if boss.has_method("start_wynn_hell"):
+							boss.dead = true
+							boss.hp = 0.0
+							boss.start_wynn_hell()
+						# Grow portal without waiting for full dialog
+						if "hell_t" in boss:
+							boss.hell_t = 90.0
+						if "hell_r" in boss:
+							boss.hell_r = 63.0
+						if "hy" in boss:
+							boss.hy = boss_pos.y
+						boss.set_meta("dual_freeze", true)
+						player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
+						for _j in range(10):
+							await process_frame
+							if is_instance_valid(boss):
+								boss.global_position = Vector2(boss_pos.x, boss_pos.y)
+								if "hell_r" in boss:
+									boss.hell_r = 63.0
+								if "hell_t" in boss:
+									boss.hell_t = 90.0
+								if "hell" in boss:
+									boss.hell = true
+							if pool and pool.has_method("clear_all"):
+								pool.clear_all()
+						await _save("godot_boss_wynn_hell")
+						if StageFlow:
+							StageFlow.dialog = null
 					# Live ambience still (first boss only): leave dual_freeze OFF so mandala shows
 					if si == 0 and is_instance_valid(boss):
 						boss.remove_meta("dual_freeze")
