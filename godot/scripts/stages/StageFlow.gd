@@ -91,7 +91,7 @@ func enter_portal() -> void:
 	on_boss_defeated()
 
 func enter_shop() -> void:
-	## HTML enterShop
+	## HTML enterShop — field shop returns to play (portal still available)
 	shop_return = "play"
 	shop_sel = 0
 	shop_tab = "w"

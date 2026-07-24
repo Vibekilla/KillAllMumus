@@ -209,7 +209,7 @@ func _draw_sc_menu_btn(cx: float, y: float) -> void:
 	ctx.fill_text("⌂ MAIN MENU  [M]", cx, y + 19)
 
 func drawClearGate(portal, shop, msg_t: float) -> void:
-	## HTML drawClearGate — field portal + shop marker
+	## HTML drawClearGate — portal vortex + shop hut + near interact prompts
 	if portal == null:
 		return
 	var t := float(tick)
@@ -217,6 +217,10 @@ func drawClearGate(portal, shop, msg_t: float) -> void:
 	var py := float(portal.get("y", 0))
 	var stage: Dictionary = DataRegistry.get_stage(GameState.stage_index)
 	var bc := str(stage.get("accent", "#9a6cff"))
+	var player := _player_node()
+	var near_p := false
+	if player and is_instance_valid(player):
+		near_p = player.global_position.distance_to(Vector2(px, py)) < 44.0
 	ctx.save()
 	ctx.translate(px, py)
 	# aura
@@ -264,34 +268,81 @@ func drawClearGate(portal, shop, msg_t: float) -> void:
 	ctx.line_width(2)
 	ctx.stroke()
 	ctx.restore()
-	# label
+	# labels (HTML)
 	ctx.text_align("center")
 	ctx.fill_style("#ffe08a")
 	ctx.font("bold 12px monospace")
 	var next_s: Dictionary = DataRegistry.get_stage(GameState.stage_index + 1)
 	var next_name := str(next_s.get("name", "NEXT"))
 	ctx.fill_text("▸ PORTAL — " + next_name, px, py - 70)
-	if msg_t > 0.0:
-		ctx.fill_style("#ff9ecb")
-		ctx.font("bold 14px Trebuchet MS")
-		ctx.fill_text("BOSS DEFEATED — open the portal or visit the shop", Config.playfield().get_center().x, Config.playfield().position.y + 40)
-	# shop marker
+	if near_p:
+		ctx.fill_style("#fff" if (int(floor(t / 16.0)) % 2) != 0 else bc)
+		ctx.font("bold 12px monospace")
+		ctx.fill_text("[%s] ENTER PORTAL" % MenuHelpers.kb("interact"), px, py + 48)
+	# shop hut (HTML simplified hut + label)
 	if shop != null:
 		var sx := float(shop.get("x", 0))
 		var sy := float(shop.get("y", 0))
-		ctx.fill_style("rgba(255,210,120,0.2)")
+		var near_s := false
+		if player and is_instance_valid(player):
+			near_s = player.global_position.distance_to(Vector2(sx, sy)) < 40.0
+		ctx.save()
+		ctx.translate(sx, sy)
+		ctx.fill_style("rgba(255,180,90,0.42)")
 		ctx.begin_path()
-		ctx.arc(sx, sy, 28, 0, TAU)
+		ctx.arc(0, -4, 40, 0, TAU)
 		ctx.fill()
-		ctx.stroke_style("#ffd27a")
-		ctx.line_width(2)
-		ctx.stroke()
-		if badger:
-			badger.drawHoneyBadger(sx, sy + 8, 0.55)
+		ctx.fill_style("#3a2416")
+		ctx.fill_rect(-21, -27, 42, 37)
+		ctx.fill_style("#2a1810")
+		ctx.fill_rect(-21, -27, 42, 8)
+		ctx.fill_style("#1c0f06")
+		ctx.fill_rect(-10, -12, 20, 22)
+		# red roof scallops
+		ctx.fill_style("#c0392b")
+		var i := -21.0
+		while i < 20.0:
+			ctx.begin_path()
+			ctx.move_to(i, -27)
+			ctx.line_to(i + 3.5, -33)
+			ctx.line_to(i + 7, -27)
+			ctx.close_path()
+			ctx.fill()
+			i += 7.0
+		ctx.restore()
 		ctx.fill_style("#ffd27a")
-		ctx.font("bold 11px monospace")
-		ctx.fill_text("🛍 SHOP", sx, sy - 36)
+		ctx.font("bold 10px monospace")
+		ctx.fill_text("SHOP", sx, sy - 38)
+		if near_s:
+			ctx.fill_style("#fff" if (int(floor(t / 16.0)) % 2) != 0 else "#ffd27a")
+			ctx.font("bold 11px monospace")
+			ctx.fill_text("[%s] ENTER" % MenuHelpers.kb("interact"), sx, sy + 30)
+	# top banner while clearMsgT>0 (HTML)
+	if msg_t > 0.0:
+		var pf: Rect2 = Config.playfield()
+		var mcx := pf.position.x + pf.size.x * 0.5
+		ctx.save()
+		ctx.global_alpha(minf(1.0, msg_t / 40.0))
+		ctx.fill_style("#ffe08a")
+		ctx.font("900 18px Trebuchet MS")
+		ctx.fill_text("★ STAGE CLEAR ★", mcx, pf.position.y + 22)
+		ctx.fill_style("#ffd27a")
+		ctx.font("bold 11px Trebuchet MS")
+		ctx.fill_text(
+			"Shop [%s] to gear up  ·  Portal [%s] when ready" % [
+				MenuHelpers.kb("interact"), MenuHelpers.kb("interact")
+			],
+			mcx, pf.position.y + 40
+		)
+		ctx.restore()
+	ctx.global_alpha(1.0)
 	ctx.text_align("left")
+
+func _player_node() -> Node2D:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	return tree.get_first_node_in_group("player") as Node2D
 
 func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 	## HTML drawShop (grid + tabs + heads + badger)

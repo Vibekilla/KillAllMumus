@@ -196,7 +196,7 @@ func _physics_process(delta: float) -> void:
 	if not special_used and not twin and hp <= max_hp * 0.45:
 		_trigger_boss_special()
 
-	# phase transitions
+	# phase transitions (HTML: cancel bullets, taunt + optional Bobina retort)
 	var per_phase := max_hp / float(phases)
 	if hp <= max_hp - per_phase * float(phase + 1) and phase < phases - 1:
 		phase += 1
@@ -205,6 +205,32 @@ func _physics_process(delta: float) -> void:
 		flash = 8.0
 		if AudioBus:
 			AudioBus.sfx("card")
+		_phase_taunt_dialog()
+		if CombatHelpers:
+			for i in range(40):
+				CombatHelpers.particles.append({
+					"x": global_position.x, "y": global_position.y,
+					"vx": (randf() - 0.5) * 10.0, "vy": (randf() - 0.5) * 10.0,
+					"life": 34.0, "c": "#fff",
+				})
+
+func _phase_taunt_dialog() -> void:
+	## HTML phase shift: taunt (+ optional retort) if no dialog open
+	if StageFlow == null or StageFlow.dialog != null:
+		return
+	if not StageFlow.has_method("start_dialog"):
+		return
+	var taunts = data.get("taunts", [])
+	if not (taunts is Array) or (taunts as Array).is_empty():
+		return
+	var tlist: Array = taunts
+	var tt := str(tlist[randi() % tlist.size()])
+	var lines: Array = [{"w": 0, "t": tt}]
+	var retorts = data.get("retorts", [])
+	if retorts is Array and (retorts as Array).size() > 0:
+		var rlist: Array = retorts
+		lines.append({"w": 1, "t": str(rlist[randi() % rlist.size()])})
+	StageFlow.start_dialog(lines, data)
 
 func _trigger_boss_special() -> void:
 	## HTML updateBoss specialUsed block

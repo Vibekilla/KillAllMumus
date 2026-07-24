@@ -753,10 +753,23 @@ func _run() -> void:
 			StageFlow.spawn_clear_gate()
 		GameState.set_state(GameState.State.PLAY)
 		_force_ui_size(_main)
+		# Pin player near portal for interact prompt dual
+		if player and StageFlow and StageFlow.clear_portal is Dictionary:
+			var cp: Dictionary = StageFlow.clear_portal
+			player.global_position = Vector2(float(cp.get("x", 304)), float(cp.get("y", 200)) + 36.0)
+			player.aim = -PI / 2.0
+			player.set_meta("dual_lock_pose", true)
 		if flow and flow.has_method("queue_redraw"):
 			flow.queue_redraw()
-		for _i in range(6 if fast else 10):
+		for _i in range(8 if fast else 12):
 			await process_frame
+			if player and StageFlow and StageFlow.clear_portal is Dictionary:
+				var cp2: Dictionary = StageFlow.clear_portal
+				player.global_position = Vector2(float(cp2.get("x", 304)), float(cp2.get("y", 200)) + 36.0)
+			if StageFlow and StageFlow.clear_msg_t < 80.0:
+				StageFlow.clear_msg_t = 120.0
+			if flow and flow.has_method("queue_redraw"):
+				flow.queue_redraw()
 		await _save("godot_flow_cleargate")
 
 		# Shop dual: starter loadout + low heads (HTML guest parity — buy prices show)
