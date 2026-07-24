@@ -1246,6 +1246,56 @@ func _run() -> void:
 				player.global_position = Vector2(304, 400)
 			await _save("godot_aura_bomb")
 			player.bomb_fx = 0.0
+			# Consumable FX duals: bubbles ring + stardust orbit (HTML spawnBubbles / spawnStardust)
+			var items_fx = _A("ItemSystem")
+			if items_fx:
+				if "fx" in items_fx:
+					items_fx.fx.clear()
+				if items_fx.has_method("spawn_bubbles"):
+					items_fx.spawn_bubbles()
+				# age a few frames so bubbles grow / scatter
+				for _i in range(10 if not fast else 6):
+					await process_frame
+					player.global_position = Vector2(304, 400)
+					player.aim = -PI / 2.0
+					player.set_meta("dual_lock_pose", true)
+					player.set_meta("dual_hold_fx", true)
+				await _save("godot_aura_bubbles")
+				if "fx" in items_fx:
+					items_fx.fx.clear()
+				if items_fx.has_method("spawn_stardust"):
+					items_fx.spawn_stardust()
+				# spawn a few stars by ticking life
+				if items_fx.fx.size() and items_fx.fx[0] is Dictionary:
+					var sd: Dictionary = items_fx.fx[0]
+					sd["life"] = 200.0
+					var stars: Array = []
+					for si in range(8):
+						var a := float(si) / 8.0 * TAU
+						stars.append({
+							"x": 304.0 + cos(a) * 40.0,
+							"y": 386.0 + sin(a) * 40.0,
+							"life": 28.0, "t": 6.0 + float(si),
+							"sz": 1.5, "rot": a,
+							"hue": int(si * 40) % 360,
+							"sapping": false,
+						})
+					sd["stars"] = stars
+				for _i in range(6 if not fast else 4):
+					await process_frame
+					player.global_position = Vector2(304, 400)
+					player.aim = -PI / 2.0
+					player.set_meta("dual_lock_pose", true)
+					player.set_meta("dual_hold_fx", true)
+					# re-pin stardust on player
+					if items_fx.fx.size() and items_fx.fx[0] is Dictionary:
+						items_fx.fx[0]["x"] = 304.0
+						items_fx.fx[0]["y"] = 386.0
+						items_fx.fx[0]["life"] = maxf(40.0, float(items_fx.fx[0].get("life", 40)))
+				await _save("godot_aura_stardust")
+				if "fx" in items_fx:
+					items_fx.fx.clear()
+			player.set_meta("dual_hold_fx", false)
 
 		if _want("items"):
 			_dual_sanitize(player, pool)

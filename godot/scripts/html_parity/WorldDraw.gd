@@ -218,7 +218,7 @@ func _draw() -> void:
 		_draw_player(player)
 
 	# --- fx / particles / melee / score / bomb / slowmo ---
-	# Special FX live on player.specials.fx (drawFx also pulls them); pass CombatHelpers.fx too
+	# Special FX + consumable bubbles/stardust (ItemSystem.fx)
 	if ported.has_method("drawFx"):
 		var fx_list: Array = []
 		if CombatHelpers and "fx" in CombatHelpers:
@@ -228,6 +228,9 @@ func _draw() -> void:
 			if sp and sp.get("fx") is Array:
 				for f in sp.fx:
 					fx_list.append(f)
+		if ItemSystem and ItemSystem.get("fx") is Array:
+			for f2 in ItemSystem.fx:
+				fx_list.append(f2)
 		ported.drawFx(fx_list)
 
 	if CombatHelpers:

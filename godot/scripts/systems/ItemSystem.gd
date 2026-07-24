@@ -9,6 +9,8 @@ var items: Array = []  # {x,y,vx,vy,type,t,homing,val?,wep?}
 var floaters: Array = []  # {x,y,life,vy,scale}
 var emotes: Array = []  # {x,y,life,kind}
 var burns: Array = []  # flame fields from charged melee
+## HTML consumable fx (bubbles / stardust) — drawn via drawFx
+var fx: Array = []
 var life_frags: int = 0
 var bomb_frags: int = 0
 var extend_idx: int = 0
@@ -19,6 +21,7 @@ func reset_run() -> void:
 	floaters.clear()
 	emotes.clear()
 	burns.clear()
+	fx.clear()
 	life_frags = 0
 	bomb_frags = 0
 	extend_idx = 0
@@ -227,6 +230,7 @@ func tick(delta: float) -> void:
 	_update_floaters(df)
 	_update_emotes(df)
 	_update_burns(df)
+	_update_consumable_fx(df)
 	check_extend_score()
 
 func _update_items(df: float) -> void:
@@ -461,30 +465,206 @@ func enemy_explode(e: Node2D) -> void:
 		AudioBus.sfx("hit")
 
 func spawn_bubbles() -> void:
-	## HTML spawnBubbles — ring of trap bubbles as floaters/fx particles for now
+	## HTML spawnBubbles — ring of trap bubbles that pull Mumus then pop AoE
 	var p := _player()
 	if p == null:
 		return
 	for i in range(6):
 		var a := float(i) / 6.0 * TAU + float(i) * 0.7
 		var sp := 1.5 + float(i) * 0.15
-		items.append({
-			"x": p.global_position.x, "y": p.global_position.y - 8.0,
-			"vx": cos(a) * sp, "vy": sin(a) * sp - 0.6,
-			"type": "point", "t": 0.0, "homing": false,  # temporary stand-in
-			"_bubble": true, "r": 9.0, "life": 120.0 + float(i) * 8.0,
+		fx.append({
+			"type": "bubble",
+			"t": 9999.0,
+			"life": 120.0 + float(i) * 8.0,
+			"x": p.global_position.x,
+			"y": p.global_position.y - 8.0,
+			"vx": cos(a) * sp,
+			"vy": sin(a) * sp - 0.6,
+			"r": 9.0,
+			"rmax": 32.0,
+			"pop": 0.0,
+			"popR": 0.0,
+			"caught": 0,
 		})
 	if AudioBus:
 		AudioBus.sfx("power")
 
 func spawn_stardust() -> void:
+	## HTML spawnStardust — orbiting stars sap nearby Mumus for ~270 frames
 	var p := _player()
 	if p == null:
 		return
-	# orbiting damage ticks via burn-like short fields
-	add_burn(p.global_position.x, p.global_position.y - 14.0, 0.0, 48.0, TAU, "#ffe08a", 270.0)
+	fx.append({
+		"type": "stardust",
+		"t": 9999.0,
+		"life": 270.0,
+		"x": p.global_position.x,
+		"y": p.global_position.y - 14.0,
+		"stars": [],
+	})
 	if AudioBus:
 		AudioBus.sfx("power")
+
+func _update_consumable_fx(df: float) -> void:
+	## HTML updateFx bubble + stardust branches
+	if fx.is_empty():
+		return
+	var p := _player()
+	var pf: Rect2 = Config.playfield()
+	var keep: Array = []
+	var tick_i := int(SimClock.sim_frame) if SimClock else 0
+	for f in fx:
+		if typeof(f) != TYPE_DICTIONARY:
+			continue
+		var typ := str(f.get("type", ""))
+		if typ == "bubble":
+			if float(f.get("pop", 0)) > 0.0:
+				f["pop"] = float(f["pop"]) - df
+				f["popR"] = float(f.get("popR", 0)) + 4.0 * df
+				if float(f["pop"]) > 0.0:
+					keep.append(f)
+				continue
+			f["life"] = float(f.get("life", 0)) - df
+			f["x"] = float(f["x"]) + float(f.get("vx", 0)) * df
+			f["y"] = float(f["y"]) + float(f.get("vy", 0)) * df
+			f["vy"] = float(f.get("vy", 0)) + 0.015 * df
+			f["vx"] = float(f.get("vx", 0)) * pow(0.99, df)
+			f["vy"] = float(f.get("vy", 0)) * pow(0.985, df)
+			f["r"] = minf(float(f.get("rmax", 32)), float(f.get("r", 9)) + 0.35 * df)
+			var r := float(f["r"])
+			# bounce inside playfield
+			if float(f["x"]) < pf.position.x + r:
+				f["x"] = pf.position.x + r
+				f["vx"] = absf(float(f.get("vx", 0))) * 0.6
+			if float(f["x"]) > pf.end.x - r:
+				f["x"] = pf.end.x - r
+				f["vx"] = -absf(float(f.get("vx", 0))) * 0.6
+			if float(f["y"]) < pf.position.y + r:
+				f["y"] = pf.position.y + r
+				f["vy"] = absf(float(f.get("vy", 0))) * 0.6
+			if float(f["y"]) > pf.end.y - r:
+				f["y"] = pf.end.y - r
+				f["vy"] = -absf(float(f.get("vy", 0))) * 0.6
+			# trap: pull Mumus in
+			var caught := 0
+			var tree := get_tree()
+			if tree:
+				for e in tree.get_nodes_in_group("enemies"):
+					if not is_instance_valid(e) or e.is_in_group("bosses"):
+						continue
+					var dx: float = float(f["x"]) - e.global_position.x
+					var dy: float = float(f["y"]) - e.global_position.y
+					var d := sqrt(dx * dx + dy * dy)
+					if d < 0.01:
+						d = 1.0
+					var er: float = float(e.radius) if "radius" in e else 15.0
+					if d < r + er + 10.0:
+						var gp := (1.0 - minf(1.0, d / (r + 34.0))) * 1.7
+						e.global_position += Vector2(dx / d, dy / d) * gp
+						if "flash" in e:
+							e.flash = maxf(float(e.flash), 2.0)
+						caught += 1
+			f["caught"] = caught
+			if float(f["life"]) <= 0.0 or caught >= 5:
+				# POP → AoE burst
+				f["pop"] = 16.0
+				f["popR"] = r
+				if AudioBus:
+					AudioBus.sfx("bomb")
+				var R := r + 46.0
+				if tree:
+					for e2 in tree.get_nodes_in_group("enemies"):
+						if not is_instance_valid(e2):
+							continue
+						if e2.global_position.distance_to(Vector2(float(f["x"]), float(f["y"]))) < R:
+							if e2.has_method("take_damage"):
+								if e2.is_in_group("bosses"):
+									var intro_v := float(e2.intro) if "intro" in e2 else 0.0
+									var dead_v := bool(e2.dead) if "dead" in e2 else false
+									if intro_v <= 0.0 and not dead_v:
+										e2.take_damage(12.0)
+										if "flash" in e2:
+											e2.flash = 4.0
+								else:
+									e2.take_damage(18.0)
+									if "flash" in e2:
+										e2.flash = 6.0
+				for i in range(18):
+					CombatHelpers.particles.append({
+						"x": float(f["x"]), "y": float(f["y"]),
+						"vx": (randf() - 0.5) * 8.0, "vy": (randf() - 0.5) * 8.0,
+						"life": 22.0, "c": "#bfe8ff" if (i % 2) == 0 else "#8fd0ff",
+					})
+				keep.append(f)
+			else:
+				keep.append(f)
+		elif typ == "stardust":
+			f["life"] = float(f.get("life", 0)) - df
+			if float(f["life"]) <= 0.0:
+				continue
+			var p_dead := false
+			if p and is_instance_valid(p) and "dead" in p:
+				p_dead = bool(p.dead)
+			if p and is_instance_valid(p) and not p_dead:
+				f["x"] = p.global_position.x
+				f["y"] = p.global_position.y - 14.0
+			# birth new star every 5 frames (HTML f.life%5===0)
+			if int(floor(float(f["life"]))) % 5 == 0:
+				var a2 := randf() * TAU
+				var rr := 18.0 + randf() * 58.0
+				var stars: Array = f.get("stars", [])
+				if not (stars is Array):
+					stars = []
+				stars.append({
+					"x": float(f["x"]) + cos(a2) * rr,
+					"y": float(f["y"]) + sin(a2) * rr,
+					"life": 28.0,
+					"t": 0.0,
+					"sz": 1.3 + randf() * 1.5,
+					"rot": randf() * TAU,
+					"hue": int(fmod(float(tick_i) * 4.0 + randf() * 100.0, 360.0)),
+					"sapping": false,
+				})
+				f["stars"] = stars
+			# sap nearest mumu per star
+			var stars2: Array = f.get("stars", [])
+			var live_stars: Array = []
+			if stars2 is Array:
+				for st in stars2:
+					if typeof(st) != TYPE_DICTIONARY:
+						continue
+					st["t"] = float(st.get("t", 0)) + df
+					if float(st["t"]) >= float(st.get("life", 28)):
+						continue
+					var tgt = null
+					var bd := 1e18
+					var tree2 := get_tree()
+					if tree2:
+						for e3 in tree2.get_nodes_in_group("enemies"):
+							if not is_instance_valid(e3) or e3.is_in_group("bosses"):
+								continue
+							var d2: float = e3.global_position.distance_squared_to(
+								Vector2(float(st.get("x", 0)), float(st.get("y", 0)))
+							)
+							if d2 < bd:
+								bd = d2
+								tgt = e3
+					if tgt != null and bd < 34.0 * 34.0:
+						if tgt.has_method("take_damage"):
+							tgt.take_damage(0.5 * df)  # HTML 0.5/frame at 60Hz → scale by df
+						if "flash" in tgt:
+							tgt.flash = maxf(float(tgt.flash), 2.0)
+						st["sapX"] = tgt.global_position.x
+						st["sapY"] = tgt.global_position.y
+						st["sapping"] = true
+					else:
+						st["sapping"] = false
+					live_stars.append(st)
+			f["stars"] = live_stars
+			keep.append(f)
+		else:
+			keep.append(f)
+	fx = keep
 
 func _player() -> Node2D:
 	var tree := get_tree()
