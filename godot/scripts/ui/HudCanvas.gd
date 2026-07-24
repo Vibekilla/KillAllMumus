@@ -40,8 +40,9 @@ func _process(_d: float) -> void:
 	var nt := SimClock.sim_frame if SimClock else tick + 1
 	if nt == _last_tick:
 		return
-	# Panel meters don't need 60 Hz — 30 Hz is fine (huge panel draw cost)
-	if (nt % 2) != 0:
+	# Emblem toasts need full 60 Hz for fade; panel meters can be 30 Hz
+	var toasting := ProgressStore and ProgressStore.has_method("has_emblem_toasts") and ProgressStore.has_emblem_toasts()
+	if not toasting and (nt % 2) != 0:
 		return
 	_last_tick = nt
 	tick = nt
@@ -49,7 +50,7 @@ func _process(_d: float) -> void:
 		GameState.State.PLAY, GameState.State.INTRO,
 		GameState.State.STAGE_CLEAR, GameState.State.SHOP
 	]
-	if playish:
+	if playish or toasting:
 		queue_redraw()
 
 func _draw() -> void:

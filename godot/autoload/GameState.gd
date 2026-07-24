@@ -41,6 +41,9 @@ func _bind_sim_clock() -> void:
 
 func _on_sim_tick(_dt: float) -> void:
 	## HTML update(): special trickle always in play; power bleed when power>1, not dialog, not cleared
+	# Emblem toast timers advance every sim frame (HTML drawEmblemToasts e.t++)
+	if ProgressStore and ProgressStore.has_method("tick_emblem_toasts"):
+		ProgressStore.tick_emblem_toasts(1.0)
 	if state != State.PLAY:
 		return
 	# HTML: if(run.special<100) run.special=Math.min(100, run.special+0.012)

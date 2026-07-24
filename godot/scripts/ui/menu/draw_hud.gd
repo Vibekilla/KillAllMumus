@@ -1213,27 +1213,25 @@ func _draw_item_chips(x: float, cy: float, max_w: float) -> void:
 		ctx.fill_text("— none equipped —", x, cy + 16)
 
 func drawEmblemToasts() -> void:
+	## HTML drawEmblemToasts — presentation only; ProgressStore.tick_emblem_toasts owns timer
 	if ProgressStore == null:
 		return
 	var toasts: Array = ProgressStore.get_meta("emblem_toasts", []) if ProgressStore.has_meta("emblem_toasts") else []
 	if toasts.is_empty():
 		return
 	var e: Dictionary = toasts[0]
-	e["t"] = int(e.get("t", 0)) + 1
-	toasts[0] = e
-	ProgressStore.set_meta("emblem_toasts", toasts)
+	if typeof(e) != TYPE_DICTIONARY:
+		return
 	var d := _emblem_def(str(e.get("id", "")))
 	if d.is_empty():
-		toasts.pop_front()
-		ProgressStore.set_meta("emblem_toasts", toasts)
 		return
-	var T := int(e.get("t", 0))
-	var dur := 210
+	var T := float(e.get("t", 0.0))
+	var dur := 210.0
 	var a := 1.0
-	if T < 16:
-		a = float(T) / 16.0
-	elif T > dur - 22:
-		a = maxf(0.0, float(dur - T) / 22.0)
+	if T < 16.0:
+		a = T / 16.0
+	elif T > dur - 22.0:
+		a = maxf(0.0, (dur - T) / 22.0)
 	var w := 308.0
 	var h := 54.0
 	var x := W / 2.0 - w / 2.0
@@ -1264,10 +1262,10 @@ func drawEmblemToasts() -> void:
 		ctx.font("bold 9px monospace")
 		ctx.text_align("right")
 		ctx.fill_text("👗 SKIN", x + w - 12, y + 19)
+		ctx.text_align("left")
 	ctx.restore()
-	if T >= dur:
-		toasts.pop_front()
-		ProgressStore.set_meta("emblem_toasts", toasts)
+	ctx.global_alpha(1.0)
+	ctx.text_align("left")
 
 func drawPhaseVeil() -> void:
 	var p := _player()

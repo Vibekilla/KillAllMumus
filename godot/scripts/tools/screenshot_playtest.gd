@@ -635,6 +635,30 @@ func _run() -> void:
 			await process_frame
 		if _want("core"):
 			await _save("godot_flow_intro")
+			# Emblem unlock toast dual (HTML drawEmblemToasts mid-play banner)
+			var ps_toast = _A("ProgressStore")
+			if ps_toast:
+				# pin a known emblem toast at mid-fade (t≈40 of 210)
+				ps_toast.set_meta("emblem_toasts", [{"id": "first_mumu", "t": 40.0}])
+				# ensure def exists; fall back to start
+				if ps_toast.has_method("emblem_def") and ps_toast.emblem_def("first_mumu").is_empty():
+					ps_toast.set_meta("emblem_toasts", [{"id": "start", "t": 40.0}])
+			GameState.set_state(GameState.State.PLAY)
+			_force_ui_size(_main)
+			for _i in range(8 if fast else 12):
+				await process_frame
+				# hold toast age stable for dual
+				if ps_toast and ps_toast.has_meta("emblem_toasts"):
+					var tq: Array = ps_toast.get_meta("emblem_toasts", [])
+					if tq.size() and tq[0] is Dictionary:
+						tq[0]["t"] = 40.0
+						ps_toast.set_meta("emblem_toasts", tq)
+				var hudc = _main.get_node_or_null("UI/HudCanvas")
+				if hudc and hudc.has_method("queue_redraw"):
+					hudc.queue_redraw()
+			await _save("godot_flow_emblem_toast")
+			if ps_toast:
+				ps_toast.set_meta("emblem_toasts", [])
 
 		GameState.set_state(GameState.State.PLAY)
 		if StageFlow and StageFlow.has_method("on_stage_start"):

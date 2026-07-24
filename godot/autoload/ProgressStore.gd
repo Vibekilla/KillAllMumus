@@ -98,17 +98,51 @@ func has_emblem(id: String) -> bool:
 	return bool(emblems.get(id, false))
 
 func unlock_emblem(id: String) -> void:
+	## HTML unlockEmblem — no-op if already owned or unknown id
 	if emblems.get(id, false):
+		return
+	if emblem_def(id).is_empty():
 		return
 	emblems[id] = true
 	progress["emblems"] = emblems
-	# HTML emblemToasts queue
+	# HTML emblemToasts queue (one banner at a time)
 	var toasts: Array = get_meta("emblem_toasts", []) if has_meta("emblem_toasts") else []
-	toasts.append({"id": id, "t": 0})
+	toasts.append({"id": id, "t": 0.0})
 	set_meta("emblem_toasts", toasts)
 	if P2Meta:
 		P2Meta.new_emblems.append(id)
+	if AudioBus:
+		AudioBus.sfx("extend")
 	save_emblems()
+
+func tick_emblem_toasts(df: float = 1.0) -> void:
+	## HTML drawEmblemToasts advances e.t once per frame; keep sim-time here so HUD 30Hz draw doesn't stretch duration
+	if not has_meta("emblem_toasts"):
+		return
+	var toasts: Array = get_meta("emblem_toasts", [])
+	if toasts.is_empty():
+		return
+	var e: Dictionary = toasts[0]
+	if typeof(e) != TYPE_DICTIONARY:
+		toasts.pop_front()
+		set_meta("emblem_toasts", toasts)
+		return
+	if emblem_def(str(e.get("id", ""))).is_empty():
+		toasts.pop_front()
+		set_meta("emblem_toasts", toasts)
+		return
+	e["t"] = float(e.get("t", 0.0)) + df
+	toasts[0] = e
+	const DUR := 210.0
+	if float(e["t"]) >= DUR:
+		toasts.pop_front()
+	set_meta("emblem_toasts", toasts)
+
+func has_emblem_toasts() -> bool:
+	if not has_meta("emblem_toasts"):
+		return false
+	var toasts: Array = get_meta("emblem_toasts", [])
+	return not toasts.is_empty()
 
 func save_emblems() -> void:
 	## HTML saveEmblems
