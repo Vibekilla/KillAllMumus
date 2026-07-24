@@ -1,9 +1,19 @@
 extends Node
 ## 1:1 HTML keyPress — central action router for all game states.
+## Keyboard + gamepad (Steam/desktop) via InputMap; Player holds use is_action_pressed.
+
+const GamepadMap = preload("res://scripts/input/GamepadMap.gd")
+
+const ROUTABLE := [
+	"shoot", "bomb", "special", "cycle_special", "swap", "melee", "meleeswap",
+	"item_switch", "item_use", "interact", "focus", "pause", "ui_accept", "ui_cancel",
+]
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process_unhandled_input(true)
+	# Steam / Xbox-style defaults layered on keyboard binds
+	GamepadMap.ensure_defaults()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -11,17 +21,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		if k != "":
 			key_press(k)
 			get_viewport().set_input_as_handled()
+	elif event is InputEventJoypadButton and event.pressed and not event.is_echo():
+		var jk := _map_joy(event as InputEventJoypadButton)
+		if jk != "":
+			key_press(jk)
+			get_viewport().set_input_as_handled()
 	elif event is InputEventAction and event.pressed:
-		# Fallback if action events arrive
 		pass
 
 func _map_key(e: InputEventKey) -> String:
 	## Resolve HTML-style action name from key event via InputMap
-	for action in [
-		"shoot", "bomb", "special", "cycle_special", "swap", "melee", "meleeswap",
-		"item_switch", "item_use", "interact", "focus", "pause", "ui_accept", "ui_cancel",
-		"move_left", "move_right", "move_up", "move_down",
-	]:
+	for action in ROUTABLE:
 		if InputMap.has_action(action) and e.is_action_pressed(action):
 			return _html_name(action)
 	# bare keys
@@ -30,6 +40,20 @@ func _map_key(e: InputEventKey) -> String:
 		KEY_ESCAPE: return "menu"
 		KEY_T: return "tweet"
 		_: return ""
+
+func _map_joy(e: InputEventJoypadButton) -> String:
+	## Map joypad button press to HTML keyPress names (menus / one-shots)
+	for action in ROUTABLE:
+		if not InputMap.has_action(action):
+			continue
+		for ev in InputMap.action_get_events(action):
+			if ev is InputEventJoypadButton:
+				if int((ev as InputEventJoypadButton).button_index) == int(e.button_index):
+					return _html_name(action)
+	# Start as accept on title if unmapped
+	if e.button_index == JOY_BUTTON_START:
+		return "start"
+	return ""
 
 func _html_name(action: String) -> String:
 	match action:

@@ -76,11 +76,15 @@ func _build_list() -> void:
 func _key_name(action: String) -> String:
 	if not InputMap.has_action(action):
 		return "?"
+	# Prefer keyboard label; show gamepad if only joy bound
 	for e in InputMap.action_get_events(action):
 		if e is InputEventKey:
 			var k := e as InputEventKey
 			var code := k.physical_keycode if k.physical_keycode != 0 else k.keycode
 			return OS.get_keycode_string(code)
+	for e in InputMap.action_get_events(action):
+		if e is InputEventJoypadButton:
+			return "Pad%d" % int((e as InputEventJoypadButton).button_index)
 	return "—"
 
 func _start_rebind(action: String) -> void:

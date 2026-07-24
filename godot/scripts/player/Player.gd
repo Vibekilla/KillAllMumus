@@ -160,6 +160,7 @@ func _physics_process(delta: float) -> void:
 	# HTML joy.active analog stick takes priority on touch
 	if JoyPad and JoyPad.active and (absf(JoyPad.vx) > 0.05 or absf(JoyPad.vy) > 0.05):
 		dir = Vector2(JoyPad.vx, JoyPad.vy)
+	# Hardware gamepad stick already feeds move_* via InputMap (GamepadMap)
 
 	if dash > 0.0:
 		dash -= df
