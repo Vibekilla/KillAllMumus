@@ -255,8 +255,8 @@ function keyPress(k){ bumpIdle();
 /* ---------- Audio ---------- */
 let AC=null, masterGain=null;
 // audio + speedrun prefs (tunable in Settings)
-let sfxVol=0.9, musicVol=1.0, speedrun=false, autoFire=true;
-try{ let a=parseFloat(localStorage.getItem('bobina_sfxvol')); if(!isNaN(a)) sfxVol=a; let m=parseFloat(localStorage.getItem('bobina_musicvol')); if(!isNaN(m)) musicVol=m; speedrun=localStorage.getItem('bobina_speedrun')==='1'; if(localStorage.getItem('bobina_autofire')==='0') autoFire=false; }catch(e){}
+let sfxVol=0.9, musicVol=1.0, speedrun=false, autoFire=false;
+try{ let a=parseFloat(localStorage.getItem('bobina_sfxvol')); if(!isNaN(a)) sfxVol=a; let m=parseFloat(localStorage.getItem('bobina_musicvol')); if(!isNaN(m)) musicVol=m; speedrun=localStorage.getItem('bobina_speedrun')==='1'; if(localStorage.getItem('bobina_autofire')==='1') autoFire=true; }catch(e){}
 function applySfxVol(){ if(masterGain){ try{ masterGain.gain.value=sfxVol; }catch(e){} } }
 function applyMusicVol(){ if(ytReady&&ytPlayer){ try{ ytPlayer.setVolume(Math.round(musicVol*100)); }catch(e){} } }
 function actx(){ if(!AC){ try{ AC=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return AC; }
@@ -785,7 +785,7 @@ function buildProgressSnapshot(){
       follow: (typeof MOUSE!=='undefined') ? MOUSE.follow : null,
       mspeed: (typeof MOUSE!=='undefined') ? MOUSE.speed : null,
       speedrun: !!(typeof speedrun!=='undefined' && speedrun),
-      autofire: (typeof autoFire==='undefined') ? true : !!autoFire,
+      autofire: (typeof autoFire==='undefined') ? false : !!autoFire,
       ui: (function(){ try{ return localStorage.getItem('bobina_ui'); }catch(e){ return null; } })(),
       displayScale: (typeof displayScale!=='undefined')?displayScale:1,
       refreshRate: (typeof refreshRate!=='undefined')?refreshRate:60,
