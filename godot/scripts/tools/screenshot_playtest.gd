@@ -409,6 +409,37 @@ func _run() -> void:
 		if player.has_meta("dual_expr"):
 			player.remove_meta("dual_expr")
 
+	# Phase 2 leftover: HUD-mini (~0.46) expression dual on leaderboard rows
+	if not fast and title and "model" in title and title.model:
+		# Arm dual mode BEFORE LEADERBOARD so fetch does not wipe synthetic rows
+		title.model.dual_hud_face = 0
+		var rows: Array = []
+		for face_i in range(6):
+			rows.append({
+				"name": "DualFace%d" % face_i,
+				"score": 1000 * (6 - face_i),
+				"kills": 10 + face_i,
+				"outfit": "og",
+				"linked": false,
+			})
+		GameState.set_state(GameState.State.LEADERBOARD)
+		_force_ui_size(_main)
+		title.model.lb_state = "ok"
+		title.model.lb_page = 0
+		title.model.lb_cache = rows
+		for face_i in range(6):
+			title.model.dual_hud_face = face_i
+			title.model.victory_face = face_i
+			title.model.lb_cache = rows
+			title.model.lb_state = "ok"
+			title.queue_redraw()
+			for _i in range(8):
+				await process_frame
+				title.model.lb_cache = rows
+				title.queue_redraw()
+			await _save("godot_hud_face_%d" % face_i)
+		title.model.dual_hud_face = -1
+
 	# Pause overlay (HTML #pausescreen during play) — re-center after force_ui_size
 	GameState.set_state(GameState.State.PAUSED)
 	_force_ui_size(_main)

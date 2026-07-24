@@ -174,7 +174,7 @@ Exact HTML timing and pixels:
 | --- | --- | --- |
 | 2.1 | Breath, head bob, body sway, movement-driven leg kick + arm swing | **partial** — formulas in `drawBobina`; dual breath ticks 0/35 |
 | 2.2 | Blink: `(tick % 230) < 7 and not squee` | **done** (structure + dual open/closed) |
-| 2.3 | Expressions `smile` / `uwu` / `giggle` / `annoyed` / `squee` (eyes/mouth/blush/brows/iris at every scale) | **partial** — menu ×4.7 + play ×1 dual; HUD-mini optional |
+| 2.3 | Expressions `smile` / `uwu` / `giggle` / `annoyed` / `squee` (eyes/mouth/blush/brows/iris at every scale) | **done dual matrix** — menu ×4.7 + play ×1 + HUD-mini ×0.46 |
 | 2.4 | Every outfit continuous animation (tails, wings, veils, tendrils, …) | **partial** — full 28 skins dual on **outfits menu** ×4.7; anim ticks on wing/tail skins |
 | 2.5 | Full pose system + victory-face mapping + `hold` prop + GIF overlays (`talk`, leekspin, confused) | **partial** — faces/poses/hold via outfits menu; talk/confused/leek dual |
 

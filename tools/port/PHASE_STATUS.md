@@ -7,7 +7,7 @@
 | --- | --- | --- |
 | 0 | Foundation / docs / dual as living checklist | **active** — docs + `port:gates` 0–8 |
 | 1 | Performance (cache Bobina, throttle redraws) | **in progress** — Bobina cache + StageBg cache + particle batch; GPU/web FPS still open |
-| 2 | Bobina animation (breath, blink, expressions, outfits, poses) | **in progress** — menu+play expression dual; pause residuals fixed; HUD-mini optional |
+| 2 | Bobina animation (breath, blink, expressions, outfits, poses) | **done structure** — menu/play/HUD-mini dual; ready for Phase 3 |
 | 3 | Exhaustive visuals (weapons / specials / melee / auras / powerups / bosses / meta) | **open** |
 | 4 | Exhaustive mechanics + boss AI + stage flow + progress | **open** |
 | 5 | Audio (16 sfx + music bridge) | **open** |
@@ -34,3 +34,14 @@
 npm run port:inventory && npm run port:sync && npm run port:verify
 npm run port:dual -- --full
 ```
+
+
+## Next: Phase 3 prep
+
+Phase 2 dual leftovers (menu / play / HUD-mini expression matrix, pause chrome, wardrobe menu) are done.
+
+**Phase 3 entry:**
+1. `npm run port:gate:3` — weapons/specials/melee/data structure
+2. Expand dual for weapon projectiles, specials FX, melee arcs (HTML is truth)
+3. Sign rows in `godot/MIGRATION_CHECKLIST.md` Phase 3 only after dual screenshots
+4. Still no `USE_GODOT` flip

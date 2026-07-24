@@ -86,6 +86,9 @@ func _ready() -> void:
 	queue_redraw()
 
 func _on_scores(scores: Array) -> void:
+	# Dual HUD-mini expression matrix owns lb_cache — ignore network overwrite
+	if model and int(model.dual_hud_face) >= 0:
+		return
 	model.lb_cache = scores if scores != null else []
 	# Empty array after a real response is "ok" (no scores yet); null/failed → error
 	model.lb_state = "ok"
@@ -93,6 +96,8 @@ func _on_scores(scores: Array) -> void:
 	queue_redraw()
 
 func _on_scores_failed() -> void:
+	if model and int(model.dual_hud_face) >= 0:
+		return
 	model.lb_state = "error"
 	model.lb_cache = []
 	queue_redraw()
@@ -114,10 +119,14 @@ func _on_state(s: StringName) -> void:
 		model.ars_drag = null
 		model.arsenal_return = "title"
 	elif st == GameState.State.LEADERBOARD:
-		model.lb_state = "loading"
-		model.lb_cache = []
-		model.lb_page = 0
-		ApiClient.fetch_scores()
+		if model and int(model.dual_hud_face) >= 0:
+			# Dual playtest supplies synthetic rows + expression matrix
+			pass
+		else:
+			model.lb_state = "loading"
+			model.lb_cache = []
+			model.lb_page = 0
+			ApiClient.fetch_scores()
 	queue_redraw()
 
 func _sync_visible(st: GameState.State) -> void:

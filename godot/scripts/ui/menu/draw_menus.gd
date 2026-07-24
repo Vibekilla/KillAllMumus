@@ -806,7 +806,14 @@ func drawLeaderboard() -> void:
 					break
 			if not known:
 				fit = "og"
-			_draw_bobina_at(x0 + oIcon, y - 3.5, 0.42 if P else 0.46, fit)
+			# HTML draws outfit only at ~0.46; dual_hud_face forces expression matrix at HUD-mini scale
+			var mini_extras: Dictionary = {}
+			if model and int(model.dual_hud_face) >= 0:
+				var fi := clampi(int(model.dual_hud_face), 0, MenuHelpers.VICTORY_FACES.size() - 1)
+				var mini_ex = MenuHelpers.VICTORY_FACES[fi].get("expr")
+				if mini_ex != null:
+					mini_extras["expr"] = mini_ex
+			_draw_bobina_at(x0 + oIcon, y - 3.5, 0.42 if P else 0.46, fit, mini_extras)
 			var _fontw2 = ("bold " if hot else "") + str(rf) + "px monospace"
 			ctx.font(_fontw2)
 			var linked = (e.get("bcId") != null and str(e.get("bcId")) != "") or e.get("linked") == true

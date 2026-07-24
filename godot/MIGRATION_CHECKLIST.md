@@ -42,7 +42,7 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [x] Play-scale (×1) expression dual (`godot_play_face_0..5` via player dual_expr)
 - [x] Pause card: full dim, center, hide HUD, 92vh height clamp
 - [x] Smile lid stroke dampened at ×4.7 preview (anti-glasses)
-- [ ] HUD-mini scale dual (optional / leaderboard icons)
+- [x] HUD-mini (~0.46) expression dual on leaderboard (`godot_hud_face_0..5`)
 
 ## Phase 3 — Exhaustive visuals
 

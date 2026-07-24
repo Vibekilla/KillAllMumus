@@ -440,7 +440,7 @@ function writeIndex() {
       <td><div class="cap">HTML (source of truth)</div>${hasH ? `<img src="html/${h}" width="480"/>` : "<em>missing</em>"}</td>
       <td><div class="cap">Godot port</div>${hasG ? `<img src="godot/${g}" width="480"/>` : "<em>missing</em>"}</td></tr>`;
   }
-  for (const g of godotShots.filter((f) => f.includes("bobina_") || f.includes("gif_") || f.includes("menu_outfit_anim_") || f.includes("play_face_"))) {
+  for (const g of godotShots.filter((f) => f.includes("bobina_") || f.includes("gif_") || f.includes("menu_outfit_anim_") || f.includes("play_face_") || f.includes("hud_face_"))) {
     rows += `<tr><th colspan="2">${g}</th></tr><tr><td colspan="2"><img src="godot/${g}" width="480"/></td></tr>`;
   }
   fs.writeFileSync(
