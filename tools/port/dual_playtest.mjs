@@ -203,9 +203,11 @@ function servePublic() {
             "spawnBossPortrait:function(stageIdx){",
             "if(!run)return null;run.stageIdx=stageIdx|0;enemies=[];bullets=[];pshots=[];dialog=null;fx=[];particles=[];",
             "try{spawnBoss();}catch(e){return null;}",
-            // Visible body, no monologue chrome, no attack storm — dual still
-            "if(boss){boss.intro=0;boss.introDlg=false;boss.y=PF.y+140;boss.x=PF.x+PF.w/2;boss.dead=false;",
-            "boss.specialT=0;boss.stun=9999;boss.flash=0;}",
+            // Visible body, pinned center pose (no roam/attack/dialog chrome)
+            "if(boss){var bx=PF.x+PF.w/2,by=PF.y+140;",
+            "boss.intro=0;boss.introDlg=false;boss.x=bx;boss.y=by;boss.tx=bx;boss.ty=by;boss.mtx=bx;boss.mty=by;",
+            "boss.dead=false;boss.specialT=0;boss.stun=9999;boss.flash=0;boss.dash=false;",
+            "boss.face=Math.PI/2;boss.px=bx;boss.py=by;}",
             "dialog=null;bullets=[];pshots=[];",
             "return boss&&boss.data?boss.data.portrait:null;",
             "}",
@@ -624,7 +626,18 @@ async function captureHtml() {
             window.__kamDual.setState("play");
             return window.__kamDual.spawnBossPortrait(idx);
           }, si);
-          await page.waitForTimeout(fast ? 160 : 260);
+          // re-pin boss for a few frames so roam does not drift the dual still
+          for (let k = 0; k < 6; k++) {
+            await page.evaluate(() => {
+              if (typeof boss !== "undefined" && boss) {
+                const bx = PF.x + PF.w / 2, by = PF.y + 140;
+                boss.x = bx; boss.y = by; boss.mtx = bx; boss.mty = by;
+                boss.stun = 9999; boss.specialT = 0; boss.dash = false;
+                boss.face = Math.PI / 2; bullets = []; pshots = []; dialog = null;
+              }
+            });
+            await page.waitForTimeout(fast ? 40 : 60);
+          }
           const tag = portrait || `boss${si}`;
           await page.screenshot({ path: path.join(htmlDir, `html_boss_${tag}.png`) });
         }

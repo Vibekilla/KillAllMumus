@@ -1008,8 +1008,9 @@ func _run() -> void:
 					var stage: Dictionary = DataRegistry.get_stage(si)
 					var boss = BossScene.instantiate()
 					playfield.add_child(boss)
-					boss.setup(pool, Vector2(pf2.get_center().x, pf2.position.y + 140), stage)
-					# Visible body, frozen AI (HTML dual is dialog-intro still — no bullet storm)
+					var boss_pos := Vector2(pf2.get_center().x, pf2.position.y + 140)
+					boss.setup(pool, boss_pos, stage)
+					# Visible body, pinned pose (no roam / no attack / no spin-facing)
 					if "intro" in boss:
 						boss.intro = 0.0
 					if "dead" in boss:
@@ -1018,14 +1019,35 @@ func _run() -> void:
 						boss.stun = 99999.0
 					if "special_t" in boss:
 						boss.special_t = 0.0
+					if "dash" in boss:
+						boss.dash = false
+					if "mtx" in boss:
+						boss.mtx = boss_pos.x
+					if "mty" in boss:
+						boss.mty = boss_pos.y
+					if "face" in boss:
+						boss.face = PI / 2.0  # face down (HTML rest face)
 					for _i in range(14):
 						await process_frame
-						if "intro" in boss:
-							boss.intro = 0.0
-						if "stun" in boss:
-							boss.stun = 99999.0
-						if "special_t" in boss:
-							boss.special_t = 0.0
+						if is_instance_valid(boss):
+							boss.global_position = boss_pos
+							if "intro" in boss:
+								boss.intro = 0.0
+							if "stun" in boss:
+								boss.stun = 99999.0
+							if "special_t" in boss:
+								boss.special_t = 0.0
+							if "dash" in boss:
+								boss.dash = false
+							if "mtx" in boss:
+								boss.mtx = boss_pos.x
+							if "mty" in boss:
+								boss.mty = boss_pos.y
+							if "face" in boss:
+								boss.face = PI / 2.0
+							if "t" in boss:
+								# freeze pattern timers from advancing attack cadence
+								boss.t = int(boss.t)
 						# Drop wave trash + boss bullets so portrait is readable
 						for e in root.get_tree().get_nodes_in_group("enemies"):
 							if is_instance_valid(e) and not e.is_in_group("bosses"):
