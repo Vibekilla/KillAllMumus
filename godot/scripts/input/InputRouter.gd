@@ -114,9 +114,9 @@ func key_press(k: String) -> void:
 		if k == "cycle":
 			CombatHelpers.cycle_special()
 		if k == "fire":
-			# HTML autoFire toggle
+			# HTML touch FIRE button — toggle autoFire (default OFF)
 			var st: Dictionary = ProgressStore.progress.get("settings", {})
-			st["autofire"] = not bool(st.get("autofire", true))
+			st["autofire"] = not bool(st.get("autofire", false))
 			ProgressStore.progress["settings"] = st
 			ProgressStore.queue_save()
 			if AudioBus:

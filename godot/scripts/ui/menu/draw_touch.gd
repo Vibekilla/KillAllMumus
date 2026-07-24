@@ -181,7 +181,7 @@ func _draw_pause_chip() -> void:
 
 func _fire_label() -> String:
 	var st: Dictionary = ProgressStore.progress.get("settings", {}) if ProgressStore else {}
-	var af := bool(st.get("autofire", true))
+	var af := bool(st.get("autofire", false))
 	return "🔥\nFIRE" if af else "🔥\nOFF"
 
 func _swap_label() -> String:
