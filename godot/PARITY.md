@@ -237,6 +237,15 @@ Intros, dialog + portraits, shop + Honey Badger, stage-clear + leekspin + maid d
 
 Settings, Display, Keybinds, Help, Pause, Name Entry, Shoutouts, Soundgate, touch chrome, leaderboard + cloud merge.
 
+| Area | Status |
+| --- | --- |
+| Settings / Display / Pause | **structure** — dual `godot_menu_settings`, pause chrome |
+| Keybinds + gamepad glyphs | **partial** — key · pad labels, joy rebind |
+| Help | **structure** — HelpCanvas + dual `godot_menu_help` |
+| Shoutouts | **structure** — title overlay + dual `godot_menu_shoutouts` |
+| Name entry / leaderboard | **structure** — EndScreen + lb dual |
+| Soundgate + touch chrome | **structure** — present |
+
 ### Phase 7 — Full dual QA hard gate (“port complete”)
 
 Fresh dual report covering **every** system in Phases 2–6, including:

@@ -605,7 +605,7 @@ func _run() -> void:
 	if _ps:
 		_ps.emblems = _saved_emblems
 
-	# Settings + NG select (title meta screens HTML dual also captures)
+	# Settings + NG select + help + shoutouts (title meta screens)
 	if _want("core"):
 		GameState.set_state(GameState.State.SETTINGS)
 		_force_ui_size(_main)
@@ -620,6 +620,38 @@ func _run() -> void:
 		for _i in range(6 if fast else 10):
 			await process_frame
 		await _save("godot_menu_ngselect")
+
+		# Help modal (HTML openHelp)
+		GameState.set_state(GameState.State.TITLE)
+		_force_ui_size(_main)
+		var help_ui = _main.get_node_or_null("UI/HelpCanvas")
+		if help_ui == null:
+			help_ui = root.get_tree().get_first_node_in_group("help_canvas") if root else null
+		if help_ui and help_ui.has_method("open_help"):
+			help_ui.open_help()
+			if "help_tab" in help_ui:
+				help_ui.help_tab = "controls"
+			if help_ui.has_method("queue_redraw"):
+				help_ui.queue_redraw()
+			for _i in range(6 if fast else 10):
+				await process_frame
+			await _save("godot_menu_help")
+			if help_ui.has_method("close_help"):
+				help_ui.close_help()
+
+		# Shoutouts overlay on title
+		GameState.set_state(GameState.State.TITLE)
+		_force_ui_size(_main)
+		var p2m = _A("P2Meta")
+		if p2m and p2m.has_method("open_shoutouts"):
+			p2m.open_shoutouts()
+		if title and title.has_method("queue_redraw"):
+			title.queue_redraw()
+		for _i in range(6 if fast else 10):
+			await process_frame
+		await _save("godot_menu_shoutouts")
+		if p2m and p2m.has_method("close_shoutouts"):
+			p2m.close_shoutouts()
 
 	# Clean run: intro first (HTML order), then play with invuln so dual never hits gameover
 	var player = null

@@ -25,7 +25,8 @@ static func _controls() -> Array:
 		_item("🗡", "Melee", "Hold %s to charge · release to slash" % MenuHelpers.kb("melee")),
 		_item("🎁", "Items", "%s switch · tap %s to use" % [MenuHelpers.kb("item_switch"), MenuHelpers.kb("item_use")]),
 		_item("🎯", "Focus / Dash", "Hold Focus to slow · double-tap to dash"),
-		_item("⚙", "Rebind", "Settings → Controls (also Pause)"),
+		_item("🕹", "Controller", "Xbox-style: stick move · A/RT fire · LB focus · B bomb · X special · Y melee · D-pad items"),
+		_item("⚙", "Rebind", "Settings → Controls (keyboard or pad; also Pause)"),
 	]
 
 static func _weapons() -> Array:
@@ -60,7 +61,7 @@ static func _items() -> Array:
 		_item("◈", "Bobo Guard", "Temporary shield that soaks your next hit."),
 		_item("★", "Elite Mumus", "Big themed elites — kill for POWER. Banana Frenzy is a shop consumable."),
 		_item("💀", "Mumu Skulls", "≈1/16 Mumus drop skulls for Honey Badger’s shop."),
-		_item("🍯", "Consumables", "Honeycomb/Wagyu heal · Tears/Souls/Galaxy power · Clover special · Bubbles · Stardust · Vial · Banana · Wormhole. Equip ≤3 in Arsenal. Switch + hold Use (0.8s), 3s CD."),
+		_item("🍯", "Consumables", "Honeycomb/Wagyu heal · Tears/Souls/Galaxy power · Clover special · Bubbles · Stardust · Vial · Banana · Wormhole. Equip ≤3 in Arsenal. Switch + tap Use, 3s CD."),
 		_item("🎒", "Arsenal Loadout", "Drag gear into slots (≤5 weapons/specials, 2 melee, 3 items). Locked gear shows 🔒 until bought."),
 	]
 

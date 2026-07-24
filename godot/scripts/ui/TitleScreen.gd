@@ -558,13 +558,19 @@ var _shout_hits: Array = []
 var _shout_close: Dictionary = {}
 
 func _draw_shoutouts() -> void:
+	## HTML #shoutouts — full list + close; card grows to fit viewport (no clip)
 	_shout_hits.clear()
 	var W = Config.W
 	var H = Config.H
 	ctx.fill_style("rgba(8,4,16,0.88)")
 	ctx.fill_rect(0, 0, W, H)
-	var pw = 420.0
-	var ph = 420.0
+	var pw = minf(440.0, W - 24.0)
+	var n := SHOUTOUTS.size()
+	var row_h := 28.0
+	var head_h := 72.0
+	var foot_h := 52.0
+	var list_h := float(n) * row_h
+	var ph = minf(H - 16.0, head_h + list_h + foot_h + 16.0)
 	var px = W * 0.5 - pw * 0.5
 	var py = H * 0.5 - ph * 0.5
 	ctx.fill_style("rgba(28,14,40,0.96)")
@@ -576,40 +582,46 @@ func _draw_shoutouts() -> void:
 	ctx.stroke()
 	ctx.text_align("center")
 	ctx.fill_style("#ffe08a")
-	ctx.font("900 22px Trebuchet MS")
-	ctx.fill_text("📣 SHOUTOUTS", W * 0.5, py + 36)
+	ctx.font("900 20px Trebuchet MS")
+	ctx.fill_text("📣 SHOUTOUTS", W * 0.5, py + 30)
 	ctx.fill_style("#c8b0d0")
-	ctx.font("12px monospace")
-	ctx.fill_text("Follow Bobina Council & friends on X", W * 0.5, py + 56)
-	var y = py + 80
+	ctx.font("11px monospace")
+	ctx.fill_text("Follow Bobina Council & friends on X", W * 0.5, py + 50)
+	var y: float = py + head_h
+	var list_bottom: float = py + ph - foot_h
 	for s in SHOUTOUTS:
-		var row = {"x": px + 24, "y": y - 14, "w": pw - 48, "h": 30, "url": s["url"]}
+		if y + row_h > list_bottom + 2.0:
+			break
+		var row = {"x": px + 18, "y": y - 10, "w": pw - 36, "h": row_h - 4.0, "url": s["url"]}
 		_shout_hits.append(row)
 		ctx.fill_style("rgba(255,255,255,0.05)")
 		ctx.begin_path()
 		ctx.round_rect(row.x, row.y, row.w, row.h, 8)
 		ctx.fill()
+		ctx.stroke_style("rgba(255,120,190,0.28)")
+		ctx.line_width(1)
+		ctx.stroke()
 		ctx.fill_style("#ffd6ea")
-		ctx.font("bold 13px Trebuchet MS")
+		ctx.font("bold 12px Trebuchet MS")
 		ctx.text_align("left")
-		ctx.fill_text(s["label"], row.x + 12, y + 2)
-		ctx.fill_style("#9a8ba8")
-		ctx.font("11px monospace")
+		ctx.fill_text(s["label"], row.x + 12, y + 4)
+		ctx.fill_style("#c8a0d8")
+		ctx.font("10px monospace")
 		ctx.text_align("right")
-		ctx.fill_text(s["sub"], row.x + row.w - 12, y + 2)
-		y += 34
-	_shout_close = {"x": px + pw * 0.5 - 60, "y": py + ph - 44, "w": 120, "h": 28}
-	ctx.fill_style("rgba(143,208,255,0.2)")
+		ctx.fill_text(s["sub"], row.x + row.w - 12, y + 4)
+		y += row_h
+	_shout_close = {"x": px + pw * 0.5 - 70, "y": py + ph - 42, "w": 140, "h": 30}
+	ctx.fill_style("rgba(255,255,255,0.06)")
 	ctx.begin_path()
-	ctx.round_rect(_shout_close.x, _shout_close.y, _shout_close.w, _shout_close.h, 8)
+	ctx.round_rect(_shout_close.x, _shout_close.y, _shout_close.w, _shout_close.h, 10)
 	ctx.fill()
-	ctx.stroke_style("#8fd0ff")
+	ctx.stroke_style("rgba(255,255,255,0.22)")
 	ctx.line_width(1.5)
 	ctx.stroke()
-	ctx.fill_style("#8fd0ff")
+	ctx.fill_style("#e8cfe0")
 	ctx.font("bold 13px Trebuchet MS")
 	ctx.text_align("center")
-	ctx.fill_text("CLOSE", W * 0.5, _shout_close.y + 19)
+	ctx.fill_text("CLOSE", W * 0.5, _shout_close.y + 20)
 	ctx.text_align("left")
 
 func _sfx(t: String) -> void:
