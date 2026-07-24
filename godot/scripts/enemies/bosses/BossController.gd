@@ -90,6 +90,10 @@ func _want_redraw() -> void:
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
+	# Dual stills: freeze AI / face-tracking / patterns (godot-master: presentation doesn't thrash entity)
+	if has_meta("dual_freeze") and bool(get_meta("dual_freeze")):
+		_want_redraw()
+		return
 	var p := get_tree().get_first_node_in_group("player") as Node2D
 	var pf: Rect2 = Config.playfield()
 

@@ -1503,6 +1503,49 @@ func _run() -> void:
 							if pool and pool.has_method("clear_all"):
 								pool.clear_all()
 						await _save("godot_boss_ape_live")
+						# Boss dialog dual — StageFlow owns state; FlowUI presents (signal-up)
+						boss.set_meta("dual_freeze", true)
+						var bdata: Dictionary = stage.get("boss", {}) if stage.get("boss") is Dictionary else {}
+						var intro_lines: Array = []
+						if bdata.get("intro") is Array and (bdata["intro"] as Array).size() > 0:
+							intro_lines = (bdata["intro"] as Array).duplicate()
+						else:
+							intro_lines = [
+								{"w": 0, "t": "You will not leave this jungle, little bear."},
+								{"w": 1, "t": "Watch me."},
+							]
+						if StageFlow and StageFlow.has_method("start_dialog"):
+							StageFlow.start_dialog(intro_lines, bdata)
+							# Pin dialog so dual doesn't advance off the first line
+							if StageFlow.dialog is Dictionary:
+								StageFlow.dialog["timer"] = 9999.0
+								StageFlow.dialog["i"] = 0
+						var flow_ui = _main.get_node_or_null("UI/FlowUI")
+						for _j in range(10):
+							await process_frame
+							player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
+							player.aim = PI / 2.0
+							if is_instance_valid(boss):
+								boss.set_meta("dual_freeze", true)
+								boss.global_position = boss_pos
+								if "face" in boss:
+									boss.face = PI / 2.0
+								if "mtx" in boss:
+									boss.mtx = boss_pos.x
+								if "mty" in boss:
+									boss.mty = boss_pos.y
+								if "stun" in boss:
+									boss.stun = 99999.0
+							if StageFlow and StageFlow.dialog is Dictionary:
+								StageFlow.dialog["timer"] = 9999.0
+								StageFlow.dialog["i"] = 0
+							if flow_ui and flow_ui.has_method("queue_redraw"):
+								flow_ui.queue_redraw()
+							if pool and pool.has_method("clear_all"):
+								pool.clear_all()
+						await _save("godot_boss_dialog")
+						if StageFlow:
+							StageFlow.dialog = null
 					if is_instance_valid(boss):
 						boss.queue_free()
 				for _i in range(2):

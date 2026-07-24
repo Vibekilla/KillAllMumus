@@ -700,6 +700,27 @@ async function captureHtml() {
           }
           const tag = portrait || `boss${si}`;
           await page.screenshot({ path: path.join(htmlDir, `html_boss_${tag}.png`) });
+          // First boss: also capture intro dialog dual (HTML truth)
+          if (si === 0) {
+            await page.evaluate(() => {
+              if (typeof boss === "undefined" || !boss) return;
+              const bd = boss.data || {};
+              const lines = (bd.intro && bd.intro.length)
+                ? bd.intro.slice()
+                : [{ w: 0, t: "You will not leave this jungle, little bear." }, { w: 1, t: "Watch me." }];
+              if (typeof startDialog === "function") startDialog(lines, bd);
+              else dialog = { boss: bd, queue: lines, i: 0, timer: 9999 };
+              if (dialog) { dialog.timer = 9999; dialog.i = 0; }
+              const bx = PF.x + PF.w / 2, by = PF.y + 200;
+              boss.x = bx; boss.y = by; boss.mtx = bx; boss.mty = by;
+              boss.stun = 9999; boss.face = Math.PI / 2;
+              if (player) { player.x = bx; player.y = PF.y + 70; player.aim = Math.PI / 2; }
+              bullets = []; pshots = []; enemies = [];
+            });
+            await page.waitForTimeout(fast ? 160 : 240);
+            await page.screenshot({ path: path.join(htmlDir, "html_boss_dialog.png") });
+            console.log("[HTML] boss_dialog");
+          }
         }
         console.log("[HTML] bosses 7");
       }
@@ -837,14 +858,20 @@ function writeIndex() {
     }
   }
   if (want("bosses")) {
-    for (const f of godotShots.filter((x) => x.startsWith("godot_boss_"))) {
+    for (const f of godotShots.filter((x) => x.startsWith("godot_boss_") && !x.includes("dialog") && !x.includes("live"))) {
       const key = f.replace("godot_boss_", "").replace(".png", "");
       pairs.push([`html_boss_${key}.png`, f, `Boss · ${key}`]);
     }
-    for (const f of htmlShots.filter((x) => x.startsWith("html_boss_"))) {
+    for (const f of htmlShots.filter((x) => x.startsWith("html_boss_") && !x.includes("dialog"))) {
       const key = f.replace("html_boss_", "").replace(".png", "");
       const g = `godot_boss_${key}.png`;
       if (!pairs.some((p) => p[0] === f)) pairs.push([f, g, `Boss · ${key}`]);
+    }
+    if (godotShots.includes("godot_boss_dialog.png") || htmlShots.includes("html_boss_dialog.png")) {
+      pairs.push(["html_boss_dialog.png", "godot_boss_dialog.png", "Boss · intro dialog"]);
+    }
+    if (godotShots.includes("godot_boss_ape_live.png")) {
+      pairs.push(["html_boss_ape.png", "godot_boss_ape_live.png", "Boss · ape live ambience"]);
     }
   }
   if (want("wardrobe")) {

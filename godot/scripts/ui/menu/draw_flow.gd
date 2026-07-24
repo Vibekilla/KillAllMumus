@@ -575,17 +575,19 @@ func drawDialog(d: Dictionary) -> void:
 	var lines: Array = _wrap_dialog_lines(quoted, w - 92.0)
 	var h := maxf(88.0, 52.0 + float(lines.size()) * lh)
 	var y := pf.position.y + pf.size.y - 8.0 - h
+	# Presentation-only panel (godot-master: UI never owns dialog state — StageFlow does)
 	ctx.fill_style(cfg.bg)
-	ctx.begin_path()
-	ctx.round_rect(x, y, w, h, 8)
-	ctx.fill()
+	ctx.fill_rect(x, y, w, h)  # solid rect (round_rect fill flaky under some clips)
 	ctx.stroke_style(cfg.stroke)
 	ctx.line_width(2)
 	if cfg.glow != null:
 		ctx.shadow_color(str(cfg.glow))
 		ctx.shadow_blur(14)
-	ctx.stroke()
+	ctx.stroke_rect(x, y, w, h)
+	# CRITICAL: clear shadow so subsequent HUD strokes aren't neon-tinted (CanvasCompat leak fix)
 	ctx.shadow_blur(0)
+	if ctx.has_method("shadow_color"):
+		ctx.shadow_color("rgba(0,0,0,0)")
 	# HTML drawPortraitBust + manageGifOverlays talk gif for Bobina lines
 	if ported:
 		ported.drawPortraitBust(x + 40.0, y + h / 2.0, 58.0, str(cfg.portrait), str(cfg.pcol))
