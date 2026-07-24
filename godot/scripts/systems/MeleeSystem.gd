@@ -17,11 +17,12 @@ func tick(delta: float) -> void:
 		charge = minf(1.0, charge + delta * 0.85)
 	else:
 		charge = maxf(0.0, charge - delta * 2.0)
+	# HTML: f.t++; filter f.t < f.life (life is fixed duration, t is elapsed)
 	var keep: Array = []
 	for f in swipe_fx:
 		f["t"] = float(f.get("t", 0)) + df
-		f["life"] = float(f.get("life", 16)) - df
-		if float(f["life"]) > 0.0:
+		var life := float(f.get("life", 16))
+		if float(f["t"]) < life:
 			keep.append(f)
 	swipe_fx = keep
 

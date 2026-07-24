@@ -932,8 +932,8 @@ func _run() -> void:
 					ms.charge = 1.0
 					ms.holding = false
 					ms.release(player, mk, -PI / 2.0)
-				# Capture near peak of swipe (don't wait until FX dies)
-				for _i in range(5):
+				# Peak of slash is early (t≈3–5 of life 16)
+				for _i in range(3):
 					await process_frame
 					for e in root.get_tree().get_nodes_in_group("enemies"):
 						if is_instance_valid(e) and not e.is_in_group("bosses"):
@@ -943,6 +943,11 @@ func _run() -> void:
 					GameState.power = 6.0
 					GameState.session_score = 0
 					GameState.total_kills = 0
+					# Freeze swipe age at peak for still
+					if ms and ms.get("swipe_fx") is Array:
+						for f in ms.swipe_fx:
+							if f is Dictionary:
+								f["t"] = 4.0
 				await _save("godot_melee_%s" % mk)
 		if _want("specials"):
 			var skeys: Array = ["laser", "mech", "bearzooka", "vault", "stampede", "badger", "sixth", "revenge", "kiss", "kraken", "void"]
@@ -953,9 +958,14 @@ func _run() -> void:
 				GameState.special_meter = 100.0
 				player.aim = -PI / 2.0
 				player.global_position = Vector2(304, 400)
+				player.set_meta("dual_lock_pose", true)
+				player.set_meta("dual_aim", -PI / 2.0)
+				var used := false
 				if sp and sp.has_method("use"):
-					sp.use(sk, player, pool)
-				for _i in range(10):
+					used = bool(sp.use(sk, player, pool))
+				print("[SHOT] special=", sk, " used=", used, " fx=", (sp.fx.size() if sp and sp.get("fx") is Array else -1))
+				# Settle a few frames then pin laser/mech timers at readable mid-life
+				for _i in range(4):
 					await process_frame
 					for e in root.get_tree().get_nodes_in_group("enemies"):
 						if is_instance_valid(e) and not e.is_in_group("bosses"):
@@ -965,6 +975,34 @@ func _run() -> void:
 					GameState.power = 6.0
 					GameState.session_score = 0
 					GameState.total_kills = 0
+				if sp and sp.get("fx") is Array:
+					for f in sp.fx:
+						if typeof(f) != TYPE_DICTIONARY:
+							continue
+						var typ := str(f.get("type", ""))
+						if typ == "laser":
+							f["t"] = 50.0
+							f["ang"] = -PI / 2.0
+							f["x"] = player.global_position.x
+							f["y"] = player.global_position.y
+						elif typ == "mech":
+							f["t"] = 200.0
+						elif typ == "bearzooka":
+							f["t"] = 120.0
+						elif typ in ["bull", "badger", "blackhole", "kiss", "tentacle", "servitor"]:
+							if float(f.get("t", 0)) < 40.0:
+								f["t"] = 80.0
+				var ch_flash = _A("CombatHelpers")
+				if ch_flash:
+					if not ("flash_msg" in ch_flash) or ch_flash.flash_msg.is_empty() or str(ch_flash.flash_msg.get("txt", "")) == "":
+						var nm: String = str(sk)
+						if sp and sp.has_method("_special_name"):
+							nm = str(sp._special_name(sk))
+						if ch_flash.has_method("flash"):
+							ch_flash.flash("★ %s!" % nm.to_upper(), 70.0)
+						else:
+							ch_flash.flash_msg = {"t": 70.0, "txt": "★ %s!" % nm.to_upper()}
+				await process_frame
 				await _save("godot_special_%s" % sk)
 
 		if _want("aura"):

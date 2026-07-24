@@ -24,26 +24,43 @@ func use(key: String, player: Node2D, bullet_pool: Node) -> bool:
 		return false
 	GameState.special_meter = 0.0
 	ProgressStore.estats_add("specials", 1)
+	# HTML: flashMsg={t:70,txt:'★ '+sp.name.toUpperCase()+'!'}
+	var sp_name := _special_name(key)
+	if CombatHelpers:
+		CombatHelpers.flash("★ %s!" % sp_name.to_upper(), 70.0)
 	_activate(key, player, bullet_pool)
 	special_used.emit(key)
 	return true
+
+func _special_name(key: String) -> String:
+	for s in DataRegistry.specials if DataRegistry else []:
+		if str(s.get("key", "")) == key:
+			return str(s.get("name", key))
+	var fallback := {
+		"laser": "Kraken Cannon", "mech": "SKOL Mech", "bearzooka": "Bearzooka",
+		"vault": "Emblem Vaults", "stampede": "Jungle Stampede", "badger": "Honey Badger",
+		"sixth": "Sixth Sense", "revenge": "Ourbie’s Revenge", "kiss": "Kiss Me",
+		"kraken": "Unleash the Kraken", "void": "Call of the Void",
+	}
+	return str(fallback.get(key, key))
 
 func _activate(key: String, player: Node2D, bullet_pool: Node) -> void:
 	var px = player.global_position.x
 	var py = player.global_position.y
 	var pf: Rect2 = Config.playfield()
+	var aim_a := float(player.get("aim")) if player.get("aim") != null else -PI / 2.0
 	match key:
 		"laser", "kraken":
-			# Kraken cannon = wide beam; also tentacles for kraken
+			# laser = Kraken Cannon beam; kraken = tentacles (HTML keys)
 			if key == "laser":
-				fx.append({"type": "laser", "t": 64.0, "w": 58.0, "x": px, "y": py, "ang": float(player.get("aim"))})
+				fx.append({"type": "laser", "t": 64.0, "w": 58.0, "x": px, "y": py, "ang": aim_a})
 			else:
 				for i in 5:
 					var tx = pf.position.x + 55 + ((float(i) + 0.5) / 5.0) * (pf.size.x - 110)
 					var ty = pf.position.y + 100 + randf() * (pf.size.y - 200)
 					fx.append({"type": "tentacle", "t": 360.0, "ct": 0.0, "x": tx, "y": ty, "ph": randf() * TAU, "reach": 76.0})
 		"mech":
-			fx.append({"type": "mech", "t": 240.0, "ct": 0.0, "x": px, "y": py - 52})
+			fx.append({"type": "mech", "t": 240.0, "ct": 0.0, "x": px, "y": py - 52, "face": aim_a})
 		"bearzooka":
 			fx.append({"type": "bearzooka", "t": 156.0, "ct": 0.0, "x": pf.position.x - 30, "y": pf.position.y + 34})
 		"stampede":
@@ -83,8 +100,11 @@ func _activate(key: String, player: Node2D, bullet_pool: Node) -> void:
 					"type": "servitor", "t": 600.0, "hp": 26.0, "maxhp": 26.0, "sz": 2.2,
 					"x": px + cos(a) * 38, "y": py + sin(a) * 38, "ct": float(i) * 7.0,
 				})
+		"vault":
+			# Emblem vaults — wave rings (HTML default-ish burst)
+			for i in 3:
+				fx.append({"type": "wave", "delay": float(i) * 16.0, "r": 0.0, "x": px, "y": py, "hit": {}, "alive": true})
 		_:
-			# default wave rings
 			for i in 3:
 				fx.append({"type": "wave", "delay": float(i) * 16.0, "r": 0.0, "x": px, "y": py, "hit": {}, "alive": true})
 	# also ensure bullet_pool reference for FX that shoot

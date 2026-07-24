@@ -89,38 +89,47 @@ func _circle(x: float, y: float, r: float, col: String) -> void:
 	ctx.fill()
 
 func _fx_laser(f: Dictionary, pf: Rect2, player: Node) -> void:
-	var px = float(f.get("x", NAN))
-	var py = float(f.get("y", NAN))
-	var ang = float(f.get("ang", NAN))
-	if is_nan(px) or is_nan(py):
-		if player:
+	## HTML drawFx laser — t counts down from 64; beam points along ang (aim)
+	var px := float(f.get("x", 0))
+	var py := float(f.get("y", 0))
+	var ang := float(f.get("ang", -PI / 2.0))
+	if player and is_instance_valid(player):
+		if not f.has("x") or absf(px) < 0.01:
 			px = player.global_position.x
 			py = player.global_position.y
-		else:
-			px = pf.position.x + pf.size.x * 0.5
-			py = pf.position.y + pf.size.y - 70.0
-	if is_nan(ang):
-		ang = -PI / 2.0
-	var L = pf.size.x + pf.size.y
-	var hw = float(f.get("w", 58)) * 0.5
-	var ft = float(f.get("t", 64))
+		if not f.has("ang"):
+			ang = float(player.get("aim")) if player.get("aim") != null else -PI / 2.0
+	var bw := float(f.get("w", 58))
+	var hw := bw * 0.5
+	var ft := float(f.get("t", 64))
+	# Fade in first 6 frames of life, fade out last 12 (HTML: t countdown)
+	var fade_in := clampf((64.0 - ft) / 6.0, 0.0, 1.0)
+	var fade_out := clampf(ft / 12.0, 0.0, 1.0)
+	var al := 0.85 * fade_in * fade_out
+	if al < 0.02:
+		return
+	# Beam length: from player to far playfield edge along aim
+	var dx := cos(ang)
+	var dy := sin(ang)
+	var L := pf.size.x + pf.size.y
 	ctx.save()
 	ctx.begin_path()
 	ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	ctx.clip()
 	ctx.translate(px, py)
 	ctx.rotate(ang + PI / 2.0)
-	ctx.global_alpha(0.85 * minf(1.0, (64.0 - ft) / 6.0) * minf(1.0, ft / 12.0))
-	# HTML linear gradient across beam width
-	var g = ctx.create_linear_gradient(-hw, 0, hw, 0)
-	g.addColorStop(0, "rgba(168,85,247,0)")
-	g.addColorStop(0.5, "#a855f7")
-	g.addColorStop(1, "rgba(168,85,247,0)")
-	ctx.fill_style(g)
-	ctx.fill_rect(-hw, -L, float(f.get("w", 58)), L)
+	ctx.global_alpha(al)
+	# Soft outer glow + core (layered solids — gradient fill_rect is flaky under rotate+clip)
+	ctx.fill_style("rgba(168,85,247,0.22)")
+	ctx.fill_rect(-hw * 1.35, -L, bw * 1.35, L)
+	ctx.fill_style("rgba(168,85,247,0.55)")
+	ctx.fill_rect(-hw, -L, bw, L)
+	ctx.fill_style("rgba(200,140,255,0.75)")
+	ctx.fill_rect(-hw * 0.55, -L, bw * 0.55, L)
 	ctx.fill_style("rgba(236,220,255,0.95)")
 	ctx.fill_rect(-4, -L, 8, L)
 	ctx.restore()
+	ctx.global_alpha(1.0)
 
 func _fx_mech(f: Dictionary, player: Node) -> void:
 	var ft = float(f.get("t", 240))
