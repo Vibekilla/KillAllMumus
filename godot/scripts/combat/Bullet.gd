@@ -286,7 +286,12 @@ func _on_area(a: Area2D) -> void:
 		if pierce and hit_ids.has(id):
 			return
 		if a.has_method("take_damage"):
-			a.take_damage(damage)
+			# Bosses: HTML pshot uses bossDmgMul + bossWepMul (voidbolt keeps 0.3*_bm only)
+			if a.is_in_group("bosses") and CombatHelpers and CombatHelpers.has_method("scale_boss_shot_damage"):
+				var scaled := CombatHelpers.scale_boss_shot_damage(damage, voidbolt, str(GameState.current_weapon) if GameState else "")
+				a.take_damage(scaled, {"pre_scaled": true, "voidbolt": voidbolt})
+			else:
+				a.take_damage(damage)
 		if pierce:
 			hit_ids[id] = true
 		else:

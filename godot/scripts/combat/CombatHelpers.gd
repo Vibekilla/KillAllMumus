@@ -247,13 +247,39 @@ func tick_fx(delta: float) -> void:
 			flash_msg = {}
 
 func boss_dmg_mul() -> float:
-	## HTML bossDmgMul — soften high power vs bosses
-	var lv := clampf(GameState.power, 1.0, 5.0)
-	return 1.0 / (0.75 + lv * 0.12)
+	## HTML bossDmgMul: 1 - min(0.55, (power-1)*0.11)
+	## Higher power fires more shots → scale per-hit boss damage down (up to −55% at high power)
+	if GameState == null:
+		return 1.0
+	return 1.0 - minf(0.55, (GameState.power - 1.0) * 0.11)
 
-func boss_wep_mul() -> float:
-	## HTML bossWepMul
-	return 0.85 if GameState.hard_mode else 1.0
+func boss_wep_mul(weapon: String = "") -> float:
+	## HTML bossWepMul + BOSS_WEP_DEBUFF[weapon][difficulty]
+	## Single-target/rapid weapons get extra boss debuff so they don't melt HP bars.
+	var wep := weapon
+	if wep == "" and GameState:
+		wep = str(GameState.current_weapon)
+	var diff := 0
+	if GameState:
+		diff = clampi(GameState.difficulty, 0, 2)
+	# HTML BOSS_WEP_DEBUFF
+	var table := {
+		"voidripper": [0.7, 0.5, 0.34],
+		"laser": [0.8, 0.64, 0.48],
+		"gatling": [0.8, 0.64, 0.48],
+		"homing": [0.9, 0.76, 0.62],
+	}
+	if table.has(wep):
+		var row: Array = table[wep]
+		return float(row[mini(diff, row.size() - 1)])
+	return 1.0
+
+func scale_boss_shot_damage(base_dmg: float, is_voidbolt: bool = false, weapon: String = "") -> float:
+	## HTML pshot vs boss: voidbolt → dmg*0.3*_bm ; else dmg*_bm*_wm
+	var bm := boss_dmg_mul()
+	if is_voidbolt:
+		return base_dmg * 0.3 * bm
+	return base_dmg * bm * boss_wep_mul(weapon)
 
 func bullet_cancel_all(pool: Node = null) -> void:
 	## HTML bulletCancelAll

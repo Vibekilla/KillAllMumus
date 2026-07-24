@@ -110,6 +110,10 @@ func _physics_process(delta: float) -> void:
 
 	if dead:
 		dead_t += delta * FRAME
+		# HTML: on first dead frame, rain power/point/life/bomb/fullpower
+		if not has_meta("death_loot"):
+			set_meta("death_loot", true)
+			_drop_death_loot()
 		if int(dead_t) % 3 == 0:
 			# death burst visual via redraw flash
 			flash = 4.0
@@ -384,11 +388,20 @@ func _twin_swap(other: String) -> void:
 	if bullet_pool:
 		bullet_pool.clear_enemy()
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, opts: Dictionary = {}) -> void:
+	## amount is raw shot dmg; opts may include voidbolt (already-scaled path from Bullet preferred)
 	if intro > 0.0 or dead:
 		return
-	var mul := _boss_dmg_mul() * _boss_wep_mul()
-	hp -= amount * mul
+	var dmg := amount
+	# If caller already scaled (opts.pre_scaled), use raw amount; else apply HTML muls here
+	if not bool(opts.get("pre_scaled", false)):
+		var is_vb := bool(opts.get("voidbolt", false))
+		var wep := str(opts.get("weapon", GameState.current_weapon if GameState else ""))
+		if CombatHelpers and CombatHelpers.has_method("scale_boss_shot_damage"):
+			dmg = CombatHelpers.scale_boss_shot_damage(amount, is_vb, wep)
+		else:
+			dmg = amount * _boss_dmg_mul() * (1.0 if is_vb else _boss_wep_mul())
+	hp -= dmg
 	flash = 3.0
 	if twin:
 		tw[active_twin]["hp"] = hp
@@ -396,12 +409,29 @@ func take_damage(amount: float) -> void:
 		_on_hp_zero()
 
 func _boss_dmg_mul() -> float:
-	# Soften high power vs bosses
-	var lv := clampf(GameState.power, 1.0, 5.0)
-	return 1.0 / (0.75 + lv * 0.12)
+	## Fallback if CombatHelpers unavailable — match HTML bossDmgMul
+	if CombatHelpers and CombatHelpers.has_method("boss_dmg_mul"):
+		return CombatHelpers.boss_dmg_mul()
+	return 1.0 - minf(0.55, (GameState.power - 1.0) * 0.11)
 
 func _boss_wep_mul() -> float:
-	return 0.85 if GameState.hard_mode else 1.0
+	if CombatHelpers and CombatHelpers.has_method("boss_wep_mul"):
+		return CombatHelpers.boss_wep_mul()
+	return 1.0
+
+func _drop_death_loot() -> void:
+	## HTML updateBoss deadT===1 drops
+	if ItemSystem == null:
+		return
+	var px := global_position.x
+	var py := global_position.y
+	for i in range(12):
+		ItemSystem.drop_item(px + (randf() - 0.5) * 40.0, py, "power")
+	for i in range(8):
+		ItemSystem.drop_item(px + (randf() - 0.5) * 50.0, py, "point")
+	ItemSystem.drop_item(px, py, "life")
+	ItemSystem.drop_item(px - 10.0, py, "bomb")
+	ItemSystem.drop_weapon(px + 14.0, py)
 
 func _on_hp_zero() -> void:
 	if twin:
@@ -415,11 +445,12 @@ func _on_hp_zero() -> void:
 			return
 	dead = true
 	hp = 0
+	dead_t = 0.0
 	if bullet_pool:
 		bullet_pool.clear_enemy()
 	ProgressStore.estats_add("bosses", 1)
 	GameState.add_score(int(5000 * GameState.score_mul()))
-	GameState.power = minf(5.0, GameState.power + 1.0)
+	# HTML grants loot rain (not a flat power+1); loot pickups apply via add_power/fullpower
 	GameState.lives = mini(DataRegistry.max_lives(), GameState.lives + 1)
 	GameState.bombs = mini(DataRegistry.max_bombs(), GameState.bombs + 1)
 	if portrait == "wynn":
