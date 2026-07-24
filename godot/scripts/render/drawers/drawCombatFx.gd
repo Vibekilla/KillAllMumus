@@ -234,6 +234,7 @@ func drawPowerRadiance(p: Dictionary) -> void:
 	ctx.begin_path()
 	ctx.arc(ctr.x, ctr.y, HR, 0, TAU)
 	ctx.fill()
+	# HTML: smoother wavy rings (smaller step → less polygonal mud)
 	var rings := 2 + int(floor(pf * 3.0))
 	for k in range(rings):
 		var ph := fmod(t * 0.009 + float(k) / float(rings), 1.0)
@@ -245,7 +246,7 @@ func drawPowerRadiance(p: Dictionary) -> void:
 		ctx.begin_path()
 		var first := true
 		var a := 0.0
-		while a <= 6.3:
+		while a <= TAU + 0.05:
 			var wob := 1.0 + sin(a * 5.0 + t * 0.14 + float(k)) * 0.06 * pf
 			var x := ctr.x + cos(a) * rr * wob
 			var y := ctr.y + sin(a) * rr * wob
@@ -254,7 +255,7 @@ func drawPowerRadiance(p: Dictionary) -> void:
 				first = false
 			else:
 				ctx.line_to(x, y)
-			a += 0.32
+			a += 0.12
 		ctx.close_path()
 		ctx.stroke()
 	ctx.restore()

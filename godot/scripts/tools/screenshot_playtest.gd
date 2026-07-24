@@ -220,14 +220,22 @@ func _dual_sanitize(player, pool) -> void:
 	if GS:
 		GS.set_state(GS.State.PLAY)
 		GS.lives = 99
-	# Dual stills: kill autofire so red shot rain doesn't pollute frames
+	# Dual stills: no autofire + clear emblem toast chrome
 	var PStore = _A("ProgressStore")
-	if PStore and "progress" in PStore:
-		var st: Dictionary = PStore.progress.get("settings", {})
-		if typeof(st) != TYPE_DICTIONARY:
-			st = {}
-		st["autofire"] = false
-		PStore.progress["settings"] = st
+	if PStore:
+		if "progress" in PStore:
+			var st: Dictionary = PStore.progress.get("settings", {})
+			if typeof(st) != TYPE_DICTIONARY:
+				st = {}
+			st["autofire"] = false
+			PStore.progress["settings"] = st
+		if PStore.has_meta("emblem_toasts"):
+			PStore.set_meta("emblem_toasts", [])
+	if player:
+		if "aim" in player:
+			player.aim = -PI / 2.0
+		if "face" in player:
+			player.set("face", -PI / 2.0)
 
 func _run() -> void:
 	await process_frame
@@ -1052,6 +1060,19 @@ func _run() -> void:
 						for e in root.get_tree().get_nodes_in_group("enemies"):
 							if is_instance_valid(e) and not e.is_in_group("bosses"):
 								e.queue_free()
+						# Also sweep Playfield strays (some spawns skip groups briefly)
+						if playfield:
+							for c in playfield.get_children():
+								if not is_instance_valid(c):
+									continue
+								if c.is_in_group("player") or c.is_in_group("bosses"):
+									continue
+								if c.is_in_group("enemies") or str(c.get_class()).find("Area") >= 0:
+									if c != boss and c.get("kind") != null:
+										c.queue_free()
+						for spn in root.get_tree().get_nodes_in_group("enemy_spawner"):
+							if is_instance_valid(spn) and "spawning" in spn:
+								spn.spawning = false
 						if pool and pool.has_method("clear_all"):
 							pool.clear_all()
 						var chb = _A("CombatHelpers")

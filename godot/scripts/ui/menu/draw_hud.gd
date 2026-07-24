@@ -166,7 +166,7 @@ func drawStageBgFx(s: int) -> void:
 	ctx.restore()
 
 func drawBossAmbience() -> void:
-	## HTML drawBossAmbience
+	## HTML drawBossAmbience — dark vignette + low-light mandala + expanding spell rings
 	var boss := _boss()
 	if boss == null:
 		return
@@ -187,6 +187,7 @@ func drawBossAmbience() -> void:
 	var pf: Rect2 = Config.playfield()
 	var cx := pf.position.x + pf.size.x * 0.5
 	var cy := pf.position.y + pf.size.y * 0.42
+	var H := pf.size.y
 	var rage := 0.6
 	var st = boss.get("special_t")
 	if st != null and float(st) > 0.0:
@@ -196,30 +197,73 @@ func drawBossAmbience() -> void:
 	if mhp != null and hp != null and float(mhp) > 0.0:
 		rage += (1.0 - float(hp) / float(mhp)) * 0.5
 	rage = minf(1.6, rage)
+	var spd := 1.0 + rage * 0.5
+	var t := float(tick)
 	ctx.save()
-	ctx.fill_style("hsla(%d,60%%,5%%,%s)" % [int(bh), str(0.26 + 0.14 * rage)])
+	ctx.begin_path()
+	ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
+	ctx.clip()
+	# 1) darken field for bullet contrast — boss-hued vignette
+	if ctx.has_method("createRadialGradient"):
+		var vg = ctx.createRadialGradient(cx, cy, H * 0.14, cx, cy, H * 0.92)
+		vg.add_color_stop(0, "rgba(0,0,0,0)")
+		vg.add_color_stop(0.68, "hsla(%d,60%%,5%%,%s)" % [int(bh), str(0.26 + 0.14 * rage)])
+		vg.add_color_stop(1, "hsla(%d,68%%,3%%,%s)" % [int(bh), str(0.58 + 0.14 * rage)])
+		ctx.fill_style(vg)
+	else:
+		ctx.fill_style("hsla(%d,60%%,5%%,%s)" % [int(bh), str(0.26 + 0.14 * rage)])
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	ctx.fill_style("rgba(3,1,6,%s)" % str(0.1 + 0.12 * rage))
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
-	# rotating mandala
-	var t := float(tick)
-	ctx.global_composite_operation("lighter")
-	for L in range(4):
-		ctx.stroke_style("hsla(%d,80%%,55%%,%s)" % [int(bh + float(L) * 18.0), str(0.08 + 0.06 * rage)])
-		ctx.line_width(1.5)
+	# 2) low-lightness rotating mandala + spokes (HTML seg=10)
+	ctx.save()
+	ctx.translate(cx, cy)
+	var seg := 10
+	for L in range(3):
+		var dir := -1.0 if (L % 2) else 1.0
+		var rr := (0.2 + float(L) * 0.15) * H * (1.0 + sin(t * 0.02 + float(L)) * 0.05)
+		var rot_l := t * 0.005 * spd * dir + float(L) * 0.5
+		ctx.stroke_style("hsla(%d,68%%,%d%%,%s)" % [
+			int(fmod(bh + float(L) * 22.0, 360.0)),
+			15 + L * 4,
+			str(0.16 + 0.14 * rage),
+		])
+		ctx.line_width(2.0)
 		ctx.begin_path()
-		var N := 6 + L
-		var a0 := t * 0.01 * (1.0 if L % 2 == 0 else -1.0)
-		var rr := 40.0 + float(L) * 28.0
-		for i in range(N + 1):
-			var a := a0 + float(i) / float(N) * TAU
-			var px := cx + cos(a) * rr
-			var py := cy + sin(a) * rr * 0.75
+		for i in range(seg + 1):
+			var a := rot_l + float(i) / float(seg) * TAU
+			var px := cos(a) * rr
+			var py := sin(a) * rr
 			if i == 0:
 				ctx.move_to(px, py)
 			else:
 				ctx.line_to(px, py)
+		ctx.close_path()
 		ctx.stroke()
+	# spokes
+	ctx.stroke_style("hsla(%d,65%%,14%%,%s)" % [int(bh), str(0.11 + 0.1 * rage)])
+	ctx.line_width(1.4)
+	var rot_s := t * 0.005 * spd
+	ctx.begin_path()
+	for i in range(seg):
+		var as_ := rot_s + float(i) / float(seg) * TAU
+		ctx.move_to(0, 0)
+		ctx.line_to(cos(as_) * H * 0.5, sin(as_) * H * 0.5)
+	ctx.stroke()
+	# 3) expanding dark spell-rings
+	for k in range(3):
+		var ph := fmod(t * 0.008 * spd + float(k) / 3.0, 1.0)
+		var rr2 := 24.0 + ph * H * 0.7
+		ctx.stroke_style("hsla(%d,70%%,%d%%,%s)" % [
+			int(fmod(bh + float(k) * 16.0, 360.0)),
+			int(20.0 - ph * 8.0),
+			str((1.0 - ph) * 0.3 * (0.6 + rage * 0.4)),
+		])
+		ctx.line_width(2.4 * (1.0 - ph) + 0.7)
+		ctx.begin_path()
+		ctx.arc(0, 0, rr2, 0, TAU)
+		ctx.stroke()
+	ctx.restore()
 	ctx.restore()
 
 func drawPanel() -> void:
