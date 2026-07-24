@@ -144,18 +144,58 @@ func take_damage(amount: float) -> void:
 		_die(false)
 
 func _die(charmed: bool = false) -> void:
-	# HTML killEnemy parity via ItemSystem
+	# HTML killEnemy / enemyExplode (Kiss Me charm expiry)
+	if charmed:
+		_enemy_explode()
+		return
 	GameState.add_kill(1)
 	if StageFlow:
 		StageFlow.note_kill()
 	GameState.add_score(int(float(score_value) * GameState.score_mul()))
-	if not charmed:
-		ItemSystem.kill_enemy({
-			"x": global_position.x, "y": global_position.y,
-			"kind": kind, "icy": icy,
-		}, false)
-	else:
-		ItemSystem.drop_loot({"x": global_position.x, "y": global_position.y, "kind": kind})
+	ItemSystem.kill_enemy({
+		"x": global_position.x, "y": global_position.y,
+		"kind": kind, "icy": icy,
+	}, false)
+	killed.emit(self)
+	queue_free()
+
+func _enemy_explode() -> void:
+	## HTML enemyExplode — charm burst AoE + bullet clear + loot
+	if has_meta("_exploded") and bool(get_meta("_exploded")):
+		return
+	set_meta("_exploded", true)
+	hp = 0.0
+	var px := global_position.x
+	var py := global_position.y
+	if CombatHelpers:
+		for i in range(12):
+			CombatHelpers.particles.append({
+				"x": px, "y": py,
+				"vx": (randf() - 0.5) * 9.0, "vy": (randf() - 0.5) * 9.0,
+				"life": 22.0, "c": "#ffd27a" if (i % 2) == 0 else "#fff",
+			})
+	# AoE 6 dmg within 46px (other living enemies)
+	for o in get_tree().get_nodes_in_group("enemies"):
+		if o == self or not is_instance_valid(o):
+			continue
+		if o.is_in_group("bosses"):
+			continue
+		if global_position.distance_to(o.global_position) < 46.0 and o.has_method("take_damage"):
+			o.take_damage(6.0)
+			if "flash" in o:
+				o.flash = 5.0
+	# cancel enemy bullets near burst
+	var pool: Node = bullet_pool
+	if pool == null and get_tree():
+		pool = get_tree().get_first_node_in_group("bullet_pool")
+	if pool and pool.has_method("clear_enemy_near"):
+		pool.clear_enemy_near(global_position, 42.0)
+	GameState.add_kill(1)
+	if StageFlow:
+		StageFlow.note_kill()
+	GameState.add_score(int(float(score_value) * GameState.score_mul()))
+	if ItemSystem:
+		ItemSystem.drop_loot({"x": px, "y": py, "kind": kind})
 	killed.emit(self)
 	queue_free()
 

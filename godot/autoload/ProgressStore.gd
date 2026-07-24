@@ -458,31 +458,43 @@ func _flush_fields_to_progress() -> void:
 	progress["arsenal"] = ar
 
 func merge_from_cloud(remote: Dictionary) -> void:
+	## HTML applyProgressSnapshot — max/union into local; never replace progress wholesale
 	if remote.is_empty():
 		return
 	# Union emblems
 	var rem_em: Dictionary = remote.get("emblems", {})
-	for k in rem_em.keys():
-		if rem_em[k]:
-			emblems[k] = true
+	if typeof(rem_em) == TYPE_DICTIONARY:
+		for k in rem_em.keys():
+			if rem_em[k]:
+				emblems[k] = true
 	# Max stats
 	var rem_st: Dictionary = remote.get("estats", {})
-	for k in rem_st.keys():
-		estats[k] = maxi(int(estats.get(k, 0)), int(rem_st[k]))
-	ng_unlocked = maxi(ng_unlocked, int(remote.get("ngUnlocked", 0)))
-	hell_cleared = hell_cleared or bool(remote.get("hellCleared", false))
+	if typeof(rem_st) == TYPE_DICTIONARY:
+		for k in rem_st.keys():
+			estats[k] = maxi(int(estats.get(k, 0)), int(rem_st[k]))
+	if remote.has("ngUnlocked"):
+		ng_unlocked = mini(100, maxi(ng_unlocked, int(remote.get("ngUnlocked", 0))))
+	if remote.get("hellCleared", false):
+		hell_cleared = true
 	# Union shop unlocks
 	var rem_su: Dictionary = remote.get("shopUnlocks", {})
 	var su: Dictionary = progress.get("shopUnlocks", {})
-	for k in rem_su.keys():
-		if rem_su[k]:
-			su[k] = true
+	if typeof(su) != TYPE_DICTIONARY:
+		su = {}
+	if typeof(rem_su) == TYPE_DICTIONARY:
+		for k in rem_su.keys():
+			if rem_su[k]:
+				su[k] = true
 	# Heads: take max
 	var heads_local := int(progress.get("heads", 0))
-	var heads_remote := int(remote.get("heads", 0))
-	# Merge arsenal by union of keys per slot
+	var heads_remote := int(remote.get("heads", 0)) if remote.has("heads") else heads_local
+	# Arsenal: union of keys per slot (multi-device safe; HTML replaces if remote non-empty)
 	var ar_local: Dictionary = progress.get("arsenal", STARTER_ARSENAL.duplicate(true))
+	if typeof(ar_local) != TYPE_DICTIONARY:
+		ar_local = STARTER_ARSENAL.duplicate(true)
 	var ar_remote: Dictionary = remote.get("arsenal", {})
+	if typeof(ar_remote) != TYPE_DICTIONARY:
+		ar_remote = {}
 	var merged_ar := {}
 	for slot in ["w", "s", "m", "i"]:
 		var seen := {}
@@ -495,15 +507,30 @@ func merge_from_cloud(remote: Dictionary) -> void:
 						seen[sk] = true
 						out.append(sk)
 		merged_ar[slot] = out if out.size() else STARTER_ARSENAL.get(slot, []).duplicate()
+	if (merged_ar.get("w", []) as Array).is_empty():
+		merged_ar["w"] = ["laser"]
 	# Consum: take max qty per key
 	var c_local: Dictionary = progress.get("consum", {})
 	var c_remote: Dictionary = remote.get("consum", {})
+	if typeof(c_local) != TYPE_DICTIONARY:
+		c_local = {}
+	if typeof(c_remote) != TYPE_DICTIONARY:
+		c_remote = {}
 	var merged_c := {}
 	for k in c_local.keys():
 		merged_c[k] = int(c_local[k])
 	for k in c_remote.keys():
 		merged_c[k] = maxi(int(merged_c.get(k, 0)), int(c_remote[k]))
-	progress = remote.duplicate(true)
+	# Settings: shallow-merge (remote fills missing; keep local overrides for present keys)
+	var st_local: Dictionary = progress.get("settings", {})
+	var st_remote: Dictionary = remote.get("settings", {})
+	if typeof(st_local) != TYPE_DICTIONARY:
+		st_local = {}
+	if typeof(st_remote) == TYPE_DICTIONARY:
+		for k in st_remote.keys():
+			if not st_local.has(k):
+				st_local[k] = st_remote[k]
+	# Write back into existing progress (preserve binds/outfit/etc. if remote sparse)
 	progress["emblems"] = emblems
 	progress["estats"] = estats
 	progress["ngUnlocked"] = ng_unlocked
@@ -512,6 +539,16 @@ func merge_from_cloud(remote: Dictionary) -> void:
 	progress["heads"] = maxi(heads_local, heads_remote)
 	progress["arsenal"] = merged_ar
 	progress["consum"] = merged_c
+	progress["settings"] = st_local
+	# Prefer higher NG+ / difficulty only if remote is ahead
+	if remote.has("ngPlus"):
+		GameState.ng_plus = maxi(GameState.ng_plus, int(remote.get("ngPlus", 0)))
+		progress["ngPlus"] = GameState.ng_plus
+	if remote.has("difficulty"):
+		# keep local difficulty preference; only raise ng unlock ladder above
+		progress["difficulty"] = GameState.difficulty
+	if remote.has("outfit") and str(progress.get("outfit", "")) == "":
+		progress["outfit"] = remote.get("outfit")
 	_apply_to_fields()
 	_save_local()
 	progress_loaded.emit()
