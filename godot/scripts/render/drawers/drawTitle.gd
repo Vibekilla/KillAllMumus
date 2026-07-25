@@ -217,6 +217,8 @@ func drawTitle() -> void:
 			"x": 0, "y": 0, "iframe": 0, "focus": false, "walk": 0, "bombFx": 0,
 			"face": -PI / 2.0, "vx": 0, "vy": 0, "outfit": selected_outfit, "tick": tick,
 		})
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 	drawTitleBtn(ox, oy, oW, bh, "👗 OUTFIT: " + _outfit_name(selected_outfit) + "  ▸", "#ff9ecb", "outfit")
 	var mW := 250.0 if is_touch else 232.0

@@ -133,6 +133,8 @@ func _draw_posed_figure(cx: float, cy: float, scale: float, pose: int, outfit: S
 			ctx.scale(scale, scale)
 			if combat_fx and combat_fx.has_method("drawPoseProp"):
 				combat_fx.drawPoseProp(pose, t)
+			if ctx.has_method("clear_shadow"):
+				ctx.clear_shadow()
 			ctx.restore()
 			return
 	ctx.save()
@@ -144,6 +146,8 @@ func _draw_posed_figure(cx: float, cy: float, scale: float, pose: int, outfit: S
 	_draw_bobina_at(0, 0, 1.0, outfit, extras)
 	if combat_fx and combat_fx.has_method("drawPoseProp"):
 		combat_fx.drawPoseProp(pose, t)
+	if ctx.has_method("clear_shadow"):
+		ctx.clear_shadow()
 	ctx.restore()
 
 # ───────────────────────── OUTFITS ─────────────────────────
@@ -228,6 +232,12 @@ func drawOutfits() -> void:
 	var face_i = clampi(model.victory_face, 0, MenuHelpers.VICTORY_FACES.size() - 1)
 	var expr = MenuHelpers.VICTORY_FACES[face_i].get("expr")
 	_draw_posed_figure(pcx, fig_cy, fig_scale, pose_i, model.outfit_preview, expr)
+	# Belt-and-suspenders: figure/pose props must not leave glow on tile strokes
+	if ctx.has_method("clear_shadow"):
+		ctx.clear_shadow()
+	if ctx.has_method("global_composite_operation"):
+		ctx.global_composite_operation("source-over")
+	ctx.global_alpha(1.0)
 	ctx.restore()  # end stage clip
 	# labels (HTML draws these outside clip)
 	var po_name = model.outfit_preview

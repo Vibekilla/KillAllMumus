@@ -26,21 +26,18 @@ func set_outfit(o: String) -> void:
 	selected_outfit = o
 
 func p_orb(x, y, glow, c1, c2) -> void:
+	## HTML: pOrb(x,y,glow,c1,c2) — small orbs + soft shadowBlur (NOT a big α disc).
+	## The old r=5.5 α0.55 disc scaled to ×4.7 as a huge pink haze around hands/face.
 	ctx.save()
-	ctx.translate(float(x), float(y))
-	ctx.global_alpha(0.55)
-	ctx.fill_style(str(glow))
-	ctx.begin_path()
-	ctx.arc(0, 0, 5.5, 0, TAU)
-	ctx.fill()
-	ctx.global_alpha(1.0)
+	ctx.shadow_color(str(glow))
+	ctx.shadow_blur(8)
 	ctx.fill_style(str(c1))
 	ctx.begin_path()
-	ctx.arc(0, 0, 3.2, 0, TAU)
+	ctx.arc(float(x), float(y), 3.0, 0, 7)
 	ctx.fill()
 	ctx.fill_style(str(c2))
 	ctx.begin_path()
-	ctx.arc(-0.8, -0.8, 1.2, 0, TAU)
+	ctx.arc(float(x), float(y), 1.3, 0, 7)
 	ctx.fill()
 	ctx.restore()
 
@@ -3975,6 +3972,13 @@ func drawBobina(p) -> void:
 		p_orb(hcx + 2.2, hcy, hc_cols[0], hc_cols[1], hc_cols[2])
 	ctx.global_alpha(1)
 	ctx.restore()
+	# Never leave outfit FX shadows on the shared CanvasCompat (menu chrome recolor)
+	if ctx.has_method("clear_shadow"):
+		ctx.clear_shadow()
+	elif ctx.has_method("shadow_blur"):
+		ctx.shadow_blur(0)
+		if ctx.has_method("shadow_color"):
+			ctx.shadow_color("rgba(0,0,0,0)")
 	if p.get("focus", false):
 		ctx.save()
 		ctx.translate(float(p.get("x", 0)), float(p.get("y", 0)))
@@ -3994,3 +3998,5 @@ func drawBobina(p) -> void:
 			ctx.arc(0, 0, 9, a, a + 0.7)
 			ctx.stroke()
 		ctx.restore()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()

@@ -257,6 +257,11 @@ func shadow_color(c) -> void:
 func shadow_blur(b: float) -> void:
 	_shadow_blur = b
 
+func clear_shadow() -> void:
+	## Defensive: match HTML after text/FX that set shadow without restore
+	_shadow_col = Color(0, 0, 0, 0)
+	_shadow_blur = 0.0
+
 func font(f) -> void:
 	# e.g. 'bold 12px monospace' / '900 18px "Trebuchet MS"' — HTML ctx.font
 	var s := str(f)
@@ -313,13 +318,13 @@ func set_line_dash(_segments = []) -> void:
 
 func save() -> void:
 	## HTML CanvasRenderingContext2D.save — includes shadowColor/shadowBlur.
-	## Missing shadow on the stack left pink title glow / outfit FX shadows on every
-	## later stroke (neon pink outline on Bobina + menu chrome recolored per outfit).
+	## Store shadow as components (Color-in-Dictionary has been flaky across restores).
 	_stack.append({
 		"fill": _fill, "stroke": _stroke, "lw": _lw, "alpha": _alpha,
 		"xform": _xform, "font": _font_size, "font_css": _font_css, "align": _align,
 		"fill_grad": _fill_grad, "gco": _gco, "clip": _clip.duplicate(true),
-		"shadow_col": _shadow_col, "shadow_blur": _shadow_blur,
+		"sh_r": _shadow_col.r, "sh_g": _shadow_col.g, "sh_b": _shadow_col.b, "sh_a": _shadow_col.a,
+		"shadow_blur": _shadow_blur,
 	})
 
 func restore() -> void:
@@ -341,8 +346,9 @@ func restore() -> void:
 	_clip = s.get("clip", {})
 	if _clip == null:
 		_clip = {}
-	_shadow_col = s.get("shadow_col", Color(0, 0, 0, 0))
-	if _shadow_col == null:
+	if s.has("sh_r"):
+		_shadow_col = Color(float(s.sh_r), float(s.sh_g), float(s.sh_b), float(s.sh_a))
+	else:
 		_shadow_col = Color(0, 0, 0, 0)
 	_shadow_blur = float(s.get("shadow_blur", 0.0))
 
@@ -774,12 +780,17 @@ func _point_in_clip(p: Vector2) -> bool:
 			return true
 
 func _draw_shadow_circle(c: Vector2, r: float, col: Color) -> void:
+	## Soft multi-ring stand-in for HTML shadowBlur (no hard neon disc).
 	if _shadow_blur <= 0.1 or _shadow_col.a <= 0.01:
 		return
-	var sc := _shadow_col
-	sc.a *= _alpha * 0.35
-	var o := maxf(1.0, _shadow_blur * 0.35)
-	node.draw_circle(c + Vector2(o * 0.3, o * 0.3), r + o * 0.15, sc)
+	var base_a := _shadow_col.a * _alpha
+	var layers := 3
+	for i in range(layers, 0, -1):
+		var t := float(i) / float(layers)
+		var sc := _shadow_col
+		sc.a = base_a * 0.12 * t
+		var o := _shadow_blur * 0.12 * t
+		node.draw_circle(c + Vector2(o * 0.25, o * 0.35), r + o, sc)
 
 func _closed_path_pts(src: PackedVector2Array) -> PackedVector2Array:
 	var pts := _dedupe_path(src)
@@ -901,18 +912,20 @@ func _sample_grad_at_world(world: Vector2) -> Color:
 	return _sample_grad_at_local(local)
 
 func _draw_shadow_poly(poly: PackedVector2Array, _col: Color) -> void:
-	## HTML shadowColor + shadowBlur under fill (offset solid, no Geometry2D)
+	## Soft offset fill shadow — low alpha, no thick outline ring
 	if _shadow_blur <= 0.05 or _shadow_col.a <= 0.001:
 		return
-	var sc := _shadow_col
-	sc.a *= _alpha * 0.35
-	var o := maxf(0.8, _shadow_blur * 0.18)
+	var base_a := _shadow_col.a * _alpha * 0.18
+	if base_a < 0.01:
+		return
+	var o := minf(4.0, _shadow_blur * 0.12)
 	var shifted := PackedVector2Array()
 	for p in poly:
-		shifted.append(p + Vector2(o * 0.2, o * 0.45))
+		shifted.append(p + Vector2(o * 0.2, o * 0.4))
 	if shifted.size() < 3:
 		return
-	# triangles only (avoid Godot concave polygon error spam)
+	var sc := _shadow_col
+	sc.a = base_a
 	var a0: Vector2 = shifted[0]
 	for i in range(1, shifted.size() - 1):
 		if absf((shifted[i] - a0).cross(shifted[i + 1] - a0)) > 0.02:
@@ -947,10 +960,19 @@ func stroke() -> void:
 			if kept.size() < 2:
 				continue
 			pts = kept
+		# Soft shadow under stroke — never inflate width into a neon ring
 		if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
-			var sc := _shadow_col
-			sc.a *= _alpha * 0.45
-			node.draw_polyline(pts, sc, elw + _shadow_blur * 0.25, true)
+			var base_a := _shadow_col.a * _alpha
+			for li in range(2, 0, -1):
+				var t := float(li) / 2.0
+				var sc := _shadow_col
+				sc.a = base_a * 0.14 * t
+				var off := _shadow_blur * 0.08 * t
+				var shifted := PackedVector2Array()
+				for p in pts:
+					shifted.append(p + Vector2(off * 0.2, off * 0.35))
+				if shifted.size() >= 2:
+					node.draw_polyline(shifted, sc, maxf(0.5, elw * 0.85), true)
 		node.draw_polyline(pts, col, elw, true)
 
 func fill_rect(x, y, w, h) -> void:
@@ -1063,9 +1085,14 @@ func fill_text(text, x, y) -> void:
 	# Canvas text baseline ~alphabetic: Godot draws from top-left of glyphs
 	p.y -= sz * 0.15
 	if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
-		var sc := _shadow_col
-		sc.a *= _alpha
-		node.draw_string(f, p + Vector2(0, maxf(1.0, _shadow_blur * 0.15)), str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, sc)
+		# Soft glow under titles (OUTFITS / EMBLEMS) — not a hard neon stamp
+		var base_a := _shadow_col.a * _alpha
+		for li in range(3, 0, -1):
+			var t := float(li) / 3.0
+			var sc := _shadow_col
+			sc.a = base_a * 0.22 * t
+			var o := _shadow_blur * 0.08 * t
+			node.draw_string(f, p + Vector2(0, o * 0.4), str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, sc)
 	node.draw_string(f, p, str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, _c(_fill))
 
 func stroke_text(text, x, y) -> void:
