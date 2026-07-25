@@ -312,10 +312,14 @@ func set_line_dash(_segments = []) -> void:
 	pass
 
 func save() -> void:
+	## HTML CanvasRenderingContext2D.save — includes shadowColor/shadowBlur.
+	## Missing shadow on the stack left pink title glow / outfit FX shadows on every
+	## later stroke (neon pink outline on Bobina + menu chrome recolored per outfit).
 	_stack.append({
 		"fill": _fill, "stroke": _stroke, "lw": _lw, "alpha": _alpha,
-		"xform": _xform, "font": _font_size, "align": _align, "fill_grad": _fill_grad,
-		"gco": _gco, "clip": _clip.duplicate(true),
+		"xform": _xform, "font": _font_size, "font_css": _font_css, "align": _align,
+		"fill_grad": _fill_grad, "gco": _gco, "clip": _clip.duplicate(true),
+		"shadow_col": _shadow_col, "shadow_blur": _shadow_blur,
 	})
 
 func restore() -> void:
@@ -328,12 +332,19 @@ func restore() -> void:
 	_alpha = s.alpha
 	_xform = s.xform
 	_font_size = s.font
+	if s.has("font_css"):
+		_font_css = str(s.font_css)
+		_cached_font_key = ""
 	_align = s.align
 	_fill_grad = s.get("fill_grad", null)
 	_gco = str(s.get("gco", "source-over"))
 	_clip = s.get("clip", {})
 	if _clip == null:
 		_clip = {}
+	_shadow_col = s.get("shadow_col", Color(0, 0, 0, 0))
+	if _shadow_col == null:
+		_shadow_col = Color(0, 0, 0, 0)
+	_shadow_blur = float(s.get("shadow_blur", 0.0))
 
 func translate(x: float, y: float) -> void:
 	_xform = _xform * Transform2D(0, Vector2(x, y))
