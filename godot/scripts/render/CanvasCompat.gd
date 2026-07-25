@@ -123,6 +123,8 @@ var _cached_font: Font = null
 var _cached_font_key: String = ""
 var _align: String = "left"
 var _path: PackedVector2Array = PackedVector2Array()
+## Completed subpaths (HTML moveTo starts a new subpath — no connecting stroke)
+var _subpaths: Array = []
 var _path_closed: bool = false
 var _stack: Array = []
 var _xform: Transform2D = Transform2D.IDENTITY
@@ -136,12 +138,16 @@ var _clip: Dictionary = {}
 var _last_full_arc: Dictionary = {}
 ## Last full ellipse (HTML arc 0..7) for native scaled-circle fill
 var _last_full_ellipse: Dictionary = {}
+## All full circles / ellipses in the current path (Bobina ears, sleeves, shoes, blush)
+var _full_arcs: Array = []
+var _full_ellipses: Array = []
 
 func bind(n: CanvasItem) -> void:
 	node = n
 
 func begin_frame() -> void:
 	_path = PackedVector2Array()
+	_subpaths.clear()
 	_stack.clear()
 	_xform = Transform2D.IDENTITY
 	_alpha = 1.0
@@ -149,6 +155,8 @@ func begin_frame() -> void:
 	_clip = {}
 	_last_full_arc = {}
 	_last_full_ellipse = {}
+	_full_arcs.clear()
+	_full_ellipses.clear()
 	# Reset shadow — leaked gold boss-portrait shadows were neon-spoking ambience strokes
 	_shadow_col = Color(0, 0, 0, 0)
 	_shadow_blur = 0.0
@@ -224,18 +232,14 @@ func line_width(w: float) -> void:
 	_lw = w
 
 func _effective_lw() -> float:
-	## HTML Canvas2D: lineWidth is in user space and scales with the current CTM.
-	## Cap the scale factor so large menu previews (×4.7) keep lid weight readable without
-	## turning smile eyes into heavy “glasses” frames.
+	## HTML Canvas2D: lineWidth is in user space and scales fully with the current CTM.
+	## (Earlier soft-cap at ~2.1× made outfit-menu smile lids too thin → neon gold irises.)
 	var sc := _xform.get_scale()
 	var m := (absf(sc.x) + absf(sc.y)) * 0.5
 	if m < 0.001:
 		m = 1.0
-	# Soft compress: full scale up to 1.35×, then stronger sqrt dampen; hard cap ~2.1×
-	if m > 1.35:
-		m = 1.35 + sqrt(m - 1.35) * 0.55
-	m = minf(m, 2.1)
-	return maxf(0.5, _lw * m)
+	# Slight under-weight for Godot polyline AA bulk vs HTML canvas strokes
+	return maxf(0.35, _lw * m * 0.96)
 
 func global_alpha(a: float) -> void:
 	_alpha = a
@@ -348,18 +352,36 @@ func set_transform(a: float, b: float, c: float, d: float, e: float, f: float) -
 
 func begin_path() -> void:
 	_path = PackedVector2Array()
+	_subpaths.clear()
 	_path_closed = false
 	_last_full_arc = {}
 	_last_full_ellipse = {}
+	_full_arcs.clear()
+	_full_ellipses.clear()
 
 func close_path() -> void:
 	_path_closed = true
+	if _path.size() >= 1 and _path[0].distance_to(_path[_path.size() - 1]) > 0.05:
+		_path.append(_path[0])
 
 func move_to(x: float, y: float) -> void:
+	## HTML: moveTo starts a new subpath (legs, dual eyes lids, etc. must not connect)
+	if _path.size() > 0:
+		_subpaths.append(_path)
+		_path = PackedVector2Array()
 	_path.append(_xform * Vector2(x, y))
 
 func line_to(x: float, y: float) -> void:
 	_path.append(_xform * Vector2(x, y))
+
+func _all_subpaths() -> Array:
+	var out: Array = []
+	for sp in _subpaths:
+		if sp is PackedVector2Array and (sp as PackedVector2Array).size() >= 1:
+			out.append(sp)
+	if _path.size() >= 1:
+		out.append(_path)
+	return out
 
 func arc(x: float, y: float, r: float, a0: float, a1: float, ccw: bool = false) -> void:
 	# approximate arc as polyline; HTML often uses 0..7 ≈ full circle
@@ -373,11 +395,13 @@ func arc(x: float, y: float, r: float, a0: float, a1: float, ccw: bool = false) 
 		da -= TAU
 	elif not ccw and da < 0.0:
 		da += TAU
-	# Track full circles for clip() → circle kind (portrait bust, title peephole)
+	# Track full circles for clip() + multi-disc fill (Bobina ears / blush / hands)
 	if absf(da) >= TAU * 0.92:
 		var c_world := _xform * Vector2(x, y)
 		var edge := _xform * (Vector2(x, y) + Vector2(r, 0))
-		_last_full_arc = {"c": c_world, "r": c_world.distance_to(edge)}
+		var info := {"c": c_world, "r": c_world.distance_to(edge)}
+		_last_full_arc = info
+		_full_arcs.append(info)
 	for i in range(steps + 1):
 		var t := float(i) / float(steps)
 		var ang := a0f + da * t
@@ -388,8 +412,10 @@ func quadratic_curve_to(cpx: float, cpy: float, x: float, y: float) -> void:
 	var p0 := _path[_path.size()-1] if _path.size() else _xform * Vector2.ZERO
 	var p1 := _xform * Vector2(cpx, cpy)
 	var p2 := _xform * Vector2(x, y)
-	for i in range(1, 9):
-		var t := float(i) / 8.0
+	# More segments so smile lids / bangs stay smooth at outfit preview scale (×4.7)
+	var segs := 16
+	for i in range(1, segs + 1):
+		var t := float(i) / float(segs)
 		var u := 1.0 - t
 		_path.append(u*u*p0 + 2*u*t*p1 + t*t*p2)
 
@@ -424,7 +450,7 @@ func ellipse(x, y, rx, ry, rot, a0, a1, ccw: bool = false) -> void:
 		# average semi-axis in world space (uniform scale approx)
 		var ex := _xform * (c_local + Vector2(rxf, 0).rotated(rotf))
 		var ey := _xform * (c_local + Vector2(0, ryf).rotated(rotf))
-		_last_full_ellipse = {
+		var info := {
 			"c": c_world,
 			"rx": c_world.distance_to(ex),
 			"ry": c_world.distance_to(ey),
@@ -435,6 +461,8 @@ func ellipse(x, y, rx, ry, rot, a0, a1, ccw: bool = false) -> void:
 			"ry_local": ryf,
 			"rot_local": rotf,
 		}
+		_last_full_ellipse = info
+		_full_ellipses.append(info)
 	var steps := 28
 	for i in range(steps + 1):
 		var t := float(i) / float(steps)
@@ -476,15 +504,78 @@ func rect(x, y, w, h) -> void:
 
 func fill() -> void:
 	## HTML CanvasRenderingContext2D.fill — evenodd not used; nonzero fill via triangulation.
-	## Full-circle paths (HTML arc 0..2π / 0..7) use native draw_circle — same solid disc pixels,
-	## without ear-clip thrash (performance only; not a visual stand-in for complex shapes).
-	if node == null or _path.size() < 3:
+	## Full-circle / multi-disc paths (ears, sleeves, shoes, blush) use native draw_circle.
+	if node == null:
 		return
-	var pts := _closed_path_pts(_path)
+	var subs := _all_subpaths()
+	var total_pts := 0
+	for sp in subs:
+		total_pts += (sp as PackedVector2Array).size()
+	if total_pts < 3 and _full_arcs.is_empty() and _full_ellipses.is_empty():
+		return
+	# Multi / single full circles (Bobina ears: arc+arc; blush; hands)
+	if _fill_grad == null and _full_arcs.size() >= 1 and _path_is_only_full_arcs(total_pts):
+		var col_c := _c(_fill)
+		for a in _full_arcs:
+			var c: Vector2 = a.get("c", Vector2.ZERO)
+			var r: float = float(a.get("r", 0.0))
+			if r > 0.05 and _point_in_clip(c):
+				_draw_shadow_circle(c, r, col_c)
+				node.draw_circle(c, r, col_c)
+		return
+	# Multi / single full ellipses (sleeves, shoes, iris, face) — solid or gradient
+	if _full_ellipses.size() >= 1 and _path_is_only_full_ellipses(total_pts):
+		if _fill_grad == null:
+			var col_e := _c(_fill)
+			for e in _full_ellipses:
+				var ec: Vector2 = e.get("c", Vector2.ZERO)
+				var erx: float = float(e.get("rx", 0.0))
+				var ery: float = float(e.get("ry", 0.0))
+				var erot: float = float(e.get("rot", 0.0))
+				if erx > 0.05 and ery > 0.05 and _point_in_clip(ec):
+					node.draw_set_transform(ec, erot, Vector2(erx, ery))
+					node.draw_circle(Vector2.ZERO, 1.0, col_e)
+					node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			return
+		# Gradient: only first full ellipse (Bobina single iris per fill call)
+		_fill_ellipse_gradient(_full_ellipses[0] if _full_ellipses.size() else _last_full_ellipse)
+		return
+	# Per-subpath fill (HTML multi-subpath compound path)
+	for sp in subs:
+		_fill_one_subpath(sp as PackedVector2Array)
+
+func _path_is_only_full_arcs(total_pts: int) -> bool:
+	## Path is N full-circle arcs (optionally connected) — avoid peanut triangulation.
+	if _full_arcs.is_empty():
+		return false
+	# ~21 pts per arc (steps=20); allow slack for close/dedupe
+	var n := _full_arcs.size()
+	var lo := n * 12
+	var hi := n * 28
+	if total_pts < lo or total_pts > hi:
+		# Single-circle fast path still OK when _is_path_full_circle
+		if n == 1 and _path.size() >= 12:
+			return _is_path_full_circle(_closed_path_pts(_path))
+		return false
+	return true
+
+func _path_is_only_full_ellipses(total_pts: int) -> bool:
+	if _full_ellipses.is_empty():
+		return false
+	var n := _full_ellipses.size()
+	# ~29 pts per ellipse (steps=28)
+	var lo := n * 16
+	var hi := n * 40
+	return total_pts >= lo and total_pts <= hi
+
+func _fill_one_subpath(src: PackedVector2Array) -> void:
+	if src.size() < 3:
+		return
+	var pts := _closed_path_pts(src)
 	if pts.size() < 3:
 		return
 	# Prefer tracked full-circle arc before clip/ear-clip (hot path for bullets/orbs)
-	if not _last_full_arc.is_empty() and _fill_grad == null and _is_path_full_circle(pts):
+	if not _last_full_arc.is_empty() and _fill_grad == null and _is_path_full_circle(pts) and _full_arcs.size() <= 1:
 		var c: Vector2 = _last_full_arc.get("c", Vector2.ZERO)
 		var r: float = float(_last_full_arc.get("r", 0.0))
 		if r > 0.05 and _point_in_clip(c):
@@ -493,7 +584,7 @@ func fill() -> void:
 			node.draw_circle(c, r, col_c)
 			return
 	# Full ellipse (portal / honey badger body / Bobina eyes) — solid or gradient
-	if not _last_full_ellipse.is_empty() and pts.size() >= 16:
+	if not _last_full_ellipse.is_empty() and pts.size() >= 16 and _full_ellipses.size() <= 1:
 		var ec: Vector2 = _last_full_ellipse.get("c", Vector2.ZERO)
 		var erx: float = float(_last_full_ellipse.get("rx", 0.0))
 		var ery: float = float(_last_full_ellipse.get("ry", 0.0))
@@ -501,25 +592,21 @@ func fill() -> void:
 		if erx > 0.05 and ery > 0.05 and _point_in_clip(ec):
 			if _fill_grad == null:
 				var col_e := _c(_fill)
-				# CanvasItem local xform: position, rotation, scale (ellipse = scaled unit circle)
 				node.draw_set_transform(ec, erot, Vector2(erx, ery))
 				node.draw_circle(Vector2.ZERO, 1.0, col_e)
 				node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				return
-			# Gradient ellipse (HTML smile-eye amber iris) — banded local sampling
 			_fill_ellipse_gradient(_last_full_ellipse)
 			return
 	pts = _clip_poly(pts)
 	if pts.size() < 3:
 		return
-	# Drop duplicate closing vertex for triangulate_polygon
 	var poly := pts
 	if poly.size() >= 2 and poly[0].distance_to(poly[poly.size() - 1]) < 0.05:
 		poly = poly.slice(0, poly.size() - 1)
 	if poly.size() < 3:
 		return
 	if _fill_grad != null:
-		# Gradient on arbitrary path: sample per-triangle centroid (better than solid mid)
 		_fill_triangulated_gradient(poly)
 		return
 	var col := _c(_fill)
@@ -540,17 +627,17 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 	var g: CanvasGradient = _fill_grad
 	var axis := Vector2(g.x1 - g.x0, g.y1 - g.y0)
 	var vertical := absf(axis.x) < absf(axis.y) * 0.5 or absf(axis.x) < 0.001
-	# Tiny irises (Bobina smile eyes at any preview scale): layered solid discs along the
-	# gradient axis. Banded quads under large CTM scale read as dark “glasses” rims;
-	# layered circles match the HTML amber look more reliably.
+	# Tiny irises (Bobina smile eyes): layered discs. HTML canvas reads brown-amber;
+	# pure #ecba60 gold stop is only a thin lower glint — never the whole iris body.
 	if rxf <= 4.0 and ryf <= 4.0 and vertical:
-		var n_layers := 10
+		var n_layers := 14
 		var dir_axis := axis.normalized() if axis.length_squared() > 0.0001 else Vector2(0, 1)
 		for i in range(n_layers):
-			var t := float(i) / float(n_layers - 1)
-			# shrink slightly toward gradient end so gold bottom dominates (HTML smile iris)
-			var shrink := 1.0 - t * 0.22
-			var shift := dir_axis * (t * ryf * 0.55)
+			var u := float(i) / float(n_layers - 1)
+			# Cap sample at ~0.62 so mid-stop #9a6326 dominates; gold only as lower glint
+			var t := clampf(u * 0.62 + (u * u) * 0.12, 0.0, 0.78)
+			var shrink := 1.0 - u * 0.14
+			var shift := dir_axis * (u * ryf * 0.36)
 			var col := _c(g.sample(t))
 			var ec: Vector2 = _xform * (c_local + shift)
 			var ex: Vector2 = _xform * (c_local + shift + Vector2(rxf * shrink, 0).rotated(rotf))
@@ -828,26 +915,32 @@ func _dedupe_path(src: PackedVector2Array) -> PackedVector2Array:
 	return out
 
 func stroke() -> void:
-	if node == null or _path.size() < 2:
+	## HTML strokes each subpath independently (moveTo breaks — no leg-to-leg connector).
+	if node == null:
 		return
-	var pts := _path
-	if not _clip.is_empty():
-		var ab := _clip_aabb()
-		if ab.size.x > 0.0 and ab.size.y > 0.0:
-			var kept := PackedVector2Array()
-			for p in pts:
-				if ab.grow(maxf(2.0, _lw)).has_point(p):
-					kept.append(p)
-			if kept.size() < 2:
-				return
-			pts = kept
 	var col := _c(_stroke)
 	var elw := _effective_lw()
-	if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
-		var sc := _shadow_col
-		sc.a *= _alpha * 0.45
-		node.draw_polyline(pts, sc, elw + _shadow_blur * 0.25, true)
-	node.draw_polyline(pts, col, elw, true)
+	var ab := Rect2()
+	var use_clip := not _clip.is_empty()
+	if use_clip:
+		ab = _clip_aabb()
+	for sp in _all_subpaths():
+		var pts: PackedVector2Array = sp as PackedVector2Array
+		if pts.size() < 2:
+			continue
+		if use_clip and ab.size.x > 0.0 and ab.size.y > 0.0:
+			var kept := PackedVector2Array()
+			for p in pts:
+				if ab.grow(maxf(2.0, elw)).has_point(p):
+					kept.append(p)
+			if kept.size() < 2:
+				continue
+			pts = kept
+		if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
+			var sc := _shadow_col
+			sc.a *= _alpha * 0.45
+			node.draw_polyline(pts, sc, elw + _shadow_blur * 0.25, true)
+		node.draw_polyline(pts, col, elw, true)
 
 func fill_rect(x, y, w, h) -> void:
 	if node == null:
