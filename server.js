@@ -465,11 +465,14 @@ function setGodotHeaders(res, filePath) {
   if (filePath && filePath.endsWith('.wasm')) {
     res.setHeader('Content-Type', 'application/wasm');
   }
-  if (
+  // Avoid sticky stale Godot builds (dev ships often; 1h cache hid new .pck on /godot/)
+  if (filePath && filePath.endsWith('index.html')) {
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  } else if (
     filePath &&
     (filePath.endsWith('.js') || filePath.endsWith('.wasm') || filePath.endsWith('.pck'))
   ) {
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
   }
 }
 

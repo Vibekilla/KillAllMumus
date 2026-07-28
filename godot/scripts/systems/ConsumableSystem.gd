@@ -11,12 +11,20 @@ var e_used: bool = false  # unused
 const COOLDOWN_FRAMES := 180.0  # 3s
 
 func inventory() -> Dictionary:
-	return ProgressStore.progress.get("consum", {})
+	## Always a mutable Dictionary — cloud/localStorage can leave Array/null.
+	var raw = ProgressStore.progress.get("consum", {}) if ProgressStore and ProgressStore.progress is Dictionary else {}
+	if typeof(raw) != TYPE_DICTIONARY:
+		var fixed: Dictionary = {}
+		ProgressStore.progress["consum"] = fixed
+		return fixed
+	return raw as Dictionary
 
 func arsenal_i() -> Array:
 	## HTML arsenalI — equipped item slots (may include 0-qty keys)
-	var ar: Dictionary = ProgressStore.progress.get("arsenal", {})
-	var a = ar.get("i", [])
+	var raw = ProgressStore.progress.get("arsenal", {}) if ProgressStore and ProgressStore.progress is Dictionary else {}
+	if typeof(raw) != TYPE_DICTIONARY:
+		return []
+	var a = (raw as Dictionary).get("i", [])
 	return a.duplicate() if a is Array else []
 
 func keys() -> Array:
@@ -24,7 +32,10 @@ func keys() -> Array:
 	return arsenal_i()
 
 func qty(key: String) -> int:
-	return int(inventory().get(key, 0))
+	var inv := inventory()
+	if not inv.has(key):
+		return 0
+	return int(inv[key])
 
 func consum_by_id(key: String) -> Dictionary:
 	for c in DataRegistry.consumables:
@@ -78,44 +89,53 @@ func use_selected() -> bool:
 	return consume_selected()
 
 func consume_selected() -> bool:
-	## HTML consumeSelected
+	## HTML consumeSelected — also works in STAGE_CLEAR prep (stock/heal before portal).
 	var c := sel_consum_obj()
-	if c.is_empty() or GameState.state != GameState.State.PLAY:
+	if c.is_empty():
 		return false
-	var player = get_tree().get_first_node_in_group("player") if get_tree() else null
-	if player == null:
+	if GameState.state != GameState.State.PLAY and GameState.state != GameState.State.STAGE_CLEAR:
+		return false
+	var tree := get_tree()
+	var player = tree.get_first_node_in_group("player") if tree else null
+	if player == null or not is_instance_valid(player):
 		return false
 	var k := str(c.get("key", ""))
+	if k.is_empty():
+		return false
 	if qty(k) > 0:
 		if is_full(k):
 			if AudioBus:
 				AudioBus.sfx("hit")
-			CombatHelpers.flash("Already maxed — %s saved" % str(c.get("name", k)), 80.0)
-			CombatHelpers.pop(player.global_position.x, player.global_position.y - 30.0, "FULL", "#9fe0a4")
+			if CombatHelpers:
+				CombatHelpers.flash("Already maxed — %s saved" % str(c.get("name", k)), 80.0)
+				CombatHelpers.pop(player.global_position.x, player.global_position.y - 30.0, "FULL", "#9fe0a4")
 			return false
 		var inv := inventory()
-		inv[k] = qty(k) - 1
-		if int(inv[k]) <= 0:
+		var left := qty(k) - 1
+		if left <= 0:
 			inv.erase(k)
-		ProgressStore.progress["consum"] = inv
-		ProgressStore.save_consum()
+		else:
+			inv[k] = left
+		if ProgressStore and ProgressStore.progress is Dictionary:
+			ProgressStore.progress["consum"] = inv
+			ProgressStore.save_consum()
 		_apply_effect(k, player)
 		if AudioBus:
 			AudioBus.sfx("extend")
-		CombatHelpers.flash("%s %s used!" % [str(c.get("icon", "•")), str(c.get("name", k))], 90.0)
-		CombatHelpers.pop(player.global_position.x, player.global_position.y - 30.0, str(c.get("icon", "•")), str(c.get("color", c.get("col", "#fff"))))
-		# spark particles
 		var col := str(c.get("color", c.get("col", "#ffcf5a")))
-		for i in range(14):
-			CombatHelpers.particles.append({
-				"x": player.global_position.x,
-				"y": player.global_position.y,
-				"vx": (randf() - 0.5) * 6.0,
-				"vy": (randf() - 0.5) * 6.0,
-				"life": 26.0,
-				"c": col,
-			})
-		if k == "honeycomb":
+		if CombatHelpers:
+			CombatHelpers.flash("%s %s used!" % [str(c.get("icon", "•")), str(c.get("name", k))], 90.0)
+			CombatHelpers.pop(player.global_position.x, player.global_position.y - 30.0, str(c.get("icon", "•")), col)
+			for i in range(14):
+				CombatHelpers.particles.append({
+					"x": player.global_position.x,
+					"y": player.global_position.y,
+					"vx": (randf() - 0.5) * 6.0,
+					"vy": (randf() - 0.5) * 6.0,
+					"life": 26.0,
+					"c": col,
+				})
+		if k == "honeycomb" and ProgressStore:
 			ProgressStore.estats_add("honeycombs", 1)
 			if int(ProgressStore.estats.get("honeycombs", 0)) >= 100:
 				ProgressStore.unlock_emblem("honeycomb_100")
@@ -123,7 +143,8 @@ func consume_selected() -> bool:
 	else:
 		if AudioBus:
 			AudioBus.sfx("hit")
-		CombatHelpers.flash("No %s left — buy some at the shop" % str(c.get("name", k)), 70.0)
+		if CombatHelpers:
+			CombatHelpers.flash("No %s left — buy some at the shop" % str(c.get("name", k)), 70.0)
 		return false
 
 func tick(delta: float) -> void:
@@ -146,49 +167,68 @@ func tick(delta: float) -> void:
 
 func _apply_effect(key: String, p: Node = null) -> void:
 	## HTML CONSUMABLES[i].apply()
-	if p == null:
-		p = get_tree().get_first_node_in_group("player") if get_tree() else null
+	if p == null or not is_instance_valid(p):
+		var tree := get_tree()
+		p = tree.get_first_node_in_group("player") if tree else null
+	var cap := 6.0
+	if CombatHelpers and CombatHelpers.has_method("power_cap"):
+		cap = CombatHelpers.power_cap()
 	match key:
 		"honeycomb":
-			CombatHelpers.gain_life()
-		"wagyu":
-			for _i in range(3):
+			if CombatHelpers:
 				CombatHelpers.gain_life()
+		"wagyu":
+			if CombatHelpers:
+				for _i in range(3):
+					CombatHelpers.gain_life()
 		"bulltears":
 			# HTML: power +0.5 toward cap
-			GameState.power = minf(CombatHelpers.power_cap(), GameState.power + 0.5)
+			GameState.power = minf(cap, GameState.power + 0.5)
 		"bullsouls":
-			GameState.power = minf(CombatHelpers.power_cap(), GameState.power + 1.5)
+			GameState.power = minf(cap, GameState.power + 1.5)
 		"galaxygas":
-			GameState.power = minf(CombatHelpers.power_cap(), GameState.power + 3.75)
+			GameState.power = minf(cap, GameState.power + 3.75)
 		"clover":
 			GameState.special_meter = minf(100.0, GameState.special_meter + 25.0)
 		"stardust":
-			if ItemSystem:
+			if ItemSystem and ItemSystem.has_method("spawn_stardust"):
 				ItemSystem.spawn_stardust()
 		"bubbles":
-			if ItemSystem:
+			if ItemSystem and ItemSystem.has_method("spawn_bubbles"):
 				ItemSystem.spawn_bubbles()
 		"banana":
-			if p:
-				p.rapid_t = maxf(float(p.get("rapid_t")), 330.0)
-			CombatHelpers.flash("🍌 MONKE'S FRENZY!", 80.0)
+			if p and is_instance_valid(p):
+				if "rapid_t" in p:
+					p.rapid_t = maxf(float(p.rapid_t), 330.0)
+				else:
+					p.set("rapid_t", 330.0)
+			if CombatHelpers:
+				CombatHelpers.flash("🍌 MONKE'S FRENZY!", 80.0)
 			if AudioBus:
 				AudioBus.sfx("power")
 		"vial", "unholy":
-			if p:
-				p.set("shield_t", maxf(float(p.get("shield_t")), 300.0))
-				if p.get("vial_hits") != null:
+			# HTML Unholy Vial: vialHits=3, vialT=300 (not shieldT)
+			if p and is_instance_valid(p):
+				if "vial_hits" in p:
 					p.vial_hits = 3
-				if p.get("vial_t") != null:
+				else:
+					p.set("vial_hits", 3)
+				if "vial_t" in p:
 					p.vial_t = 300.0
-			CombatHelpers.flash("🧪 UNHOLY VIAL — VOID WARD!", 80.0)
+				else:
+					p.set("vial_t", 300.0)
+			if CombatHelpers:
+				CombatHelpers.flash("🧪 UNHOLY VIAL — VOID WARD!", 80.0)
 			if AudioBus:
 				AudioBus.sfx("power")
 		"wormhole":
-			if p:
-				p.phase_t = maxf(float(p.get("phase_t")), 180.0)
-			CombatHelpers.flash("🌀 WORMHOLE — PHASED!", 80.0)
+			if p and is_instance_valid(p):
+				if "phase_t" in p:
+					p.phase_t = maxf(float(p.phase_t), 180.0)
+				else:
+					p.set("phase_t", 180.0)
+			if CombatHelpers:
+				CombatHelpers.flash("🌀 WORMHOLE — PHASED!", 80.0)
 			if AudioBus:
 				AudioBus.sfx("warp")
 		_:

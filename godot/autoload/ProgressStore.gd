@@ -54,6 +54,17 @@ func _default() -> Dictionary:
 	}
 
 func _apply_to_fields() -> void:
+	# Coerce shapes cloud/localStorage may corrupt (Array/null) so item use never hard-crashes
+	if typeof(progress.get("consum", {})) != TYPE_DICTIONARY:
+		progress["consum"] = {}
+	if typeof(progress.get("arsenal", {})) != TYPE_DICTIONARY:
+		progress["arsenal"] = STARTER_ARSENAL.duplicate(true)
+	if typeof(progress.get("emblems", {})) != TYPE_DICTIONARY:
+		progress["emblems"] = {"start": true}
+	if typeof(progress.get("estats", {})) != TYPE_DICTIONARY:
+		progress["estats"] = {}
+	if typeof(progress.get("settings", {})) != TYPE_DICTIONARY:
+		progress["settings"] = {}
 	emblems = progress.get("emblems", {"start": true})
 	estats = progress.get("estats", {})
 	ng_unlocked = int(progress.get("ngUnlocked", 0))
@@ -61,7 +72,10 @@ func _apply_to_fields() -> void:
 	GameState.difficulty = int(progress.get("difficulty", 0))
 	GameState.ng_plus = mini(ng_unlocked, int(progress.get("ngPlus", 0)))
 	GameState.selected_outfit = str(progress.get("outfit", "og"))
-	var ar: Dictionary = progress.get("arsenal", {})
+	var ar = progress.get("arsenal", {})
+	if typeof(ar) != TYPE_DICTIONARY:
+		ar = STARTER_ARSENAL.duplicate(true)
+		progress["arsenal"] = ar
 	if ar.has("w") and ar["w"] is Array and ar["w"].size():
 		GameState.weapons.clear()
 		for w in ar["w"]:

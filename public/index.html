@@ -1380,8 +1380,8 @@ function applyProgressSnapshot(p){
     shopUnlocks = Object.assign({}, shopUnlocks||{}, p.shopUnlocks);
     try{ localStorage.setItem('bobina_shopunlocks', JSON.stringify(shopUnlocks)); }catch(e){}
   }
-  if(p.consum && typeof p.consum==='object'){
-    const c0 = consumInv||{};
+  if(p.consum && typeof p.consum==='object' && !Array.isArray(p.consum)){
+    const c0 = (consumInv && typeof consumInv==='object' && !Array.isArray(consumInv)) ? consumInv : {};
     for(const k of Object.keys(p.consum)){ c0[k] = Math.max(Number(c0[k])||0, Number(p.consum[k])||0); }
     consumInv = c0;
     try{ localStorage.setItem('bobina_consum', JSON.stringify(consumInv)); }catch(e){}
@@ -1518,10 +1518,18 @@ function consumById(k){ return CONSUMABLES.find(c=>c.key===k); }
 function selConsumObj(){ if(selConsum>=arsenalI.length) selConsum=0; return consumById(arsenalI[selConsum]); }   // the selected item is now whatever sits in that equipped slot
 function cycleConsumable(){ if(!arsenalI.length){ sfx('hit'); flashMsg={t:75,txt:'No items equipped — set them in the Arsenal'}; return; } selConsum=(selConsum+1)%arsenalI.length; const c=selConsumObj(); if(c){ sfx('item'); flashMsg={t:75,txt:c.icon+' '+c.name+'  ×'+consumQty(c.key)}; } }
 function consumeSelected(){ const c=selConsumObj(); if(!c||!run||!player) return false;
+  if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={};   // guard corrupt cloud/localStorage
   if(consumQty(c.key)>0){
     if(c.full && c.full()){ sfx('hit'); flashMsg={t:80,txt:'Already maxed — '+c.name+' saved'}; pop(player.x,player.y-30,'FULL','#9fe0a4'); return false; }   // no waste (no cooldown): skip if hearts/power/special are already full
-    consumInv[c.key]--; saveConsum(); c.apply(); sfx('extend'); flashMsg={t:90,txt:c.icon+' '+c.name+' used!'}; pop(player.x,player.y-30,c.icon,c.col); for(let i=0;i<14;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:26,c:c.col});
-    if(c.key==='honeycomb'){ estats.honeycombs=(estats.honeycombs||0)+1; saveEstats(); if(estats.honeycombs>=100) unlockEmblem('honeycomb_100'); } return true; }
+    try{
+      consumInv[c.key]=Math.max(0,(Number(consumInv[c.key])||0)-1); if(consumInv[c.key]<=0) delete consumInv[c.key]; saveConsum();
+      if(typeof c.apply==='function') c.apply();
+      sfx('extend'); flashMsg={t:90,txt:c.icon+' '+c.name+' used!'}; pop(player.x,player.y-30,c.icon,c.col);
+      for(let i=0;i<14;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:26,c:c.col});
+      if(c.key==='honeycomb'){ estats.honeycombs=(estats.honeycombs||0)+1; saveEstats(); if(estats.honeycombs>=100) unlockEmblem('honeycomb_100'); }
+      return true;
+    }catch(err){ console.error('[consumeSelected]', err); sfx('hit'); flashMsg={t:90,txt:'Item fizzled — try again'}; return false; }
+  }
   else { sfx('hit'); flashMsg={t:70,txt:'No '+c.name+' left — buy some at the shop'}; return false; } }
 // ---- Shop catalogue (tabbed like the arsenal): buy weapons / specials / melee to unlock, or stock up on consumables ----
 function shopList(tab){
