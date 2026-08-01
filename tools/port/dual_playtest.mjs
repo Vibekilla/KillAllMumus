@@ -481,6 +481,38 @@ async function captureHtml() {
     await page.waitForTimeout(fast ? 900 : 1800);
     await page.screenshot({ path: path.join(htmlDir, "html_play.png") });
     console.log("[HTML] play");
+    // Touch chrome dual — force #touch rail + joystick visible
+    try {
+      await page.evaluate(() => {
+        document.body.classList.add("touch");
+        const t = document.getElementById("touch");
+        if (t) t.classList.add("on");
+        const jb = document.getElementById("joybase");
+        if (jb) {
+          jb.style.display = "block";
+          jb.classList.remove("idle");
+        }
+        if (typeof manageTouchUI === "function") {
+          try { manageTouchUI(); } catch (e) {}
+        }
+        // Force on even if manageTouchUI hides on desktop
+        if (t) t.classList.add("on");
+        if (jb) jb.style.display = "block";
+        if (typeof draw === "function") draw();
+      });
+      await page.waitForTimeout(fast ? 250 : 400);
+      await page.screenshot({ path: path.join(htmlDir, "html_flow_touch.png") });
+      console.log("[HTML] flow_touch");
+      await page.evaluate(() => {
+        document.body.classList.remove("touch");
+        const t = document.getElementById("touch");
+        if (t) t.classList.remove("on");
+        const jb = document.getElementById("joybase");
+        if (jb) jb.style.display = "none";
+      });
+    } catch (e) {
+      console.log("[HTML] touch skip", e.message || e);
+    }
   } else if (needPlaySession()) {
     // Sliced dual: skip menus/flow tax, jump straight into a run
     await ensurePlay();
@@ -896,8 +928,13 @@ function writeIndex() {
       ["html_menu_leaderboard.png", "godot_menu_leaderboard.png", "Leaderboard"],
       ["html_menu_settings.png", "godot_menu_settings.png", "Settings"],
       ["html_menu_ngselect.png", "godot_menu_ngselect.png", "New Game+"],
+      ["html_menu_display.png", "godot_menu_display.png", "Display"],
+      ["html_menu_keybinds.png", "godot_menu_keybinds.png", "Keybinds"],
+      ["html_menu_soundgate.png", "godot_menu_soundgate.png", "Soundgate"],
+      ["html_menu_nameentry.png", "godot_menu_nameentry.png", "Name entry"],
       ["html_flow_intro.png", "godot_flow_intro.png", "Intro"],
       ["html_play.png", "godot_play.png", "Play"],
+      ["html_flow_touch.png", "godot_flow_touch.png", "Touch chrome"],
       ["html_flow_pause.png", "godot_flow_pause.png", "Pause"],
       ["html_flow_shop.png", "godot_flow_shop.png", "Shop"],
       ["html_flow_stageclear.png", "godot_flow_stageclear.png", "Stage clear"],

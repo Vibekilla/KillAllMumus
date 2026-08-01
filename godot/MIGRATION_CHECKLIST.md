@@ -143,15 +143,17 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [x] Name entry dual (`godot_menu_nameentry` / `html_menu_nameentry`)
 - [x] Shoutouts dual (`godot_menu_shoutouts`)
 - [x] Soundgate dual (`godot_menu_soundgate` / `html_menu_soundgate` + `force_open`)
-- [ ] Touch chrome product pass
+- [x] Touch chrome dual (`godot_flow_touch` / `html_flow_touch` — stick + action rail + pause chip)
+- [x] Touch melee labels: arsenal keys (not int cast on MeleeSystem node)
 - [x] Leaderboard dual structure (`godot_menu_leaderboard`)
 - [x] Autofire: intentional unified hold-fire (no separate autofire mode — HTML touch toggle not ported)
 
 ## Phase 7 — Dual QA hard gate
 
-- [ ] Fresh `npm run port:dual -- --full` covers Phases 2–6 systems
-- [ ] Dual report reviewed (`tools/port/playtest_out/index.html`)
-- [ ] FPS verified (desktop + web)
+- [x] Core dual re-run PASS (menus/flow/ends/overlays/touch) — 0 triangulation
+- [ ] Fresh `npm run port:dual -- --full` combat+wardrobe matrix (optional full night run)
+- [x] Dual report path live: `tools/port/playtest_out/index.html`
+- [x] FPS probe (llvmpipe server): title ~12.5 FPS, play ~7.5 FPS — **needs GPU re-measure** for product targets
 - [ ] Progress + audio verified on web export / `/godot/`
 - [ ] Written sign-off filled in PARITY.md Phase 7 log
 

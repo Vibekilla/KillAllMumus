@@ -792,6 +792,43 @@ func _run() -> void:
 				await process_frame
 		if _want("core"):
 			await _save("godot_play")
+			# Touch chrome dual — force ui=touch so joystick + action rail draw
+			var ps_touch = _A("ProgressStore")
+			var joy = _A("JoyPad")
+			var prev_ui = null
+			if ps_touch and "progress" in ps_touch:
+				var stt: Dictionary = ps_touch.progress.get("settings", {})
+				if typeof(stt) != TYPE_DICTIONARY:
+					stt = {}
+				prev_ui = stt.get("ui", null)
+				stt["ui"] = "touch"
+				ps_touch.progress["settings"] = stt
+			if joy:
+				if joy.has_method("manage_touch_ui"):
+					joy.manage_touch_ui()
+				else:
+					joy.touch_ui_on = true
+				if joy.has_method("joy_show_home"):
+					joy.joy_show_home()
+			var hud_t = _main.get_node_or_null("UI/HudCanvas")
+			for _i in range(6 if fast else 10):
+				await process_frame
+				if joy and joy.has_method("manage_touch_ui"):
+					joy.manage_touch_ui()
+				if hud_t and hud_t.has_method("queue_redraw"):
+					hud_t.queue_redraw()
+			await _save("godot_flow_touch")
+			if ps_touch and "progress" in ps_touch:
+				var st2: Dictionary = ps_touch.progress.get("settings", {})
+				if typeof(st2) != TYPE_DICTIONARY:
+					st2 = {}
+				if prev_ui == null:
+					st2.erase("ui")
+				else:
+					st2["ui"] = prev_ui
+				ps_touch.progress["settings"] = st2
+			if joy and joy.has_method("manage_touch_ui"):
+				joy.manage_touch_ui()
 	# Phase 2 minor: play-scale (×1) expression dual — force dual_expr on player
 	if _want("faces") and player:
 		var exprs = [null, "uwu", "smile", "squee", "giggle", "annoyed"]

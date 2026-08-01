@@ -208,40 +208,55 @@ func _special_label() -> String:
 		return "★\nUSE!"
 	return "★\n%d%%" % int(floorf(sp))
 
+func _arsenal_melee_keys() -> Array:
+	var keys: Array = ["katana"]
+	if ProgressStore and ProgressStore.progress is Dictionary:
+		var ar: Dictionary = ProgressStore.progress.get("arsenal", {})
+		if typeof(ar) == TYPE_DICTIONARY:
+			var ms = ar.get("m", [])
+			if ms is Array and (ms as Array).size() > 0:
+				keys = []
+				for x in ms:
+					keys.append(str(x))
+	return keys
+
+func _melee_def_by_key(key: String) -> Dictionary:
+	if DataRegistry and DataRegistry.melee is Array:
+		for m in DataRegistry.melee:
+			if m is Dictionary and str(m.get("key", "")) == key:
+				return m
+		if DataRegistry.melee.size() and DataRegistry.melee[0] is Dictionary:
+			return DataRegistry.melee[0]
+	return {}
+
 func _melee_label() -> String:
 	var icon := "⚔"
 	var player = _player()
-	var mi := 0
-	if player and "melee" in player:
-		mi = int(player.melee)
-	elif player and "melee_key" in player:
-		# string key index via arsenal
-		pass
-	if DataRegistry and DataRegistry.melee is Array and mi >= 0 and mi < DataRegistry.melee.size():
-		var m = DataRegistry.melee[mi]
-		if m is Dictionary:
-			icon = str(m.get("icon", "⚔"))
+	var keys := _arsenal_melee_keys()
+	var mk := str(keys[0]) if keys.size() else "katana"
+	var m: Dictionary = _melee_def_by_key(mk)
+	if not m.is_empty():
+		icon = str(m.get("icon", "⚔"))
 	var chg := 0.0
-	if player:
-		if "melee_chg" in player:
-			chg = float(player.melee_chg)
-		elif "meleeChg" in player:
-			chg = float(player.meleeChg)
+	if player and player.get("melee") is Node:
+		var ms: Node = player.get("melee")
+		if "charge" in ms:
+			chg = float(ms.charge)
 	if chg > 0.0:
 		return "%s\n%d%%" % [icon, int(roundf(chg * 100.0))]
 	return icon + "\nMELEE"
 
 func _melee_swap_label() -> String:
 	var icon := "🗡"
-	if DataRegistry and DataRegistry.melee is Array and DataRegistry.melee.size() > 0:
-		var player = _player()
-		var mi := 0
-		if player and "melee" in player:
-			mi = int(player.melee)
-		mi = (mi + 1) % DataRegistry.melee.size()
-		var m = DataRegistry.melee[mi]
-		if m is Dictionary:
+	var keys := _arsenal_melee_keys()
+	if keys.size() > 1:
+		var m: Dictionary = _melee_def_by_key(str(keys[1]))
+		if not m.is_empty():
 			icon = str(m.get("icon", "🗡"))
+	elif keys.size() == 1:
+		var m2: Dictionary = _melee_def_by_key(str(keys[0]))
+		if not m2.is_empty():
+			icon = str(m2.get("icon", "🗡"))
 	return icon + "\nMEL⇄"
 
 func hit_key(pos: Vector2) -> String:
