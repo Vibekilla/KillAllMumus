@@ -27,6 +27,8 @@ func _on_sim_tick(dt: float) -> void:
 	if StageFlow:
 		StageFlow.tick(dt)
 
+var _prev_show := false
+
 func _process(_delta: float) -> void:
 	var nt := SimClock.sim_frame if SimClock else tick + 1
 	var dialog_on := GameState.state == GameState.State.PLAY and StageFlow and StageFlow.dialog != null
@@ -39,8 +41,15 @@ func _process(_delta: float) -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 	else:
 		mouse_filter = Control.MOUSE_FILTER_STOP
+	# When dialog/portal/shop dismisses, force one clear redraw — otherwise the
+	# last frame stays painted on this Control (boss dual stills leaked ape dialog).
 	if not show:
+		if _prev_show:
+			_prev_show = false
+			_last_tick = -1
+			queue_redraw()
 		return
+	_prev_show = true
 	if nt == _last_tick:
 		return
 	_last_tick = nt
@@ -51,6 +60,13 @@ func _draw() -> void:
 	if ctx == null or flow_draw == null:
 		return
 	ctx.begin_frame()
+	var dialog_on := GameState.state == GameState.State.PLAY and StageFlow and StageFlow.dialog != null
+	var show := GameState.state in [
+		GameState.State.INTRO, GameState.State.STAGE_CLEAR, GameState.State.SHOP
+	] or (GameState.state == GameState.State.PLAY and StageFlow and StageFlow.is_field_cleared()) or dialog_on
+	# Clear-only frame after dismiss (begin_frame wiped the canvas)
+	if not show:
+		return
 	flow_draw.set_tick(tick)
 	match GameState.state:
 		GameState.State.INTRO:

@@ -1525,25 +1525,37 @@ func _run() -> void:
 			if BossScene and playfield and DataRegistry:
 				for si in range(mini(7, DataRegistry.stages.size())):
 					_dual_sanitize(player, pool)
-					GameState.power = 1.0
+					# Kill leftover dialog/flash from prior boss dual (esp. ape intro)
+					if StageFlow:
+						StageFlow.dialog = null
+					var ch_clr = _A("CombatHelpers")
+					if ch_clr and "flash_msg" in ch_clr:
+						ch_clr.flash_msg = {}
+					GameState.power = 6.0  # match HTML combat dual stills (full aura)
 					GameState.session_score = 0
 					GameState.total_kills = 0
 					GameState.graze = 0
-					# HTML dual: Bobina above boss, field empty
-					player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
-					player.aim = PI / 2.0  # face down toward boss
+					# HTML spawnBossPortrait: boss mid-field; Bobina lower third for clear read
+					var px_b := pf2.get_center().x
+					var py_b := pf2.position.y + pf2.size.y - 80.0
+					player.global_position = Vector2(px_b, py_b)
+					player.aim = -PI / 2.0
 					player.set_meta("dual_lock_pose", true)
-					player.set_meta("dual_aim", PI / 2.0)
+					player.set_meta("dual_aim", -PI / 2.0)
 					for _i in range(3):
 						await process_frame
 						_dual_sanitize(player, pool)
-						player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
-						player.aim = PI / 2.0
+						if StageFlow:
+							StageFlow.dialog = null
+						player.global_position = Vector2(px_b, py_b)
+						player.aim = -PI / 2.0
+						GameState.power = 6.0
 					GameState.stage_index = si
 					var stage: Dictionary = DataRegistry.get_stage(si)
 					var boss = BossScene.instantiate()
 					playfield.add_child(boss)
-					var boss_pos := Vector2(pf2.get_center().x, pf2.position.y + 200)
+					# HTML dual: by = PF.y + 140
+					var boss_pos := Vector2(pf2.get_center().x, pf2.position.y + 140.0)
 					boss.setup(pool, boss_pos, stage)
 					# Visible body, pinned pose (no roam / no attack / no spin-facing)
 					if "intro" in boss:
@@ -1567,12 +1579,15 @@ func _run() -> void:
 					boss.set_meta("dual_freeze", true)
 					for _i in range(10):
 						await process_frame
-						player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
-						player.aim = PI / 2.0
+						player.global_position = Vector2(px_b, py_b)
+						player.aim = -PI / 2.0
 						player.velocity = Vector2.ZERO
+						GameState.power = 6.0
 						GameState.session_score = 0
 						GameState.total_kills = 0
 						GameState.graze = 0
+						if StageFlow:
+							StageFlow.dialog = null
 						if is_instance_valid(boss):
 							boss.global_position = boss_pos
 							if "intro" in boss:
@@ -1607,10 +1622,14 @@ func _run() -> void:
 						var chb = _A("CombatHelpers")
 						if chb and "particles" in chb:
 							chb.particles.clear()
+						if chb and "flash_msg" in chb:
+							chb.flash_msg = {}
 					var bname := str(stage.get("boss", {}).get("portrait", "boss%d" % si))
 					await _save("godot_boss_%s" % bname)
 					# Boss special dual (stage 0 ape): force 45% special window
 					if si == 0 and is_instance_valid(boss) and boss.has_method("_trigger_boss_special"):
+						if StageFlow:
+							StageFlow.dialog = null
 						boss.set_meta("dual_freeze", false)
 						if "hp" in boss and "max_hp" in boss:
 							boss.hp = float(boss.max_hp) * 0.40
@@ -1624,19 +1643,19 @@ func _run() -> void:
 							boss.special_t = 160.0
 						for _j in range(8):
 							await process_frame
-							player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
+							player.global_position = Vector2(px_b, py_b)
+							player.aim = -PI / 2.0
+							GameState.power = 6.0
 							if is_instance_valid(boss):
 								boss.global_position = boss_pos
 								if "special_t" in boss and float(boss.special_t) < 100.0:
 									boss.special_t = 160.0
-								# Freeze roam during dual after patterns fire
 								if "mtx" in boss:
 									boss.mtx = boss_pos.x
 								if "mty" in boss:
 									boss.mty = boss_pos.y
 							if pool and pool.has_method("clear_all"):
 								pool.clear_all()
-						# Freeze for capture
 						boss.set_meta("dual_freeze", true)
 						if "face" in boss:
 							boss.face = PI / 2.0
@@ -1655,7 +1674,6 @@ func _run() -> void:
 							boss.dead = true
 							boss.hp = 0.0
 							boss.start_wynn_hell()
-						# Grow portal without waiting for full dialog
 						if "hell_t" in boss:
 							boss.hell_t = 90.0
 						if "hell_r" in boss:
@@ -1663,9 +1681,12 @@ func _run() -> void:
 						if "hy" in boss:
 							boss.hy = boss_pos.y
 						boss.set_meta("dual_freeze", true)
-						player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
+						player.global_position = Vector2(px_b, py_b)
+						player.aim = -PI / 2.0
+						GameState.power = 6.0
 						for _j in range(10):
 							await process_frame
+							player.global_position = Vector2(px_b, py_b)
 							if is_instance_valid(boss):
 								boss.global_position = Vector2(boss_pos.x, boss_pos.y)
 								if "hell_r" in boss:
@@ -1681,6 +1702,8 @@ func _run() -> void:
 							StageFlow.dialog = null
 					# Live ambience still (first boss only): leave dual_freeze OFF so mandala shows
 					if si == 0 and is_instance_valid(boss):
+						if StageFlow:
+							StageFlow.dialog = null
 						boss.remove_meta("dual_freeze")
 						if "stun" in boss:
 							boss.stun = 99999.0
@@ -1690,8 +1713,9 @@ func _run() -> void:
 							boss.hp = float(boss.max_hp) * 0.55  # mid-fight rage cue
 						for _j in range(8):
 							await process_frame
-							player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
-							player.aim = PI / 2.0
+							player.global_position = Vector2(px_b, py_b)
+							player.aim = -PI / 2.0
+							GameState.power = 6.0
 							if is_instance_valid(boss):
 								boss.global_position = boss_pos
 								if "face" in boss:
@@ -1703,7 +1727,7 @@ func _run() -> void:
 							if pool and pool.has_method("clear_all"):
 								pool.clear_all()
 						await _save("godot_boss_ape_live")
-						# Boss dialog dual — StageFlow owns state; FlowUI presents (signal-up)
+						# Boss dialog dual — StageFlow owns state; FlowUI presents
 						boss.set_meta("dual_freeze", true)
 						var bdata: Dictionary = stage.get("boss", {}) if stage.get("boss") is Dictionary else {}
 						var intro_lines: Array = []
@@ -1716,15 +1740,15 @@ func _run() -> void:
 							]
 						if StageFlow and StageFlow.has_method("start_dialog"):
 							StageFlow.start_dialog(intro_lines, bdata)
-							# Pin dialog so dual doesn't advance off the first line
 							if StageFlow.dialog is Dictionary:
 								StageFlow.dialog["timer"] = 9999.0
 								StageFlow.dialog["i"] = 0
 						var flow_ui = _main.get_node_or_null("UI/FlowUI")
 						for _j in range(10):
 							await process_frame
-							player.global_position = Vector2(pf2.get_center().x, pf2.position.y + 70)
-							player.aim = PI / 2.0
+							player.global_position = Vector2(px_b, py_b)
+							player.aim = -PI / 2.0
+							GameState.power = 6.0
 							if is_instance_valid(boss):
 								boss.set_meta("dual_freeze", true)
 								boss.global_position = boss_pos
@@ -1746,8 +1770,16 @@ func _run() -> void:
 						await _save("godot_boss_dialog")
 						if StageFlow:
 							StageFlow.dialog = null
+						var ch_d = _A("CombatHelpers")
+						if ch_d and "flash_msg" in ch_d:
+							ch_d.flash_msg = {}
+					# Always clear dialog before next stage / free boss
+					if StageFlow:
+						StageFlow.dialog = null
 					if is_instance_valid(boss):
 						boss.queue_free()
+					await process_frame
+					await process_frame
 				for _i in range(2):
 					await process_frame
 

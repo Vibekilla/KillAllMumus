@@ -84,14 +84,18 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [ ] Product visual sign-off item icons / floater chrome
 
 ### Bosses (visuals)
-- [ ] AlchemistTheOG (ape)
-- [ ] Dr. Robotnik
-- [ ] Mumina
-- [ ] Lily
-- [ ] India Police
-- [ ] Bogdanoff twins (Igor / Grichka)
-- [ ] James Wynn (+ Devil if in HTML)
-- [ ] Intro / specials / phases / dialog / defeat / hell portal / twin swap / ambience
+- [x] Structure duals: all 7 portraits + ape special/live/dialog + wynn hell (`godot_boss_*`)
+- [x] Dual harness: full power aura, player lower third, boss @ HTML y+140
+- [x] FlowUI: clear redraw on dialog dismiss (no ape-dialog bleed onto later bosses)
+- [x] AlchemistTheOG (ape) — portrait dual
+- [x] Dr. Robotnik — portrait dual
+- [x] Mumina — portrait dual
+- [x] Lily — portrait dual
+- [x] India Police — portrait dual
+- [x] Bogdanoff twins (Igor / Grichka) — portrait dual
+- [x] James Wynn (+ hell portal dual)
+- [ ] Product visual sign-off (stage bg motifs, minions, detailed art polish)
+- [ ] Intro / specials / phases / dialog / defeat / hell portal / twin swap / ambience (live play)
 
 ### Enemies / stage / meta
 - [ ] All mumu forms + elites (cheer, ape, badnik, pup, scammer, voideye, goon, …)
