@@ -59,7 +59,8 @@ func _spawn_boss(stage: Dictionary) -> void:
 	var boss = BossScene.instantiate()
 	var pf: Rect2 = Config.playfield()
 	get_parent().get_node("Playfield").add_child(boss)
-	boss.setup(bullet_pool, Vector2(pf.get_center().x, pf.position.y + 70), stage)
+	# HTML spawnBoss: enter from above PF (y = PF.y-40), ease to ty=PF.y+110
+	boss.setup(bullet_pool, Vector2(pf.get_center().x, pf.position.y - 40.0), stage)
 	boss.defeated.connect(func(_id):
 		# HTML spawnClearGate (portal + shop on field)
 		if StageFlow:

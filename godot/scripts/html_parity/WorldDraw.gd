@@ -690,7 +690,8 @@ func _draw_player(player: Node) -> void:
 	# Full drawBobina — cache bake when possible; live fallback (never a placeholder circle)
 	_draw_bobina_cached_or_live(st)
 	if combat_fx:
-		combat_fx.drawOptions(true)
+		# HTML drawOptions(player) — world optionPos, not local 0,0
+		combat_fx.drawOptions(st)
 	# shield / rapid / vial / phase rings — HTML overlays on Bobina
 	var shield_t := float(st.get("shieldT", 0))
 	if shield_t > 0.0:

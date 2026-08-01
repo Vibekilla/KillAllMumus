@@ -17,6 +17,8 @@ var phase: int = 0
 var phases: int = 3
 var spin: float = 0.0
 var intro: float = 90.0
+## HTML introDlg — hold intro open until monologue ends, then clearWaveMobs
+var intro_dlg: bool = true
 var dead: bool = false
 var dead_t: float = 0.0
 var flash: float = 0.0
@@ -60,29 +62,53 @@ func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 	boss_id = str(data.get("name", "boss"))
 	portrait = str(data.get("portrait", "ape"))
 	hud_name = str(data.get("name", boss_id))
-	max_hp = float(data.get("hp", 340)) * (1.0 + GameState.ng_plus * 0.08) * (1.15 if GameState.hard_mode else 1.0)
+	# HTML: Math.round(bd.hp * (2.1 + stageIdx*0.07)) — ~2× base, ramps by stage
+	var si := GameState.stage_index
+	var base_hp := float(data.get("hp", 340))
+	max_hp = float(round(base_hp * (2.1 + float(si) * 0.07)))
 	hp = max_hp
 	global_position = pos
 	color = Color.html(str(data.get("color", "#c9a24b")))
-	phases = 3 if GameState.stage_index > 0 else 2
-	if portrait == "bogdanoff":
+	# HTML spawnBoss always phases:3 (twin overrides to 1)
+	phases = 3
+	if portrait == "bogdanoff" or bool(data.get("twin", false)):
 		twin = true
 		special_used = true  # HTML: twins skip generic special phase
 		phases = 1
+		# HTML: each twin pool is 60% of scaled boss HP
+		var th := float(round(max_hp * 0.6))
+		max_hp = th
+		hp = th
 		tw = {
-			"igor": {"hp": max_hp, "max": max_hp, "done": false},
-			"grichka": {"hp": max_hp, "max": max_hp, "done": false},
+			"igor": {"hp": th, "max": th, "done": false},
+			"grichka": {"hp": th, "max": th, "done": false},
 		}
 		active_twin = "igor"
 		hud_name = "Igor Bogdanoff"
 		# HTML: boss.swapCd=420+((Math.random()*180)|0)
 		swap_cd = 420.0 + float(randi() % 180)
-	intro = 20.0 if GameState.speedrun else 90.0
+	# HTML: intro:9999, introDlg:true; speedrun startDialog no-ops → drop intro immediately
+	intro_dlg = not GameState.speedrun
+	intro = 20.0 if GameState.speedrun else 9999.0
 	var pf: Rect2 = Config.playfield()
 	mtx = pf.get_center().x
-	mty = pf.position.y + 100
+	# HTML ty = PF.y+110 (enter from above)
+	mty = pf.position.y + 110.0
+	# Prefer HTML entry Y (above PF) when caller passed mid-field
+	if global_position.y > pf.position.y:
+		global_position.y = pf.position.y - 40.0
 	add_to_group("enemies")
 	add_to_group("bosses")
+	# HTML: startDialog(bd.intro, bd); sfx('card')
+	if not GameState.speedrun and StageFlow and StageFlow.has_method("start_dialog"):
+		var intro_lines = data.get("intro", [])
+		if intro_lines is Array and (intro_lines as Array).size() > 0:
+			StageFlow.start_dialog((intro_lines as Array).duplicate(), data)
+		else:
+			intro_dlg = false
+			intro = 90.0
+	if AudioBus:
+		AudioBus.sfx("card")
 
 var _draw_age: int = 0
 
@@ -109,8 +135,20 @@ func _physics_process(delta: float) -> void:
 	var pf: Rect2 = Config.playfield()
 
 	if intro > 0.0:
-		intro -= delta * FRAME
+		# HTML: ease toward ty while monologue holds intro open
 		position.y += (mty - position.y) * 0.06
+		if intro_dlg:
+			# When dialog finishes (or speedrun skipped it), open the fight
+			var dlg_open := StageFlow != null and StageFlow.dialog != null
+			if not dlg_open:
+				intro = 0.0
+				intro_dlg = false
+				_clear_wave_mobs()
+		else:
+			intro -= delta * FRAME
+			if intro <= 0.0:
+				intro = 0.0
+				_clear_wave_mobs()
 		_want_redraw()
 		return
 
@@ -481,6 +519,34 @@ func _twin_swap(other: String, death_handoff: bool = false) -> void:
 		mty = pf.position.y + 55.0 + randf() * (pf.size.y - 135.0)
 		if StageFlow:
 			StageFlow.twin_swap(self)
+
+func _clear_wave_mobs() -> void:
+	## HTML clearWaveMobs — burst leftover wave enemies + cancel their bullets when monologue ends
+	var tree := get_tree()
+	if tree == null:
+		return
+	for e in tree.get_nodes_in_group("enemies"):
+		if not is_instance_valid(e) or e == self or e.is_in_group("bosses"):
+			continue
+		var ex: float = 0.0
+		var ey: float = 0.0
+		if e is Node2D:
+			var n2: Node2D = e as Node2D
+			ex = n2.global_position.x
+			ey = n2.global_position.y
+		var icy: bool = false
+		if e.get("icy") != null:
+			icy = bool(e.get("icy"))
+		if CombatHelpers:
+			CombatHelpers.burst(ex, ey, "#a0e0ff" if icy else "#ffd27a")
+		if GameState:
+			var sm: float = 1.0
+			if CombatHelpers:
+				sm = float(CombatHelpers.score_mult())
+			GameState.add_score(int(50.0 * sm))
+		e.queue_free()
+	if bullet_pool and bullet_pool.has_method("clear_enemy"):
+		bullet_pool.clear_enemy()
 
 func take_damage(amount: float, opts: Dictionary = {}) -> void:
 	## amount is raw shot dmg; opts may include voidbolt (already-scaled path from Bullet preferred)

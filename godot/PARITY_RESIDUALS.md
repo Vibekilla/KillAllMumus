@@ -69,8 +69,9 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Gap | Detail |
 |-----|--------|
 | Product sign-off | Structure duals for all 10; density/timing/power-level stills open |
-| Familiar **optionOffsets** | **WAS WRONG** (Godot used ±28/±32…); **fixed to HTML −16/16/0,14/0,−15** |
-| Familiar **optionPos** | **WAS world-offset only**; **fixed to HTML body-rotation map** (FireSystem + fire.gd) |
+| Familiar **optionOffsets** | **Fixed** HTML −16/16/0,14/0,−15 |
+| Familiar **optionPos** | **Fixed** body-rotation map (FireSystem + fire.gd + drawOptions) |
+| **drawOptions world pos** | **WAS drawing at 0,0** (local flag); **fixed** HTML `optionPos(player)` world coords |
 | option_shot weapon match | **Fixed** FireSystem + legacy `drawers/fire.gd` now weapon-matched |
 
 ### Specials
@@ -99,7 +100,9 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Gap | Detail |
 |-----|--------|
 | Portrait duals | All 7 structure duals |
-| **Minions** | Live: Godot was wiping wave mobs at boss start; **fixed** (HTML keeps them). Dual portraits still clear field intentionally (both engines) |
+| **Minions** | HTML keeps wave mobs until monologue ends then `clearWaveMobs`. **Fixed:** no wipe at boss spawn; clear on introDlg end |
+| **Boss HP** | Was missing `round(hp*(2.1+stage*0.07))` (~2× too low). **Fixed** + twin 0.6 pools + phases=3 |
+| **Boss intro** | Missing startDialog + introDlg gate. **Fixed** entry y=PF.y-40, dialog, clearWave |
 | Boss ambience / mandala | Partial (`drawBossAmbience`) |
 | Hell portal / Wynn hell | Dual stills; live play product |
 | Twin swap (Bogdanoffs) | Code paths; product dual open |
@@ -242,12 +245,11 @@ Present via other modules or partial — still product-check:
 ## Priority backlog (next prompts)
 
 1. **Manual music verify** social links keep lofi after hard-refresh  
-2. **Familiar dual still** at power 2–6 after optionOffsets + option_shot fix  
+2. **Familiar dual still** at power 2–6 (drawOptions world fix — re-shot)  
 3. **Title social + peephole product**  
-4. **Dialog taunt / bobinaSay matrix**  
-5. **Boss live pattern / HP product matrix**  
-6. **GPU FPS probe**  
-7. **Full dual --full** + fill Phase 7 log  
+4. **Boss live pattern product eye-pass** (HP/intro structure fixed)  
+5. **GPU FPS probe**  
+6. **Full dual --full** + fill Phase 7 log  
 
 ---
 
@@ -260,3 +262,4 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | Deep audit: 298 HTML fns; optionOffsets/optionPos mismatch fixed; stun/emote missing; _frontArm no-op; dual naming holes |
 | 2026-08-01 | Music cut-off: stop YT pause on visibility; open_url helper; fire.gd option_shot; stun/emote/_frontArm resolved |
 | 2026-08-01 | Boss keeps wave minions (HTML parity); graze structure test |
+| 2026-08-01 | Boss HP 2.1 scale + introDlg/clearWave; drawOptions world optionPos |

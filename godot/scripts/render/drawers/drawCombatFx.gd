@@ -17,9 +17,9 @@ func _hex_a(h, a) -> String:
 	var n := s.hex_to_int()
 	return "rgba(%d,%d,%d,%s)" % [(n >> 16) & 255, (n >> 8) & 255, n & 255, str(a)]
 
-func drawOptions(player_local: bool = true) -> void:
-	## HTML drawOptions — option orbs (offsets 1:1 + body rotation when not local)
-	var lv := CombatHelpers.shot_level()
+func drawOptions(p = null) -> void:
+	## HTML drawOptions(p) — orbs at optionPos world coords (not local 0,0)
+	var lv := CombatHelpers.shot_level() if CombatHelpers else clampi(int(floor(GameState.power)), 1, 5)
 	var n := lv - 1
 	if n < 1:
 		return
@@ -32,27 +32,55 @@ func drawOptions(player_local: bool = true) -> void:
 		offsets.append({"x": 0.0, "y": 14.0})
 	if n >= 4:
 		offsets.append({"x": 0.0, "y": -15.0})
+	# Resolve player state: dict (preferred), Node2D, or live group player
+	var px := 0.0
+	var py := 0.0
 	var face := -PI / 2.0
-	var pl = Engine.get_main_loop().root.get_tree().get_first_node_in_group("player") if Engine.get_main_loop() else null
-	if pl and pl.get("face") != null:
-		face = float(pl.face)
-	elif pl and pl.get("aim") != null:
-		face = float(pl.aim)
+	var have_pos := false
+	if p is Dictionary:
+		px = float(p.get("x", 0.0))
+		py = float(p.get("y", 0.0))
+		face = float(p.get("face", p.get("aim", -PI / 2.0)))
+		have_pos = p.has("x") and p.has("y")
+	elif p is Node2D:
+		px = p.global_position.x
+		py = p.global_position.y
+		if p.get("face") != null:
+			face = float(p.face)
+		elif p.get("aim") != null:
+			face = float(p.aim)
+		have_pos = true
+	elif typeof(p) == TYPE_BOOL and p == true:
+		# Legacy: local-to-Bobina after ctx.translate(player) — rare dual bake path
+		have_pos = false
+	if not have_pos and not (typeof(p) == TYPE_BOOL and p == true):
+		var tree = Engine.get_main_loop().root.get_tree() if Engine.get_main_loop() else null
+		var pl = tree.get_first_node_in_group("player") if tree else null
+		if pl is Node2D:
+			px = pl.global_position.x
+			py = pl.global_position.y
+			if pl.get("face") != null:
+				face = float(pl.face)
+			elif pl.get("aim") != null:
+				face = float(pl.aim)
+			have_pos = true
 	var rot := face + PI / 2.0
 	var c := cos(rot)
 	var s := sin(rot)
 	for o in offsets:
-		var ox := float(o.x)
-		var ly := float(o.y) + 16.0
+		var ox := float(o.get("x", 0.0))
+		var oy := float(o.get("y", 0.0))
+		var ly := oy + 16.0
 		var dx: float
 		var dy: float
-		if player_local:
-			# local to Bobina draw (rest face-up): same as HTML at rest
-			dx = ox
-			dy = float(o.y)
+		if have_pos:
+			# HTML optionPos
+			dx = px + c * ox - s * ly
+			dy = py - 16.0 + s * ox + c * ly
 		else:
-			dx = c * ox - s * ly
-			dy = -16.0 + s * ox + c * ly
+			# Already translated to Bobina origin (rest face-up)
+			dx = ox
+			dy = oy
 		ctx.save()
 		ctx.translate(dx, dy)
 		ctx.shadow_color("#ff8ad6")
