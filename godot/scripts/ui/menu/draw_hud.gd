@@ -336,7 +336,10 @@ func _draw_panel_portrait() -> void:
 	ctx.fill_style("#e8d6f0")
 	ctx.font("9px monospace")
 	ctx.fill_text("LIVES", 14, 68)
-	for i in range(maxi(0, GameState.lives)):
+	var max_l_top := 9
+	if CombatHelpers:
+		max_l_top = int(CombatHelpers.MAX_LIVES)
+	for i in range(mini(max_l_top, maxi(0, GameState.lives))):
 		_draw_heart(52 + i * 15.0, 64, 5.4)
 	ctx.text_align("right")
 	ctx.fill_style("#e8d6f0")
@@ -345,7 +348,10 @@ func _draw_panel_portrait() -> void:
 	ctx.fill_style("#ff8ad6")
 	ctx.font("13px monospace")
 	ctx.text_align("left")
-	for i in range(GameState.bombs):
+	var max_b_top := 5
+	if CombatHelpers:
+		max_b_top = int(CombatHelpers.MAX_BOMBS)
+	for i in range(mini(max_b_top, maxi(0, GameState.bombs))):
 		ctx.fill_text("✸", WW - 84 + i * 15.0, 69)
 	if GameState.difficulty > 0 or GameState.ng_plus > 0:
 		ctx.text_align("center")
@@ -507,7 +513,10 @@ func _draw_panel_touch() -> void:
 	ctx.fill_style("#e8d6f0")
 	ctx.font("10px monospace")
 	ctx.fill_text("LIVES", x + 14, cy)
-	for i in range(maxi(0, GameState.lives)):
+	var max_l_side := 9
+	if CombatHelpers:
+		max_l_side = int(CombatHelpers.MAX_LIVES)
+	for i in range(mini(max_l_side, maxi(0, GameState.lives))):
 		_draw_heart(x + 50 + i * 14.0, cy - 4, 5)
 	ctx.fill_style("#ff8ad6")
 	ctx.font("12px monospace")
@@ -936,11 +945,14 @@ func _draw_panel_landscape() -> void:
 	ctx.fill_text("[%s] switch · [%s] use" % [MenuHelpers.kb("item_switch"), MenuHelpers.kb("item_use")], x + w - 14, cy + 13)
 	ctx.text_align("left")
 	cy += 30
-	# LIVES + life-frag pips
+	# LIVES + life-frag pips (cap at MAX_LIVES — HTML never exceeds 9)
 	ctx.fill_style("#e8d6f0")
 	ctx.font("11px monospace")
 	ctx.fill_text("LIVES", x + 16, cy)
-	for i in range(maxi(0, GameState.lives)):
+	var max_l := 9
+	if CombatHelpers:
+		max_l = int(CombatHelpers.MAX_LIVES)
+	for i in range(mini(max_l, maxi(0, GameState.lives))):
 		_draw_heart(x + 56 + float(i) * 14.0, cy - 2.5, 5)
 	var life_frags := 0
 	if ItemSystem:
@@ -955,7 +967,10 @@ func _draw_panel_landscape() -> void:
 	ctx.fill_style("#e8d6f0")
 	ctx.font("11px monospace")
 	ctx.fill_text("BOMBS", x + 16, cy)
-	for i in range(GameState.bombs):
+	var max_b := 5
+	if CombatHelpers:
+		max_b = int(CombatHelpers.MAX_BOMBS)
+	for i in range(mini(max_b, maxi(0, GameState.bombs))):
 		ctx.fill_style("#ff8ad6")
 		ctx.font("12px monospace")
 		ctx.fill_text("✸", x + 58 + float(i) * 14.0, cy + 1)

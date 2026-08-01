@@ -60,7 +60,8 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [x] voidripper — dual + purple rift
 - [x] lotus (Lotus Petals) — dual + pink petal
 - [x] shock (Shock & Awe) — dual + zap stroke
-- [ ] Product visual sign-off vs HTML dual report (remaining polish)
+- [x] Dual combat re-run: 0 triangulation errors (pill round_rect + tri guards)
+- [ ] Product visual sign-off vs HTML dual report (petal density/timing, HUD chrome)
 
 ### Specials
 - [x] Structure duals for all 11 keys (`godot_special_*` harness)

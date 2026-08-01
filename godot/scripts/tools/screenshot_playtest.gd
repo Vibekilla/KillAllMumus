@@ -248,7 +248,7 @@ func _dual_sanitize(player, pool) -> void:
 		# Avoid re-emitting PLAY (Main.start_waves_if_ready) when already playing
 		if GS.state != GS.State.PLAY:
 			GS.set_state(GS.State.PLAY)
-		GS.lives = 99
+		GS.lives = 6
 		GS.bombs = 3
 		GS.session_score = 0
 		GS.total_kills = 0
@@ -322,7 +322,7 @@ func _dual_hold_field(player, pool, keep_player_shots: bool = false) -> void:
 		GS.session_score = 0
 		GS.total_kills = 0
 		GS.graze = 0
-		GS.lives = 99
+		GS.lives = 6
 	if player:
 		player.set_meta("dual_lock_pose", true)
 		player.set_meta("dual_aim", -PI / 2.0)
@@ -704,7 +704,7 @@ func _run() -> void:
 			# Dual playtest: stay alive so godot_play is real combat, not gameover
 			if "invuln" in player:
 				player.invuln = 99999.0
-			GameState.lives = 99
+			GameState.lives = 6
 			var spr = player.get_node_or_null("Sprite")
 			if spr:
 				spr.z_index = 20
@@ -936,7 +936,7 @@ func _run() -> void:
 		GameState.start_run()
 		GameState.set_state(GameState.State.PLAY)
 		GameState.power = 6.0
-		GameState.lives = 99
+		GameState.lives = 6
 		player = root.get_tree().get_first_node_in_group("player")
 		if player:
 			player.global_position = Vector2(304, 400)
@@ -954,7 +954,7 @@ func _run() -> void:
 	if player and (_want("weapons") or _want("melee") or _want("specials") or _want("aura") or _want("items") or _want("elites") or _want("bosses") or _want("mechanics") or _want("mumus") or _want("pickups")):
 		GameState.set_state(GameState.State.PLAY)
 		GameState.power = 6.0
-		GameState.lives = 99
+		GameState.lives = 6
 		if "invuln" in player:
 			player.invuln = 99999.0
 		player.global_position = Vector2(304, 400)

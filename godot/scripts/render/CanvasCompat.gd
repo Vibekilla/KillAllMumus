@@ -703,9 +703,9 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 				var ry: float = lx * sn + ly * cs
 				wpts.append(_xform * (c_local + Vector2(rx, ry)))
 			if wpts.size() >= 3:
-				node.draw_colored_polygon(PackedVector2Array([wpts[0], wpts[1], wpts[2]]), col)
+				_draw_tri(wpts[0], wpts[1], wpts[2], col)
 				if wpts.size() >= 4:
-					node.draw_colored_polygon(PackedVector2Array([wpts[0], wpts[2], wpts[3]]), col)
+					_draw_tri(wpts[0], wpts[2], wpts[3], col)
 	else:
 		for i in range(bands):
 			var t0 := float(i) / float(bands)
@@ -731,9 +731,9 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 				var ry: float = lx * sn + ly * cs
 				wpts.append(_xform * (c_local + Vector2(rx, ry)))
 			if wpts.size() >= 3:
-				node.draw_colored_polygon(PackedVector2Array([wpts[0], wpts[1], wpts[2]]), col)
+				_draw_tri(wpts[0], wpts[1], wpts[2], col)
 				if wpts.size() >= 4:
-					node.draw_colored_polygon(PackedVector2Array([wpts[0], wpts[2], wpts[3]]), col)
+					_draw_tri(wpts[0], wpts[2], wpts[3], col)
 
 func _fill_triangulated_gradient(poly: PackedVector2Array) -> void:
 	## Fan triangles, each colored by gradient at centroid (local space).
@@ -746,8 +746,10 @@ func _fill_triangulated_gradient(poly: PackedVector2Array) -> void:
 		var b: Vector2 = poly[si]
 		var c: Vector2 = poly[si + 1]
 		# Skip degenerate / collinear fans (Godot triangulation errors)
+		if not is_finite(a.x) or not is_finite(b.x) or not is_finite(c.x):
+			continue
 		var area2 := absf((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y))
-		if area2 < 0.05:
+		if area2 < 0.5:
 			continue
 		var centroid := (a + b + c) / 3.0
 		var local := inv * centroid
@@ -818,11 +820,18 @@ func _draw_tri(a: Vector2, b: Vector2, c: Vector2, col: Color) -> void:
 	var fill_col := col
 	if _fill_grad != null:
 		fill_col = _c(_sample_grad_at_world((a + b + c) / 3.0))
-	# Skip degenerate / collinear (Godot draw_colored_polygon errors: "Invalid polygon data")
-	var cross_z := (b - a).cross(c - a)
-	if absf(cross_z) < 0.25:
+	# Skip degenerate / collinear (Godot draw_colored_polygon: "Invalid polygon data")
+	if not is_finite(a.x) or not is_finite(a.y) or not is_finite(b.x) or not is_finite(b.y) or not is_finite(c.x) or not is_finite(c.y):
 		return
 	if a.is_equal_approx(b) or b.is_equal_approx(c) or a.is_equal_approx(c):
+		return
+	# 2× area; require meaningful area relative to edge length (thin lotus/void petals)
+	var cross_z := (b - a).cross(c - a)
+	var ab2 := a.distance_squared_to(b)
+	var bc2 := b.distance_squared_to(c)
+	var ca2 := c.distance_squared_to(a)
+	var max_e2 := maxf(ab2, maxf(bc2, ca2))
+	if absf(cross_z) < 0.5 or (max_e2 > 1e-6 and absf(cross_z) * absf(cross_z) < max_e2 * 1e-6):
 		return
 	node.draw_colored_polygon(PackedVector2Array([a, b, c]), fill_col)
 
@@ -936,8 +945,11 @@ func _draw_shadow_poly(poly: PackedVector2Array, _col: Color) -> void:
 	sc.a = base_a
 	var a0: Vector2 = shifted[0]
 	for i in range(1, shifted.size() - 1):
-		if absf((shifted[i] - a0).cross(shifted[i + 1] - a0)) > 0.02:
-			node.draw_colored_polygon(PackedVector2Array([a0, shifted[i], shifted[i + 1]]), sc)
+		var b0: Vector2 = shifted[i]
+		var c0: Vector2 = shifted[i + 1]
+		var cr := absf((b0 - a0).cross(c0 - a0))
+		if cr > 0.5 and is_finite(a0.x) and is_finite(b0.x) and is_finite(c0.x):
+			node.draw_colored_polygon(PackedVector2Array([a0, b0, c0]), sc)
 
 func _dedupe_path(src: PackedVector2Array) -> PackedVector2Array:
 	var out := PackedVector2Array()
@@ -1041,7 +1053,7 @@ func _fill_rect_gradient(x: float, y: float, w: float, h: float) -> void:
 				# Fan triangles only — draw_colored_polygon(n>3) can fail after non-uniform xform
 				var c0: Vector2 = pts[0]
 				for si in range(1, pts.size() - 1):
-					node.draw_colored_polygon(PackedVector2Array([c0, pts[si], pts[si + 1]]), col)
+					_draw_tri(c0, pts[si], pts[si + 1], col)
 		return
 	# Linear: slice along gradient axis into bands
 	var bands2 = 32
