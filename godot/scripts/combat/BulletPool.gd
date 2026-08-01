@@ -48,8 +48,10 @@ func clear_enemy() -> void:
 				pts += 1
 		b.deactivate()
 
-func clear_enemy_near(pos: Vector2, radius: float) -> void:
-	## HTML bulletCancelNear — keep shells with hp>0; cancel others in radius (≤10 point drops)
+func clear_enemy_near(pos: Vector2, radius: float, drop_points: bool = true) -> void:
+	## HTML bulletCancelNear — keep shells with hp>0; cancel others in radius.
+	## drop_points=true (default): ≤10 point drops + floaters (big kill, bulletCancelNear).
+	## drop_points=false: floaters only (mech shield / special soft cancel — no free score).
 	var pts: int = 0
 	var r2: float = radius * radius
 	for b in _pool:
@@ -67,16 +69,38 @@ func clear_enemy_near(pos: Vector2, radius: float) -> void:
 		var bx: float = b.global_position.x
 		var by: float = b.global_position.y
 		if ItemSystem:
-			if pts < 10:
+			if drop_points and pts < 10:
 				ItemSystem.drop_item(bx, by, "point")
 				pts += 1
 			ItemSystem.floaters.append({
-				"x": bx, "y": by, "life": 18.0, "vy": -0.5, "scale": 0.36,
+				"x": bx, "y": by,
+				"life": 18.0 if drop_points else 10.0,
+				"vy": -0.5 if drop_points else -0.4,
+				"scale": 0.36 if drop_points else 0.28,
+			})
+		b.deactivate()
+
+func despawn_enemy_near(pos: Vector2, radius: float, floater_life: float = 0.0, floater_scale: float = 0.3) -> void:
+	## HTML pure filter: remove ALL enemy bullets in radius (incl. shells).
+	## No point drops — hitPlayer death, slashDash, nadeBoom, enemyExplode.
+	var r2: float = radius * radius
+	for b in _pool:
+		if not b.active or int(b.team) != 1:
+			continue
+		if b.global_position.distance_squared_to(pos) > r2:
+			continue
+		if floater_life > 0.0 and ItemSystem:
+			ItemSystem.floaters.append({
+				"x": b.global_position.x,
+				"y": b.global_position.y,
+				"life": floater_life,
+				"vy": -0.5,
+				"scale": floater_scale,
 			})
 		b.deactivate()
 
 func filter_enemy_in_cone(pos: Vector2, radius: float, dir: float, half: float) -> void:
-	## HTML burn bullet cancel: d < reach*0.9 && angDiff < half
+	## HTML burn bullet cancel: d < reach*0.9 && angDiff < half (+ floaters, no points)
 	for b in _pool:
 		if not b.active or int(b.team) != 1:
 			continue
@@ -88,6 +112,11 @@ func filter_enemy_in_cone(pos: Vector2, radius: float, dir: float, half: float) 
 		var ang := atan2(dy, dx)
 		var ad := absf(wrapf(ang - dir, -PI, PI))
 		if ad < half:
+			if ItemSystem:
+				ItemSystem.floaters.append({
+					"x": b.global_position.x, "y": b.global_position.y,
+					"life": 10.0, "vy": -0.4, "scale": 0.28,
+				})
 			b.deactivate()
 
 func clear_all() -> void:

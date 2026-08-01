@@ -217,15 +217,24 @@ func _draw_win() -> void:
 		ctx.font("italic 12px Trebuchet MS")
 		ctx.fill_text("No new Emblems this run — check the 🏅 Emblems menu for more to chase.", W / 2.0, y)
 	else:
+		# HTML: cap list to space above buttons (maxEm from (H-116-y)/15)
+		var earned: Array = []
 		for id in P2Meta.new_emblems:
-			var em = _emblem_def(str(id))
-			if em.is_empty():
-				continue
+			var em0 = _emblem_def(str(id))
+			if not em0.is_empty():
+				earned.append(em0)
+		var max_em := maxi(1, int(floor((H - 116.0 - y) / 15.0)))
+		var shown: Array = earned.slice(0, max_em)
+		for em in shown:
 			ctx.fill_style("#8fd0ff")
 			ctx.font("bold 12px monospace")
 			var extra = "  — unlocked a skin!" if em.get("outfit") else ""
-			ctx.fill_text("%s %s%s" % [em.get("icon", "★"), em.get("name", id), extra], W / 2.0, y)
+			ctx.fill_text("%s %s%s" % [em.get("icon", "★"), em.get("name", ""), extra], W / 2.0, y)
 			y += 15
+		if earned.size() > shown.size():
+			ctx.fill_style("#9a8ba8")
+			ctx.font("11px monospace")
+			ctx.fill_text("+%d more this run" % (earned.size() - shown.size()), W / 2.0, y)
 	var sy = H - 104.0
 	_draw_share_btn(W / 2.0, sy, true)
 	menu_btn = _draw_menu_btn(W / 2.0, sy + 38)

@@ -17,6 +17,12 @@ func _run() -> void:
 	if src.find("bhp > 0") < 0:
 		print("[BCANCEL] FAIL shells with hp survive near-cancel")
 		ok = false
+	if src.find("drop_points") < 0:
+		print("[BCANCEL] FAIL soft cancel (drop_points=false) for specials")
+		ok = false
+	if src.find("func despawn_enemy_near") < 0:
+		print("[BCANCEL] FAIL despawn_enemy_near (death/slash/nade pure filter)")
+		ok = false
 	var sf: String = FileAccess.get_file_as_string("res://scripts/stages/StageFlow.gd")
 	if sf.find("neutralize_inputs") < 0:
 		print("[BCANCEL] FAIL neutralize_inputs missing")

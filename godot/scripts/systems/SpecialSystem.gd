@@ -186,9 +186,9 @@ func _update_fx(delta: float) -> void:
 						var wep = GameState.current_weapon
 						_option_like(pool, float(f["x"]) - 9, float(f["y"]), face, wep)
 						_option_like(pool, float(f["x"]) + 9, float(f["y"]), face, wep)
-					# shield: cancel bullets near player
+					# HTML mech: shells keep, floaters only (no point drops)
 					if pool and pool.has_method("clear_enemy_near"):
-						pool.clear_enemy_near(player.global_position, 28.0)
+						pool.clear_enemy_near(player.global_position, 28.0, false)
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"bearzooka":
@@ -238,8 +238,9 @@ func _update_fx(delta: float) -> void:
 						e.global_position += dir * g
 						if d < 26.0 and int(f["dt"]) % 8 == 0 and e.has_method("take_damage"):
 							e.take_damage(4.0)
+				# HTML blackhole: shells keep, no free point score
 				if pool and pool.has_method("clear_enemy_near"):
-					pool.clear_enemy_near(Vector2(float(f["x"]), float(f["y"])), float(f["r"]) + 16.0)
+					pool.clear_enemy_near(Vector2(float(f["x"]), float(f["y"])), float(f["r"]) + 16.0, false)
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"wave":
@@ -342,8 +343,9 @@ func _explode(x: float, y: float, r: float, dmg: float, pool: Node) -> void:
 			continue
 		if Vector2(x, y).distance_to(e.global_position) < r and e.has_method("take_damage"):
 			e.take_damage(dmg)
+	# HTML bombdrop land: shells keep, no point drops
 	if pool and pool.has_method("clear_enemy_near"):
-		pool.clear_enemy_near(Vector2(x, y), r * 0.9)
+		pool.clear_enemy_near(Vector2(x, y), r * 0.9, false)
 
 func _option_like(pool: Node, x: float, y: float, aim: float, _wep: String) -> void:
 	pool.spawn(Vector2(x, y), Vector2.from_angle(aim) * 15.0 * FRAME, 1.5, Color("8fb8ff"), TEAM_PLAYER)

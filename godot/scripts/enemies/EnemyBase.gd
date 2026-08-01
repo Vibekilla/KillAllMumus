@@ -197,11 +197,13 @@ func _enemy_explode() -> void:
 			o.take_damage(6.0)
 			if "flash" in o:
 				o.flash = 5.0
-	# cancel enemy bullets near burst
+	# HTML enemyExplode: pure filter + floaters (no free point drops)
 	var pool: Node = bullet_pool
 	if pool == null and get_tree():
 		pool = get_tree().get_first_node_in_group("bullet_pool")
-	if pool and pool.has_method("clear_enemy_near"):
+	if pool and pool.has_method("despawn_enemy_near"):
+		pool.despawn_enemy_near(global_position, 42.0, 12.0, 0.3)
+	elif pool and pool.has_method("clear_enemy_near"):
 		pool.clear_enemy_near(global_position, 42.0)
 	GameState.add_kill(1)
 	if StageFlow:

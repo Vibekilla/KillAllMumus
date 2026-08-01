@@ -402,7 +402,10 @@ func _dash_plow() -> void:
 			if e.has_method("take_damage"):
 				e.take_damage(999.0)
 	if slash_dash:
-		if bullet_pool and bullet_pool.has_method("clear_enemy_near"):
+		# HTML slashDash: filter bullets <34 with floaters only (no point drops, shells die too)
+		if bullet_pool and bullet_pool.has_method("despawn_enemy_near"):
+			bullet_pool.despawn_enemy_near(global_position, 34.0, 12.0, 0.32)
+		elif bullet_pool and bullet_pool.has_method("clear_enemy_near"):
 			bullet_pool.clear_enemy_near(global_position, 34.0)
 		# slash arcs every 4 frames along the path
 		if int(dash) % 4 == 0:
@@ -544,8 +547,10 @@ func take_hit(dmg: float = 1.0) -> void:
 				global_position.y - 10.0,
 				"power"
 			)
-	# Push enemy bullets out of a 100px radius
-	if bullet_pool and bullet_pool.has_method("clear_enemy_near"):
+	# HTML hitPlayer: bullets = filter d>100 — pure remove, no point drops, shells included
+	if bullet_pool and bullet_pool.has_method("despawn_enemy_near"):
+		bullet_pool.despawn_enemy_near(global_position, 100.0)
+	elif bullet_pool and bullet_pool.has_method("clear_enemy_near"):
 		bullet_pool.clear_enemy_near(global_position, 100.0)
 	if GameState.lives < 0:
 		died.emit()

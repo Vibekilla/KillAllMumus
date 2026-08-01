@@ -166,9 +166,9 @@ func collect_item(it: Dictionary) -> void:
 			CombatHelpers.add_power(0.05)
 			CombatHelpers.pop(x, y, "+P", "#ff8ad6")
 		"fullpower":
+			# HTML: run.power=powerCap(); pop only (no flashMsg)
 			GameState.power = CombatHelpers.power_cap()
 			CombatHelpers.pop(x, y, "FULL POWER", "#ffd27a")
-			CombatHelpers.flash("★ FULL POWER ★", 90.0)
 		"point":
 			var v := int(floor(500.0 * CombatHelpers.score_mult()))
 			GameState.add_score(v)
@@ -215,8 +215,9 @@ func collect_item(it: Dictionary) -> void:
 				p.rapid_t = maxf(float(p.rapid_t), 270.0)
 			if AudioBus:
 				AudioBus.sfx("power")
-			CombatHelpers.flash("🦍 MONKE FRENZY!", 80.0)
-			CombatHelpers.pop(x, y, "🦍 MONKE", "#ffe14a")
+			# HTML pickup flash: MONKE FRENZY! / MONKE FRENZY
+			CombatHelpers.flash("MONKE FRENZY!", 80.0)
+			CombatHelpers.pop(x, y, "MONKE FRENZY", "#ffe14a")
 		"skull":
 			var v2 := int(it.get("val", 10))
 			ProgressStore.progress["heads"] = int(ProgressStore.progress.get("heads", 0)) + v2
@@ -439,7 +440,10 @@ func nade_boom(x: float, y: float) -> void:
 				if "flash" in e:
 					e.flash = 5.0
 		var pool := _bullet_pool()
-		if pool and pool.has_method("clear_enemy_near"):
+		# HTML nadeBoom: pure filter + floaters (no point drops, no shell keep)
+		if pool and pool.has_method("despawn_enemy_near"):
+			pool.despawn_enemy_near(Vector2(x, y), 44.0, 10.0, 0.28)
+		elif pool and pool.has_method("clear_enemy_near"):
 			pool.clear_enemy_near(Vector2(x, y), 44.0)
 
 func enemy_explode(e: Node2D) -> void:
@@ -464,7 +468,10 @@ func enemy_explode(e: Node2D) -> void:
 			if o.global_position.distance_to(e.global_position) < 46.0 and o.has_method("take_damage"):
 				o.take_damage(6.0)
 		var pool := _bullet_pool()
-		if pool and pool.has_method("clear_enemy_near"):
+		# HTML enemyExplode: pure filter + floaters (no point drops)
+		if pool and pool.has_method("despawn_enemy_near"):
+			pool.despawn_enemy_near(e.global_position, 42.0, 12.0, 0.3)
+		elif pool and pool.has_method("clear_enemy_near"):
 			pool.clear_enemy_near(e.global_position, 42.0)
 	if e.has_method("take_damage"):
 		e.take_damage(9999.0)

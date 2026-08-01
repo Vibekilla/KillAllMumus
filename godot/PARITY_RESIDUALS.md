@@ -277,4 +277,5 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | Elite body-check uses eliteHearts(); melee mkills/mweps emblems + hit sparks |
 | 2026-08-01 | Shock zap chain on hit; nade boom shake; grenade thud sfx |
 | 2026-08-01 | Pshot vs enemy bullet score/point drops; focus hit ring; wormhole shake |
+| 2026-08-01 | Bullet cancel split: death/slash/nade/explode pure despawn (no free points); specials soft-cancel; win emblem list cap |
 | 2026-08-01 | Lotus curl/life HTML; stageclear introTimer=120; focus ring already shipped |
