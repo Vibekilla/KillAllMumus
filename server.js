@@ -462,8 +462,9 @@ function wantsGodotTest(req) {
 function godotThreadsEnabled() {
   try {
     const html = fs.readFileSync(path.join(GODOT_DIR, 'index.html'), 'utf8');
-    // Godot 4 web shell: const GODOT_THREADS_ENABLED = true|false;
-    const m = html.match(/GODOT_THREADS_ENABLED\s*=\s*(true|false)/);
+    // Godot 4 web shell only: const GODOT_THREADS_ENABLED = true|false;
+    // Do not match comments that mention the flag name.
+    const m = html.match(/const\s+GODOT_THREADS_ENABLED\s*=\s*(true|false)\s*;/);
     if (m) return m[1] === 'true';
   } catch (_) {}
   return false;
