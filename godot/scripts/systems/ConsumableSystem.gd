@@ -222,6 +222,7 @@ func _apply_effect(key: String, p: Node = null) -> void:
 			if AudioBus:
 				AudioBus.sfx("power")
 		"wormhole":
+			# HTML: player.phaseT=180; sfx('warp'); screenShake=5
 			if p and is_instance_valid(p):
 				if "phase_t" in p:
 					p.phase_t = maxf(float(p.phase_t), 180.0)
@@ -229,6 +230,7 @@ func _apply_effect(key: String, p: Node = null) -> void:
 					p.set("phase_t", 180.0)
 			if CombatHelpers:
 				CombatHelpers.flash("🌀 WORMHOLE — PHASED!", 80.0)
+				CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 5.0)
 			if AudioBus:
 				AudioBus.sfx("warp")
 		_:

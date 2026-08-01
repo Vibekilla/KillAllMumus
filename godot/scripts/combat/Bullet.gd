@@ -309,16 +309,9 @@ func _on_area(a: Area2D) -> void:
 		else:
 			deactivate()
 	elif team == Team.PLAYER and a.is_in_group("enemy_bullet"):
-		# shoot down enemy projectiles
-		if a.has_method("take_bullet_damage"):
-			a.take_bullet_damage(damage)
-		elif a.has_method("deactivate"):
-			if float(a.get("hp")) > 0.0:
-				a.hp -= damage
-				if a.hp <= 0.0:
-					a.deactivate()
-			else:
-				a.deactivate()
+		# HTML: pshots destroy enemy fire — shells drop point + 80pts; soft bullets 5pts
+		# pierce/grenade pass through without dying
+		_destroy_enemy_projectile(a)
 		if not pierce and not nade:
 			deactivate()
 	elif team == Team.ENEMY and a.is_in_group("player_hurtbox"):
@@ -336,3 +329,43 @@ func take_bullet_damage(amount: float) -> void:
 			deactivate()
 	else:
 		deactivate()
+
+func _destroy_enemy_projectile(a: Area2D) -> void:
+	## HTML pshot-vs-bullet: shell kill → point drop + 80pts; soft → 5pts
+	if a == null or not is_instance_valid(a):
+		return
+	var bx: float = a.global_position.x
+	var by: float = a.global_position.y
+	var shell_hp: float = 0.0
+	if "hp" in a:
+		shell_hp = float(a.hp)
+	if shell_hp > 0.0:
+		# Durable shell: chip
+		if a.has_method("take_bullet_damage"):
+			a.take_bullet_damage(damage)
+		elif "hp" in a:
+			a.hp = shell_hp - damage
+			if float(a.hp) <= 0.0 and a.has_method("deactivate"):
+				a.deactivate()
+		if CombatHelpers and CombatHelpers.has_method("sparks"):
+			CombatHelpers.sparks(global_position.x, global_position.y, "#ffd27a")
+		var killed := false
+		if "active" in a and not bool(a.active):
+			killed = true
+		elif "hp" in a and float(a.hp) <= 0.0:
+			killed = true
+		if killed:
+			if ItemSystem:
+				ItemSystem.drop_item(bx, by, "point")
+			if CombatHelpers:
+				CombatHelpers.burst(bx, by, "#ffd27a")
+			if GameState and CombatHelpers:
+				GameState.add_score(int(floor(80.0 * CombatHelpers.score_mult())))
+	else:
+		# Soft bullet — pop for 5pts
+		if CombatHelpers and CombatHelpers.has_method("sparks"):
+			CombatHelpers.sparks(bx, by, "#ffd27a")
+		if GameState and CombatHelpers:
+			GameState.add_score(int(floor(5.0 * CombatHelpers.score_mult())))
+		if a.has_method("deactivate"):
+			a.deactivate()

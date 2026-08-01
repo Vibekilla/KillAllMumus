@@ -757,3 +757,23 @@ func _draw_player(player: Node) -> void:
 		ctx.arc(0, 0, 28, -PI / 2.0, -PI / 2.0 + TAU * (phase_t / 180.0))
 		ctx.stroke()
 		ctx.restore()
+	# HTML focus hitbox ring (white r=4 + pink core + 4 arc ticks)
+	if bool(st.get("focus", false)) and not bool(st.get("dead", false)):
+		ctx.save()
+		ctx.translate(float(st.get("x", 0)), float(st.get("y", 0)))
+		ctx.stroke_style("#fff")
+		ctx.line_width(1.4)
+		ctx.begin_path()
+		ctx.arc(0, 0, 4, 0, TAU)
+		ctx.stroke()
+		ctx.fill_style("#ff3b8e")
+		ctx.begin_path()
+		ctx.arc(0, 0, 2, 0, TAU)
+		ctx.fill()
+		ctx.stroke_style("rgba(255,120,190,0.7)")
+		for i in range(4):
+			var a := float(tick) * 0.06 + float(i) * 1.57
+			ctx.begin_path()
+			ctx.arc(0, 0, 9, a, a + 0.7)
+			ctx.stroke()
+		ctx.restore()
