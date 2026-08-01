@@ -146,7 +146,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | **Familiars fire weapon-matched** | FireSystem.option_shot | Confirm all 10 weapons |
 | **Autofire** | Intentional hold-only | Document; no HTML touch toggle |
 | Boss phases / AI | Large BossController | Live play matrix open |
-| bossDmgMul / bossWepMul | Present | Verify vs HTML tables |
+| bossDmgMul / bossWepMul | Present + unit | **Fixed:** muls only on player shots; bomb/melee/special/dash raw (HTML) |
 | eliteHearts | Present | Product |
 | Cloud merge | ProgressStore paths | End-to-end product |
 | Keyboard all binds | Map exists | Product |
@@ -263,3 +263,4 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | Music cut-off: stop YT pause on visibility; open_url helper; fire.gd option_shot; stun/emote/_frontArm resolved |
 | 2026-08-01 | Boss keeps wave minions (HTML parity); graze structure test |
 | 2026-08-01 | Boss HP 2.1 scale + introDlg/clearWave; drawOptions world optionPos |
+| 2026-08-01 | Boss take_damage: shot muls only (bomb was under-damaging at high power) |

@@ -549,20 +549,24 @@ func _clear_wave_mobs() -> void:
 		bullet_pool.clear_enemy()
 
 func take_damage(amount: float, opts: Dictionary = {}) -> void:
-	## amount is raw shot dmg; opts may include voidbolt (already-scaled path from Bullet preferred)
+	## HTML: only *player shots* use bossDmgMul*bossWepMul.
+	## Bomb / melee / specials / dash apply raw HP chips (no shot muls).
 	if intro > 0.0 or dead:
 		return
 	var dmg := amount
-	# If caller already scaled (opts.pre_scaled), use raw amount; else apply HTML muls here
-	if not bool(opts.get("pre_scaled", false)):
+	if bool(opts.get("pre_scaled", false)):
+		# Bullet path already applied scale_boss_shot_damage
+		dmg = amount
+	elif bool(opts.get("apply_shot_muls", false)):
 		var is_vb := bool(opts.get("voidbolt", false))
 		var wep := str(opts.get("weapon", GameState.current_weapon if GameState else ""))
 		if CombatHelpers and CombatHelpers.has_method("scale_boss_shot_damage"):
 			dmg = CombatHelpers.scale_boss_shot_damage(amount, is_vb, wep)
 		else:
 			dmg = amount * _boss_dmg_mul() * (1.0 if is_vb else _boss_wep_mul())
+	# else: raw amount (bomb 9% maxhp, melee dmg, specials, dash chips)
 	hp -= dmg
-	flash = 3.0
+	flash = maxf(flash, 3.0)
 	if twin:
 		tw[active_twin]["hp"] = hp
 	if hp <= 0.0:

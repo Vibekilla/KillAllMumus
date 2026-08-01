@@ -52,8 +52,22 @@ func go() -> void:
 	print("[BOSSMUL] scale norm=", d_norm, " expect 2.16 void=", d_void, " expect 1.35")
 	if absf(d_norm - 2.16) > 0.02 or absf(d_void - 1.35) > 0.02:
 		ok = false
+	# BossController: only shots apply muls; bomb/melee/specials are raw (pre_scaled / default)
+	var bsrc: String = FileAccess.get_file_as_string("res://scripts/enemies/bosses/BossController.gd")
+	if bsrc.find("apply_shot_muls") < 0:
+		print("[BOSSMUL] FAIL take_damage must gate shot muls")
+		ok = false
+	if bsrc.find("pre_scaled") < 0:
+		print("[BOSSMUL] FAIL take_damage missing pre_scaled path")
+		ok = false
+	# Bomb path must not re-scale 9% maxhp chip
+	var psrc: String = FileAccess.get_file_as_string("res://scripts/player/Player.gd")
+	# after fix, raw take_damage is correct even without pre_scaled flag
+	if psrc.find("0.09") < 0:
+		print("[BOSSMUL] FAIL bomb 9% maxhp missing")
+		ok = false
 	if ok:
-		print("[BOSSMUL] PASS")
+		print("[BOSSMUL] PASS (shot muls only; bomb/melee/specials raw)")
 		quit(0)
 	else:
 		print("[BOSSMUL] FAIL")

@@ -147,6 +147,9 @@ func start_run() -> void:
 
 func add_score(amount: int) -> void:
 	session_score += maxi(0, amount)
+	# HTML checkExtend runs on kills and whenever score can cross thresholds
+	if ItemSystem and ItemSystem.has_method("check_extend_score"):
+		ItemSystem.check_extend_score()
 	score_changed.emit(session_score, total_kills, rank_letter())
 
 func add_kill(n: int = 1) -> void:
