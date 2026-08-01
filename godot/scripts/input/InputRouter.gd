@@ -133,7 +133,11 @@ func key_press(k: String) -> void:
 		if k == "special":
 			var p3 = _player()
 			if p3 and p3.get("specials") and GameState.specials.size():
-				p3.specials.use(str(GameState.specials[0]), p3, p3.get("bullet_pool"))
+				# HTML armedSpec — respect armed_special cycle index
+				var ai := 0
+				if p3.get("armed_special") != null:
+					ai = clampi(int(p3.armed_special), 0, GameState.specials.size() - 1)
+				p3.specials.use(str(GameState.specials[ai]), p3, p3.get("bullet_pool"))
 		if k == "cycle":
 			CombatHelpers.cycle_special()
 		# "fire" touch chrome holds shoot via Main._inject_action — no autofire toggle

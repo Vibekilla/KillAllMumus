@@ -138,7 +138,8 @@ func _physics_process(delta: float) -> void:
 func _touch_player(p: Node2D) -> void:
 	if p == null or not p.has_method("take_hit"):
 		return
-	if global_position.distance_to(p.global_position) < radius + 8.0:
+	# HTML: (e.r + p.r + 2) with p.r = 3 → e.r + 5
+	if global_position.distance_to(p.global_position) < radius + 5.0:
 		p.take_hit(2.0 if kind == "elite" else 1.0)
 
 func take_damage(amount: float) -> void:

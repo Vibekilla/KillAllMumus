@@ -218,7 +218,9 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("bomb"):
 		_try_bomb()
 	if Input.is_action_just_pressed("special") and GameState.specials.size():
-		var key := str(GameState.specials[0])
+		# HTML armedSpec — use armed_special index, not always slot 0
+		var ai := clampi(armed_special, 0, GameState.specials.size() - 1)
+		var key := str(GameState.specials[ai])
 		if specials:
 			specials.use(key, self, bullet_pool)
 	# HTML: swap weapon / cycle special
