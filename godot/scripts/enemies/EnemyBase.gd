@@ -142,13 +142,14 @@ func _touch_player(p: Node2D) -> void:
 	if global_position.distance_to(p.global_position) < radius + 5.0:
 		p.take_hit(2.0 if kind == "elite" else 1.0)
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, opts: Dictionary = {}) -> void:
 	hp -= amount
 	flash = 5.0
 	if hp <= 0.0:
-		_die(false)
+		# HTML doBomb: killEnemy(e, true) — silent mass kills
+		_die(false, bool(opts.get("silent", false)))
 
-func _die(charmed: bool = false) -> void:
+func _die(charmed: bool = false, silent: bool = false) -> void:
 	# HTML killEnemy / enemyExplode (Kiss Me charm expiry)
 	if charmed:
 		_enemy_explode()
@@ -160,7 +161,7 @@ func _die(charmed: bool = false) -> void:
 	ItemSystem.kill_enemy({
 		"x": global_position.x, "y": global_position.y,
 		"kind": kind, "icy": icy,
-	}, false)
+	}, silent)
 	killed.emit(self)
 	queue_free()
 

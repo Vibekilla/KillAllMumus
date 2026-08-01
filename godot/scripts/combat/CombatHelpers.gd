@@ -30,6 +30,17 @@ func start_slowmo(frames: float = 300.0) -> void:
 	if AudioBus:
 		AudioBus.sfx("power")
 
+func end_slowmo() -> void:
+	## HTML loadStage: slowmoT=0
+	if GameState and GameState.has_meta("slowmo"):
+		GameState.remove_meta("slowmo")
+	slow_acc = 0.0
+	slow_acc_e = 0.0
+	slow_acc_b = 0.0
+	slow_mob_w = true
+	slow_elite_w = true
+	slow_boss_w = true
+
 func tick_slowmo() -> void:
 	## Call once per sim frame (HTML update loop before enemies/bullets)
 	slow_mob_w = true

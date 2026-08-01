@@ -13,6 +13,15 @@ const BulletPatterns = preload("res://scripts/combat/BulletPatterns.gd")
 func can_use(_key: String) -> bool:
 	return GameState.special_meter >= 100.0
 
+func clear_field() -> void:
+	## HTML loadStage: fx=[] (and slowmo ends with stage)
+	fx.clear()
+	fx_tick = 0
+	if CombatHelpers and CombatHelpers.has_method("end_slowmo"):
+		CombatHelpers.end_slowmo()
+	elif GameState and GameState.has_meta("slowmo"):
+		GameState.remove_meta("slowmo")
+
 func tick(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
@@ -27,13 +36,35 @@ func tick(delta: float) -> void:
 func use(key: String, player: Node2D, bullet_pool: Node) -> bool:
 	if not can_use(key):
 		return false
+	if player and bool(player.get("dead")):
+		return false
 	GameState.special_meter = 0.0
 	ProgressStore.estats_add("specials", 1)
-	# HTML: flashMsg={t:70,txt:'★ '+sp.name.toUpperCase()+'!'}
+	if int(ProgressStore.estats.get("specials", 0)) >= 25:
+		ProgressStore.unlock_emblem("special_25")
+	# HTML: sfx('bomb'); flashMsg={t:70,txt:'★ '+sp.name.toUpperCase()+'!'}
+	if AudioBus:
+		AudioBus.sfx("bomb")
 	var sp_name := _special_name(key)
 	if CombatHelpers:
 		CombatHelpers.flash("★ %s!" % sp_name.to_upper(), 70.0)
 	_activate(key, player, bullet_pool)
+	# HTML: 30 particles in sp.col
+	var col := "#ffd27a"
+	if DataRegistry:
+		for s in DataRegistry.specials:
+			if str(s.get("key", "")) == key:
+				col = str(s.get("col", col))
+				break
+	if CombatHelpers:
+		var px := player.global_position.x
+		var py := player.global_position.y
+		for i in range(30):
+			CombatHelpers.particles.append({
+				"x": px, "y": py,
+				"vx": (randf() - 0.5) * 12.0, "vy": (randf() - 0.5) * 12.0,
+				"life": 30.0, "c": col,
+			})
 	special_used.emit(key)
 	return true
 

@@ -416,7 +416,8 @@ func _try_bomb() -> void:
 				if "flash" in e:
 					e.flash = 6.0
 		elif e.has_method("take_damage"):
-			e.take_damage(8.0)
+			# HTML: e.hp-=8; if dead killEnemy(e,true) — one bomb sfx, not N kill sfx
+			e.take_damage(8.0, {"silent": true})
 			if "flash" in e:
 				e.flash = 6.0
 	invuln = maxf(invuln, 140.0)

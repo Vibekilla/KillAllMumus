@@ -40,13 +40,53 @@ func reset_run() -> void:
 	stage_emblem_mark = 0
 
 func on_stage_start() -> void:
+	## HTML loadStage — reset field FX, burns, slowmo, items (not full newRun)
 	stage_no_death = true
 	stage_no_bomb = true
 	kills_this_stage = 0
 	stage_emblem_mark = P2Meta.new_emblems.size() if P2Meta else 0
 	clear_portal = null
 	clear_shop = null
+	clear_msg_t = 0.0
+	dialog = null
 	intro_timer = 20.0 if GameState.speedrun else 140.0
+	GameState.set_meta("stage_cleared", false)
+	if ItemSystem:
+		ItemSystem.items.clear()
+		ItemSystem.floaters.clear()
+		ItemSystem.emotes.clear()
+		ItemSystem.burns.clear()
+		ItemSystem.fx.clear()
+		ItemSystem.kills_this_stage = 0
+	if CombatHelpers:
+		if "particles" in CombatHelpers:
+			CombatHelpers.particles.clear()
+		if "score_texts" in CombatHelpers:
+			CombatHelpers.score_texts.clear()
+		if "melee_fx" in CombatHelpers:
+			CombatHelpers.melee_fx.clear()
+		if "fx" in CombatHelpers:
+			CombatHelpers.fx.clear()
+		if CombatHelpers.has_method("end_slowmo"):
+			CombatHelpers.end_slowmo()
+		elif GameState.has_meta("slowmo"):
+			GameState.remove_meta("slowmo")
+	# Clear player special FX
+	var tree := get_tree()
+	if tree:
+		var pl = tree.get_first_node_in_group("player")
+		if pl and pl.get("specials") and pl.specials.has_method("clear_field"):
+			pl.specials.clear_field()
+		# Clear non-boss enemies and bullets (HTML loadStage)
+		for e in tree.get_nodes_in_group("enemies"):
+			if is_instance_valid(e) and not e.is_in_group("bosses"):
+				e.queue_free()
+		for b in tree.get_nodes_in_group("bosses"):
+			if is_instance_valid(b):
+				b.queue_free()
+		var pool = tree.get_first_node_in_group("bullet_pool")
+		if pool and pool.has_method("clear_all"):
+			pool.clear_all()
 
 func note_player_hit() -> void:
 	stage_no_death = false
