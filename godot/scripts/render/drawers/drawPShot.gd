@@ -87,39 +87,43 @@ func drawPShot(s) -> void:
 	var vy := float(s.get("vy", -1))
 	ctx.save()
 	ctx.translate(sx, sy)
+	# ── HTML drawPShot 1:1 weapon shapes ──
 	if bool(s.get("gat", false)):
-		ctx.rotate(atan2(vy, vx) + PI / 2.0)
+		# Mumina's Gatling — green laser bolt (roundRect, no rotate)
 		ctx.shadow_color("#7ed957")
 		ctx.shadow_blur(10)
-		for dy2 in [-4.0, -1.5, 1.5, 4.0]:
-			ctx.fill_style("#d6ffb0")
-			ctx.begin_path()
-			ctx.arc(0, dy2, 2.2, 0, TAU)
-			ctx.fill()
-		ctx.fill_style("#3fbf2f")
+		ctx.fill_style("#d6ffb0")
 		ctx.begin_path()
-		ctx.arc(0, 0, 1.1, 0, TAU)
+		ctx.round_rect(-1.6, -8.0, 3.2, 16.0, 2)
 		ctx.fill()
+		ctx.fill_style("#3fbf2f")
+		ctx.fill_rect(-0.8, -8.0, 1.6, 16.0)
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 		return
 	if bool(s.get("nade", false)):
+		# Grrnade — olive shell with blinking fuse spark
 		ctx.shadow_color("#b6e34a")
 		ctx.shadow_blur(8)
 		ctx.fill_style("#586a28")
 		ctx.begin_path()
-		ctx.arc(0, 0, 3.8, 0, TAU)
+		ctx.arc(0, 0, 3.8, 0, 7)
 		ctx.fill()
 		ctx.fill_style("#b6e34a")
 		ctx.begin_path()
-		ctx.arc(0, 0, 1.9, 0, TAU)
+		ctx.arc(0, 0, 1.9, 0, 7)
 		ctx.fill()
 		ctx.fill_style("#fff" if (tick % 4 < 2) else "#ffd27a")
 		ctx.begin_path()
-		ctx.arc(0, -4.6, 1.2, 0, TAU)
+		ctx.arc(0, -4.6, 1.2, 0, 7)
 		ctx.fill()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 		return
 	if bool(s.get("vrip", false)):
+		# Voidripper — dark purple rift (pierces)
 		ctx.rotate(atan2(vy, vx) + PI / 2.0)
 		ctx.shadow_color("#9d6bff")
 		ctx.shadow_blur(12)
@@ -133,11 +137,14 @@ func drawPShot(s) -> void:
 		ctx.fill()
 		ctx.fill_style("#160530")
 		ctx.begin_path()
-		ctx.ellipse(0, 0, 1.4, 8, 0, 0, TAU)
+		ctx.ellipse(0, 0, 1.4, 8, 0, 0, 7)
 		ctx.fill()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 		return
 	if bool(s.get("petal", false)):
+		# Lotus Petals — pink teardrop
 		ctx.rotate(atan2(vy, vx) + PI / 2.0 + float(tick) * 0.25)
 		ctx.shadow_color("#ff8ac0")
 		ctx.shadow_blur(8)
@@ -155,11 +162,14 @@ func drawPShot(s) -> void:
 		ctx.fill()
 		ctx.fill_style("#fff")
 		ctx.begin_path()
-		ctx.arc(0, -4.1, 0.7, 0, TAU)
+		ctx.arc(0, -4.1, 0.7, 0, 7)
 		ctx.fill()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 		return
 	if bool(s.get("zap", false)):
+		# Shock & Awe — jagged electric bolt
 		ctx.rotate(atan2(vy, vx) + PI / 2.0)
 		ctx.shadow_color("#8fd0ff")
 		ctx.shadow_blur(11)
@@ -175,80 +185,87 @@ func drawPShot(s) -> void:
 		ctx.stroke_style("#5fb0ff")
 		ctx.line_width(0.9)
 		ctx.stroke()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 		return
 	if bool(s.get("laser", false)):
-		# Face travel; one arc per fill (multi-subpath fills triangulate badly)
-		ctx.rotate(atan2(vy, vx) + PI / 2.0)
+		# Red Death — crimson bolt (HTML: roundRect + fillRect, no rotate)
 		ctx.shadow_color("#ff3b5c")
 		ctx.shadow_blur(11)
-		for dy in [-5.0, -2.5, 0.0, 2.5, 5.0]:
-			ctx.fill_style("#ffd2da")
-			ctx.begin_path()
-			ctx.arc(0, dy, 2.8, 0, TAU)
-			ctx.fill()
-			ctx.fill_style("#ff2f52")
-			ctx.begin_path()
-			ctx.arc(0, dy, 1.4, 0, TAU)
-			ctx.fill()
+		ctx.fill_style("#ffd2da")
+		ctx.begin_path()
+		ctx.round_rect(-2.0, -9.0, 4.0, 18.0, 2)
+		ctx.fill()
+		ctx.fill_style("#ff2f52")
+		ctx.fill_rect(-1.0, -9.0, 2.0, 18.0)
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 		return
 	if float(s.get("wv", 0)) > 0.0:
-		ctx.rotate(atan2(vy, vx) + PI / 2.0)
+		# Jungle Vines — green ellipse
 		ctx.shadow_color("#7ed957")
 		ctx.shadow_blur(9)
 		ctx.fill_style("#daffb4")
 		ctx.begin_path()
-		ctx.arc(0, 0, 4.0, 0, TAU)
+		ctx.ellipse(0, 0, 3.6, 4.4, 0, 0, 7)
 		ctx.fill()
 		ctx.fill_style("#4fb02f")
 		ctx.begin_path()
-		ctx.arc(0, 0, 1.7, 0, TAU)
+		ctx.arc(0, 0, 1.7, 0, 7)
 		ctx.fill()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 		return
 	if bool(s.get("home", false)):
+		# Monke Bananas — yellow ellipse
 		ctx.shadow_color("#ffe14a")
 		ctx.shadow_blur(9)
 		ctx.fill_style("#fff4a8")
 		ctx.begin_path()
-		ctx.arc(0, -1.5, 3.6, 0, TAU)
-		ctx.fill()
-		ctx.begin_path()
-		ctx.arc(0, 1.5, 3.6, 0, TAU)
+		ctx.ellipse(0, 0, 3.4, 5.8, 0, 0, 7)
 		ctx.fill()
 		ctx.fill_style("#ffcf1a")
 		ctx.begin_path()
-		ctx.arc(0, 0, 1.6, 0, TAU)
+		ctx.arc(0, 0, 1.6, 0, 7)
 		ctx.fill()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 		return
 	# life_frames is always a float on bullets (-1 = unlimited); only treat >=0 as timed orbs
 	var life_v = s.get("life", null)
 	if life_v != null and float(life_v) >= 0.0:
+		# Bobo Bear Claws — brown pellet
 		ctx.shadow_color("#e0a060")
 		ctx.shadow_blur(7)
 		ctx.fill_style("#f2d3a6")
 		ctx.begin_path()
-		ctx.arc(0, 0, 3, 0, TAU)
+		ctx.arc(0, 0, 3, 0, 7)
 		ctx.fill()
 		ctx.fill_style("#c8813e")
 		ctx.begin_path()
-		ctx.arc(0, 0, 1.3, 0, TAU)
+		ctx.arc(0, 0, 1.3, 0, 7)
 		ctx.fill()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.restore()
 		return
-	# Emblem Amulets (spread) — gold
+	# Emblem Amulets (spread) — gold ellipse
 	ctx.shadow_color("#ffd27a")
 	ctx.shadow_blur(9)
 	var foc := bool(s.get("foc", false))
 	ctx.fill_style("#fff4d6" if foc else "#ffe6a6")
-	var w := 4.0 if foc else 3.4
+	var w: float = 4.0 if foc else 3.4
 	ctx.begin_path()
-	ctx.arc(0, 0, w, 0, TAU)
+	ctx.ellipse(0, 0, w, w * 1.7, 0, 0, 7)
 	ctx.fill()
 	ctx.fill_style("#ffb63a")
 	ctx.begin_path()
-	ctx.arc(0, 0, 1.2, 0, TAU)
+	ctx.arc(0, 0, 1.2, 0, 7)
 	ctx.fill()
+	if ctx.has_method("clear_shadow"):
+		ctx.clear_shadow()
 	ctx.restore()
