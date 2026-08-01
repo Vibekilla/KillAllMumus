@@ -50,49 +50,36 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [x] WorldDraw merges MeleeSystem.swipe_fx + SpecialSystem.fx into draw path
 
 ### Weapons
-- [ ] spread (Emblem Amulets)
-- [ ] laser (Red Death)
-- [ ] homing (Monke Bananas)
-- [ ] wave (Jungle Vines)
-- [ ] scatter (Bobo Bear Claws)
-- [ ] gatling (Gatling Lasers)
-- [ ] grenade (Grrnade Launcher)
-- [ ] voidripper
-- [ ] lotus (Lotus Petals)
-- [ ] shock (Shock & Awe)
+- [x] spread (Emblem Amulets) — dual `godot_wep_spread` + HTML drawPShot gold ellipse
+- [x] laser (Red Death) — dual; crimson roundRect bolt (not multi-arc)
+- [x] homing (Monke Bananas) — dual + yellow ellipse
+- [x] wave (Jungle Vines) — dual + green ellipse
+- [x] scatter (Bobo Bear Claws) — dual + brown pellet
+- [x] gatling (Gatling Lasers) — dual + green bolt
+- [x] grenade (Grrnade Launcher) — dual + fuse spark
+- [x] voidripper — dual + purple rift
+- [x] lotus (Lotus Petals) — dual + pink petal
+- [x] shock (Shock & Awe) — dual + zap stroke
+- [ ] Product visual sign-off vs HTML dual report (remaining polish)
 
 ### Specials
-- [ ] laser (Kraken Cannon)
-- [ ] mech (SKOL Mech)
-- [ ] bearzooka
-- [ ] vault (Emblem Vaults)
-- [ ] stampede (Jungle Stampede)
-- [ ] badger (Honey Badger)
-- [ ] sixth (Sixth Sense)
-- [ ] revenge (Ourbie’s Revenge)
-- [ ] kiss (Kiss Me)
-- [ ] kraken (Unleash the Kraken)
-- [ ] void (Call of the Void)
+- [x] Structure duals for all 11 keys (`godot_special_*` harness)
+- [ ] Product visual sign-off vs HTML (laser beam, mech escort, etc.)
 
 ### Melee
-- [ ] katana ~155 / arc ~2.0 + plasma-flame
-- [ ] lash ~225 / arc ~1.25 + chain lightning
-- [ ] scythe ~150 / arc ~2.7 + green black hole
-- [ ] hammer ~165 / arc ~3.1 + shockwave
-- [ ] claws ~130 / arc ~2.3 + thousand-strike
-- [ ] swipe arcs / models / slash-dash
+- [x] Structure duals: katana / lash / scythe / hammer / claws
+- [ ] Product visual sign-off swipe arcs / slash-dash
 
 ### Aura / movement / bomb
-- [ ] Power aura + radiance
-- [ ] Dash comet + slash-dash + focus vacuum + invuln flash
-- [ ] Shield / rapid / vial / phase
-- [ ] Bobina Blast bomb clear
+- [x] Power aura + radiance duals (`godot_aura_power_*`)
+- [x] Dash / focus / bomb / shield / rapid / vial / phase duals
+- [ ] Product visual sign-off (aura color parity at high power)
 
 ### Powerups / consumables
-- [ ] power, fullpower, point, life, bomb, shield, rapid, skull
-- [ ] honeycomb, bulltears, bullsouls, galaxygas, clover, bubbles
-- [ ] wagyu, stardust, vial, banana, wormhole
-- [ ] hold-to-use cooldown bars
+- [x] Drop types dual grid path
+- [x] All consumable apply paths (tap-to-use + 3s CD; HTML hardened)
+- [x] bubbles / stardust FX spawn + update
+- [ ] Product visual sign-off item icons / floater chrome
 
 ### Bosses (visuals)
 - [ ] AlchemistTheOG (ape)

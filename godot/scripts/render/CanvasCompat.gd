@@ -494,7 +494,15 @@ func round_rect(x, y, w, h, r) -> void:
 	var yf := float(y)
 	var wf := float(w)
 	var hf := float(h)
-	if rf <= 0.05:
+	if rf <= 0.05 or wf <= 0.05 or hf <= 0.05:
+		rect(xf, yf, maxf(wf, 0.05), maxf(hf, 0.05))
+		return
+	# Pill / fully-rounded: edge length → 0 when w≈2r or h≈2r (Red Death 4×18 r=2).
+	# Zero-length edges make ear-clip triangulation fail (Invalid polygon spam).
+	# Fall back to plain rect path (looks fine at bolt scale; fill_rect used for cores).
+	var flat_w := wf - 2.0 * rf
+	var flat_h := hf - 2.0 * rf
+	if flat_w < 0.05 or flat_h < 0.05:
 		rect(xf, yf, wf, hf)
 		return
 	begin_path()

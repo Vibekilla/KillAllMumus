@@ -89,13 +89,11 @@ func drawPShot(s) -> void:
 	ctx.translate(sx, sy)
 	# ── HTML drawPShot 1:1 weapon shapes ──
 	if bool(s.get("gat", false)):
-		# Mumina's Gatling — green laser bolt (roundRect, no rotate)
+		# Mumina's Gatling — green laser bolt (HTML roundRect; fill_rect avoids pill triangulation)
 		ctx.shadow_color("#7ed957")
 		ctx.shadow_blur(10)
 		ctx.fill_style("#d6ffb0")
-		ctx.begin_path()
-		ctx.round_rect(-1.6, -8.0, 3.2, 16.0, 2)
-		ctx.fill()
+		ctx.fill_rect(-1.6, -8.0, 3.2, 16.0)
 		ctx.fill_style("#3fbf2f")
 		ctx.fill_rect(-0.8, -8.0, 1.6, 16.0)
 		if ctx.has_method("clear_shadow"):
@@ -190,13 +188,11 @@ func drawPShot(s) -> void:
 		ctx.restore()
 		return
 	if bool(s.get("laser", false)):
-		# Red Death — crimson bolt (HTML: roundRect + fillRect, no rotate)
+		# Red Death — crimson bolt (HTML roundRect+fillRect; fill_rect only = reliable)
 		ctx.shadow_color("#ff3b5c")
 		ctx.shadow_blur(11)
 		ctx.fill_style("#ffd2da")
-		ctx.begin_path()
-		ctx.round_rect(-2.0, -9.0, 4.0, 18.0, 2)
-		ctx.fill()
+		ctx.fill_rect(-2.0, -9.0, 4.0, 18.0)
 		ctx.fill_style("#ff2f52")
 		ctx.fill_rect(-1.0, -9.0, 2.0, 18.0)
 		if ctx.has_method("clear_shadow"):
