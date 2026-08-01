@@ -379,6 +379,96 @@ async function captureHtml() {
       console.log("[HTML] ngselect skip", e.message || e);
     }
 
+    // Display overlay (HTML #display DOM)
+    try {
+      await page.evaluate(() => {
+        if (typeof openDisplay === "function") openDisplay();
+        else {
+          const d = document.getElementById("display");
+          if (d) d.classList.add("on");
+        }
+      });
+      await page.waitForTimeout(fast ? 300 : 500);
+      await page.screenshot({ path: path.join(htmlDir, "html_menu_display.png") });
+      console.log("[HTML] menu_display");
+      await page.evaluate(() => {
+        const d = document.getElementById("display");
+        if (d) d.classList.remove("on");
+      });
+    } catch (e) {
+      console.log("[HTML] display skip", e.message || e);
+    }
+
+    // Keybinds overlay (HTML #keybinds DOM)
+    try {
+      await page.evaluate(() => {
+        if (typeof openKeybinds === "function") openKeybinds();
+        else {
+          const m = document.getElementById("keybinds");
+          if (m) m.classList.add("on");
+        }
+      });
+      await page.waitForTimeout(fast ? 300 : 500);
+      await page.screenshot({ path: path.join(htmlDir, "html_menu_keybinds.png") });
+      console.log("[HTML] menu_keybinds");
+      await page.evaluate(() => {
+        const m = document.getElementById("keybinds");
+        if (m) m.classList.remove("on");
+      });
+    } catch (e) {
+      console.log("[HTML] keybinds skip", e.message || e);
+    }
+
+    // Soundgate dual — force show card (HTML dual usually starts with it dismissed)
+    try {
+      await page.evaluate(() => {
+        const sg = document.getElementById("soundgate");
+        if (sg) {
+          sg.classList.remove("hidden");
+          sg.style.display = "flex";
+        }
+      });
+      await page.waitForTimeout(fast ? 250 : 400);
+      await page.screenshot({ path: path.join(htmlDir, "html_menu_soundgate.png") });
+      console.log("[HTML] menu_soundgate");
+      await page.evaluate(() => {
+        const sg = document.getElementById("soundgate");
+        if (sg) {
+          sg.classList.add("hidden");
+          sg.style.display = "none";
+        }
+      });
+    } catch (e) {
+      console.log("[HTML] soundgate skip", e.message || e);
+    }
+
+    // Name entry dual (HTML #nameEntry)
+    try {
+      await page.evaluate(() => {
+        if (typeof showNameEntry === "function") showNameEntry();
+        else {
+          const ne = document.getElementById("nameEntry");
+          if (ne) {
+            ne.classList.add("on");
+            if (typeof nameEntryOpen !== "undefined") nameEntryOpen = true;
+          }
+        }
+      });
+      await page.waitForTimeout(fast ? 300 : 500);
+      await page.screenshot({ path: path.join(htmlDir, "html_menu_nameentry.png") });
+      console.log("[HTML] menu_nameentry");
+      await page.evaluate(() => {
+        if (typeof hideNameEntry === "function") hideNameEntry();
+        else {
+          const ne = document.getElementById("nameEntry");
+          if (ne) ne.classList.remove("on");
+          if (typeof nameEntryOpen !== "undefined") nameEntryOpen = false;
+        }
+      });
+    } catch (e) {
+      console.log("[HTML] nameentry skip", e.message || e);
+    }
+
     // Start pill center ~ y=444 → intro then play
     await clickCanvas(480, 444);
     await page.waitForTimeout(fast ? 250 : 400);

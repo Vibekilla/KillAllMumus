@@ -656,6 +656,65 @@ func _run() -> void:
 		if p2m and p2m.has_method("close_shoutouts"):
 			p2m.close_shoutouts()
 
+		# Display overlay (HTML #display / DisplayMenu)
+		GameState.set_state(GameState.State.TITLE)
+		_force_ui_size(_main)
+		var disp = _main.get_node_or_null("UI/DisplayMenu")
+		if disp == null:
+			disp = root.get_tree().get_first_node_in_group("display_menu") if root else null
+		if disp and disp.has_method("open_menu"):
+			disp.open_menu()
+			for _i in range(6 if fast else 10):
+				await process_frame
+			await _save("godot_menu_display")
+			if disp.has_method("close_menu"):
+				disp.close_menu()
+
+		# Keybinds overlay (HTML #keybinds)
+		GameState.set_state(GameState.State.TITLE)
+		_force_ui_size(_main)
+		var kb = _main.get_node_or_null("UI/KeybindsMenu")
+		if kb == null:
+			kb = root.get_tree().get_first_node_in_group("keybinds_menu") if root else null
+		if kb and kb.has_method("open_menu"):
+			kb.open_menu()
+			for _i in range(6 if fast else 10):
+				await process_frame
+			await _save("godot_menu_keybinds")
+			if kb.has_method("close_menu"):
+				kb.close_menu()
+
+		# Soundgate dual — force re-open card (HTML #soundgate)
+		GameState.set_state(GameState.State.TITLE)
+		_force_ui_size(_main)
+		var sg2 = _main.get_node_or_null("UI/SoundGate")
+		if sg2 and sg2.has_method("force_open"):
+			sg2.force_open()
+			for _i in range(6 if fast else 10):
+				await process_frame
+				if sg2.has_method("queue_redraw"):
+					sg2.queue_redraw()
+			await _save("godot_menu_soundgate")
+			if sg2.has_method("force_dismiss"):
+				sg2.force_dismiss(false)
+
+		# Name entry chrome on gameover (HTML #nameEntry)
+		GameState.set_state(GameState.State.GAMEOVER)
+		_force_ui_size(_main)
+		if p2m:
+			p2m.name_entry_open = true
+		var end_ui = _main.get_node_or_null("UI/EndScreen")
+		if end_ui and end_ui.has_method("queue_redraw"):
+			end_ui.queue_redraw()
+		for _i in range(6 if fast else 10):
+			await process_frame
+			if end_ui and end_ui.has_method("queue_redraw"):
+				end_ui.queue_redraw()
+		await _save("godot_menu_nameentry")
+		if p2m:
+			p2m.name_entry_open = false
+		GameState.set_state(GameState.State.TITLE)
+
 	# Clean run: intro first (HTML order), then play with invuln so dual never hits gameover
 	var player = null
 	var flow = _main.get_node_or_null("UI/FlowUI")

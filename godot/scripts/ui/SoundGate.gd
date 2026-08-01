@@ -35,6 +35,12 @@ func force_dismiss(with_sound: bool = false) -> void:
 	else:
 		visible = false
 
+func force_open() -> void:
+	## Dual / QA — re-show gate without full first-run progress
+	_open = true
+	visible = true
+	queue_redraw()
+
 func is_blocking() -> bool:
 	return _open and visible
 

@@ -130,20 +130,22 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 ## Phase 5 — Audio
 
 - [x] SFX envelope smoke — all 16 keys (`test_sfx_envelopes` PASS)
-- [ ] Music bridge (soundgate → lofi; mute; volume) product pass
+- [x] Music bridge structure — YT lofi inject via `export:godot` / `patch-godot-music.sh` (same ID as HTML)
+- [ ] Music mute/volume product pass on web `/godot/`
 
 ## Phase 6 — UI overlays & meta
 
 - [x] Settings dual (`godot_menu_settings`)
-- [ ] Display product pass
-- [ ] Keybinds product pass
+- [x] Display dual + OverlayTheme card (`godot_menu_display` / `html_menu_display`)
+- [x] Keybinds dual (`godot_menu_keybinds` / `html_menu_keybinds`)
 - [x] Help dual (`godot_menu_help`)
 - [x] Pause dual (`godot_flow_pause` — full card + Display/Controls/Menu)
-- [ ] Name entry product pass
+- [x] Name entry dual (`godot_menu_nameentry` / `html_menu_nameentry`)
 - [x] Shoutouts dual (`godot_menu_shoutouts`)
-- [ ] Soundgate product pass
+- [x] Soundgate dual (`godot_menu_soundgate` / `html_menu_soundgate` + `force_open`)
 - [ ] Touch chrome product pass
 - [x] Leaderboard dual structure (`godot_menu_leaderboard`)
+- [x] Autofire: intentional unified hold-fire (no separate autofire mode — HTML touch toggle not ported)
 
 ## Phase 7 — Dual QA hard gate
 
