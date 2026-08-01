@@ -188,11 +188,19 @@ func new_run() -> void:
 
 func init_player() -> void:
 	## HTML initPlayer — reset player node fields
+	## Keeps shieldT / rapidT from prior player (HTML: shieldT:pv.shieldT||0, rapidT:pv.rapidT||0)
 	var p = _player()
 	if p == null:
 		return
 	var pf: Rect2 = Config.playfield()
 	p.global_position = Vector2(pf.position.x + pf.size.x * 0.5, pf.position.y + pf.size.y - 70.0)
+	# Preserve shield / monke frenzy across stage load & death respawn (HTML)
+	var keep_shield := float(p.get("shield_t")) if p.get("shield_t") != null else 0.0
+	var keep_rapid := float(p.get("rapid_t")) if p.get("rapid_t") != null else 0.0
+	if p.get("dead") != null:
+		p.dead = false
+	if p.get("respawn") != null:
+		p.respawn = 0.0
 	if p.get("invuln") != null:
 		p.invuln = 120.0
 	if p.get("focus") != null:
@@ -201,18 +209,40 @@ func init_player() -> void:
 		p.dash = 0.0
 	if p.get("dash_cd") != null:
 		p.dash_cd = 0.0
+	if p.get("slash_dash") != null:
+		p.slash_dash = false
 	if p.get("knock") != null:
 		p.knock = 0.0
 	if p.get("bomb_fx") != null:
 		p.bomb_fx = 0.0
 	if p.get("phase_t") != null:
 		p.phase_t = 0.0
+	if p.get("vial_hits") != null:
+		p.vial_hits = 0
+	if p.get("vial_t") != null:
+		p.vial_t = 0.0
+	if p.get("flurry") != null:
+		p.flurry = 0.0
 	if p.get("shield_t") != null:
-		p.shield_t = 0.0
+		p.shield_t = keep_shield
 	if p.get("rapid_t") != null:
-		p.rapid_t = 0.0
+		p.rapid_t = keep_rapid
 	if p.get("aim") != null:
 		p.aim = -PI / 2.0
+	if p.get("velocity") != null and p.velocity is Vector2:
+		p.velocity = Vector2.ZERO
+	if p.get("trail") != null and p.trail is Array:
+		p.trail.clear()
+	if p.get("sprite") != null and p.sprite is CanvasItem:
+		p.sprite.modulate.a = 1.0
+	# HTML: if melees loadout excludes current, snap to first
+	if p.get("melee") != null and p.melee != null:
+		if p.melee.get("holding") != null:
+			p.melee.holding = false
+		if p.melee.get("charge") != null:
+			p.melee.charge = 0.0
+		if p.melee.get("cooldown") != null:
+			p.melee.cooldown = 0.0
 	if p.has_node("Sprite/BobinaSprite"):
 		p.get_node("Sprite/BobinaSprite").set_outfit(GameState.selected_outfit)
 

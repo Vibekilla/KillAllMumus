@@ -31,8 +31,8 @@ var portrait: bool = false
 var PF: Rect2 = PLAYFIELD
 var PANEL_R: Rect2 = PANEL
 
-# HTML DEFAULT_BINDS / MOUSE prefs
-var mouse_follow: float = 0.55
+# HTML DEFAULT_BINDS / MOUSE prefs — HTML MOUSE={ follow:0.6, speed:1.12 }
+var mouse_follow: float = 0.6
 var mouse_speed: float = 1.12
 
 func _ready() -> void:

@@ -556,7 +556,7 @@ func take_hit(dmg: float = 1.0) -> void:
 		died.emit()
 
 func _respawn_player() -> void:
-	## HTML initPlayer after death when lives remain
+	## HTML initPlayer after death when lives remain — preserves shieldT/rapidT
 	dead = false
 	respawn = 0.0
 	var pf: Rect2 = Config.playfield()
@@ -573,5 +573,7 @@ func _respawn_player() -> void:
 	vial_hits = 0
 	vial_t = 0.0
 	phase_t = 0.0
+	flurry = 0.0
+	# HTML: shieldT:pv.shieldT||0, rapidT:pv.rapidT||0 — keep residual buffs
 	velocity = Vector2.ZERO
 	sprite.modulate.a = 1.0

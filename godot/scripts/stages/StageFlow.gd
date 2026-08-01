@@ -42,6 +42,7 @@ func reset_run() -> void:
 func on_stage_start(intro_frames: float = -1.0) -> void:
 	## HTML loadStage — reset field FX, burns, slowmo, items (not full newRun)
 	## introTimer: newRun/loadStage=140; advanceScreen after stageclear=120
+	## HTML: initPlayer(); run.bombs=Math.max(run.bombs,2); melee snap to loadout[0]
 	stage_no_death = true
 	stage_no_bomb = true
 	kills_this_stage = 0
@@ -57,6 +58,8 @@ func on_stage_start(intro_frames: float = -1.0) -> void:
 	else:
 		intro_timer = 140.0
 	GameState.set_meta("stage_cleared", false)
+	# HTML: run.bombs = Math.max(run.bombs, 2) every stage
+	GameState.bombs = maxi(GameState.bombs, 2)
 	if ItemSystem:
 		ItemSystem.items.clear()
 		ItemSystem.floaters.clear()
@@ -77,12 +80,23 @@ func on_stage_start(intro_frames: float = -1.0) -> void:
 			CombatHelpers.end_slowmo()
 		elif GameState.has_meta("slowmo"):
 			GameState.remove_meta("slowmo")
-	# Clear player special FX
+	# HTML initPlayer on each loadStage — bottom-center + iframe 120 (keeps shield/rapid)
+	if P2Meta and P2Meta.has_method("init_player"):
+		P2Meta.init_player()
+	# Clear player special FX + fire CD
 	var tree := get_tree()
 	if tree:
 		var pl = tree.get_first_node_in_group("player")
 		if pl and pl.get("specials") and pl.specials.has_method("clear_field"):
 			pl.specials.clear_field()
+		if pl and pl.get("fire_sys") and pl.fire_sys.has_method("reset_run"):
+			pl.fire_sys.reset_run()
+		if pl and pl.get("consumables") != null:
+			# HTML initPlayer zeros _eCd
+			if "e_cd" in pl.consumables:
+				pl.consumables.e_cd = 0.0
+			if "e_held" in pl.consumables:
+				pl.consumables.e_held = false
 		# Clear non-boss enemies and bullets (HTML loadStage)
 		for e in tree.get_nodes_in_group("enemies"):
 			if is_instance_valid(e) and not e.is_in_group("bosses"):
