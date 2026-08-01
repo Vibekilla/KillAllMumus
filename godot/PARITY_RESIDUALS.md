@@ -1,157 +1,261 @@
 # HTML → Godot residual gaps (living audit)
 
-Source of truth: `public/index.html` + `public/assets/`.  
-Structure duals/gates can be green while **product** still differs. This file lists known residuals so we do not mark Phase 7 complete early.
-
-**Policy:** live stays `html-legacy` until Phase 7 sign-off. Work on **dev** (`USE_GODOT=1`). Export always: `npm run export:godot` → `/var/www/dev/public_godot`.
+**Source of truth:** `public/index.html` + `public/assets/`  
+**HTML surface:** ~298 top-level functions, ~70 `draw*` helpers  
+**Godot surface:** ~128 `.gd` scripts; structure gates 0–8 PASS  
+**Product rule:** dual/structure green ≠ product complete. Sign-off only after behavior + eye-pass.
 
 ---
 
-## Method (going forward)
+## Method (every ship)
 
 ```bash
 cd /var/www/dev
-# Always export so BOTH previews get the same public_godot:
+# 1) Fix against HTML
+# 2) Export so BOTH previews update:
 npm run export:godot
-# → /var/www/dev/public_godot
-# → rsync mirror /var/www/killallmumus.com/public_godot
-# Test:
-#   https://dev.killallmumus.com/          (USE_GODOT=1 default on dev)
-#   https://dev.killallmumus.com/godot/
-#   https://killallmumus.com/godot/        (preview only; / stays html-legacy)
-# Commit + promote still required for git main / server.js / non-godot assets.
+#    → /var/www/dev/public_godot
+#    → rsync /var/www/killallmumus.com/public_godot
+# 3) Test:
+#    https://dev.killallmumus.com/           (Godot default)
+#    https://dev.killallmumus.com/godot/
+#    https://killallmumus.com/godot/         (preview; / stays html-legacy)
+# 4) Dual / unit where applicable
+# 5) Commit + promote for server.js / git main
 ```
 
-HTML function → Godot port → **behavior** diff → dual/test → export **both** worktrees → only then check off.
+Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/test → export both → check off here.
 
 ---
 
-## P0 — User-facing blockers (reported / confirmed)
+## Phase 0 — Foundation residuals
 
-| Area | HTML truth | Godot residual | Status |
-|------|------------|----------------|--------|
-| **Soundgate → music** | Every load shows gate; **Play** → `initMaster()` + `musicPlay()` (YT lofi) | (1) permanent `soundgate_seen` skipped gate (2) **`COEP: require-corp` on /godot/** blocked youtube.com iframe even with threads off | **Fixed**: session gate + no COEP unless threads; MusicBridge retries |
-| **Soundgate → fullscreen** | `goFullscreenMobile()` **touch only** | Was always fullscreen | **Fixed** (touch/web only) |
-| **Soundgate look** | CSS `.sg-card`, campfire 16:9, pink pulse CTA | Canvas approx. | Improved; landscape grid still residual |
-| **Title under gate** | Opaque DOM over canvas | Canvas gate z=80 | Verify dim full viewport after hard-refresh |
-| **Export visibility** | N/A | Dev-only export left live `/godot/` stale | **Fixed**: `export:godot` mirrors live `public_godot` |
+| Gap | Detail |
+|-----|--------|
+| Dual as living checklist | Full matrix duals exist but product review incomplete |
+| FPS root cause | Documented; llvmpipe only (~12.5 title / ~7.5 play). **GPU/desktop/web re-measure open** |
+| Structure vs product | `port:gates` all PASS while many product gaps remain (this file) |
 
 ---
 
-## P1 — UI / meta (structure duals exist; product still open)
+## Phase 1 — Performance residuals
 
-| Area | Residual |
-|------|----------|
-| **Title** | Peephole, social strip, micro-copy, button layout vs DOM/canvas mix |
-| **Outfits menu** | Spotlight / clip / continuous anim timing polish at ×4.7 |
-| **Arsenal / Emblems / LB** | Chrome density, empty states, cloud merge UX |
-| **Settings** | Mostly dualed; speedrun/reset copy polish |
-| **Display** | OverlayTheme card + presets done; not full HTML section hints |
-| **Keybinds** | List works; rebind UX / gamepad glyph polish |
-| **Pause** | Godot has full buttons; HTML dual often crops; blur vs solid dim |
-| **Help / Shoutouts** | Structure duals; scroll/tab content polish |
-| **Name entry** | Dual still; input focus + save path product pass |
-| **Touch chrome** | Dual still (stick + rail); hit targets / safe-area / cycle button parity |
-| **Music volume in settings** | Must drive YT via MusicBridge (wired); web mute product pass open |
+| Gap | Detail |
+|-----|--------|
+| 60 FPS desktop target | Not verified on real GPU |
+| ≥30–45 FPS web | Not verified on `/godot/` with real device |
+| CanvasCompat cost | Shadow multi-ring, poly fill, gradient bands still heavy |
+| WorldDraw throttle | Partial tick gates; full-field redraws remain |
+| Stage bg / Bobina cache | Present; verify stale under outfit switch / dash / bomb |
 
 ---
 
-## P2 — Flow / dialog / stage
+## Phase 2 — Bobina animation residuals
 
-| Area | Residual |
-|------|----------|
-| **Intro** | Dual structure; stage text / “PRESS Z” timing |
-| **Boss intro dialog** | FlowUI fixed dismiss clear; line timing, talk GIF, skip vs speedrun |
-| **Boss taunts / phase dialog** | Special taunt lines; twin swap dialogue |
-| **Shop (Honey Badger)** | Dual close; quote RNG, buy feedback, tab focus, leave → clear |
-| **Stage clear** | Dual close; leekspin GIF product, rank formula display |
-| **Clear portal / gate** | Timing test green; visual portal product |
-| **Win / Game over** | Dual close; NG+ banner, emblem list, share |
-| **Leekspin / maid dance** | Easter eggs product pass open |
-| **Dialog functions** | `bobinaSay`, hurt lines, emblem toasts mid-dialog stacking |
+| Gap | Detail |
+|-----|--------|
+| Product eye-pass | Expressions dualed; menu vs play scale lid/stroke still polish |
+| `_frontArm` | `drawBobina._frontArm` is **no-op TODO_PORT** — outfit arm pose may miss |
+| Pose props | coffee / This Is Fine fire — structure; edge timing product |
+| GIF overlays | talk/confused/leek wired; talk during dialog product pass |
+| Maid dance easter egg | Title idle 30s — structure present; product pass open |
+| Leekspin | Stage clear asset map exists; product pass open |
 
 ---
 
-## P3 — Combat visuals (structure duals largely green)
+## Phase 3 — Exhaustive visuals residuals
 
-| Area | Residual |
-|------|----------|
-| **Weapons** | Shapes 1:1 structure; density/timing vs HTML dual stills; product sign-off open |
-| **Specials** | Laser beam, mech escort, sixth slowmo FX structure; product polish open |
-| **Melee** | Swipe arcs dualed; charge FX / dash-slash product |
-| **Auras** | Power/soap bubble dualed; high-power color product |
-| **Boss art** | Portrait duals; minions (e.g. Robotnik badniks), ambience mandala, hell portal product |
-| **Elites / mumus / items** | Grids dualed; stage bg motif intensity; item emoji glyph font |
-| **Particles / floaters** | Score pops, burns, charm hearts product density |
+### Weapons
+| Gap | Detail |
+|-----|--------|
+| Product sign-off | Structure duals for all 10; density/timing/power-level stills open |
+| Familiar **optionOffsets** | **WAS WRONG** (Godot used ±28/±32…); **fixed to HTML −16/16/0,14/0,−15** this ship |
+| Familiar **optionPos** | **WAS world-offset only**; **fixed to HTML body-rotation map** this ship |
+| option_shot weapon match | FireSystem matches; legacy `drawers/fire.gd` still fires generic option pellets |
 
----
+### Specials
+| Gap | Detail |
+|-----|--------|
+| Product sign-off | Structure duals; mech escort / laser beam / kraken tentacles polish |
+| Sixth Sense | drawSlowmoFx + rates unit PASS; product visual mid-run |
 
-## P4 — Mechanics (unit tests green ≠ full matrix)
+### Melee
+| Gap | Detail |
+|-----|--------|
+| Swipe arcs | Structure duals; charge FX / dash-slash product |
+| `drawMeleeWeapon` | Present; all 5 weapon prop poses product |
 
-| Area | Residual |
-|------|----------|
-| Power bleed 0.00085 | Unit PASS |
-| Extends / kill-extend | Unit PASS |
-| Item magnet / collect line | Unit PASS |
-| Sixth Sense rates | Unit PASS |
-| Twin / dash / bomb numbers | Unit PASS |
-| Gamepad map | Unit PASS |
-| Consumable tap + CD | Unit PASS |
-| **Graze counter + graze sfx density** | Product pass open |
-| **Shot levels / weapon matrix / option shots** | Product pass open |
-| **Familiars** | Product pass open |
-| **Boss phases, HP, threat, twin AI** | Live play open |
-| **Autofire** | Intentional unified **hold-fire** (no separate toggle) — document for players |
-| **Cloud progress merge** | Product pass open |
-| **Touch input latency / multi-touch** | Product pass open |
+### Aura / FX
+| Gap | Detail |
+|-----|--------|
+| Power aura / radiance | Dualed; high-power color product |
+| Dash comet / phase veil | Wired; product |
+| **drawStunStars** | HTML exists; **Godot hits ≈ 0** — residual |
+| **drawEmote** | HTML exists; **Godot hits ≈ 0** — residual |
+| Burns / floaters | Partial; density product |
+| Particles | Present; batching partial |
 
----
+### Bosses
+| Gap | Detail |
+|-----|--------|
+| Portrait duals | All 7 structure duals |
+| **Minions** | e.g. Robotnik badniks in HTML dual often present; Godot dual clears field |
+| Boss ambience / mandala | Partial (`drawBossAmbience`) |
+| Hell portal / Wynn hell | Dual stills; live play product |
+| Twin swap (Bogdanoffs) | Code paths; product dual open |
+| **Devil** drawer | Exists; wiring/product when HTML shows Devil |
+| Boss patterns/HP/threat | Live play open (not dual-stilled) |
+| Dialog bleed | FlowUI clear-on-dismiss fixed; product taunt lines open |
 
-## P5 — Audio
+### Enemies / items / stage
+| Gap | Detail |
+|-----|--------|
+| Elite/mumu/item grids | Structure duals; stage motif intensity product |
+| Item glyph fonts | ♥★✸ emoji vs HTML monospace product |
+| Stage bg FX | Gradients/motifs; parity intensity open |
+| Wave spawner variety | `spawnWaves` HTML vs Godot EnemySpawner product |
 
-| Area | Residual |
-|------|----------|
-| SFX 16 envelopes | Unit PASS |
-| YT lofi ID | Shared `rPjez8z61rI` |
-| **Soundgate → musicPlay** | Fix session + retries (this ship) |
-| Music mute / volume on web | Product pass open |
-| Desktop music | No YT; silence unless local asset added |
-
----
-
-## P6 — Performance
-
-| Area | Residual |
-|------|----------|
-| llvmpipe probe | Title ~12.5 FPS, play ~7.5 FPS (software GL) |
-| Product targets | 60 desktop / 30–45 web — **GPU re-measure open** |
-| Caches | Bobina / StageBg caches help; more throttling open |
-
----
-
-## How to re-verify after fixes
-
-```bash
-cd /var/www/dev
-npm run export:godot
-# hard-refresh https://dev.killallmumus.com/  (or /godot/)
-# 1) Soundgate must appear every cold load
-# 2) PLAY — FULLSCREEN & SOUND → lofi starts (browser may block if not user gesture)
-# 3) Muted path → no lofi, still can play
-# 4) Settings music slider moves YT volume
-
-npm run port:dual -- --full --shots core
-npm run port:fps   # llvmpipe only
-```
+### Dual harness holes
+| Gap | Detail |
+|-----|--------|
+| HTML outfit anim pairs | `menu_outfit_anim_*_a/b` HTML-only names; Godot uses `_8/_48` naming — report pairing may miss |
+| `html_play_firing` | HTML-only; Godot uses `godot_play_power6` |
+| HTML missing duals for | help, display, keybinds historically; now added on core |
 
 ---
 
-## Line-by-line audit method (ongoing)
+## Phase 4 — Mechanics residuals
 
-1. Pick HTML function (`musicPlay`, `drawPause`, `useSpecial`, `spawnBoss`, …).  
-2. Locate Godot port (`MusicBridge`, `PauseMenu`, `SpecialSystem`, …).  
-3. Diff behavior, not just existence (`port:gates` is structure only).  
-4. Dual still or headless test when possible.  
-5. Check off here only after product eye-pass or unit proof.
+| System | Unit / structure | Product residual |
+|--------|------------------|------------------|
+| Power bleed 0.00085 | PASS | — |
+| Extends / kill-extend | PASS | Score thresholds product |
+| Item magnet / collect line | PASS | Edge cases vacuum |
+| Sixth Sense rates | PASS | — |
+| Twin / dash / bomb numbers | PASS | Visual dashLandExplosion product |
+| Gamepad map | PASS | Glyph labels product |
+| Consumable tap + CD | PASS | All 11 apply FX product |
+| Emblem toast | PASS | Queue stacking product |
+| Clear gate timing | PASS | Visual portal |
+| **Graze** | Counter + sfx exist | Emblem thresholds 1k/5k/10k product; graze radius product |
+| **shotLevel / powerCap** | Exists | Matrix vs HTML at each power product |
+| **optionOffsets / optionPos** | **Fixed this ship** | Dual still re-verify |
+| **Familiars fire weapon-matched** | FireSystem.option_shot | Confirm all 10 weapons |
+| **Autofire** | Intentional hold-only | Document; no HTML touch toggle |
+| Boss phases / AI | Large BossController | Live play matrix open |
+| bossDmgMul / bossWepMul | Present | Verify vs HTML tables |
+| eliteHearts | Present | Product |
+| Cloud merge | ProgressStore paths | End-to-end product |
+| Keyboard all binds | Map exists | Product |
+| Touch multi-touch | JoyPad | Safe-area / latency product |
 
-**Do not** enable live `USE_GODOT=1` until Phase 7 log in `PARITY.md` is filled with dual + FPS + audio verified.
+---
+
+## Phase 5 — Audio residuals
+
+| Gap | Detail | Status |
+|-----|--------|--------|
+| SFX 16 envelopes | Unit PASS | — |
+| Soundgate every load | HTML re-shows; Godot session gate | Fixed (no permanent skip) |
+| **Music blocked by COEP** | `require-corp` blocked YT iframe | **Fixed** (COEP only if threads; detector bug fixed) |
+| MusicBridge retries | YT API ready race | Fixed |
+| Export both trees | Dev + live public_godot | Fixed (`export:godot` mirror) |
+| Music mute/volume product | Manual cold-load verify after COEP fix | **Open (user verify)** |
+| Desktop music | No YT | Silence unless local stream |
+| initMaster / AudioContext | Resume on gate | Best-effort JS |
+
+---
+
+## Phase 6 — UI / overlays residuals
+
+| Overlay | Structure dual | Product residual |
+|---------|----------------|------------------|
+| Title | yes | Peephole, social strip, microcopy, auth chrome |
+| Outfits | yes | Spotlight/clip/anim ticks |
+| Arsenal | yes | Drag-drop / unequip product |
+| Emblems | yes | Pages / filters product |
+| Leaderboard | yes | Cloud fetch / mine highlight product |
+| Settings | yes | Copy / reset inventory confirm product |
+| Display | yes (restyled) | Section hints / prefs persistence product |
+| Keybinds | yes | Rebind flow / gamepad product |
+| Help | yes | Full tab content product |
+| Pause | yes | Blur vs dim; HTML crops secondary buttons in dual |
+| Name entry | yes | Focus / save / skip product |
+| Shoutouts | yes | Content product |
+| Soundgate | yes | Landscape CSS grid 1:1; music product verify |
+| Touch chrome | yes | Safe-area, cycle btn, hit sizes |
+| Shop | yes | Buy FX, tab focus, leave flow |
+| Stage clear | yes | Leekspin, rank line product |
+| Win / GO | yes | Share, NG+ banner product |
+| **drawPanelTouch** | thin | Mobile panel layout product |
+| **DOM vs Control** | mixed | Some overlays Control, some canvas — click routing edge cases |
+
+---
+
+## Phase 7 — Dual QA residuals
+
+| Gap | Detail |
+|-----|--------|
+| Full `port:dual -- --full` | Core/combat slices green; full wardrobe+all combat night run open |
+| Report review | `tools/port/playtest_out/index.html` must be human-reviewed |
+| FPS GPU | Only llvmpipe numbers exist |
+| Web music verify | After COEP fix — manual |
+| Written Phase 7 log | `PARITY.md` sign-off empty |
+| **USE_GODOT live** | Still banned until sign-off |
+
+---
+
+## Phase 8 — Cutover residuals (blocked)
+
+| Gap | Detail |
+|-----|--------|
+| USE_GODOT=1 live | After Phase 7 only |
+| Steam / desktop / multi-OS | Blocked by policy |
+| Final perf per target | Open |
+
+---
+
+## Explicit incomplete / stub inventory (code)
+
+| Location | Issue |
+|----------|--------|
+| `drawBobina._frontArm` | **TODO_PORT no-op** |
+| `ItemSystem.emote` | `pass` |
+| `JoyPad.update_touch_buttons` | `pass` (special ready badge) |
+| `draw_hud.drawPauseOverlay` | `pass` (PauseMenu Control owns pause) |
+| `CanvasCompat` lineDash / lineJoin / textBaseline | no-op or partial |
+| `CanvasCompat` gradients | Banded approximation not true canvas gradients |
+| Entity `_draw` empty | Presentation via WorldDraw (intentional) |
+
+---
+
+## HTML `draw*` without 1:1 Godot module name
+
+Present via other modules or partial — still product-check:
+
+`drawOptions` (CombatFx), `drawDashComet`, `drawPhaseVeil`, `drawPowerRadiance`, `drawBossAmbience`, `drawMaidDance`, `drawStunStars` **(missing)**, `drawEmote` **(missing)**, `drawFloater`, `drawBurns`, `drawShareBtn`, `drawMeleeWeapon`, `drawPanelPortrait`, `drawPanelTouch`, `drawHeart`, `drawOutfitFigure`, `drawPosedFigure`, `drawPoseProp`, `drawMenuBtn`, `drawTitleBtn`, `drawDevil`
+
+---
+
+## Priority backlog (next prompts)
+
+1. **Manual music verify** on dev after hard-refresh (COEP gone)  
+2. **Familiar dual still** at power 2–6 after optionOffsets fix  
+3. **drawStunStars / drawEmote** port or wire  
+4. **drawBobina._frontArm** implement from HTML  
+5. **Boss minion duals** (don’t clear elites for portrait stills)  
+6. **Graze product + emblems**  
+7. **Title social + peephole product**  
+8. **Dialog taunt / bobinaSay matrix**  
+9. **GPU FPS probe**  
+10. **Full dual --full** + fill Phase 7 log  
+
+---
+
+## Changelog of residual discovery
+
+| Date | Note |
+|------|------|
+| 2026-08-01 | Initial living list after phase 3–6 structure duals |
+| 2026-08-01 | Music: soundgate session + COEP root cause + export mirror |
+| 2026-08-01 | Deep audit: 298 HTML fns; optionOffsets/optionPos mismatch fixed; stun/emote missing; _frontArm no-op; dual naming holes |

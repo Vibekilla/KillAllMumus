@@ -18,20 +18,43 @@ func _hex_a(h, a) -> String:
 	return "rgba(%d,%d,%d,%s)" % [(n >> 16) & 255, (n >> 8) & 255, n & 255, str(a)]
 
 func drawOptions(player_local: bool = true) -> void:
-	## HTML drawOptions — option orbs around player (local 0,0 if on BobinaSprite)
+	## HTML drawOptions — option orbs (offsets 1:1 + body rotation when not local)
 	var lv := CombatHelpers.shot_level()
-	var offsets: Array = []
-	if lv <= 1:
+	var n := lv - 1
+	if n < 1:
 		return
-	elif lv == 2:
-		offsets = [{"x": -28.0, "y": 8.0}, {"x": 28.0, "y": 8.0}]
-	elif lv == 3:
-		offsets = [{"x": -32.0, "y": 6.0}, {"x": 32.0, "y": 6.0}, {"x": 0.0, "y": 22.0}]
-	else:
-		offsets = [{"x": -36.0, "y": 4.0}, {"x": 36.0, "y": 4.0}, {"x": -18.0, "y": 20.0}, {"x": 18.0, "y": 20.0}]
+	var offsets: Array = []
+	if n >= 1:
+		offsets.append({"x": -16.0, "y": 8.0})
+	if n >= 2:
+		offsets.append({"x": 16.0, "y": 8.0})
+	if n >= 3:
+		offsets.append({"x": 0.0, "y": 14.0})
+	if n >= 4:
+		offsets.append({"x": 0.0, "y": -15.0})
+	var face := -PI / 2.0
+	var pl = Engine.get_main_loop().root.get_tree().get_first_node_in_group("player") if Engine.get_main_loop() else null
+	if pl and pl.get("face") != null:
+		face = float(pl.face)
+	elif pl and pl.get("aim") != null:
+		face = float(pl.aim)
+	var rot := face + PI / 2.0
+	var c := cos(rot)
+	var s := sin(rot)
 	for o in offsets:
+		var ox := float(o.x)
+		var ly := float(o.y) + 16.0
+		var dx: float
+		var dy: float
+		if player_local:
+			# local to Bobina draw (rest face-up): same as HTML at rest
+			dx = ox
+			dy = float(o.y)
+		else:
+			dx = c * ox - s * ly
+			dy = -16.0 + s * ox + c * ly
 		ctx.save()
-		ctx.translate(float(o.x), float(o.y))
+		ctx.translate(dx, dy)
 		ctx.shadow_color("#ff8ad6")
 		ctx.shadow_blur(8)
 		ctx.fill_style("#ffd6f2")

@@ -122,13 +122,18 @@ func _fire_table(player: Node2D, pool: Node, focus: bool) -> void:
 		_spawn(pool, q + Vector2(cos(aim), sin(aim)) * 4.0, Vector2(cos(aim), sin(aim)) * 13.0 * 60.0, 1.0, {})
 
 func _option_offsets(lv: int) -> Array:
-	if lv <= 1:
-		return []
-	if lv == 2:
-		return [{"x": -28.0, "y": 8.0}, {"x": 28.0, "y": 8.0}]
-	if lv == 3:
-		return [{"x": -32.0, "y": 6.0}, {"x": 32.0, "y": 6.0}, {"x": 0.0, "y": 22.0}]
-	return [{"x": -36.0, "y": 4.0}, {"x": 36.0, "y": 4.0}, {"x": -18.0, "y": 20.0}, {"x": 18.0, "y": 20.0}]
+	## HTML optionOffsets (1:1)
+	var n := lv - 1
+	var arr: Array = []
+	if n >= 1:
+		arr.append({"x": -16.0, "y": 8.0})
+	if n >= 2:
+		arr.append({"x": 16.0, "y": 8.0})
+	if n >= 3:
+		arr.append({"x": 0.0, "y": 14.0})
+	if n >= 4:
+		arr.append({"x": 0.0, "y": -15.0})
+	return arr
 
 func _spawn(pool: Node, pos: Vector2, vel: Vector2, dmg: float, extra: Dictionary) -> void:
 	if pool.has_method("spawn_player"):

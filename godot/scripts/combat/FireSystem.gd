@@ -137,17 +137,32 @@ func _fire(player: Node2D, pool: Node, wep: String, focus: bool) -> void:
 				shot.call(0.5, 9.0, 1.0, {"home": true})
 
 func option_offsets(lv: int) -> Array:
-	# HTML optionOffsets — familiars unlock with power
-	if lv <= 1:
-		return []
-	if lv == 2:
-		return [{"x": -28.0, "y": 8.0}, {"x": 28.0, "y": 8.0}]
-	if lv == 3:
-		return [{"x": -32.0, "y": 6.0}, {"x": 32.0, "y": 6.0}, {"x": 0.0, "y": 22.0}]
-	return [{"x": -36.0, "y": 4.0}, {"x": 36.0, "y": 4.0}, {"x": -18.0, "y": 20.0}, {"x": 18.0, "y": 20.0}]
+	## HTML optionOffsets — n=lv-1; unlocks one orb per level above 1
+	var n := lv - 1
+	var arr: Array = []
+	if n >= 1:
+		arr.append({"x": -16.0, "y": 8.0})
+	if n >= 2:
+		arr.append({"x": 16.0, "y": 8.0})
+	if n >= 3:
+		arr.append({"x": 0.0, "y": 14.0})
+	if n >= 4:
+		arr.append({"x": 0.0, "y": -15.0})  # Lv5 → 4th orb above
+	return arr
 
 func option_pos(player: Node2D, o: Dictionary) -> Vector2:
-	return player.global_position + Vector2(float(o.get("x", 0)), float(o.get("y", 0)))
+	## HTML optionPos — map offset through Bobina body rotation so orbs lock when she turns
+	var face := float(player.get("face")) if player.get("face") != null else -PI / 2.0
+	if player.get("aim") != null and player.get("face") == null:
+		face = float(player.aim)
+	var rot := face + PI / 2.0
+	var c := cos(rot)
+	var s := sin(rot)
+	var ox := float(o.get("x", 0.0))
+	var ly := float(o.get("y", 0.0)) + 16.0
+	var px := player.global_position.x
+	var py := player.global_position.y
+	return Vector2(px + c * ox - s * ly, py - 16.0 + s * ox + c * ly)
 
 func option_shot(pool: Node, x: float, y: float, aim: float, wep: String) -> void:
 	var extra = {}
