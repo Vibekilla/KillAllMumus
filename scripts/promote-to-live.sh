@@ -200,18 +200,54 @@ restart_live_local() {
       if curl -fsS http://127.0.0.1:3000/api/health 2>/dev/null | grep -q '"ok":true'; then
         curl -fsS http://127.0.0.1:3000/api/health
         echo
-        echo "✓ health OK"
+        echo "✓ live health OK"
         return 0
       fi
       sleep 1
     done
-    echo "WARN: health check did not pass yet (service may still be starting)" >&2
-  ) || echo "WARN: local restart failed — CI deploy or manual restart still available" >&2
+    echo "WARN: live health check did not pass yet (service may still be starting)" >&2
+  ) || echo "WARN: local live restart failed — CI deploy or manual restart still available" >&2
+}
+
+# Dev worktree is primary for Godot (USE_GODOT=1). Restart it too so server.js /
+# public_godot and short cache headers apply immediately after promote/sync.
+restart_dev_local() {
+  local dev="/var/www/dev"
+  if [[ ! -d "$dev" ]]; then
+    return 0
+  fi
+  if ! systemctl --user cat killallmumus-dev.service >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "==> Restart DEV services in $dev"
+  (
+    set -euo pipefail
+    cd "$dev"
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+    # shellcheck disable=SC1091
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    if [[ -f package-lock.json ]]; then
+      npm ci --omit=dev 2>/dev/null || true
+    fi
+    systemctl --user restart killallmumus-dev.service
+    for i in $(seq 1 20); do
+      if curl -fsS http://127.0.0.1:3001/api/health 2>/dev/null | grep -q '"ok":true'; then
+        curl -fsS http://127.0.0.1:3001/api/health
+        echo
+        echo "✓ dev health OK (Godot default when USE_GODOT=1)"
+        return 0
+      fi
+      sleep 1
+    done
+    echo "WARN: dev health check did not pass yet" >&2
+  ) || echo "WARN: dev restart failed" >&2
 }
 
 if [[ "$DO_PUSH" -eq 1 ]]; then
   restart_live_local || true
+  restart_dev_local || true
 fi
 
 echo "  CI: Verify always runs on push; deploy-live needs self-hosted runner (online)."
-echo "  Local restart already attempted on this machine after promote."
+echo "  Local restart attempted for live (:3000) and dev (:3001) on this machine."
+echo "  Dev (Godot): https://dev.killallmumus.com/   Live HTML: https://killallmumus.com/"

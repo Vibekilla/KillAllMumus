@@ -195,18 +195,33 @@ func drawOutfits() -> void:
 	ctx.clip()
 	var pcx = pvX + pvW / 2.0
 	var t = float(tick)
-	# spotlight cone (HTML radial gradient fill of cone poly)
-	var spot = ctx.create_radial_gradient(pcx, pvY + 40.0, 10.0, pcx, pvY + 220.0, 220.0)
-	spot.addColorStop(0, "rgba(255,190,235,0.26)")
-	spot.addColorStop(1, "rgba(255,190,235,0)")
-	ctx.fill_style(spot)
+	# Spotlight cone — HTML uses radialGradient on a trapezoid; CanvasCompat radial
+	# poly fill is too weak, so layer soft strips + lamp (same silhouette as HTML).
+	# HTML: moveTo(pcx±40,pvY+10) → lineTo(pcx±150,pvY+pvH)
+	ctx.fill_style("rgba(255,190,235,0.14)")
 	ctx.begin_path()
-	ctx.move_to(pcx - 40, pvY + 10)
-	ctx.line_to(pcx + 40, pvY + 10)
-	ctx.line_to(pcx + 150, pvY + pvH)
-	ctx.line_to(pcx - 150, pvY + pvH)
-	ctx.close_path()
+	ctx.ellipse(pcx, pvY + 42.0, 36.0, 20.0, 0, 0, TAU)
 	ctx.fill()
+	var cone_layers := 10
+	for i in range(cone_layers):
+		var u0: float = float(i) / float(cone_layers)
+		var u1: float = float(i + 1) / float(cone_layers)
+		var um: float = (u0 + u1) * 0.5
+		var a_cone: float = 0.22 * (1.0 - um) * (1.0 - um)
+		if a_cone < 0.008:
+			continue
+		var yt: float = pvY + 10.0 + u0 * (pvH - 10.0)
+		var yb: float = pvY + 10.0 + u1 * (pvH - 10.0)
+		var ht: float = 40.0 + u0 * 110.0
+		var hb: float = 40.0 + u1 * 110.0
+		ctx.fill_style("rgba(255,190,235,%s)" % str(a_cone))
+		ctx.begin_path()
+		ctx.move_to(pcx - ht, yt)
+		ctx.line_to(pcx + ht, yt)
+		ctx.line_to(pcx + hb, yb)
+		ctx.line_to(pcx - hb, yb)
+		ctx.close_path()
+		ctx.fill()
 	# HTML fixed figScale=4.7 — outfit menu is the dual surface for wardrobe/pose/face
 	var fig_cy = pvY + pvH * 0.47
 	var fig_scale = 4.7
