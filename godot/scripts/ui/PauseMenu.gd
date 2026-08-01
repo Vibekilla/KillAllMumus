@@ -218,6 +218,10 @@ func _save_setting(key: String, v) -> void:
 func _on_music(v: float) -> void:
 	if AudioBus:
 		AudioBus.set_music_volume(v / 100.0)
+	if MusicBridge:
+		MusicBridge.set_volume(clampf(v / 100.0, 0.0, 1.0))
+		if v > 0.5 and not MusicBridge.enabled:
+			MusicBridge.play()
 	if music_label:
 		music_label.text = "🎵 Music Volume  %d%%" % int(round(v))
 	_save_setting("music", v)

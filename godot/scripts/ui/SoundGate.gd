@@ -1,6 +1,7 @@
 extends Control
-## HTML #soundgate — first-run play gate (fullscreen + sound / muted).
-## Modular overlay; does not wrap the HTML game. Music stream is optional web bridge later.
+## HTML #soundgate — first-run / every-session play gate (fullscreen + sound / muted).
+## HTML shows the gate on each page load until the user taps (user-gesture for autoplay).
+## Music: MusicBridge → YT lofi (same ID as public/index.html).
 
 signal dismissed(with_sound: bool)
 
@@ -8,6 +9,7 @@ var _open: bool = true
 var _campfire: Texture2D
 var _play_btn: Rect2
 var _mute_btn: Rect2
+var _card: Rect2
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -15,15 +17,18 @@ func _ready() -> void:
 	z_index = 80
 	if AssetBank and AssetBank.has_method("get_tex"):
 		_campfire = AssetBank.get_tex("campfire")
-	# Skip for automated dual/playtest (HTML dual also clicks #sg-mute)
+	# Dual / headless only — never skip for normal web/desktop (HTML re-shows every load)
 	var auto_skip := OS.has_feature("headless") \
 		or OS.get_environment("PLAYTEST_FAST") != "" \
 		or OS.get_environment("PLAYTEST_FULL") != "" \
 		or OS.get_environment("SKIP_SOUNDGATE") == "1"
-	if auto_skip or (ProgressStore and ProgressStore.progress.get("soundgate_seen", false)):
+	if auto_skip:
 		_open = false
 		visible = false
 	else:
+		# Session gate only — do not honor permanent soundgate_seen for skip
+		# (persisting it left returning users with no music and no user gesture).
+		_open = true
 		visible = true
 		queue_redraw()
 	set_process(false)
@@ -36,7 +41,7 @@ func force_dismiss(with_sound: bool = false) -> void:
 		visible = false
 
 func force_open() -> void:
-	## Dual / QA — re-show gate without full first-run progress
+	## Dual / QA — re-show gate
 	_open = true
 	visible = true
 	queue_redraw()
@@ -47,83 +52,129 @@ func is_blocking() -> bool:
 func _draw() -> void:
 	if not _open:
 		return
-	var W := Config.W
-	var H := Config.H
-	# Dim backdrop
-	draw_rect(Rect2(0, 0, W, H), Color(0.04, 0.02, 0.08, 0.92))
-	# Card
-	var cw := 420.0
-	var ch := 360.0
+	var W := size.x if size.x > 1.0 else Config.W
+	var H := size.y if size.y > 1.0 else Config.H
+	# HTML radial backdrop
+	draw_rect(Rect2(0, 0, W, H), Color(0.03, 0.016, 0.05, 0.97))
+	# Card — HTML .sg-card gradient + pink border glow
+	var cw := minf(440.0, W * 0.94)
+	var ch := minf(400.0, H * 0.92)
 	var cx := (W - cw) * 0.5
 	var cy := (H - ch) * 0.5
-	draw_rect(Rect2(cx, cy, cw, ch), Color(0.12, 0.06, 0.16, 0.98), true)
-	draw_rect(Rect2(cx, cy, cw, ch), Color(1.0, 0.62, 0.8, 0.55), false, 2.0)
-	# Campfire image
-	var img_h := 120.0
-	var img_w := 200.0
-	var ix := cx + (cw - img_w) * 0.5
-	var iy := cy + 18.0
+	_card = Rect2(cx, cy, cw, ch)
+	# soft glow
+	draw_rect(Rect2(cx - 4, cy - 4, cw + 8, ch + 8), Color(1.0, 0.24, 0.47, 0.12), true)
+	draw_rect(_card, Color(0.18, 0.08, 0.19, 0.98), true)  # #2a1830-ish
+	draw_rect(_card, Color(1.0, 0.357, 0.553, 0.95), false, 2.5)  # #ff5b8d
+	# Image
+	var pad := 16.0
+	var img_w := cw - pad * 2.0
+	var img_h := img_w * 9.0 / 16.0
+	img_h = minf(img_h, ch * 0.42)
+	var ix := cx + pad
+	var iy := cy + pad
+	var img_r := Rect2(ix, iy, img_w, img_h)
 	if _campfire:
-		draw_texture_rect(_campfire, Rect2(ix, iy, img_w, img_h), false)
+		draw_texture_rect(_campfire, img_r, false)
 	else:
-		draw_rect(Rect2(ix, iy, img_w, img_h), Color(0.3, 0.15, 0.1))
+		draw_rect(img_r, Color(0.25, 0.12, 0.1))
+	draw_rect(img_r, Color(1.0, 0.71, 0.31, 0.55), false, 2.0)
 	# Title / sub
 	var f := FontBank.default_font() if FontBank else ThemeDB.fallback_font
 	var fb := FontBank.ui_bold if FontBank and FontBank.ui_bold else f
-	draw_string(fb, Vector2(cx + cw * 0.5 - 140, iy + img_h + 28), "BOBINA: KILL ALL MUMUS!!", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1, 0.88, 0.55))
-	var sub := "Best played fullscreen with sound — tap Play to launch with Bobina's lofi beats."
-	draw_string(f, Vector2(cx + 24, iy + img_h + 52), sub.substr(0, 48), HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.75, 0.88))
-	draw_string(f, Vector2(cx + 24, iy + img_h + 68), sub.substr(48) if sub.length() > 48 else "", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.85, 0.75, 0.88))
-	# Buttons
-	var by := cy + ch - 110.0
-	_play_btn = Rect2(cx + 40, by, cw - 80, 36)
-	_mute_btn = Rect2(cx + 40, by + 44, cw - 80, 32)
-	draw_rect(_play_btn, Color(1.0, 0.35, 0.55, 0.95), true)
-	draw_rect(_play_btn, Color(1.0, 0.75, 0.85, 0.8), false, 1.5)
-	draw_string(fb, Vector2(_play_btn.position.x + 48, _play_btn.position.y + 24), "▶ PLAY — FULLSCREEN & SOUND", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(1, 1, 1))
-	draw_rect(_mute_btn, Color(0.15, 0.08, 0.18, 0.95), true)
-	draw_rect(_mute_btn, Color(0.45, 0.3, 0.4, 0.9), false, 1.0)
-	draw_string(f, Vector2(_mute_btn.position.x + 90, _mute_btn.position.y + 21), "Play fullscreen, muted", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(0.9, 0.85, 0.92))
-	draw_string(f, Vector2(cx + 70, cy + ch - 18), "A Bobina Council LLC & Grr Finance production", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.55, 0.45, 0.58))
+	var ty := iy + img_h + 22.0
+	draw_string(fb, Vector2(cx + pad, ty), "BOBINA: KILL ALL MUMUS!!", HORIZONTAL_ALIGNMENT_LEFT, int(cw - pad * 2), 20, Color(1.0, 0.878, 0.541))
+	ty += 28.0
+	var sub := "Best played fullscreen with sound — tap Play to launch with Bobina's lofi beats at full volume."
+	var line1 := sub
+	var line2 := ""
+	if sub.length() > 52:
+		var cut := 52
+		while cut > 20 and sub[cut] != " ":
+			cut -= 1
+		line1 = sub.substr(0, cut)
+		line2 = sub.substr(cut).strip_edges()
+	draw_string(f, Vector2(cx + pad, ty), line1, HORIZONTAL_ALIGNMENT_LEFT, int(cw - pad * 2), 12, Color(0.91, 0.81, 0.88))
+	if line2 != "":
+		ty += 16.0
+		draw_string(f, Vector2(cx + pad, ty), line2, HORIZONTAL_ALIGNMENT_LEFT, int(cw - pad * 2), 12, Color(0.91, 0.81, 0.88))
+	# Buttons (HTML #sg-enable / #sg-mute)
+	var by := cy + ch - 118.0
+	_play_btn = Rect2(cx + pad, by, cw - pad * 2.0, 48.0)
+	_mute_btn = Rect2(cx + pad, by + 56.0, cw - pad * 2.0, 40.0)
+	draw_rect(_play_btn, Color(1.0, 0.357, 0.553, 0.98), true)
+	draw_rect(_play_btn, Color(1.0, 0.75, 0.85, 0.55), false, 1.5)
+	draw_string(fb, Vector2(_play_btn.position.x + 28, _play_btn.position.y + 30), "▶ PLAY — FULLSCREEN & SOUND", HORIZONTAL_ALIGNMENT_LEFT, int(_play_btn.size.x - 40), 15, Color(1, 1, 1))
+	draw_rect(_mute_btn, Color(1, 1, 1, 0.05), true)
+	draw_rect(_mute_btn, Color(1, 1, 1, 0.18), false, 1.0)
+	draw_string(f, Vector2(_mute_btn.position.x + 90, _mute_btn.position.y + 26), "Play fullscreen, muted", HORIZONTAL_ALIGNMENT_LEFT, int(_mute_btn.size.x - 100), 12, Color(0.784, 0.69, 0.769))
+	draw_string(f, Vector2(cx + pad, cy + ch - 14), "A Bobina Council LLC & Grr Finance production", HORIZONTAL_ALIGNMENT_LEFT, int(cw - pad * 2), 10, Color(0.604, 0.545, 0.659))
 
 func _gui_input(event: InputEvent) -> void:
 	if not _open:
+		return
+	if event is InputEventScreenTouch:
+		var st := event as InputEventScreenTouch
+		if not st.pressed:
+			return
+		_try_click(st.position)
+		accept_event()
 		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if not mb.pressed or mb.button_index != MOUSE_BUTTON_LEFT:
 			return
-		if _play_btn.has_point(mb.position):
-			_dismiss(true)
-			accept_event()
-		elif _mute_btn.has_point(mb.position):
-			_dismiss(false)
-			accept_event()
+		_try_click(mb.position)
+		accept_event()
+
+func _try_click(pos: Vector2) -> void:
+	if _play_btn.has_point(pos):
+		_dismiss(true)
+	elif _mute_btn.has_point(pos):
+		_dismiss(false)
 
 func _dismiss(with_sound: bool) -> void:
 	_open = false
 	visible = false
+	# Session marker only (in-memory) — optional analytics; not used to skip gate next load
 	if ProgressStore:
 		ProgressStore.progress["soundgate_seen"] = true
+		ProgressStore.progress["lofiOn"] = with_sound
 		if ProgressStore.has_method("queue_save"):
 			ProgressStore.queue_save()
 	if with_sound:
+		# HTML: lofiOn=true; initMaster(); musicPlay(); closeGate(true)
 		if AudioBus:
-			AudioBus.set_sfx_volume(AudioBus.sfx_volume)
 			AudioBus.set_music_volume(1.0)
-		# HTML: lofiOn=true; musicPlay()
+			if ProgressStore and ProgressStore.progress.get("settings") is Dictionary:
+				var st: Dictionary = ProgressStore.progress["settings"]
+				if st.has("music"):
+					var m := float(st["music"])
+					AudioBus.set_music_volume((m / 100.0) if m > 1.0 else m)
 		if MusicBridge:
 			MusicBridge.play()
-		# Best-effort fullscreen (web/desktop)
-		if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		_request_fullscreen_like_html()
 	else:
+		# HTML: lofiOn=false; closeGate(true) — still fullscreen on mobile, no music
 		if AudioBus:
 			AudioBus.set_music_volume(0.0)
 		if MusicBridge:
 			MusicBridge.pause()
-		if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		_request_fullscreen_like_html()
 	if AudioBus:
 		AudioBus.sfx("item")
 	dismissed.emit(with_sound)
+
+func _request_fullscreen_like_html() -> void:
+	## HTML goFullscreenMobile — only on touch devices (desktop stays windowed)
+	var touch := DisplayServer.is_touchscreen_available()
+	if OS.has_feature("web"):
+		if ClassDB.class_exists("JavaScriptBridge"):
+			# Best-effort; desktop no-op matches HTML
+			JavaScriptBridge.eval(
+				"try{if(('ontouchstart' in window)||navigator.maxTouchPoints>0){var el=document.documentElement;var rf=el.requestFullscreen||el.webkitRequestFullscreen;if(rf&&!document.fullscreenElement&&!document.webkitFullscreenElement){var r=rf.call(el);if(r&&r.catch)r.catch(function(){});}}}catch(e){}",
+				true
+			)
+		return
+	if touch and DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)

@@ -1,3 +1,6 @@
+
+> **Residuals:** tracked in [`PARITY_RESIDUALS.md`](./PARITY_RESIDUALS.md) — structure duals can pass while product gaps remain (music gate, dialog, mechanics matrix, etc.).
+
 # HTML → Godot parity (true 1:1 full port)
 
 > **Source of truth** = `public/index.html` + `public/assets/`.  

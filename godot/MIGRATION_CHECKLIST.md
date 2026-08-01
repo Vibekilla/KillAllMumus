@@ -4,7 +4,8 @@ Mirror of **[PARITY.md](./PARITY.md)** phases 0–7 (checkboxes only).
 Policy, bans, and cutover narrative live in PARITY.md — not here.
 
 Source of truth: `public/index.html` + `public/assets/`.  
-Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 sign-off.**
+Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 sign-off.**  
+**Living gap list:** [PARITY_RESIDUALS.md](./PARITY_RESIDUALS.md) (do not claim complete while residuals remain).
 
 ---
 
@@ -131,7 +132,9 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 
 - [x] SFX envelope smoke — all 16 keys (`test_sfx_envelopes` PASS)
 - [x] Music bridge structure — YT lofi inject via `export:godot` / `patch-godot-music.sh` (same ID as HTML)
-- [ ] Music mute/volume product pass on web `/godot/`
+- [x] Soundgate session parity — show every load (not permanent skip); MusicBridge retries + JS inject fallback
+- [x] Fullscreen on gate — touch/web only (HTML `goFullscreenMobile`)
+- [ ] Music mute/volume product pass on web `/godot/` (manual cold-load + PLAY click)
 
 ## Phase 6 — UI overlays & meta
 

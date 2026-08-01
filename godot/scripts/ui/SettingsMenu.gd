@@ -211,6 +211,11 @@ func _refresh_speedrun() -> void:
 func _on_music(v: float) -> void:
 	if AudioBus:
 		AudioBus.set_music_volume(v / 100.0)
+	# HTML applyMusicVol + re-arm stream if user unmutes after gate
+	if MusicBridge:
+		MusicBridge.set_volume(clampf(v / 100.0, 0.0, 1.0))
+		if v > 0.5 and not MusicBridge.enabled:
+			MusicBridge.play()
 	_set_pct_label(music_label, "🎵 Music Volume", v)
 	_save_setting("music", v)
 
