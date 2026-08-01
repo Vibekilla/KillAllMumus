@@ -275,3 +275,4 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | bulletCancelAll/Near point drops + shell keep; neutralizeInputs on intro/shop |
 | 2026-08-01 | Melee charge: flame 78 life, no double-hit; BH projectile; shockwall/flurry; melee cancel points |
 | 2026-08-01 | Elite body-check uses eliteHearts(); melee mkills/mweps emblems + hit sparks |
+| 2026-08-01 | Shock zap chain on hit; nade boom shake; grenade thud sfx |

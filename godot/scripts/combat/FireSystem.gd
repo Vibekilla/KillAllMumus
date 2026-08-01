@@ -92,10 +92,13 @@ func _fire(player: Node2D, pool: Node, wep: String, focus: bool) -> void:
 			var pos = ppos + perp * lat + cax * 8.0
 			_spawn_pshot(pool, pos, cax * 20.0 * FRAME, 2.0, {"gat": true})
 	elif wep == "grenade":
+		# HTML: deliberate lobs; thud sfx
 		var n4 = 3 if lv >= 5 else (2 if lv >= 4 else 1)
 		for i in n4:
 			var off = (float(i) - float(n4 - 1) * 0.5) * 0.16
 			shot.call(off, 7.0 + lv * 0.4, 2.0 + floor(float(lv) / 2.0), {"nade": true, "life": 30.0 + lv * 3.0})
+		if AudioBus:
+			AudioBus.sfx("thud", 0.6)
 	elif wep == "voidripper":
 		var lanes = mini(5, 1 + int(floor(float(lv) / 1.2)))
 		var perp2 = Vector2(-sin(aim), cos(aim))

@@ -411,8 +411,10 @@ func chain_lightning(sx: float, sy: float, dmg: float, jumps: int, col: String =
 				ms.swipe_fx.append(bolt.duplicate(true))
 
 func nade_boom(x: float, y: float) -> void:
-	## HTML nadeBoom
+	## HTML nadeBoom — raw chips (boss 2 / mobs 8), screen shake, cancel near bullets
 	CombatHelpers.burst(x, y, "#b6e34a")
+	if CombatHelpers:
+		CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 3.0)
 	if AudioBus:
 		AudioBus.sfx("bomb", 0.6)
 	for i in range(14):
@@ -429,9 +431,13 @@ func nade_boom(x: float, y: float) -> void:
 			var d := Vector2(x, y).distance_to(e.global_position)
 			if e.is_in_group("bosses"):
 				if d < 58.0 and e.has_method("take_damage"):
-					e.take_damage(2.0)
+					e.take_damage(2.0)  # raw, not shot muls
+					if "flash" in e:
+						e.flash = 4.0
 			elif d < 50.0 and e.has_method("take_damage"):
 				e.take_damage(8.0)
+				if "flash" in e:
+					e.flash = 5.0
 		var pool := _bullet_pool()
 		if pool and pool.has_method("clear_enemy_near"):
 			pool.clear_enemy_near(Vector2(x, y), 44.0)
