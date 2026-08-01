@@ -55,7 +55,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Gap | Detail |
 |-----|--------|
 | Product eye-pass | Expressions dualed; menu vs play scale lid/stroke still polish |
-| `_frontArm` | `drawBobina._frontArm` is **no-op TODO_PORT** — outfit arm pose may miss |
+| `_frontArm` | **HTML intentional no-op** (`frontArm=(col,lw)=>{}`); Godot matches — not a gap |
 | Pose props | coffee / This Is Fine fire — structure; edge timing product |
 | GIF overlays | talk/confused/leek wired; talk during dialog product pass |
 | Maid dance easter egg | Title idle 30s — structure present; product pass open |
@@ -69,9 +69,9 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Gap | Detail |
 |-----|--------|
 | Product sign-off | Structure duals for all 10; density/timing/power-level stills open |
-| Familiar **optionOffsets** | **WAS WRONG** (Godot used ±28/±32…); **fixed to HTML −16/16/0,14/0,−15** this ship |
-| Familiar **optionPos** | **WAS world-offset only**; **fixed to HTML body-rotation map** this ship |
-| option_shot weapon match | FireSystem matches; legacy `drawers/fire.gd` still fires generic option pellets |
+| Familiar **optionOffsets** | **WAS WRONG** (Godot used ±28/±32…); **fixed to HTML −16/16/0,14/0,−15** |
+| Familiar **optionPos** | **WAS world-offset only**; **fixed to HTML body-rotation map** (FireSystem + fire.gd) |
+| option_shot weapon match | **Fixed** FireSystem + legacy `drawers/fire.gd` now weapon-matched |
 
 ### Specials
 | Gap | Detail |
@@ -90,8 +90,8 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 |-----|--------|
 | Power aura / radiance | Dualed; high-power color product |
 | Dash comet / phase veil | Wired; product |
-| **drawStunStars** | HTML exists; **Godot hits ≈ 0** — residual |
-| **drawEmote** | HTML exists; **Godot hits ≈ 0** — residual |
+| **drawStunStars** | **Wired** inline in WorldDraw (★ orbit when `e.stun>0`) |
+| **drawEmote** | **Wired** WorldDraw `_draw_emote`; HTML `emote()` is still no-op by request |
 | Burns / floaters | Partial; density product |
 | Particles | Present; batching partial |
 
@@ -160,9 +160,11 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | **Music blocked by COEP** | `require-corp` blocked YT iframe | **Fixed** (COEP only if threads; detector bug fixed) |
 | MusicBridge retries | YT API ready race | Fixed |
 | Export both trees | Dev + live public_godot | Fixed (`export:godot` mirror) |
-| Music mute/volume product | Manual cold-load verify after COEP fix | **Open (user verify)** |
+| **Music dies on social / tab hide** | WebVisibilityPause soft-paused YT; autoplay blocked resume | **Fixed** — never pause lofi on visibility (HTML has no handler); `window.open` for social/LB/tweet; soft_resume nudge only on show |
+| Music mute/volume product | Manual cold-load verify after fix | **Open (user verify)** |
 | Desktop music | No YT | Silence unless local stream |
 | initMaster / AudioContext | Resume on gate | Best-effort JS |
+| OAuth login | same-tab navigate (music stops) | Intentional HTML parity |
 
 ---
 
@@ -219,8 +221,8 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 
 | Location | Issue |
 |----------|--------|
-| `drawBobina._frontArm` | **TODO_PORT no-op** |
-| `ItemSystem.emote` | `pass` |
+| `drawBobina._frontArm` | **HTML no-op (resolved)** |
+| `ItemSystem.emote` | `pass` — matches HTML `/* emotes removed by request */`; draw path ready |
 | `JoyPad.update_touch_buttons` | `pass` (special ready badge) |
 | `draw_hud.drawPauseOverlay` | `pass` (PauseMenu Control owns pause) |
 | `CanvasCompat` lineDash / lineJoin / textBaseline | no-op or partial |
@@ -233,22 +235,20 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 
 Present via other modules or partial — still product-check:
 
-`drawOptions` (CombatFx), `drawDashComet`, `drawPhaseVeil`, `drawPowerRadiance`, `drawBossAmbience`, `drawMaidDance`, `drawStunStars` **(missing)**, `drawEmote` **(missing)**, `drawFloater`, `drawBurns`, `drawShareBtn`, `drawMeleeWeapon`, `drawPanelPortrait`, `drawPanelTouch`, `drawHeart`, `drawOutfitFigure`, `drawPosedFigure`, `drawPoseProp`, `drawMenuBtn`, `drawTitleBtn`, `drawDevil`
+`drawOptions` (CombatFx), `drawDashComet`, `drawPhaseVeil`, `drawPowerRadiance`, `drawBossAmbience`, `drawMaidDance`, `drawStunStars` **(wired)**, `drawEmote` **(wired; spawn no-op)**, `drawFloater`, `drawBurns`, `drawShareBtn`, `drawMeleeWeapon`, `drawPanelPortrait`, `drawPanelTouch`, `drawHeart`, `drawOutfitFigure`, `drawPosedFigure`, `drawPoseProp`, `drawMenuBtn`, `drawTitleBtn`, `drawDevil`
 
 ---
 
 ## Priority backlog (next prompts)
 
-1. **Manual music verify** on dev after hard-refresh (COEP gone)  
-2. **Familiar dual still** at power 2–6 after optionOffsets fix  
-3. **drawStunStars / drawEmote** port or wire  
-4. **drawBobina._frontArm** implement from HTML  
-5. **Boss minion duals** (don’t clear elites for portrait stills)  
-6. **Graze product + emblems**  
-7. **Title social + peephole product**  
-8. **Dialog taunt / bobinaSay matrix**  
-9. **GPU FPS probe**  
-10. **Full dual --full** + fill Phase 7 log  
+1. **Manual music verify** social links keep lofi after hard-refresh  
+2. **Familiar dual still** at power 2–6 after optionOffsets + option_shot fix  
+3. **Boss minion duals** (don’t clear elites for portrait stills)  
+4. **Graze product + emblems**  
+5. **Title social + peephole product**  
+6. **Dialog taunt / bobinaSay matrix**  
+7. **GPU FPS probe**  
+8. **Full dual --full** + fill Phase 7 log  
 
 ---
 
@@ -259,3 +259,4 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | Initial living list after phase 3–6 structure duals |
 | 2026-08-01 | Music: soundgate session + COEP root cause + export mirror |
 | 2026-08-01 | Deep audit: 298 HTML fns; optionOffsets/optionPos mismatch fixed; stun/emote missing; _frontArm no-op; dual naming holes |
+| 2026-08-01 | Music cut-off: stop YT pause on visibility; open_url helper; fire.gd option_shot; stun/emote/_frontArm resolved |

@@ -133,9 +133,11 @@ func login_url() -> String:
 	return _url("/auth/bobina" + q)
 
 func open_login() -> void:
-	# Web: navigate. Desktop: open browser.
+	# OAuth must same-tab navigate so cookies land on this origin (HTML parity).
+	# This leaves the game shell — music stops by design until return.
 	var url := login_url()
-	if OS.has_feature("web"):
-		JavaScriptBridge.eval("window.location.href='%s'" % url)
+	if OS.has_feature("web") and ClassDB.class_exists("JavaScriptBridge"):
+		var safe := url.replace("\\", "\\\\").replace("'", "\\'")
+		JavaScriptBridge.eval("try{window.location.href='%s';}catch(e){}" % safe, true)
 	else:
 		OS.shell_open(url)

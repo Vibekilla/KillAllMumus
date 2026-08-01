@@ -270,6 +270,11 @@ func _draw() -> void:
 			ctx.fill_text(str(s.get("txt", "")), float(s.get("x", 0)), float(s.get("y", 0)))
 			ctx.text_align("left")
 			ctx.global_alpha(1.0)
+		# emotes (HTML drawEmote — array usually empty; emote() is no-op by request)
+		if ItemSystem and ItemSystem.get("emotes") is Array:
+			for em in ItemSystem.emotes:
+				if em is Dictionary:
+					_draw_emote(em)
 		# bomb pink flash
 		if player and is_instance_valid(player):
 			var bfx := float(player.bomb_fx) if player.get("bomb_fx") != null else 0.0
@@ -407,6 +412,82 @@ func _draw_burn(bn: Dictionary) -> void:
 	ctx.global_alpha(1.0)
 	if ctx.has_method("global_composite_operation"):
 		ctx.global_composite_operation("source-over")
+	ctx.restore()
+
+func _draw_emote(em: Dictionary) -> void:
+	## HTML drawEmote — speech bubble + kind glyph (love/star/wow/happy)
+	var life := float(em.get("life", 0))
+	if life <= 0.0:
+		return
+	var a := minf(1.0, life / 12.0)
+	var yy := float(em.get("y", 0)) - (50.0 - life) * 0.55
+	var pop := minf(1.15, (50.0 - life) / 5.0)
+	ctx.save()
+	ctx.translate(float(em.get("x", 0)), yy)
+	ctx.scale(pop, pop)
+	ctx.global_alpha(a)
+	ctx.fill_style("#fff")
+	ctx.stroke_style("#ff6ec7")
+	ctx.line_width(1.8)
+	ctx.begin_path()
+	ctx.arc(0, 0, 13, 0, TAU)
+	ctx.fill()
+	ctx.stroke()
+	ctx.begin_path()
+	ctx.move_to(-3.5, 11)
+	ctx.line_to(0, 17)
+	ctx.line_to(3.5, 11)
+	ctx.close_path()
+	ctx.fill_style("#fff")
+	ctx.fill()
+	var k := str(em.get("kind", ""))
+	if k == "love":
+		ctx.fill_style("#ff4d8d")
+		ctx.begin_path()
+		ctx.move_to(0, 3)
+		ctx.bezier_curve_to(0, -2, -6, -2, -6, 1)
+		ctx.bezier_curve_to(-6, 4, 0, 6, 0, 8)
+		ctx.bezier_curve_to(0, 6, 6, 4, 6, 1)
+		ctx.bezier_curve_to(6, -2, 0, -2, 0, 3)
+		ctx.fill()
+	elif k == "star":
+		ctx.fill_style("#ffd24a")
+		ctx.begin_path()
+		for i in range(5):
+			var a2 := -PI / 2.0 + float(i) * TAU / 5.0
+			ctx.line_to(cos(a2) * 6.0, sin(a2) * 6.0)
+			var a3 := a2 + PI / 5.0
+			ctx.line_to(cos(a3) * 2.6, sin(a3) * 2.6)
+		ctx.close_path()
+		ctx.fill()
+	elif k == "wow":
+		ctx.stroke_style("#3a2030")
+		ctx.line_width(1.6)
+		ctx.begin_path()
+		ctx.move_to(-6, -3)
+		ctx.line_to(-2, -1)
+		ctx.line_to(-6, 1)
+		ctx.move_to(6, -3)
+		ctx.line_to(2, -1)
+		ctx.line_to(6, 1)
+		ctx.stroke()
+		ctx.fill_style("#3a2030")
+		ctx.begin_path()
+		ctx.arc(0, 3, 2.2, 0, TAU)
+		ctx.fill()
+	else:
+		# happy default
+		ctx.stroke_style("#3a2030")
+		ctx.line_width(1.5)
+		ctx.begin_path()
+		ctx.arc(0, 1, 5, 0.15, PI - 0.15)
+		ctx.stroke()
+		ctx.fill_style("#3a2030")
+		ctx.begin_path()
+		ctx.arc(-3.5, -2, 1.2, 0, TAU)
+		ctx.arc(3.5, -2, 1.2, 0, TAU)
+		ctx.fill()
+	ctx.global_alpha(1.0)
 	ctx.restore()
 
 func _draw_enemy(e: Node) -> void:

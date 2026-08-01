@@ -167,6 +167,15 @@ body {
     }
   };
 
+  // Soft pause: pause video but keep ytWant (do NOT clear preference).
+  // Prefer NOT calling this on visibilitychange — HTML never pauses lofi on tab hide;
+  // browser autoplay often blocks resume without a fresh user gesture.
+  window.kamMusicSoftPause = function () {
+    if (ytReady && ytPlayer) {
+      try { ytPlayer.pauseVideo(); } catch (e) {}
+    }
+  };
+
   window.kamMusicVol = function (vol01) {
     ytVol = Math.round(Math.max(0, Math.min(1, Number(vol01) || 0)) * 100);
     if (ytReady && ytPlayer) {
@@ -213,7 +222,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":27109696,"index.wasm":35376909},"focusCanvas":true,"gdextensionLibs":[]};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":27113456,"index.wasm":35376909},"focusCanvas":true,"gdextensionLibs":[]};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 

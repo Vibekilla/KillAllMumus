@@ -116,10 +116,10 @@ func _fire_table(player: Node2D, pool: Node, focus: bool) -> void:
 			if lv >= 4:
 				shot.call(-0.5, 9.0, 1.0, {"home": true})
 				shot.call(0.5, 9.0, 1.0, {"home": true})
-	# option familiars
+	# option familiars — weapon-matched pellets (HTML optionShot parity via FireSystem table)
 	for o in _option_offsets(lv):
-		var q = ppos + Vector2(float(o.get("x", 0)), float(o.get("y", 0)))
-		_spawn(pool, q + Vector2(cos(aim), sin(aim)) * 4.0, Vector2(cos(aim), sin(aim)) * 13.0 * 60.0, 1.0, {})
+		var q := _option_pos(player, o)
+		_option_shot(pool, q.x + cos(aim) * 4.0, q.y + sin(aim) * 4.0, aim, wep)
 
 func _option_offsets(lv: int) -> Array:
 	## HTML optionOffsets (1:1)
@@ -134,6 +134,66 @@ func _option_offsets(lv: int) -> Array:
 	if n >= 4:
 		arr.append({"x": 0.0, "y": -15.0})
 	return arr
+
+func _option_pos(player: Node2D, o: Dictionary) -> Vector2:
+	## HTML optionPos — body-rotation map (match FireSystem.option_pos)
+	var face := float(player.get("face")) if player.get("face") != null else -PI / 2.0
+	if player.get("aim") != null and player.get("face") == null:
+		face = float(player.aim)
+	var rot := face + PI / 2.0
+	var c := cos(rot)
+	var s := sin(rot)
+	var ox := float(o.get("x", 0.0))
+	var ly := float(o.get("y", 0.0)) + 16.0
+	var px := player.global_position.x
+	var py := player.global_position.y
+	return Vector2(px + c * ox - s * ly, py - 16.0 + s * ox + c * ly)
+
+func _option_shot(pool: Node, x: float, y: float, aim: float, wep: String) -> void:
+	## Match FireSystem.option_shot weapon table
+	var extra := {}
+	var spd := 13.0
+	var dmg := 1.0
+	var off := 0.0
+	match wep:
+		"laser":
+			spd = 17.0
+			extra = {"laser": true}
+		"homing":
+			spd = 6.0
+			extra = {"home": true}
+		"wave":
+			spd = 11.0
+			extra = {"wv": 3.2, "wph": float(tick) * 0.4}
+		"scatter":
+			off = randf_range(-0.07, 0.07)
+			spd = 10.0 + randf() * 3.0
+			extra = {"life": 22.0}
+		"gatling":
+			spd = 19.0
+			dmg = 2.0
+			extra = {"gat": true}
+		"grenade":
+			spd = 8.0
+			dmg = 3.0
+			extra = {"nade": true, "life": 32.0}
+		"voidripper":
+			spd = 15.0
+			dmg = 2.0
+			extra = {"vrip": true, "pierce": true}
+		"lotus":
+			off = randf_range(-0.35, 0.35)
+			spd = 7.0
+			extra = {"petal": true, "curl": (-1.0 if off < 0.0 else 1.0) * 0.035, "life": 58.0}
+		"shock":
+			off = randf_range(-0.25, 0.25)
+			spd = 13.0 + randf() * 4.0
+			dmg = 2.0
+			extra = {"zap": true}
+		_:
+			spd = 13.0
+	var a := aim + off
+	_spawn(pool, Vector2(x, y), Vector2(cos(a), sin(a)) * spd * 60.0, dmg, extra)
 
 func _spawn(pool: Node, pos: Vector2, vel: Vector2, dmg: float, extra: Dictionary) -> void:
 	if pool.has_method("spawn_player"):

@@ -124,6 +124,20 @@ static func in_btn(p: Vector2, b) -> bool:
 	var h := float(b.get("h", 0))
 	return p.x >= x and p.x <= x + w and p.y >= y and p.y <= y + h
 
+static func open_url(url: String, same_tab: bool = false) -> void:
+	## Open external link. Web prefers window.open so this tab (and lofi) stays alive.
+	## same_tab=true only for OAuth-style full navigation.
+	if url == "":
+		return
+	if OS.has_feature("web") and ClassDB.class_exists("JavaScriptBridge"):
+		var safe := url.replace("\\", "\\\\").replace("'", "\\'")
+		if same_tab:
+			JavaScriptBridge.eval("try{window.location.href='%s';}catch(e){}" % safe, true)
+		else:
+			JavaScriptBridge.eval("try{window.open('%s','_blank','noopener');}catch(e){}" % safe, true)
+		return
+	OS.shell_open(url)
+
 static func wrap_text(ctx, text: String, x: float, y: float, max_w: float, line_h: float, max_lines: int = 4) -> void:
 	var words := text.split(" ")
 	var line := ""

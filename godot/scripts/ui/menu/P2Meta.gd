@@ -291,10 +291,7 @@ func tweet_result(won: bool) -> void:
 	if handle != "":
 		sp += "&h=" + handle.uri_encode()
 	var u = "https://twitter.com/intent/tweet?text=%s&url=%s" % [text.uri_encode(), sp.uri_encode()]
-	if OS.has_feature("web"):
-		JavaScriptBridge.eval("window.open('%s','_blank','noopener')" % u.replace("'", "\\'"))
-	else:
-		OS.shell_open(u)
+	MenuHelpers.open_url(u)
 
 func show_name_entry_or_submit() -> void:
 	## HTML showNameEntry — linked users auto-submit

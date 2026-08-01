@@ -39,12 +39,28 @@ func play() -> void:
 	set_process(true)
 
 func pause() -> void:
-	## HTML musicPause / mute gate
+	## HTML musicPause / mute gate — hard stop; clears lofi preference
 	_want_play = false
 	enabled = false
 	_retry_left = 0
 	set_process(false)
 	_js_eval("try{if(window.kamMusicPause)window.kamMusicPause();}catch(e){}")
+
+func soft_pause() -> void:
+	## Optional: pause video without clearing enabled/ytWant.
+	## Prefer not to call on visibilitychange — HTML never does; autoplay blocks resume.
+	if not enabled:
+		return
+	_js_eval("try{if(window.kamMusicSoftPause)window.kamMusicSoftPause();}catch(e){}")
+
+func soft_resume() -> void:
+	## Tab visible again / recover from browser throttle — resume if user still wants lofi
+	if not enabled or not _want_play:
+		return
+	_js_resume_audio_context()
+	_js_play_once()
+	_retry_left = maxi(_retry_left, 60)
+	set_process(true)
 
 func set_volume(v: float) -> void:
 	## 0..1 → YT 0..100 (HTML applyMusicVol)
@@ -90,6 +106,19 @@ func _ensure_js_bridge() -> void:
 		return
 	var has_bridge = JavaScriptBridge.eval("!!(window.kamMusicPlay)", true)
 	if str(has_bridge) == "true" or has_bridge == true:
+		# Ensure soft-pause API exists even on older patched shells
+		var has_soft = JavaScriptBridge.eval("!!(window.kamMusicSoftPause)", true)
+		if str(has_soft) != "true" and has_soft != true:
+			_js_eval("""
+(function(){
+  if(window.kamMusicSoftPause) return;
+  window.kamMusicSoftPause=function(){
+    try{
+      if(window.__kamYtPlayer&&window.__kamYtPlayer.pauseVideo)window.__kamYtPlayer.pauseVideo();
+    }catch(e){}
+  };
+})();
+""".replace("\n", " "))
 		return
 	# Minimal inject (same API as godot/export/web_music_head.html)
 	var inject := """
@@ -111,11 +140,13 @@ func _ensure_js_bridge() -> void:
       ytPlayer=new YT.Player('ytmusic',{videoId:YT_ID,playerVars:{autoplay:0,controls:0,disablekb:1,loop:1,playlist:YT_ID,modestbranding:1,playsinline:1,rel:0,fs:0},
         events:{onReady:function(){ytReady=true;try{ytPlayer.setVolume(ytVol);ytPlayer.unMute();}catch(e){} if(ytWant){try{ytPlayer.playVideo();}catch(e2){}}},
           onStateChange:function(e){if(e.data===YT.PlayerState.ENDED){try{ytPlayer.playVideo();}catch(e3){}}}}});
+      window.__kamYtPlayer=ytPlayer;
     }catch(e){console.warn('[kamMusic] inject',e);}
   }
   window.kamMusicPlay=function(vol01){ytWant=true;if(typeof vol01==='number')ytVol=Math.round(Math.max(0,Math.min(1,vol01))*100);
     if(ytReady&&ytPlayer){try{ytPlayer.setVolume(ytVol);ytPlayer.unMute();ytPlayer.playVideo();}catch(e){}}};
   window.kamMusicPause=function(){ytWant=false;if(ytReady&&ytPlayer){try{ytPlayer.pauseVideo();}catch(e){}}};
+  window.kamMusicSoftPause=function(){if(ytReady&&ytPlayer){try{ytPlayer.pauseVideo();}catch(e){}}};
   window.kamMusicVol=function(vol01){ytVol=Math.round(Math.max(0,Math.min(1,Number(vol01)||0))*100);
     if(ytReady&&ytPlayer){try{ytPlayer.setVolume(ytVol);}catch(e){}}};
   if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){

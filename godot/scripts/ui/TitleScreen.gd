@@ -273,7 +273,7 @@ func _on_pointer_down(p: Vector2) -> void:
 			return
 		for r in _shout_hits:
 			if MenuHelpers.in_btn(p, r):
-				OS.shell_open(str(r.get("url", "")))
+				MenuHelpers.open_url(str(r.get("url", "")))
 				return
 		P2Meta.close_shoutouts()
 		return
@@ -320,7 +320,8 @@ func _handle_title_click(p: Vector2) -> void:
 			if MenuHelpers.in_btn(p, s):
 				var url := str(s.get("url", ""))
 				if url != "":
-					OS.shell_open(url)
+					# window.open keeps this tab + YT lofi alive (HTML parity)
+					MenuHelpers.open_url(url)
 					_sfx("item")
 				return
 	for b in model.title_btns:
@@ -519,7 +520,7 @@ func _handle_lb(p: Vector2) -> void:
 		if MenuHelpers.in_btn(p, r):
 			var u = str(r.get("profileUrl", ""))
 			if u != "":
-				OS.shell_open(u)
+				MenuHelpers.open_url(u)
 			return
 	_return_title()
 

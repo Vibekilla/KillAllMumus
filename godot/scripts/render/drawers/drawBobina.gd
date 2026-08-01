@@ -63,7 +63,8 @@ func _backArm(col, lw = 3.8) -> void:
 	ctx.line_to(10.5 + _armSw * 0.7, 7 - _sBob)
 	ctx.stroke()
 
-func _frontArm(col, lw = 3.8) -> void:
+func _frontArm(_col, _lw = 3.8) -> void:
+	## HTML: `const frontArm=(col,lw)=>{}` — intentional no-op; both arms drawn by backArm
 	pass
 
 func _hands(g, c1, c2) -> void:
@@ -247,7 +248,7 @@ func drawBobina(p) -> void:
 	var _armCol = skinSh
 	var _armW = 3.8
 	var _handCols = null
-	# TODO_PORT: kept as a no-op so every outfit's call site still works
+	# frontArm is HTML no-op; outfit call sites kept for 1:1 structure
 	var outfit: String = str(p.get("outfit", selected_outfit) if p.get("outfit", selected_outfit) else "og")
 	var uwu = p.get("expr", null) == "uwu"
 	var smile = (not p.get("expr", null)) or str(p.get("expr", "")) == "smile"

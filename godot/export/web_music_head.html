@@ -86,6 +86,15 @@
     }
   };
 
+  // Soft pause: pause video but keep ytWant (do NOT clear preference).
+  // Prefer NOT calling this on visibilitychange — HTML never pauses lofi on tab hide;
+  // browser autoplay often blocks resume without a fresh user gesture.
+  window.kamMusicSoftPause = function () {
+    if (ytReady && ytPlayer) {
+      try { ytPlayer.pauseVideo(); } catch (e) {}
+    }
+  };
+
   window.kamMusicVol = function (vol01) {
     ytVol = Math.round(Math.max(0, Math.min(1, Number(vol01) || 0)) * 100);
     if (ytReady && ytPlayer) {
