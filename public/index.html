@@ -237,6 +237,23 @@
   #ps-resume:active{ transform:scale(0.97); }
   #ps-menu{ margin-top:10px; width:100%; min-height:46px; border:1px solid rgba(255,255,255,0.2); border-radius:12px; cursor:pointer; background:rgba(255,255,255,0.06); color:#e8cfe0; font-size:14px; font-weight:bold; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
   #ps-menu:active{ background:rgba(255,255,255,0.14); }
+  /* Display entry points — match Controls / Settings secondary buttons (were bare browser buttons) */
+  #ps-display, #set-display{
+    margin-top:10px; width:100%; min-height:44px; border:1px solid rgba(143,208,255,0.4); border-radius:12px;
+    cursor:pointer; background:rgba(143,208,255,0.12); color:#bfe6ff; font-size:14px; font-weight:bold;
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent; font-family:inherit;
+  }
+  #ps-display:active, #set-display:active{ background:rgba(143,208,255,0.24); }
+  #disp-close{
+    margin-top:14px; width:100%; min-height:46px; border:1px solid rgba(255,255,255,0.18); border-radius:12px;
+    cursor:pointer; background:rgba(255,120,190,0.14); color:#ffd6ea; font-size:15px; font-weight:bold;
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent; font-family:inherit;
+  }
+  #disp-close:active{ background:rgba(255,120,190,0.26); }
+  /* Compact preset chips inside Display (set-toggle defaults to width:100%) */
+  #display .set-row .set-toggle, #display .disp-preset, #display .disp-hz{
+    width:auto; min-width:72px; flex:1 1 auto; padding:10px 14px; font-family:inherit;
+  }
   .ps-hint{ color:#c0a8bc; font-size:12px; margin-top:12px; }
   /* ===== SHOUTOUTS modal ===== */
   #shoutouts{ position:fixed; inset:0; z-index:44; display:none; align-items:center; justify-content:center; padding:14px;
@@ -823,27 +840,39 @@ function applyMusicVol(){ if(ytReady&&ytPlayer){ try{ ytPlayer.setVolume(Math.ro
 function actx(){ if(!AC){ try{ AC=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return AC; }
 function initMaster(){ const ac=actx(); if(ac&&!masterGain){ masterGain=ac.createGain(); masterGain.gain.value=sfxVol; masterGain.connect(ac.destination); } }
 function sfx(type, vmul){
-  const ac=actx(); if(!ac)return; const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain(); o.connect(g); g.connect(masterGain||ac.destination);
-  const vm=(vmul||1);
-  const S=(f0,f1,d,ty,vol)=>{ o.type=ty; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+d); g.gain.setValueAtTime(vol*vm,t); g.gain.exponentialRampToValueAtTime(0.001,t+d); o.start(t); o.stop(t+d+0.02); };
-  if(type==='shoot') S(1100,620,0.07,'triangle',0.035);
-  else if(type==='hit') S(300,140,0.06,'square',0.05);
-  else if(type==='kill') S(180,70,0.13,'sawtooth',0.07);
-  else if(type==='graze') S(1500,2300,0.05,'sine',0.03);
-  else if(type==='item') S(900,1500,0.06,'triangle',0.05);
-  else if(type==='power') S(700,1400,0.12,'square',0.06);
-  else if(type==='extend'){ [660,880,1320].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='triangle';oo.frequency.value=f;gg.gain.setValueAtTime(0.001,t+i*0.09);gg.gain.linearRampToValueAtTime(0.1,t+i*0.09+0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.09+0.3);oo.start(t+i*0.09);oo.stop(t+i*0.09+0.32);}); }
-  else if(type==='bomb') S(120,900,0.5,'sawtooth',0.14);
-  else if(type==='hurt') S(240,70,0.35,'square',0.16);
-  else if(type==='card'){ [180,300,240].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='sawtooth';oo.frequency.setValueAtTime(f,t+i*0.08);gg.gain.setValueAtTime(0.1,t+i*0.08);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.08+0.25);oo.start(t+i*0.08);oo.stop(t+i*0.08+0.27);}); }
-  else if(type==='win'){ [523,659,784,1046,1318].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='triangle';oo.frequency.value=f;gg.gain.setValueAtTime(0.001,t+i*0.1);gg.gain.linearRampToValueAtTime(0.1,t+i*0.1+0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.3);oo.start(t+i*0.1);oo.stop(t+i*0.1+0.32);}); }
-  // ---- melee weapon sounds ----
-  else if(type==='slash') S(2600,760,0.14,'sawtooth',0.055);                       // Kuma Katana — plasma shing
-  else if(type==='whip')  S(1500,150,0.18,'sine',0.075);                           // Kraken Lash — whoosh
-  else if(type==='thud')  S(170,46,0.18,'square',0.15);                            // Monke Bonk — club thud
-  else if(type==='boom'){ [110,72].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='sawtooth';oo.frequency.setValueAtTime(f*3,t);oo.frequency.exponentialRampToValueAtTime(f,t+0.42);gg.gain.setValueAtTime(0.16,t+i*0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+0.46);oo.start(t);oo.stop(t+0.48);}); }  // Vault Hammer — boom
-  else if(type==='claw'){ [1900,2300,1650].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='sawtooth';oo.frequency.setValueAtTime(f,t+i*0.045);oo.frequency.exponentialRampToValueAtTime(f*0.5,t+i*0.045+0.06);gg.gain.setValueAtTime(0.055,t+i*0.045);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.045+0.08);oo.start(t+i*0.045);oo.stop(t+i*0.045+0.1);}); }  // Badger Claws — triple scratch
-  else if(type==='warp'){ o.type='sine'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(1400,t+0.18); o.frequency.exponentialRampToValueAtTime(90,t+0.5); g.gain.setValueAtTime(0.13*vm,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.5); o.start(t); o.stop(t+0.52); }  // Wormhole — interdimensional whoosh
+  // Never throw into the game loop (AudioContext / ramp edge cases were killing item-use frames)
+  try{
+    const ac=actx(); if(!ac)return;
+    const t=ac.currentTime, dest=masterGain||ac.destination, vm=(vmul||1)||1;
+    const S=(f0,f1,d,ty,vol)=>{
+      const o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(dest);
+      const v0=Math.max(0.0008, (vol||0.05)*vm);
+      o.type=ty||'sine';
+      o.frequency.setValueAtTime(Math.max(1,f0),t);
+      o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t+d);
+      g.gain.setValueAtTime(v0,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+d);
+      o.start(t); o.stop(t+d+0.02);
+    };
+    if(type==='shoot') S(1100,620,0.07,'triangle',0.035);
+    else if(type==='hit') S(300,140,0.06,'square',0.05);
+    else if(type==='kill') S(180,70,0.13,'sawtooth',0.07);
+    else if(type==='graze') S(1500,2300,0.05,'sine',0.03);
+    else if(type==='item') S(900,1500,0.06,'triangle',0.05);
+    else if(type==='power') S(700,1400,0.12,'square',0.06);
+    else if(type==='extend'){ [660,880,1320].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='triangle';oo.frequency.value=f;gg.gain.setValueAtTime(0.001,t+i*0.09);gg.gain.linearRampToValueAtTime(0.1,t+i*0.09+0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.09+0.3);oo.start(t+i*0.09);oo.stop(t+i*0.09+0.32);}); }
+    else if(type==='bomb') S(120,900,0.5,'sawtooth',0.14);
+    else if(type==='hurt') S(240,70,0.35,'square',0.16);
+    else if(type==='card'){ [180,300,240].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='sawtooth';oo.frequency.setValueAtTime(f,t+i*0.08);gg.gain.setValueAtTime(0.1,t+i*0.08);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.08+0.25);oo.start(t+i*0.08);oo.stop(t+i*0.08+0.27);}); }
+    else if(type==='win'){ [523,659,784,1046,1318].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='triangle';oo.frequency.value=f;gg.gain.setValueAtTime(0.001,t+i*0.1);gg.gain.linearRampToValueAtTime(0.1,t+i*0.1+0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.3);oo.start(t+i*0.1);oo.stop(t+i*0.1+0.32);}); }
+    // ---- melee weapon sounds ----
+    else if(type==='slash') S(2600,760,0.14,'sawtooth',0.055);                       // Kuma Katana — plasma shing
+    else if(type==='whip')  S(1500,150,0.18,'sine',0.075);                           // Kraken Lash — whoosh
+    else if(type==='thud')  S(170,46,0.18,'square',0.15);                            // Monke Bonk — club thud
+    else if(type==='boom'){ [110,72].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='sawtooth';oo.frequency.setValueAtTime(f*3,t);oo.frequency.exponentialRampToValueAtTime(f,t+0.42);gg.gain.setValueAtTime(0.16,t+i*0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+0.46);oo.start(t);oo.stop(t+0.48);}); }  // Vault Hammer — boom
+    else if(type==='claw'){ [1900,2300,1650].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='sawtooth';oo.frequency.setValueAtTime(f,t+i*0.045);oo.frequency.exponentialRampToValueAtTime(f*0.5,t+i*0.045+0.06);gg.gain.setValueAtTime(0.055,t+i*0.045);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.045+0.08);oo.start(t+i*0.045);oo.stop(t+i*0.045+0.1);}); }  // Badger Claws — triple scratch
+    else if(type==='warp'){ const o=ac.createOscillator(),g=ac.createGain(); o.connect(g); g.connect(dest); o.type='sine'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(1400,t+0.18); o.frequency.exponentialRampToValueAtTime(90,t+0.5); g.gain.setValueAtTime(0.13*vm,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.5); o.start(t); o.stop(t+0.52); }  // Wormhole
+  }catch(e){ /* audio optional — never break gameplay */ }
 }
 // Music = "lofi hip hop radio" YouTube stream via hidden IFrame player. Autoplays at MAX volume once the user taps the sound-gate.
 let lofiOn=false, ytPlayer=null, ytReady=false, ytWant=false;
@@ -1280,10 +1309,10 @@ function lockCost(type, key){ if(FREE_CONTENT[type+':'+key]) return 0; return SH
 }catch(e){} })();
 // ---- CONSUMABLES: stored items you buy, carry, cycle with [A] and USE by tapping [Q] ----
 const CONSUMABLES=[
-  { key:'honeycomb', name:'Honeycomb',  icon:'🍯', col:'#ffcf5a', cost:16, desc:'Restore 1 heart.',   full:()=>run.lives>=MAX_LIVES, apply:()=>{ if(run) run.lives=Math.min(MAX_LIVES, run.lives+1); } },
-  { key:'bulltears', name:'Bull Tears',  icon:'💧', col:'#8fd0ff', cost:12, desc:'Fill 10% power.',    full:()=>run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), run.power+0.5); } },   // power range is 1→6 (five tiers, span 5); cap lowers on HARD/HELL
-  { key:'bullsouls', name:'Bull Souls',  icon:'🔮', col:'#b98cff', cost:28, desc:'Fill 30% power.',    full:()=>run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), run.power+1.5); } },
-  { key:'galaxygas', name:'Galaxy Gas',  icon:'🌌', col:'#9d6bff', cost:56, desc:'Fill 75% power.',    full:()=>run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), run.power+3.75); },
+  { key:'honeycomb', name:'Honeycomb',  icon:'🍯', col:'#ffcf5a', cost:16, desc:'Restore 1 heart.',   full:()=>!!run && run.lives>=MAX_LIVES, apply:()=>{ if(run) run.lives=Math.min(MAX_LIVES, (run.lives|0)+1); } },
+  { key:'bulltears', name:'Bull Tears',  icon:'💧', col:'#8fd0ff', cost:12, desc:'Fill 10% power.',    full:()=>!!run && run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), (+run.power||1)+0.5); } },   // power range is 1→6 (five tiers, span 5); cap lowers on HARD/HELL
+  { key:'bullsouls', name:'Bull Souls',  icon:'🔮', col:'#b98cff', cost:28, desc:'Fill 30% power.',    full:()=>!!run && run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), (+run.power||1)+1.5); } },
+  { key:'galaxygas', name:'Galaxy Gas',  icon:'🌌', col:'#9d6bff', cost:56, desc:'Fill 75% power.',    full:()=>!!run && run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), (+run.power||1)+3.75); },
     draw:(s)=>{ const u=s/24; ctx.save(); ctx.scale(u,u);   // literal galaxy-in-a-jar (matches Honey Badger's shop ware)
       ctx.save(); ctx.beginPath(); ctx.roundRect(-7,-6,14,15,4); ctx.clip();   // swirling galaxy, clipped inside the glass
       const g=ctx.createRadialGradient(-1,3,0.4,-1,3,10); g.addColorStop(0,'#efe4ff'); g.addColorStop(0.32,'#9d6bff'); g.addColorStop(0.7,'#3a1a6a'); g.addColorStop(1,'#0a0618'); ctx.fillStyle=g; ctx.fillRect(-8,-7,16,17);
@@ -1294,19 +1323,20 @@ const CONSUMABLES=[
       ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=0.9; ctx.beginPath(); ctx.moveTo(-4.5,-3); ctx.lineTo(-4.5,5); ctx.stroke();   // highlight
       ctx.fillStyle='#cdb083'; ctx.beginPath(); ctx.roundRect(-8,-9.5,16,4,1.6); ctx.fill(); ctx.fillStyle='#e6cfa2'; ctx.beginPath(); ctx.roundRect(-5,-11,10,2.4,1); ctx.fill();   // lid
       ctx.restore(); } },
-  { key:'clover',    name:'Clover',      icon:'🍀', col:'#7ed957', cost:25, desc:'Charge 25% special.', full:()=>run.special>=100, apply:()=>{ if(run) run.special=Math.min(100, run.special+25); } },
+  { key:'clover',    name:'Clover',      icon:'🍀', col:'#7ed957', cost:25, desc:'Charge 25% special.', full:()=>!!run && (+run.special||0)>=100, apply:()=>{ if(run) run.special=Math.min(100, (+run.special||0)+25); } },
   { key:'bubbles',   name:'Bubbles',     icon:'🫧', col:'#8fd0ff', cost:30, desc:'I blow bubbles that trap Mumus, then pop them for AoE.', apply:()=>{ if(run&&player) spawnBubbles(); } },
-  { key:'wagyu',     name:'Wagyu',       icon:'🥩', col:'#ff8aa0', cost:38, desc:'Restore 3 hearts.',   full:()=>run.lives>=MAX_LIVES, apply:()=>{ if(run) run.lives=Math.min(MAX_LIVES, run.lives+3); } },
+  { key:'wagyu',     name:'Wagyu',       icon:'🥩', col:'#ff8aa0', cost:38, desc:'Restore 3 hearts.',   full:()=>!!run && run.lives>=MAX_LIVES, apply:()=>{ if(run) run.lives=Math.min(MAX_LIVES, (run.lives|0)+3); } },
   { key:'stardust',  name:'Stardust',    icon:'✨', col:'#ffe08a', cost:35, desc:'Questionable dust — stars spawn around me and sap power from nearby Mumus.', apply:()=>{ if(run&&player) spawnStardust(); } },
   { key:'vial',      name:'Unholy Vial',  icon:'🧪', col:'#9d6bff', cost:32, desc:'Void energy shields me from the next 3 bullets for 5s.', apply:()=>{ if(player){ player.vialHits=3; player.vialT=300; sfx('power'); flashMsg={t:80,txt:'🧪 UNHOLY VIAL — VOID WARD!'}; } } },
-  { key:'banana',    name:'Banana',       icon:'🍌', col:'#ffd23a', cost:22, desc:'A quick snack — induces Monke’s Frenzy rapid fire.', apply:()=>{ if(player){ player.rapidT=Math.max(player.rapidT,330); sfx('power'); flashMsg={t:80,txt:'🍌 MONKE’S FRENZY!'}; } } },
-  { key:'wormhole',  name:'Wormhole',     icon:'🌀', col:'#7fdfff', cost:46, desc:'Phase into an alt reality for 3s — untouchable & no collision, but I still hurt Mumus.', apply:()=>{ if(player){ player.phaseT=180; sfx('warp'); screenShake=Math.max(screenShake,5); flashMsg={t:80,txt:'🌀 WORMHOLE — PHASED!'}; for(let i=0;i<24;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10,life:26,c:i%2?'#7fdfff':'#b98cff'}); } } },
+  { key:'banana',    name:'Banana',       icon:'🍌', col:'#ffd23a', cost:22, desc:'A quick snack — induces Monke’s Frenzy rapid fire.', apply:()=>{ if(player){ player.rapidT=Math.max(+player.rapidT||0,330); sfx('power'); flashMsg={t:80,txt:'🍌 MONKE’S FRENZY!'}; } } },
+  { key:'wormhole',  name:'Wormhole',     icon:'🌀', col:'#7fdfff', cost:46, desc:'Phase into an alt reality for 3s — untouchable & no collision, but I still hurt Mumus.', apply:()=>{ if(player){ player.phaseT=180; sfx('warp'); screenShake=Math.max(screenShake||0,5); flashMsg={t:80,txt:'🌀 WORMHOLE — PHASED!'}; if(!Array.isArray(particles)) particles=[]; for(let i=0;i<24;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10,life:26,c:i%2?'#7fdfff':'#b98cff'}); } } },
 ];
-let consumInv=(()=>{ try{ return JSON.parse(localStorage.getItem('bobina_consum'))||{}; }catch(e){ return {}; } })();
+let consumInv=(()=>{ try{ const v=JSON.parse(localStorage.getItem('bobina_consum')||'{}'); return (v&&typeof v==='object'&&!Array.isArray(v))?v:{}; }catch(e){ return {}; } })();
 try{ const a=JSON.parse(localStorage.getItem('bobina_arsenal')||'null'); if(a&&Array.isArray(a.i)) arsenalI=a.i.filter(k=>CONSUMABLES.some(c=>c.key===k)); }catch(e){}   // load persisted item loadout
+if(!Array.isArray(arsenalI)) arsenalI=['honeycomb','bulltears','bullsouls'];
 if(arsenalI.length>ARS_CAP.i) arsenalI=arsenalI.slice(0,ARS_CAP.i);
 let selConsum=0, shopTab='w';
-function saveConsum(){ try{ localStorage.setItem('bobina_consum', JSON.stringify(consumInv)); }catch(e){} }
+function saveConsum(){ try{ if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={}; localStorage.setItem('bobina_consum', JSON.stringify(consumInv)); }catch(e){} }
 
 // ======== CLOUD PROGRESS (Bobina-linked accounts) ========
 // Mirrors all game mechanics into Postgres for signed-in bc_id users.
@@ -1505,32 +1535,53 @@ window.cloudPullAndMerge = cloudPullAndMerge;
 window.scheduleCloudSave = scheduleCloudSave;
 window.buildProgressSnapshot = buildProgressSnapshot;
 
-function consumQty(k){ return consumInv[k]||0; }
 function resetInventory(){   // wipe bought gear + carried items + skulls back to the starter kit; KEEP emblems, outfits & NG+
   for(const k in shopUnlocks) delete shopUnlocks[k]; saveShopUnlocks();
+  if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={};
   for(const k in consumInv) delete consumInv[k]; saveConsum();
   mumuHeads=0; saveHeads();
   arsenalW=['laser']; arsenalS=['mech','bearzooka']; arsenalM=['katana']; arsenalI=['honeycomb','bulltears','bullsouls']; selConsum=0; saveArsenal();
   try{ localStorage.setItem('bobina_invmigrated','1'); }catch(e){}   // stay "migrated" so the wipe sticks (no auto-regrant)
   if(run) applyArsenalToRun();
 }
-function consumById(k){ return CONSUMABLES.find(c=>c.key===k); }
-function selConsumObj(){ if(selConsum>=arsenalI.length) selConsum=0; return consumById(arsenalI[selConsum]); }   // the selected item is now whatever sits in that equipped slot
-function cycleConsumable(){ if(!arsenalI.length){ sfx('hit'); flashMsg={t:75,txt:'No items equipped — set them in the Arsenal'}; return; } selConsum=(selConsum+1)%arsenalI.length; const c=selConsumObj(); if(c){ sfx('item'); flashMsg={t:75,txt:c.icon+' '+c.name+'  ×'+consumQty(c.key)}; } }
-function consumeSelected(){ const c=selConsumObj(); if(!c||!run||!player) return false;
-  if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={};   // guard corrupt cloud/localStorage
-  if(consumQty(c.key)>0){
-    if(c.full && c.full()){ sfx('hit'); flashMsg={t:80,txt:'Already maxed — '+c.name+' saved'}; pop(player.x,player.y-30,'FULL','#9fe0a4'); return false; }   // no waste (no cooldown): skip if hearts/power/special are already full
-    try{
-      consumInv[c.key]=Math.max(0,(Number(consumInv[c.key])||0)-1); if(consumInv[c.key]<=0) delete consumInv[c.key]; saveConsum();
+function consumById(k){ return CONSUMABLES.find(c=>c.key===k)||null; }
+function consumQty(k){ if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={}; return Math.max(0, Number(consumInv[k])||0); }
+function selConsumObj(){
+  if(!Array.isArray(arsenalI)) arsenalI=[];
+  if(!arsenalI.length) return null;
+  if(selConsum<0||selConsum>=arsenalI.length) selConsum=0;
+  return consumById(arsenalI[selConsum]);
+}
+function cycleConsumable(){
+  try{
+    if(!Array.isArray(arsenalI)||!arsenalI.length){ sfx('hit'); flashMsg={t:75,txt:'No items equipped — set them in the Arsenal'}; return; }
+    selConsum=(selConsum+1)%arsenalI.length; const c=selConsumObj();
+    if(c){ sfx('item'); flashMsg={t:75,txt:c.icon+' '+c.name+'  ×'+consumQty(c.key)}; }
+  }catch(err){ console.error('[cycleConsumable]', err); }
+}
+function consumeSelected(){
+  // Hardened for public HTML — never let item use kill the session
+  try{
+    if(!run||!player) return false;
+    if(!Array.isArray(arsenalI)) arsenalI=[];
+    if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={};
+    if(!Array.isArray(particles)) particles=[];
+    if(!Array.isArray(scoreTexts)) scoreTexts=[];
+    if(!Array.isArray(fx)) fx=[];
+    const c=selConsumObj(); if(!c){ sfx('hit'); flashMsg={t:70,txt:'No items equipped — set them in the Arsenal'}; return false; }
+    const q=consumQty(c.key);
+    if(q>0){
+      if(typeof c.full==='function' && c.full()){ sfx('hit'); flashMsg={t:80,txt:'Already maxed — '+c.name+' saved'}; pop(player.x,player.y-30,'FULL','#9fe0a4'); return false; }
+      consumInv[c.key]=Math.max(0,q-1); if(consumInv[c.key]<=0) delete consumInv[c.key]; saveConsum();
       if(typeof c.apply==='function') c.apply();
-      sfx('extend'); flashMsg={t:90,txt:c.icon+' '+c.name+' used!'}; pop(player.x,player.y-30,c.icon,c.col);
-      for(let i=0;i<14;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:26,c:c.col});
-      if(c.key==='honeycomb'){ estats.honeycombs=(estats.honeycombs||0)+1; saveEstats(); if(estats.honeycombs>=100) unlockEmblem('honeycomb_100'); }
+      sfx('extend'); flashMsg={t:90,txt:(c.icon||'•')+' '+(c.name||c.key)+' used!'}; pop(player.x,player.y-30,c.icon||'•',c.col||'#ffcf5a');
+      for(let i=0;i<14;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:26,c:c.col||'#ffcf5a'});
+      if(c.key==='honeycomb'){ if(!estats||typeof estats!=='object') estats={}; estats.honeycombs=(estats.honeycombs||0)+1; saveEstats(); if(estats.honeycombs>=100) unlockEmblem('honeycomb_100'); }
       return true;
-    }catch(err){ console.error('[consumeSelected]', err); sfx('hit'); flashMsg={t:90,txt:'Item fizzled — try again'}; return false; }
-  }
-  else { sfx('hit'); flashMsg={t:70,txt:'No '+c.name+' left — buy some at the shop'}; return false; } }
+    }
+    sfx('hit'); flashMsg={t:70,txt:'No '+(c.name||'item')+' left — buy some at the shop'}; return false;
+  }catch(err){ console.error('[consumeSelected]', err); try{ sfx('hit'); flashMsg={t:90,txt:'Item fizzled — try again'}; }catch(_e){} return false; }
+}
 // ---- Shop catalogue (tabbed like the arsenal): buy weapons / specials / melee to unlock, or stock up on consumables ----
 function shopList(tab){
   if(tab==='i') return CONSUMABLES.map(c=>({ kind:'consumable', key:c.key, icon:c.icon, name:c.name, desc:c.desc, col:c.col, cost:c.cost, qty:consumQty(c.key), draw:c.draw }));
@@ -1848,7 +1899,7 @@ function updateFx(){
       else { f.life--; f.x+=f.vx; f.y+=f.vy; f.vy+=0.015; f.vx*=0.99; f.vy*=0.985; f.r=Math.min(f.rmax, f.r+0.35);
         if(f.x<PF.x+f.r){ f.x=PF.x+f.r; f.vx=Math.abs(f.vx)*0.6; } if(f.x>PF.x+PF.w-f.r){ f.x=PF.x+PF.w-f.r; f.vx=-Math.abs(f.vx)*0.6; }
         if(f.y<PF.y+f.r){ f.y=PF.y+f.r; f.vy=Math.abs(f.vy)*0.6; } if(f.y>PF.y+PF.h-f.r){ f.y=PF.y+PF.h-f.r; f.vy=-Math.abs(f.vy)*0.6; }
-        let caught=0; for(const e of enemies){ const dx=f.x-e.x, dy=f.y-e.y, d=Math.hypot(dx,dy)||1; if(d<f.r+e.r+10){ const gp=(1-Math.min(1,d/(f.r+34)))*1.7; e.x+=dx/d*gp; e.y+=dy/d*gp; e.flash=Math.max(e.flash,2); caught++; } }   // trap: pull Mumus in, grouping them
+        let caught=0; for(const e of enemies||[]){ if(!e)continue; const dx=f.x-e.x, dy=f.y-e.y, d=Math.hypot(dx,dy)||1; const er=(e.r||15); if(d<f.r+er+10){ const gp=(1-Math.min(1,d/(f.r+34)))*1.7; e.x+=dx/d*gp; e.y+=dy/d*gp; e.flash=Math.max(+e.flash||0,2); caught++; } }   // trap: pull Mumus in, grouping them
         f.caught=caught;
         if(f.life<=0 || f.caught>=5){ f.pop=16; f.popR=f.r; sfx('bomb');   // POP → AoE burst
           const R=f.r+46; for(const e of enemies){ if(Math.hypot(e.x-f.x,e.y-f.y)<R){ e.hp-=18; e.flash=6; if(e.hp<=0) killEnemy(e); } }
@@ -1862,7 +1913,7 @@ function updateFx(){
       if(f.life>0 && f.life%5===0){ const a=Math.random()*6.283, r=18+Math.random()*58; f.stars.push({x:f.x+Math.cos(a)*r, y:f.y+Math.sin(a)*r, life:28, t:0, sz:1.3+Math.random()*1.5, rot:Math.random()*6.28, hue:(tick*4+Math.random()*100)%360|0, sapping:false}); }
       // each star saps HP from the nearest Mumu it's near
       for(const st of f.stars){ st.t++; let tgt=null,bd=1e9; for(const e of enemies){ const d=(e.x-st.x)**2+(e.y-st.y)**2; if(d<bd){ bd=d; tgt=e; } }
-        if(tgt && bd<34*34){ tgt.hp-=0.5; tgt.flash=Math.max(tgt.flash,2); st.sapX=tgt.x; st.sapY=tgt.y; st.sapping=true; if(tgt.hp<=0) killEnemy(tgt); } else st.sapping=false; }
+        if(tgt && bd<34*34){ tgt.hp-=0.5; tgt.flash=Math.max(+tgt.flash||0,2); st.sapX=tgt.x; st.sapY=tgt.y; st.sapping=true; if(tgt.hp<=0) killEnemy(tgt); } else st.sapping=false; }
       f.stars=f.stars.filter(s=>s.t<s.life);
     }
   }
@@ -2362,11 +2413,19 @@ function update(){
   if(p.dead){ p.respawn--; if(p.respawn<=0 && run.lives>=0) initPlayer(); updateItems(); return; }
   if(run.cleared){ if(clearMsgT>0)clearMsgT--; }   // free-roam prep: press [E] at the portal to leave, [E] at the shop to buy — no auto-enter
   // consumables: [Switch Item] cycles (keyPress); TAP [Use Item] to consume, then a 3s cooldown (no spamming)
-  if(!paused){ if(p._eCd>0) p._eCd--;
-    if(keys.item_use){ if(!p._eHeld){ p._eHeld=true;   // edge of press = tap use
-        if(p._eCd>0){ sfx('hit'); flashMsg={t:60,txt:'⌛ Item cooling down — '+Math.ceil(p._eCd/60)+'s'}; }
-        else if(consumeSelected()){ p._eCd=180; } } }   // a successful use starts the 3s cooldown
-    else if(p._eHeld){ p._eHeld=false; } }   // consumables work during the cleared prep too, so you can stock up and heal before the portal
+  // Outer try — public HTML must never freeze if item apply/audio/fx throws
+  try{
+    if(!paused && p){
+      if(p._eCd>0) p._eCd--;
+      if(keys.item_use){
+        if(!p._eHeld){
+          p._eHeld=true;
+          if(p._eCd>0){ sfx('hit'); flashMsg={t:60,txt:'⌛ Item cooling down — '+Math.ceil(p._eCd/60)+'s'}; }
+          else if(consumeSelected()){ p._eCd=180; }
+        }
+      } else if(p._eHeld){ p._eHeld=false; }
+    }
+  }catch(err){ console.error('[item_use]', err); try{ if(p) p._eHeld=false; }catch(_e){} }
   if(p.iframe>0)p.iframe--; if(p.bombFx>0)p.bombFx--; if(hurtPortrait>0)hurtPortrait--; if(p.shieldT>0)p.shieldT--; if(p.rapidT>0)p.rapidT--; if(p.dashCd>0)p.dashCd--;
   if(p.vialT>0){ p.vialT--; if(p.vialT<=0) p.vialHits=0; } if(p.phaseT>0)p.phaseT--;   // Unholy Vial window / Wormhole phase
   p.offx=(p.offx||0)*0.95; p.offy=(p.offy||0)*0.95;   // a dash's displacement decays away → she eases back under the cursor over ~1s
