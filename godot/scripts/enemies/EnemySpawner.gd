@@ -117,44 +117,60 @@ func _spawn_waves() -> void:
 	if roll > 1 and roll % 4 == 2:
 		_spawn_elite(pf.position.x + 80 + randf() * (pf.size.x - 160))
 
+## HTML ELITE_KIND / ELITE_HP / ELITE_BCOL (stage-indexed, not boss portrait)
+const ELITE_KIND := ["ape", "badnik", "cheer", "pup", "scammer", "voideye", "goon"]
+const ELITE_HP := [9.0, 11.0, 15.0, 17.0, 20.0, 22.0, 24.0]
+const ELITE_BCOL := ["#ffd24a", "#ff9ecb", "#a6f06a", "#c79bff", "#ffb347", "#e0b84a", "#ff7a6a"]
+
 func _spawn_lil(x: float, y: float, vx: float, vy: float, icy: bool) -> void:
+	## HTML spawnLil
 	var d := GameState.stage_index
 	var e = EnemyScene.instantiate()
 	playfield.add_child(e)
 	e.setup(bullet_pool, Vector2(x, y), {
 		"kind": "lil",
-		"hp": round((3.0 if icy else 2.0) * (1.0 + d * 0.45)),
-		"vel": Vector2(vx * (1.0 + d * 0.1), vy * (1.0 + d * 0.14)) * FRAME,
+		"hp": round((3.0 if icy else 2.0) * (1.0 + float(d) * 0.45)),
+		"vel": Vector2(vx * (1.0 + float(d) * 0.1), vy * (1.0 + float(d) * 0.14)) * FRAME,
 		"icy": icy,
 		"r": 15.0,
-		"score": 100,
+		"score": 100,  # HTML killEnemy: big?500:100
 	})
 
 func _spawn_big(x: float, y: float, icy: bool = false) -> void:
+	## HTML spawnBig — hp (icy?26:16)*(1+d*0.45), r=30, vy=0.55+d*0.08
 	var d := GameState.stage_index
 	var e = EnemyScene.instantiate()
 	playfield.add_child(e)
+	var pf: Rect2 = Config.playfield()
 	e.setup(bullet_pool, Vector2(x, y), {
 		"kind": "big",
-		"hp": round((8.0 if icy else 6.0) * (1.0 + d * 0.5)),
-		"vel": Vector2(0, 1.4 * FRAME),
+		"hp": round((26.0 if icy else 16.0) * (1.0 + float(d) * 0.45)),
+		"vel": Vector2(0.0, (0.55 + float(d) * 0.08) * FRAME),
 		"icy": icy,
-		"r": 22.0,
-		"score": 350,
-		"hover": Config.playfield().position.y + 80 + randf() * 40,
+		"r": 30.0,
+		"score": 500,
+		"hover": pf.position.y + 90.0 + randf() * 60.0,
 	})
 
 func _spawn_elite(x: float) -> void:
-	var d := GameState.stage_index
+	## HTML spawnElite — themed kind/HP by stage index
+	var s: int = mini(6, GameState.stage_index)
 	var e = EnemyScene.instantiate()
 	playfield.add_child(e)
-	e.setup(bullet_pool, Vector2(x, Config.playfield().position.y - 40), {
+	var pf: Rect2 = Config.playfield()
+	var base_hp: float = float(ELITE_HP[s])
+	var hard_mul: float = 1.45 if GameState.hard_mode else 1.0
+	var hp: float = float(round(base_hp * 1.3 * hard_mul * (1.0 + float(s) * 0.05)))
+	var bcol: String = str(ELITE_BCOL[s])
+	var ekind: String = str(ELITE_KIND[s])
+	e.setup(bullet_pool, Vector2(x, pf.position.y - 40.0), {
 		"kind": "elite",
-		"hp": round(14.0 * (1.0 + d * 0.55)),
-		"vel": Vector2(0, 1.2 * FRAME),
+		"hp": hp,
+		"vel": Vector2(0.0, (0.5 + float(s) * 0.05) * FRAME),
 		"icy": false,
-		"r": 26.0,
-		"score": 900,
-		"hover": Config.playfield().position.y + 100,
-		"elite": str(DataRegistry.get_stage(d).get("boss", {}).get("portrait", "")),
+		"r": 30.0,
+		"score": 100,  # HTML: non-big → 100
+		"hover": pf.position.y + 90.0 + randf() * 70.0,
+		"elite": ekind,
+		"bcol": bcol,
 	})

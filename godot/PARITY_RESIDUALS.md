@@ -116,7 +116,8 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Elite/mumu/item grids | Structure duals; stage motif intensity product |
 | Item glyph fonts | ♥★✸ emoji vs HTML monospace product |
 | Stage bg FX | Gradients/motifs; parity intensity open |
-| Wave spawner variety | `spawnWaves` HTML vs Godot EnemySpawner product |
+| Wave spawner variety | `spawnWaves` structure | **Fixed** big/elite HP, r=30, ELITE_KIND table, kill score |
+| Kill estats double-count | was +2 per kill | **Fixed** (add_kill only) |
 
 ### Dual harness holes
 | Gap | Detail |
@@ -266,3 +267,4 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | Boss HP 2.1 scale + introDlg/clearWave; drawOptions world optionPos |
 | 2026-08-01 | Boss take_damage: shot muls only (bomb was under-damaging at high power) |
 | 2026-08-01 | Enemy bullet SPD mul (NORMAL 0.8 · HELL×NG threat) was hard-coded 1.0 |
+| 2026-08-01 | Big/elite HP + ELITE_KIND table + single kill score/estats path |

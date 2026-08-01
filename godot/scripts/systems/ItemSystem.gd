@@ -86,7 +86,7 @@ func kill_enemy(e: Dictionary, silent: bool = false) -> void:
 	kills_this_stage += 1
 	if randf() < 0.06:
 		drop_item(x, y, "skull", {"val": 30 if kind == "big" else 10})
-	ProgressStore.estats_add("kills", 1)
+	# estats.kills via GameState.add_kill only (do not double-count)
 	if not ProgressStore.has_emblem("first_mumu"):
 		ProgressStore.unlock_emblem("first_mumu")
 	var ek := int(ProgressStore.estats.get("kills", 0))
@@ -98,8 +98,9 @@ func kill_enemy(e: Dictionary, silent: bool = false) -> void:
 		ProgressStore.unlock_emblem("kills_5000")
 	if ek >= 10000:
 		ProgressStore.unlock_emblem("kills_10000")
+	# HTML: sessionScore += floor((big?500:100)*scoreMult())
 	var pts := int(floor((500.0 if kind == "big" else 100.0) * CombatHelpers.score_mult()))
-	# EnemyBase already adds score — avoid double if caller handled; kill_enemy used as canonical
+	GameState.add_score(pts)
 	CombatHelpers.burst(x, y, "#9fe0ff" if icy else "#ff9ecb")
 	floaters.append({"x": x, "y": y, "life": 30.0, "vy": -0.7, "scale": 1.0 if kind == "big" else 0.62})
 	drop_loot(e)

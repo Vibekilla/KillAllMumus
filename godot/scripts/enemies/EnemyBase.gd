@@ -41,13 +41,17 @@ func setup(pool: Node, pos: Vector2, opts: Dictionary = {}) -> void:
 	max_hp = float(opts.get("hp", 2.0))
 	hp = max_hp
 	vel = opts.get("vel", Vector2(0, 100)) as Vector2
-	radius = float(opts.get("r", 15.0 if kind == "lil" else 22.0))
-	score_value = int(opts.get("score", 100 if kind == "lil" else (300 if kind == "big" else 800)))
+	radius = float(opts.get("r", 15.0 if kind == "lil" else 30.0))
+	# HTML killEnemy score: big → 500, else 100 (elite included)
+	score_value = int(opts.get("score", 500 if kind == "big" else 100))
 	hover_y = float(opts.get("hover", Config.playfield().position.y + 90.0))
 	elite_type = str(opts.get("elite", ""))
 	bcol = Color("9fe0ff") if icy else Color("ff7ad1")
 	if kind == "elite":
-		bcol = Color("7ed957")
+		if opts.has("bcol"):
+			bcol = Color.html(str(opts.get("bcol")))
+		else:
+			bcol = Color("7ed957")
 	age_frames = randf() * 100.0
 
 func _physics_process(delta: float) -> void:
@@ -151,7 +155,7 @@ func _die(charmed: bool = false) -> void:
 	GameState.add_kill(1)
 	if StageFlow:
 		StageFlow.note_kill()
-	GameState.add_score(int(float(score_value) * GameState.score_mul()))
+	# HTML killEnemy owns score (big 500 / else 100 × scoreMult) — avoid double-add
 	ItemSystem.kill_enemy({
 		"x": global_position.x, "y": global_position.y,
 		"kind": kind, "icy": icy,
