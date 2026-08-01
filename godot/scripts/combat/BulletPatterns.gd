@@ -8,8 +8,16 @@ static func frame_spd(spd: float) -> float:
 	return spd * FRAME * _spd_mul()
 
 static func _spd_mul() -> float:
-	# HTML SPD scalar + hardMode slowing bullets slightly via hm in patterns
-	return 1.0
+	## HTML: SPD = (hardMode ? 1.0 : 0.8) * threatMul()
+	## hardMode = difficulty>=1; threatMul = (hell?1.28:1)*(1+ng*0.16)
+	var base := 1.0 if GameState.hard_mode else 0.8
+	var threat := 1.0
+	if GameState:
+		if GameState.has_method("threat_mul"):
+			threat = float(GameState.threat_mul())
+		else:
+			threat = (1.28 if GameState.hell_mode else 1.0) * (1.0 + float(GameState.ng_plus) * 0.16)
+	return base * threat
 
 static func col(c) -> Color:
 	if c is Color:

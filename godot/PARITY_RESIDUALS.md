@@ -136,6 +136,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Item magnet / collect line | PASS | Edge cases vacuum |
 | Sixth Sense rates | PASS | — |
 | Twin / dash / bomb numbers | PASS | Visual dashLandExplosion product |
+| **Enemy bullet SPD** | **Fixed** `(hard?1:0.8)*threatMul` was stubbed to 1.0 | `test_bullet_spd` PASS |
 | Gamepad map | PASS | Glyph labels product |
 | Consumable tap + CD | PASS | All 11 apply FX product |
 | Emblem toast | PASS | Queue stacking product |
@@ -264,3 +265,4 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | Boss keeps wave minions (HTML parity); graze structure test |
 | 2026-08-01 | Boss HP 2.1 scale + introDlg/clearWave; drawOptions world optionPos |
 | 2026-08-01 | Boss take_damage: shot muls only (bomb was under-damaging at high power) |
+| 2026-08-01 | Enemy bullet SPD mul (NORMAL 0.8 · HELL×NG threat) was hard-coded 1.0 |
