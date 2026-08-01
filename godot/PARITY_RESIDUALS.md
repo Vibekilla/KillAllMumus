@@ -7,14 +7,34 @@ Structure duals/gates can be green while **product** still differs. This file li
 
 ---
 
+## Method (going forward)
+
+```bash
+cd /var/www/dev
+# Always export so BOTH previews get the same public_godot:
+npm run export:godot
+# → /var/www/dev/public_godot
+# → rsync mirror /var/www/killallmumus.com/public_godot
+# Test:
+#   https://dev.killallmumus.com/          (USE_GODOT=1 default on dev)
+#   https://dev.killallmumus.com/godot/
+#   https://killallmumus.com/godot/        (preview only; / stays html-legacy)
+# Commit + promote still required for git main / server.js / non-godot assets.
+```
+
+HTML function → Godot port → **behavior** diff → dual/test → export **both** worktrees → only then check off.
+
+---
+
 ## P0 — User-facing blockers (reported / confirmed)
 
 | Area | HTML truth | Godot residual | Status |
 |------|------------|----------------|--------|
-| **Soundgate → music** | Every load shows gate; **Play** → `initMaster()` + `musicPlay()` (YT lofi) on user gesture; **Muted** → no stream | Was: permanent `soundgate_seen` skipped gate so music never re-armed; MusicBridge single-shot eval could miss YT ready | **Fix in progress** (session gate + MusicBridge retries/inject) |
-| **Soundgate → fullscreen** | `goFullscreenMobile()` **touch only** | Was: always `DisplayServer` fullscreen (desktop too) | **Fix in progress** (touch/web JS only) |
-| **Soundgate look** | CSS `.sg-card`, campfire JPG 16:9, pink pulse CTA | Canvas draw approx.; not pixel CSS | Improved card chrome; still not 1:1 CSS layout (landscape grid) |
-| **Title under gate** | Gate is opaque DOM over canvas | Title may show through if gate draw incomplete / z wrong | Gate z=80; verify full-viewport dim |
+| **Soundgate → music** | Every load shows gate; **Play** → `initMaster()` + `musicPlay()` (YT lofi) | (1) permanent `soundgate_seen` skipped gate (2) **`COEP: require-corp` on /godot/** blocked youtube.com iframe even with threads off | **Fixed**: session gate + no COEP unless threads; MusicBridge retries |
+| **Soundgate → fullscreen** | `goFullscreenMobile()` **touch only** | Was always fullscreen | **Fixed** (touch/web only) |
+| **Soundgate look** | CSS `.sg-card`, campfire 16:9, pink pulse CTA | Canvas approx. | Improved; landscape grid still residual |
+| **Title under gate** | Opaque DOM over canvas | Canvas gate z=80 | Verify dim full viewport after hard-refresh |
+| **Export visibility** | N/A | Dev-only export left live `/godot/` stale | **Fixed**: `export:godot` mirrors live `public_godot` |
 
 ---
 

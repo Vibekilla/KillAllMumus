@@ -81,6 +81,7 @@ func _js_eval(code: String) -> void:
 		return
 	if not ClassDB.class_exists("JavaScriptBridge"):
 		return
+	# Global execution context so window.kamMusicPlay is the page bridge (not a sandbox)
 	JavaScriptBridge.eval(code, true)
 
 func _ensure_js_bridge() -> void:

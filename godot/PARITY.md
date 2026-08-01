@@ -1,5 +1,6 @@
 
-> **Residuals:** tracked in [`PARITY_RESIDUALS.md`](./PARITY_RESIDUALS.md) — structure duals can pass while product gaps remain (music gate, dialog, mechanics matrix, etc.).
+> **Residuals:** tracked in [`PARITY_RESIDUALS.md`](./PARITY_RESIDUALS.md) — structure duals can pass while product gaps remain (music gate, dialog, mechanics matrix, etc.).  
+> **Export method:** `npm run export:godot` writes **dev** `public_godot/` and **mirrors live** `public_godot/` so both `/godot/` previews update (live `/` stays html-legacy until Phase 7).
 
 # HTML → Godot parity (true 1:1 full port)
 

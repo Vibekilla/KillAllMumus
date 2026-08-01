@@ -458,10 +458,25 @@ function wantsGodotTest(req) {
   return false;
 }
 
+/** True when this export was built with threads (SharedArrayBuffer). */
+function godotThreadsEnabled() {
+  try {
+    const html = fs.readFileSync(path.join(GODOT_DIR, 'index.html'), 'utf8');
+    // Godot 4 web shell: const GODOT_THREADS_ENABLED = true|false;
+    const m = html.match(/GODOT_THREADS_ENABLED\s*=\s*(true|false)/);
+    if (m) return m[1] === 'true';
+  } catch (_) {}
+  return false;
+}
+
 function setGodotHeaders(res, filePath) {
-  // Threaded WASM builds need COOP/COEP; safe on /godot/* only
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  // Threaded WASM needs COOP/COEP for SharedArrayBuffer.
+  // Non-threaded builds MUST NOT set COEP require-corp — it blocks the HTML
+  // lofi YouTube iframe (no CORP headers from youtube.com) so music never plays.
+  if (godotThreadsEnabled()) {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  }
   if (filePath && filePath.endsWith('.wasm')) {
     res.setHeader('Content-Type', 'application/wasm');
   }
