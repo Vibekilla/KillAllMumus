@@ -98,17 +98,25 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [ ] Intro / specials / phases / dialog / defeat / hell portal / twin swap / ambience (live play)
 
 ### Enemies / stage / meta
-- [ ] All mumu forms + elites (cheer, ape, badnik, pup, scammer, voideye, goon, …)
+- [x] Elite grid dual (`godot_elites_grid` — cheer/ape/badnik/pup/scammer/voideye/goon)
+- [x] Mumu grid dual (`godot_mumus_grid` — lil/big ± icy)
+- [x] Item drop grid dual (`godot_items_grid`)
+- [ ] Product visual sign-off (item glyph font polish, stage motifs)
 - [ ] Intro / dialog / shop + Honey Badger / stage-clear + leekspin + maid dance
 - [ ] Win / game-over / clear portal / full HUD / particles / floaters / emblem toasts
 - [ ] Title + peephole + social + every meta-menu live preview
 
 ## Phase 4 — Mechanics
 
-- [ ] Power bleed 0.00085, graze, extends, shot levels, weapon matrix, familiars
+- [x] Structure smoke (`npm run port:gate:4`) — CombatHelpers / Fire / StageFlow / ProgressStore
+- [x] Power bleed 0.00085 (`test_power_bleed`)
+- [x] Extends / kill-extend (`test_extend`)
+- [x] Item magnet / collect line (`test_item_magnet`)
+- [x] Sixth Sense slowmo rates (`test_slowmo_sixth`)
+- [ ] Graze, shot levels, weapon matrix, familiars full product pass
 - [ ] Specials / melee charge / bombs / dash numbers match HTML
 - [ ] All boss phases, patterns, HP, threat, twins, defeat
-- [ ] Items / burns / floaters / consumables hold-to-use / emblem tick
+- [ ] Items / burns / floaters / consumables / emblem tick product pass
 - [ ] Stage flow: intro → waves → gate → shop → dialog → next / win
 - [ ] ProgressStore local + cloud; arsenal/shop; emblems; heads; estats persist
 - [ ] Keyboard / gamepad / touch parity

@@ -1425,10 +1425,13 @@ func _run() -> void:
 
 		if _want("elites"):
 			_dual_sanitize(player, pool)
+			GameState.stage_index = 0  # jungle bg (match HTML dual)
 			GameState.power = 1.0
 			GameState.session_score = 0
 			GameState.total_kills = 0
 			GameState.graze = 0
+			if StageFlow:
+				StageFlow.dialog = null
 			for _i in range(8):
 				await process_frame
 				_dual_sanitize(player, pool)
@@ -1500,18 +1503,15 @@ func _run() -> void:
 					var chp3 = _A("CombatHelpers")
 					if chp3 and "particles" in chp3:
 						chp3.particles.clear()
-				# Full-power float near badnik (HTML dual often shows this label)
+				# Match HTML elites still (no floaters / chrome)
 				var chp4 = _A("CombatHelpers")
-				if chp4 and chp4.has_method("pop"):
-					var bpos := Vector2(pf2.position.x + 80.0 + 2.0 * 100.0, pf2.position.y + 120.0 - 28.0)
-					chp4.pop(bpos.x, bpos.y, "FULL POWER", "#ffd27a")
-					# Keep floater alive for still
+				if chp4:
 					if "score_texts" in chp4:
-						for st in chp4.score_texts:
-							if st is Dictionary and str(st.get("txt", "")) == "FULL POWER":
-								st["life"] = 90.0
-								st["y"] = bpos.y
-								st["x"] = bpos.x
+						chp4.score_texts.clear()
+					if "particles" in chp4:
+						chp4.particles.clear()
+					if "flash_msg" in chp4:
+						chp4.flash_msg = {}
 				await process_frame
 				await _save("godot_elites_grid")
 				for e in root.get_tree().get_nodes_in_group("enemies"):
