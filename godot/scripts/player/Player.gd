@@ -35,6 +35,10 @@ var trail: Array = []  # dash comet trail (local points)
 var slash_dash: bool = false
 var armed_special: int = 0
 var _shift_tap_t: float = 999.0
+## HTML Badger Claws full-charge flurry (p.flurry / flurryDir / flurryDmg)
+var flurry: float = 0.0
+var flurry_dir: float = -PI / 2.0
+var flurry_dmg: float = 2.0
 ## HTML death / respawn cycle (p.dead, p.respawn)
 var dead: bool = false
 var respawn: float = 0.0
@@ -143,6 +147,13 @@ func _physics_process(delta: float) -> void:
 		if vial_t <= 0.0:
 			vial_hits = 0
 	_shift_tap_t += df
+	# HTML Badger Claws flurry: mow arc every other frame for 30 frames
+	if flurry > 0.0 and not dead:
+		flurry -= df
+		if int(floor(flurry)) % 2 == 0:
+			_flurry_tick()
+		if flurry <= 0.0:
+			flurry = 0.0
 
 	focus = Input.is_action_pressed("focus") and dash <= 0.0
 	var spd := FOCUS_SPEED if focus else SPEED
@@ -347,6 +358,25 @@ func _melee_def(key: String) -> Dictionary:
 		if DataRegistry.melee.size():
 			return DataRegistry.melee[0]
 	return {}
+
+func _flurry_tick() -> void:
+	## HTML Badger Claws flurry mow — uses live aim so turning sweeps a new arc
+	var dir := flurry_dir
+	if aim != 0.0:
+		dir = aim
+	var reach := 118.0
+	var half := 1.0
+	var fdmg := flurry_dmg
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e):
+			continue
+		var dx: float = e.global_position.x - global_position.x
+		var dy: float = e.global_position.y - global_position.y
+		var d: float = sqrt(dx * dx + dy * dy)
+		var er: float = float(e.get("radius")) if e.get("radius") != null else 15.0
+		if d < reach + er and absf(wrapf(atan2(dy, dx) - dir, -PI, PI)) < half:
+			if e.has_method("take_damage"):
+				e.take_damage(fdmg)
 
 func _dash_plow() -> void:
 	## HTML: dash kills mumus / chips boss; slash cuts bullets + trail melee arcs

@@ -273,3 +273,4 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | Stage bullet SPD * (1+stage*0.13); armed special index; body hit r+5 |
 | 2026-08-01 | Bomb silent kills; special_25 + bomb sfx; loadStage field clear (fx/burns/slowmo) |
 | 2026-08-01 | bulletCancelAll/Near point drops + shell keep; neutralizeInputs on intro/shop |
+| 2026-08-01 | Melee charge: flame 78 life, no double-hit; BH projectile; shockwall/flurry; melee cancel points |

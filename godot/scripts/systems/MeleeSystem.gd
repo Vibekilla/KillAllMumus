@@ -103,18 +103,16 @@ func _charge_fx(player: Node2D, m: Dictionary, dir: float, reach: float, half: f
 	var origin := player.global_position
 	match fx:
 		"flame":
-			ItemSystem.add_burn(origin.x, origin.y, dir, reach * 1.1, half + 0.3, str(m.get("col", "#ff7a2a")), 90.0)
-			for e in player.get_tree().get_nodes_in_group("enemies"):
-				if not is_instance_valid(e):
-					continue
-				var to: Vector2 = e.global_position - origin
-				if to.length() < reach * 1.1 and _ang_diff(to.angle(), dir) < half + 0.3:
-					if e.has_method("take_damage"):
-						e.take_damage(dmg * 0.5)
+			# HTML: burns only (no extra hit) — half+0.15, reach*1.05, life 78
+			ItemSystem.add_burn(origin.x, origin.y, dir, reach * 1.05, half + 0.15, str(m.get("col", "#ff7a2a")), 78.0)
+			if AudioBus:
+				AudioBus.sfx("bomb")
 		"chain":
 			# Prefer melee col for bolt; HTML uses m.col
 			var ccol := str(m.get("col", "#b06cff"))
 			ItemSystem.chain_lightning(origin.x, origin.y, dmg, 6, ccol)
+			if AudioBus:
+				AudioBus.sfx("graze")
 			# If field empty (dual stills / no targets), still show a whip-chain path
 			var has_bolt := false
 			for f in swipe_fx:
@@ -137,29 +135,78 @@ func _charge_fx(player: Node2D, m: Dictionary, dir: float, reach: float, half: f
 				if CombatHelpers and "melee_fx" in CombatHelpers:
 					CombatHelpers.melee_fx.append(bolt2.duplicate(true))
 		"blackhole":
-			# pull nearby
-			for e in player.get_tree().get_nodes_in_group("enemies"):
-				if not is_instance_valid(e) or e.is_in_group("bosses"):
-					continue
-				var d: float = origin.distance_to(e.global_position)
-				if d < reach * 1.4 and d > 1.0:
-					e.global_position += (origin - e.global_position).normalized() * minf(40.0, 80.0 / d)
+			# HTML: hurl a moving black hole (SpecialSystem.fx updates pull)
+			var colb := str(m.get("col", "#3ae66a"))
+			var bh := {
+				"type": "blackhole", "t": 96.0, "dt": 0.0,
+				"x": origin.x + cos(dir) * 18.0,
+				"y": origin.y + sin(dir) * 18.0,
+				"vx": cos(dir) * 5.5, "vy": sin(dir) * 5.5,
+				"r": 0.0, "col": colb,
+			}
+			if player.get("specials") != null and player.specials.get("fx") is Array:
+				player.specials.fx.append(bh)
+			if AudioBus:
+				AudioBus.sfx("whip")
+				AudioBus.sfx("power")
 		"shockwall":
+			# HTML: ring FX + fling + stun 70 + vaporize bullets in reach*1.2
+			if CombatHelpers and "melee_fx" in CombatHelpers:
+				CombatHelpers.melee_fx.append({
+					"ring": true, "x": origin.x, "y": origin.y,
+					"r0": reach * 0.4, "r1": reach * 1.6,
+					"col": str(m.get("col", "#ffd27a")), "life": 22.0, "t": 0.0,
+				})
 			for e in player.get_tree().get_nodes_in_group("enemies"):
 				if not is_instance_valid(e) or e.is_in_group("bosses"):
 					continue
-				var to: Vector2 = e.global_position - origin
-				if to.length() < reach * 1.2:
-					e.global_position += to.normalized() * kb * 4.0
-					e.set("stun", 40.0)
+				var to2: Vector2 = e.global_position - origin
+				if to2.length() < reach * 1.4:
+					var sx: float = 1.0 if to2.x >= 0.0 else -1.0
+					var sy: float = 1.0 if to2.y >= 0.0 else -1.0
+					# HTML sets e.vx/e.vy in px/frame; apply as one-shot shove
+					e.global_position += Vector2(sx * (13.0 + randf() * 4.0), sy * (3.0 + randf() * 3.0)) * 2.0
+					e.set("stun", maxf(float(e.get("stun")) if e.get("stun") != null else 0.0, 70.0))
+			var pool2: Variant = player.get("bullet_pool")
+			var vap: int = 0
+			var rc: int = 0
+			if pool2 != null:
+				for b in pool2.iter_active() if pool2.has_method("iter_active") else []:
+					if not is_instance_valid(b) or int(b.team) != 1:
+						continue
+					if b.global_position.distance_to(origin) < reach * 1.2:
+						vap += 1
+						if ItemSystem:
+							ItemSystem.floaters.append({
+								"x": b.global_position.x, "y": b.global_position.y,
+								"life": 14.0, "vy": -0.5, "scale": 0.34,
+							})
+							if rc < 44:
+								ItemSystem.drop_item(b.global_position.x, b.global_position.y, "point")
+								rc += 1
+						b.deactivate()
+			if vap >= 20:
+				ProgressStore.unlock_emblem("melee_shock")
+			if CombatHelpers:
+				CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 8.0)
+			if AudioBus:
+				AudioBus.sfx("bomb")
 		"flurry":
-			for e in player.get_tree().get_nodes_in_group("enemies"):
-				if not is_instance_valid(e):
-					continue
-				var to: Vector2 = e.global_position - origin
-				if to.length() < reach * 1.15 and _ang_diff(to.angle(), dir) < half + 0.4:
-					if e.has_method("take_damage"):
-						e.take_damage(dmg * 1.8)
+			# HTML: p.flurry=30; p.flurryDir=dir; p.flurryDmg=max(1,round(dmg*0.5))
+			if "flurry" in player:
+				player.flurry = 30.0
+			else:
+				player.set("flurry", 30.0)
+			if "flurry_dir" in player:
+				player.flurry_dir = dir
+			else:
+				player.set("flurry_dir", dir)
+			if "flurry_dmg" in player:
+				player.flurry_dmg = maxf(1.0, round(dmg * 0.5))
+			else:
+				player.set("flurry_dmg", maxf(1.0, round(dmg * 0.5)))
+			if AudioBus:
+				AudioBus.sfx("slash")
 
 func _ang_diff(a: float, b: float) -> float:
 	return absf(wrapf(a - b, -PI, PI))

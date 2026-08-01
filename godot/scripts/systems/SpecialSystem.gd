@@ -222,6 +222,10 @@ func _update_fx(delta: float) -> void:
 			"blackhole":
 				f["t"] = float(f["t"]) - df
 				f["dt"] = float(f.get("dt", 0)) + df
+				# Melee charge BH has vx/vy (px/frame); revenge BH is stationary
+				if f.has("vx") or f.has("vy"):
+					f["x"] = float(f["x"]) + float(f.get("vx", 0.0)) * df
+					f["y"] = float(f["y"]) + float(f.get("vy", 0.0)) * df
 				f["r"] = minf(15.0, float(f.get("r", 0)) + 1.1 * df)
 				var pull = 155.0
 				for e in get_tree().get_nodes_in_group("enemies"):

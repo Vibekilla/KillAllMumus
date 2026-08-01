@@ -104,6 +104,8 @@ func iter_active() -> Array:
 	return out
 
 func melee_deflect(origin: Vector2, dir: float, reach: float, half: float, cancel: bool) -> void:
+	## HTML doMeleeSwipe bullet filter — cancel drops points (≤28); else shove outward
+	var cnt: int = 0
 	for b in _pool:
 		if not b.active or int(b.team) != 1:
 			continue
@@ -112,9 +114,19 @@ func melee_deflect(origin: Vector2, dir: float, reach: float, half: float, cance
 		var d: float = sqrt(dx * dx + dy * dy)
 		if d < reach + 18.0 and (d < 46.0 or absf(wrapf(atan2(dy, dx) - dir, -PI, PI)) < half + 0.4):
 			if cancel or d < 30.0:
+				var bx: float = b.global_position.x
+				var by: float = b.global_position.y
+				if ItemSystem:
+					ItemSystem.floaters.append({
+						"x": bx, "y": by, "life": 14.0, "vy": -0.5, "scale": 0.34,
+					})
+					if cnt < 28:
+						ItemSystem.drop_item(bx, by, "point")
+						cnt += 1
 				b.deactivate()
 			else:
-				var sp: float = maxf(2.6 * 60.0, b.velocity.length())
+				# HTML: sp=max(2.6, hypot(vx,vy)) then set direction outward — speeds are px/frame
+				var sp_px: float = maxf(2.6, b.velocity.length() / 60.0)
 				var nx: float = dx / d if d > 0.5 else 0.0
 				var ny: float = dy / d if d > 0.5 else -1.0
-				b.velocity = Vector2(nx, ny) * sp
+				b.velocity = Vector2(nx, ny) * sp_px * 60.0
