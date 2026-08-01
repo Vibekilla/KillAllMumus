@@ -101,10 +101,12 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [x] Elite grid dual (`godot_elites_grid` — cheer/ape/badnik/pup/scammer/voideye/goon)
 - [x] Mumu grid dual (`godot_mumus_grid` — lil/big ± icy)
 - [x] Item drop grid dual (`godot_items_grid`)
-- [ ] Product visual sign-off (item glyph font polish, stage motifs)
-- [ ] Intro / dialog / shop + Honey Badger / stage-clear + leekspin + maid dance
-- [ ] Win / game-over / clear portal / full HUD / particles / floaters / emblem toasts
-- [ ] Title + peephole + social + every meta-menu live preview
+- [x] Core flow duals: intro / play / pause / clear-gate / shop / stage-clear / emblem toast
+- [x] Ends duals: win (`godot_end_win`) + gameover (`godot_end_gameover`)
+- [x] Meta menus duals: title / outfits / arsenal / emblems / leaderboard / settings / ng / help / shoutouts
+- [ ] Product visual sign-off (item glyph font polish, stage motifs, pause blur, shop quotes)
+- [ ] Leekspin / maid dance easter eggs product pass
+- [ ] Title peephole + social strip product pass
 
 ## Phase 4 — Mechanics
 
@@ -113,32 +115,35 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 - [x] Extends / kill-extend (`test_extend`)
 - [x] Item magnet / collect line (`test_item_magnet`)
 - [x] Sixth Sense slowmo rates (`test_slowmo_sixth`)
+- [x] Clear-gate timing (`test_clear_gate_timing`)
+- [x] Consumable tap + CD (`test_consumable_tap`)
+- [x] Emblem toast sim (`test_emblem_toast`)
+- [x] Twin / dash / bomb numbers (`test_twin_dash_bomb`)
+- [x] Gamepad action map (`test_gamepad_map`)
 - [ ] Graze, shot levels, weapon matrix, familiars full product pass
-- [ ] Specials / melee charge / bombs / dash numbers match HTML
-- [ ] All boss phases, patterns, HP, threat, twins, defeat
-- [ ] Items / burns / floaters / consumables / emblem tick product pass
-- [ ] Stage flow: intro → waves → gate → shop → dialog → next / win
-- [ ] ProgressStore local + cloud; arsenal/shop; emblems; heads; estats persist
-- [ ] Keyboard / gamepad / touch parity
-- [ ] Autofire setting
+- [ ] Specials / melee charge product numbers match HTML
+- [ ] All boss phases, patterns, HP, threat, twins, defeat (live play)
+- [ ] ProgressStore cloud merge product pass
+- [ ] Touch parity product pass
+- [ ] Autofire setting product pass
 
 ## Phase 5 — Audio
 
-- [ ] All 16 `sfx()` envelopes
-- [ ] Music bridge (soundgate → lofi; mute; volume)
+- [x] SFX envelope smoke — all 16 keys (`test_sfx_envelopes` PASS)
+- [ ] Music bridge (soundgate → lofi; mute; volume) product pass
 
 ## Phase 6 — UI overlays & meta
 
-- [ ] Settings
-- [ ] Display
-- [ ] Keybinds
-- [ ] Help
-- [ ] Pause
-- [ ] Name entry
-- [ ] Shoutouts
-- [ ] Soundgate
-- [ ] Touch chrome
-- [ ] Leaderboard + cloud merge
+- [x] Settings dual (`godot_menu_settings`)
+- [ ] Display product pass
+- [ ] Keybinds product pass
+- [x] Help dual (`godot_menu_help`)
+- [x] Pause dual (`godot_flow_pause` — full card + Display/Controls/Menu)
+- [ ] Name entry product pass
+- [x] Shoutouts dual (`godot_menu_shoutouts`)
+- [ ] Soundgate product pass
+- [ ] Touch chrome product pass
+- [x] Leaderboard dual structure (`godot_menu_leaderboard`)
 
 ## Phase 7 — Dual QA hard gate
 
