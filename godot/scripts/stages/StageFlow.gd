@@ -143,11 +143,33 @@ func leave_shop() -> void:
 	## HTML leaveShop — back to play (field with portal) unless from stageclear flow
 	if AudioBus:
 		AudioBus.sfx("item")
+	neutralize_inputs()
 	if shop_return == "stageclear":
 		# after stage clear screen → go intro next stage via advance
 		advance_from_shop()
 	else:
 		GameState.set_state(GameState.State.PLAY)
+
+func neutralize_inputs() -> void:
+	## HTML neutralizeInputs — prevent transition key/tap from leaking into fire/melee/item
+	var tree := get_tree()
+	if tree == null:
+		return
+	var pl = tree.get_first_node_in_group("player")
+	if pl == null:
+		return
+	if pl.get("melee") != null and pl.melee:
+		if pl.melee.get("holding") != null:
+			pl.melee.holding = false
+		if pl.melee.get("charge") != null:
+			pl.melee.charge = 0.0
+	if pl.get("consumables") != null and pl.consumables:
+		if "e_held" in pl.consumables:
+			pl.consumables.e_held = false
+	# Clear edge-triggered actions that just opened shop/portal
+	for action in ["shoot", "melee", "bomb", "special", "item_use", "interact", "swap"]:
+		if InputMap.has_action(action):
+			Input.action_release(action)
 
 func advance_from_shop() -> void:
 	GameState.stage_index += 1
@@ -187,6 +209,8 @@ func advance_screen() -> void:
 	## HTML advanceScreen
 	match GameState.state:
 		GameState.State.INTRO:
+			# HTML: state='play'; neutralizeInputs()
+			neutralize_inputs()
 			GameState.set_state(GameState.State.PLAY)
 		GameState.State.STAGE_CLEAR:
 			# HTML: loadStage(idx+1); state=intro
@@ -194,6 +218,7 @@ func advance_screen() -> void:
 			if GameState.stage_index >= DataRegistry.stages.size():
 				GameState.end_run(true)
 			else:
+				neutralize_inputs()
 				GameState.set_state(GameState.State.INTRO)
 		GameState.State.GAMEOVER, GameState.State.WIN:
 			GameState.start_run()

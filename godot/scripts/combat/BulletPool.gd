@@ -32,14 +32,48 @@ func spawn(pos: Vector2, vel: Vector2, damage: float, color: Color, team: int):
 	return b2
 
 func clear_enemy() -> void:
+	## HTML bulletCancelAll — cancel enemy bullets; first 40 drop point items + floaters
+	var pts: int = 0
 	for b in _pool:
-		if b.active and int(b.team) == 1:
-			b.deactivate()
+		if not b.active or int(b.team) != 1:
+			continue
+		var bx: float = b.global_position.x
+		var by: float = b.global_position.y
+		if ItemSystem:
+			ItemSystem.floaters.append({
+				"x": bx, "y": by, "life": 22.0, "vy": -0.6, "scale": 0.42,
+			})
+			if pts < 40:
+				ItemSystem.drop_item(bx, by, "point")
+				pts += 1
+		b.deactivate()
 
 func clear_enemy_near(pos: Vector2, radius: float) -> void:
+	## HTML bulletCancelNear — keep shells with hp>0; cancel others in radius (≤10 point drops)
+	var pts: int = 0
+	var r2: float = radius * radius
 	for b in _pool:
-		if b.active and int(b.team) == 1 and b.global_position.distance_to(pos) <= radius:
-			b.deactivate()
+		if not b.active or int(b.team) != 1:
+			continue
+		# HTML: if(b.hp>0) return true — durable shells survive cancel
+		var bhp: float = 0.0
+		if b.get("hp") != null:
+			bhp = float(b.get("hp"))
+		if bhp > 0.0:
+			continue
+		var d2: float = b.global_position.distance_squared_to(pos)
+		if d2 > r2:
+			continue
+		var bx: float = b.global_position.x
+		var by: float = b.global_position.y
+		if ItemSystem:
+			if pts < 10:
+				ItemSystem.drop_item(bx, by, "point")
+				pts += 1
+			ItemSystem.floaters.append({
+				"x": bx, "y": by, "life": 18.0, "vy": -0.5, "scale": 0.36,
+			})
+		b.deactivate()
 
 func filter_enemy_in_cone(pos: Vector2, radius: float, dir: float, half: float) -> void:
 	## HTML burn bullet cancel: d < reach*0.9 && angDiff < half
