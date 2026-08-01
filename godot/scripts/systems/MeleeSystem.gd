@@ -52,27 +52,43 @@ func release(player: Node2D, melee_key: String, dir: float = -PI / 2.0) -> void:
 
 	var mkills := 0
 	var hit_any := false
+	var origin := player.global_position
 	for e in player.get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):
 			continue
-		var dx: float = e.global_position.x - player.global_position.x
-		var dy: float = e.global_position.y - player.global_position.y
+		var dx: float = e.global_position.x - origin.x
+		var dy: float = e.global_position.y - origin.y
 		var d: float = sqrt(dx * dx + dy * dy)
 		var er: float = float(e.get("radius")) if e.get("radius") != null else 15.0
-		if d < reach + er and _ang_diff(atan2(dy, dx), dir) < half + 0.25:
+		var is_boss := e.is_in_group("bosses")
+		var half_hit := half + (0.3 if is_boss else 0.25)
+		if d < reach + er and _ang_diff(atan2(dy, dx), dir) < half_hit:
 			hit_any = true
 			if e.has_method("take_damage"):
 				e.take_damage(dmg)
+			if "flash" in e:
+				e.flash = 4.0 if is_boss else 6.0
 			var nx: float = dx / d if d > 0.5 else 0.0
 			var ny: float = dy / d if d > 0.5 else -1.0
-			e.global_position += Vector2(nx, ny) * kb * 2.2
-			if float(e.get("hp")) <= 0.0:
+			# HTML: mobs kb*2.2; boss kb*0.5
+			var kbm := 0.5 if is_boss else 2.2
+			e.global_position += Vector2(nx, ny) * kb * kbm
+			if not is_boss and CombatHelpers:
+				for s in range(5):
+					CombatHelpers.particles.append({
+						"x": e.global_position.x, "y": e.global_position.y,
+						"vx": nx * 3.0 + (randf() - 0.5) * 5.0,
+						"vy": ny * 3.0 + (randf() - 0.5) * 5.0,
+						"life": 15.0, "c": col if s % 2 == 0 else "#fff",
+					})
+			if not is_boss and float(e.get("hp")) <= 0.0:
 				mkills += 1
+				ProgressStore.estats_add("mkills", 1)
 
 	# cancel / shove enemy bullets
 	var pool: Variant = player.get("bullet_pool")
 	if pool != null and pool.has_method("melee_deflect"):
-		pool.melee_deflect(player.global_position, dir, reach, half, cancel)
+		pool.melee_deflect(origin, dir, reach, half, cancel)
 
 	if ch >= 0.85:
 		melee_charge_fx(player, m, dir, reach, half, dmg, kb)
@@ -87,11 +103,40 @@ func release(player: Node2D, melee_key: String, dir: float = -PI / 2.0) -> void:
 		AudioBus.sfx(str(m.get("snd", "slash")))
 		AudioBus.sfx("graze")
 
+	# swipe sparkle particles
+	if CombatHelpers:
+		var n_part := 12 + int(ch * 12.0)
+		for i in range(n_part):
+			var a := dir - half + randf() * float(m.get("arc", half * 2.0))
+			var rr := reach * (0.45 + randf() * 0.55)
+			CombatHelpers.particles.append({
+				"x": origin.x + cos(a) * rr, "y": origin.y + sin(a) * rr,
+				"vx": cos(a) * 2.0 + (randf() - 0.5), "vy": sin(a) * 2.0 + (randf() - 0.5),
+				"life": 12.0 + randf() * 8.0, "c": col if i % 2 == 0 else "#fff",
+			})
+
 	cooldown = float(m.get("cd", 18))
 	if hit_any:
 		melee_hit.emit(dmg)
-		if mkills > 0:
-			ProgressStore.unlock_emblem("melee_first")
+		# HTML: mweps bitfield per melee index → melee_all
+		var mi := 0
+		if DataRegistry:
+			for i in range(DataRegistry.melee.size()):
+				if str(DataRegistry.melee[i].get("key", "")) == melee_key:
+					mi = i
+					break
+		var mweps := int(ProgressStore.estats.get("mweps", 0))
+		mweps = mweps | (1 << mi)
+		ProgressStore.estats["mweps"] = mweps
+		ProgressStore.progress["estats"] = ProgressStore.estats
+		var n_melee := DataRegistry.melee.size() if DataRegistry else 5
+		var all_mask := (1 << n_melee) - 1
+		if (mweps & all_mask) == all_mask:
+			ProgressStore.unlock_emblem("melee_all")
+	if mkills > 0:
+		ProgressStore.unlock_emblem("melee_first")
+		if int(ProgressStore.estats.get("mkills", 0)) >= 300:
+			ProgressStore.unlock_emblem("melee_slayer")
 	charge = 0.0
 
 func melee_charge_fx(player: Node2D, m: Dictionary, dir: float, reach: float, half: float, dmg: float, kb: float) -> void:

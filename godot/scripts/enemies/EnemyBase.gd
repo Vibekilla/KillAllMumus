@@ -140,7 +140,14 @@ func _touch_player(p: Node2D) -> void:
 		return
 	# HTML: (e.r + p.r + 2) with p.r = 3 → e.r + 5
 	if global_position.distance_to(p.global_position) < radius + 5.0:
-		p.take_hit(2.0 if kind == "elite" else 1.0)
+		# HTML: hitPlayer(e.kind==='elite'?eliteHearts():1)
+		var hearts: float = 1.0
+		if kind == "elite":
+			if ItemSystem and ItemSystem.has_method("elite_hearts"):
+				hearts = float(ItemSystem.elite_hearts())
+			else:
+				hearts = float(mini(5, 2 + GameState.difficulty + GameState.ng_plus))
+		p.take_hit(hearts)
 
 func take_damage(amount: float, opts: Dictionary = {}) -> void:
 	hp -= amount
