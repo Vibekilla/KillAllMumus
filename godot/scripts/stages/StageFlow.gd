@@ -39,8 +39,9 @@ func reset_run() -> void:
 	kills_this_stage = 0
 	stage_emblem_mark = 0
 
-func on_stage_start() -> void:
+func on_stage_start(intro_frames: float = -1.0) -> void:
 	## HTML loadStage — reset field FX, burns, slowmo, items (not full newRun)
+	## introTimer: newRun/loadStage=140; advanceScreen after stageclear=120
 	stage_no_death = true
 	stage_no_bomb = true
 	kills_this_stage = 0
@@ -49,7 +50,12 @@ func on_stage_start() -> void:
 	clear_shop = null
 	clear_msg_t = 0.0
 	dialog = null
-	intro_timer = 20.0 if GameState.speedrun else 140.0
+	if GameState.speedrun:
+		intro_timer = 20.0
+	elif intro_frames >= 0.0:
+		intro_timer = intro_frames
+	else:
+		intro_timer = 140.0
 	GameState.set_meta("stage_cleared", false)
 	if ItemSystem:
 		ItemSystem.items.clear()
@@ -213,12 +219,14 @@ func advance_screen() -> void:
 			neutralize_inputs()
 			GameState.set_state(GameState.State.PLAY)
 		GameState.State.STAGE_CLEAR:
-			# HTML: loadStage(idx+1); state=intro
+			# HTML: loadStage(idx+1); state=intro; introTimer=120
 			GameState.stage_index += 1
 			if GameState.stage_index >= DataRegistry.stages.size():
 				GameState.end_run(true)
 			else:
 				neutralize_inputs()
+				# begin_current_stage → on_stage_start; request 120-frame intro
+				set_meta("next_intro_frames", 120.0)
 				GameState.set_state(GameState.State.INTRO)
 		GameState.State.GAMEOVER, GameState.State.WIN:
 			GameState.start_run()

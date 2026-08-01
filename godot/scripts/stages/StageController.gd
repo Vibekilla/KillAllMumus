@@ -21,7 +21,11 @@ func begin_current_stage() -> void:
 		return
 	_starting = true
 	if StageFlow:
-		StageFlow.on_stage_start()
+		var intro_f := -1.0
+		if StageFlow.has_meta("next_intro_frames"):
+			intro_f = float(StageFlow.get_meta("next_intro_frames"))
+			StageFlow.remove_meta("next_intro_frames")
+		StageFlow.on_stage_start(intro_f)
 	var stage: Dictionary = DataRegistry.get_stage(GameState.stage_index)
 	request_intro.emit(stage)
 	if bullet_pool:

@@ -81,6 +81,7 @@ func _fire(player: Node2D, pool: Node, wep: String, focus: bool) -> void:
 	elif wep == "scatter":
 		var n3 = 3 + lv * 2
 		for i in n3:
+			# HTML: off=(i-(n-1)/2)*0.14 + (random-0.5)*0.06
 			var off = (float(i) - float(n3 - 1) * 0.5) * 0.14 + randf_range(-0.03, 0.03)
 			shot.call(off, 10.0 + randf() * 3.0, 1.0, {"life": 22.0})
 	elif wep == "gatling":
@@ -108,16 +109,18 @@ func _fire(player: Node2D, pool: Node, wep: String, focus: bool) -> void:
 			var pos = ppos + perp2 * lat + cax2 * 8.0
 			_spawn_pshot(pool, pos, cax2 * 15.0 * FRAME, 3.0 + lv, {"vrip": true, "pierce": true})
 	elif wep == "lotus":
+		# HTML fire(): n=6+lv*2, curl ±0.035, life 58 (optionShot same curl/life)
 		var n5 = 6 + lv * 2
 		var spread = 1.5 + lv * 0.4
 		for i in n5:
 			var off = (float(i) - float(n5 - 1) * 0.5) * (spread / maxf(1.0, float(n5 - 1)))
-			shot.call(off, 6.2 + randf() * 1.4, 1.0, {"petal": true, "curl": (-1.0 if off < 0.0 else 1.0) * 0.03, "life": 62.0})
+			shot.call(off, 6.2 + randf() * 1.4, 1.0, {"petal": true, "curl": (-1.0 if off < 0.0 else 1.0) * 0.035, "life": 58.0})
 	elif wep == "shock":
+		# HTML: j=(random-0.5)*0.5, spd 13+random*4, zap dmg 2
 		var n6 = 2 + lv
 		for i in n6:
-			var off = randf_range(-0.5, 0.5) * (0.55 + lv * 0.09)
-			shot.call(off, 13.0 + randf() * 5.0, 2.0, {"zap": true})
+			var off = randf_range(-0.25, 0.25)  # (random-0.5)*0.5
+			shot.call(off, 13.0 + randf() * 4.0, 2.0, {"zap": true})
 	else:
 		# spread (default Emblem Amulets)
 		if focus:
