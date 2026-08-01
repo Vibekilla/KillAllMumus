@@ -65,6 +65,7 @@ Structure smoke: `npm run port:gates`. **Product gate: dual QA + PARITY Phase 7 
 
 ### Specials
 - [x] Structure duals for all 11 keys (`godot_special_*` harness)
+- [x] Sixth Sense: full `drawSlowmoFx` (clock hands + vignette) + dual pin mid-timer
 - [ ] Product visual sign-off vs HTML (laser beam, mech escort, etc.)
 
 ### Melee

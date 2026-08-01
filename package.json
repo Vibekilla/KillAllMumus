@@ -28,7 +28,9 @@
     "port:inventory": "node tools/port/inventory_public.mjs",
     "port:dual": "node tools/port/dual_playtest.mjs",
     "port:dual:full": "node tools/port/dual_playtest.mjs --full",
-    "port:fps": "xvfb-run -a -s '-screen 0 960x540x24' ${GODOT:-$HOME/.local/godot/godot} --path godot --script res://scripts/tools/fps_probe.gd"
+    "port:fps": "xvfb-run -a -s '-screen 0 960x540x24' ${GODOT:-$HOME/.local/godot/godot} --path godot --script res://scripts/tools/fps_probe.gd",
+    "export:godot": "bash scripts/export-godot-web.sh",
+    "export:godot:debug": "bash scripts/export-godot-web.sh --debug"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
@@ -46,7 +48,7 @@
       }
     ]
   },
-  "description": "Bobina: Kill All Mumus — killallmumus.com",
+  "description": "Bobina: Kill All Mumus \u2014 killallmumus.com",
   "engines": {
     "node": ">=20.9.0"
   },

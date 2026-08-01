@@ -1302,27 +1302,64 @@ func drawPhaseVeil() -> void:
 	ctx.restore()
 
 func drawSlowmoFx() -> void:
+	## HTML drawSlowmoFx — cyan wash + clock rings + hands + vignette (Sixth Sense)
 	if not GameState.has_meta("slowmo"):
 		return
 	var slowmo_t := float(GameState.get_meta("slowmo"))
+	if slowmo_t <= 0.0:
+		return
 	var a := minf(1.0, slowmo_t / 45.0) * minf(1.0, (300.0 - slowmo_t) / 16.0 + 0.25)
 	var pf: Rect2 = Config.playfield()
+	var t := float(tick)
 	ctx.save()
 	ctx.global_composite_operation("lighter")
 	ctx.global_alpha(0.09 * a)
 	ctx.fill_style("#2ac6ff")
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	var p := _player()
-	if p:
-		ctx.global_alpha(0.4 * a)
+	if p and not bool(p.get("dead")):
+		var cx := p.global_position.x
+		var cy := p.global_position.y
+		if CombatHelpers and CombatHelpers.has_method("body_ctr"):
+			var ctr: Vector2 = CombatHelpers.body_ctr({
+				"x": cx, "y": cy,
+				"face": float(p.get("aim")) if p.get("aim") != null else -PI / 2.0,
+			})
+			cx = ctr.x
+			cy = ctr.y
 		ctx.stroke_style("#bff0ff")
 		ctx.line_width(1.6)
 		for k in range(3):
-			var ph := fmod(float(tick) * 0.02 + float(k) / 3.0, 1.0)
+			var ph := fmod(t * 0.02 + float(k) / 3.0, 1.0)
 			ctx.global_alpha((1.0 - ph) * 0.4 * a)
 			ctx.begin_path()
-			ctx.arc(p.global_position.x, p.global_position.y, 10 + ph * 95, 0, TAU)
+			ctx.arc(cx, cy, 10.0 + ph * 95.0, 0, TAU)
 			ctx.stroke()
+		# clock hands
+		ctx.global_alpha(0.6 * a)
+		ctx.stroke_style("#eafcff")
+		ctx.line_width(1.4)
+		ctx.begin_path()
+		ctx.move_to(cx, cy)
+		ctx.line_to(cx + cos(t * 0.16) * 15.0, cy + sin(t * 0.16) * 15.0)
+		ctx.stroke()
+		ctx.begin_path()
+		ctx.move_to(cx, cy)
+		ctx.line_to(cx + cos(t * 0.016) * 22.0, cy + sin(t * 0.016) * 22.0)
+		ctx.stroke()
+	ctx.restore()
+	# vignette
+	ctx.save()
+	var vcx := pf.position.x + pf.size.x * 0.5
+	var vcy := pf.position.y + pf.size.y * 0.5
+	if ctx.has_method("createRadialGradient"):
+		var vg = ctx.createRadialGradient(vcx, vcy, pf.size.y * 0.28, vcx, vcy, pf.size.y * 0.72)
+		vg.add_color_stop(0, "rgba(0,0,0,0)")
+		vg.add_color_stop(1, "rgba(8,42,64,%s)" % str(0.4 * a))
+		ctx.fill_style(vg)
+	else:
+		ctx.fill_style("rgba(8,42,64,%s)" % str(0.28 * a))
+	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	ctx.restore()
 
 func drawHellPortal(b: Dictionary) -> void:

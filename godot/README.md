@@ -52,10 +52,20 @@ npm run port:dual -- --full
 ~/.local/godot/godot --path /var/www/dev/godot
 ```
 
-## Web export (Phase 8 cutover only for live)
+## Web export (always → this repo `public_godot/`)
+
+Export **must** land on the worktree you are developing (normally `/var/www/dev`).
+Live (`/var/www/killallmumus.com`) only receives `public_godot` via promote.
 
 ```bash
-godot --path godot --headless --export-debug "Web" public_godot/index.html
-./scripts/patch-godot-music.sh
-# USE_GODOT=1 only after Phase 7 sign-off
+# preferred (from /var/www/dev)
+npm run export:godot
+# or:
+./scripts/export-godot-web.sh
+
+# then commit public_godot/ + push origin dev
+# live update only after:
+./scripts/promote-to-live.sh
+
+# USE_GODOT=1 on live only after Phase 7 sign-off
 ```

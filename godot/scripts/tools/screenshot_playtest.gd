@@ -255,6 +255,9 @@ func _dual_sanitize(player, pool) -> void:
 		GS.graze = 0
 		if "special_meter" in GS:
 			GS.special_meter = 0.0
+		# Clear leftover Sixth Sense so it does not bleed across dual stills
+		if GS.has_meta("slowmo"):
+			GS.remove_meta("slowmo")
 	# Dual stills: no autofire + clear emblem toast chrome
 	var PStore = _A("ProgressStore")
 	if PStore:
@@ -1087,6 +1090,13 @@ func _run() -> void:
 					GameState.power = 6.0
 					GameState.session_score = 0
 					GameState.total_kills = 0
+				# Sixth Sense: no fx[] — pin mid-duration slowmo so drawSlowmoFx is visible (a peaks mid-timer)
+				if sk == "sixth":
+					var ch_sm = _A("CombatHelpers")
+					if ch_sm and ch_sm.has_method("start_slowmo"):
+						ch_sm.start_slowmo(200.0)
+					else:
+						GameState.set_meta("slowmo", 200.0)
 				if sp and sp.get("fx") is Array:
 					var si := 0
 					for f in sp.fx:

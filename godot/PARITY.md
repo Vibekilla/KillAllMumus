@@ -309,9 +309,10 @@ npm run port:dual -- --full
 # Desktop
 ~/.local/godot/godot --path /var/www/dev/godot
 
-# Web export (after Phase 7 only for live cutover)
-godot --path godot --headless --export-debug "Web" public_godot/index.html
-./scripts/patch-godot-music.sh
+# Web export → always this repo's public_godot/ (dev worktree)
+npm run export:godot
+# live receives public_godot only via ./scripts/promote-to-live.sh
+# USE_GODOT=1 on live only after Phase 7 sign-off
 ```
 
 ### Flip live (Phase 8 only)
