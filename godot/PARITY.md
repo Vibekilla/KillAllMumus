@@ -149,8 +149,8 @@ Probe: `npm run port:fps` (Xvfb + Mesa **llvmpipe** software GL — not represen
 
 | Scene | Wall ms/frame (llvmpipe) | Notes |
 | --- | --- | --- |
-| title | ~73 ms (~14 FPS) | full title draw path |
-| play | ~299 ms (~3.3 FPS) baseline before StageBg cache | WorldDraw + entities + Bobina |
+| title | ~80 ms (~12.5 FPS) | full title draw path (llvmpipe) |
+| play | ~134 ms (~7.5 FPS) | play after StageBg/Bobina cache (llvmpipe; GPU re-measure open) |
 
 Code-path root causes:
 
