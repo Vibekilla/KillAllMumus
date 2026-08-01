@@ -62,10 +62,8 @@ func _on_sim_tick(_dt: float) -> void:
 	if stage_time >= wave_dur and not boss_spawned:
 		boss_spawned = true
 		spawning = false
-		# clear remaining wave mobs gently
-		for e in get_tree().get_nodes_in_group("enemies"):
-			if is_instance_valid(e) and not e.is_in_group("bosses"):
-				e.queue_free()
+		# HTML: stagePhase='boss'; spawnBoss() — does NOT clear wave enemies.
+		# Leftover lil/big/elites stay on field during the boss fight.
 		stage_ready_for_boss.emit()
 
 func _spawn_waves() -> void:

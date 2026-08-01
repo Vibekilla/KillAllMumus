@@ -99,7 +99,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Gap | Detail |
 |-----|--------|
 | Portrait duals | All 7 structure duals |
-| **Minions** | e.g. Robotnik badniks in HTML dual often present; Godot dual clears field |
+| **Minions** | Live: Godot was wiping wave mobs at boss start; **fixed** (HTML keeps them). Dual portraits still clear field intentionally (both engines) |
 | Boss ambience / mandala | Partial (`drawBossAmbience`) |
 | Hell portal / Wynn hell | Dual stills; live play product |
 | Twin swap (Bogdanoffs) | Code paths; product dual open |
@@ -137,7 +137,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Consumable tap + CD | PASS | All 11 apply FX product |
 | Emblem toast | PASS | Queue stacking product |
 | Clear gate timing | PASS | Visual portal |
-| **Graze** | Counter + sfx exist | Emblem thresholds 1k/5k/10k product; graze radius product |
+| **Graze** | Counter + ring + emblems + test | **Structure PASS** (`test_graze.gd`); product eye-pass open |
 | **shotLevel / powerCap** | Exists | Matrix vs HTML at each power product |
 | **optionOffsets / optionPos** | **Fixed this ship** | Dual still re-verify |
 | **Familiars fire weapon-matched** | FireSystem.option_shot | Confirm all 10 weapons |
@@ -243,12 +243,11 @@ Present via other modules or partial — still product-check:
 
 1. **Manual music verify** social links keep lofi after hard-refresh  
 2. **Familiar dual still** at power 2–6 after optionOffsets + option_shot fix  
-3. **Boss minion duals** (don’t clear elites for portrait stills)  
-4. **Graze product + emblems**  
-5. **Title social + peephole product**  
-6. **Dialog taunt / bobinaSay matrix**  
-7. **GPU FPS probe**  
-8. **Full dual --full** + fill Phase 7 log  
+3. **Title social + peephole product**  
+4. **Dialog taunt / bobinaSay matrix**  
+5. **Boss live pattern / HP product matrix**  
+6. **GPU FPS probe**  
+7. **Full dual --full** + fill Phase 7 log  
 
 ---
 
@@ -260,3 +259,4 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | Music: soundgate session + COEP root cause + export mirror |
 | 2026-08-01 | Deep audit: 298 HTML fns; optionOffsets/optionPos mismatch fixed; stun/emote missing; _frontArm no-op; dual naming holes |
 | 2026-08-01 | Music cut-off: stop YT pause on visibility; open_url helper; fire.gd option_shot; stun/emote/_frontArm resolved |
+| 2026-08-01 | Boss keeps wave minions (HTML parity); graze structure test |
