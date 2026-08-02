@@ -308,11 +308,21 @@ func _do_dash() -> void:
 	## HTML doDash — face/mouse aim, slash-dash on full melee hold
 	if dash > 0.0 or dash_cd > 0.0:
 		return
-	var ang := aim if aim != 0.0 else -PI / 2.0
-	var mouse := get_global_mouse_position()
-	var dmouse := mouse - global_position
-	if dmouse.length() > 8.0:
-		ang = dmouse.angle()
+	# HTML: ang = face; if !isTouch && mouse: aim at pointer
+	var ang := aim
+	var touch_ui := false
+	if JoyPad and bool(JoyPad.get("active")):
+		touch_ui = true
+	elif DisplayServer.is_touchscreen_available():
+		# portrait / coarse pointer: don't yank dash toward a stale mouse pos
+		var ws := DisplayServer.window_get_size()
+		if ws.y > 0 and float(ws.y) / float(maxi(1, ws.x)) > 1.12:
+			touch_ui = true
+	if not touch_ui:
+		var mouse := get_global_mouse_position()
+		var dmouse := mouse - global_position
+		if dmouse.length() > 8.0:
+			ang = dmouse.angle()
 	# HTML: slash = meleeHeld && meleeChg >= 0.99
 	var slash := melee != null and bool(melee.get("holding")) and float(melee.get("charge")) >= 0.99
 	dash_ang = ang
@@ -324,6 +334,12 @@ func _do_dash() -> void:
 	ProgressStore.estats_add("dashes", 1)
 	if int(ProgressStore.estats.get("dashes", 0)) >= 50:
 		ProgressStore.unlock_emblem("dash_50")
+	# HTML: particles use outfitColors() alternating oc[0]/oc[1]
+	var oc: Array = ["#ff5b8d", "#ffd6f2"]
+	if CombatHelpers and CombatHelpers.has_method("outfit_colors"):
+		oc = CombatHelpers.outfit_colors(str(GameState.selected_outfit) if GameState else "og")
+	if oc.size() < 2:
+		oc = ["#ff5b8d", "#ffd6f2"]
 	if slash:
 		if CombatHelpers:
 			CombatHelpers.flash("✦ SLASH DASH!", 42.0)
@@ -346,7 +362,7 @@ func _do_dash() -> void:
 					"x": global_position.x, "y": global_position.y,
 					"vx": -cos(ang) * 4.0 + (randf() - 0.5) * 3.6,
 					"vy": -sin(ang) * 4.0 + (randf() - 0.5) * 3.6,
-					"life": 22.0, "c": "#ffe08a",
+					"life": 18.0, "c": str(oc[i % 2]),
 				})
 	else:
 		if AudioBus:
@@ -358,7 +374,7 @@ func _do_dash() -> void:
 					"x": global_position.x, "y": global_position.y,
 					"vx": -cos(ang) * 4.0 + (randf() - 0.5) * 2.5,
 					"vy": -sin(ang) * 4.0 + (randf() - 0.5) * 2.5,
-					"life": 18.0, "c": "#9ad4ff",
+					"life": 18.0, "c": str(oc[i % 2]),
 				})
 
 func arsenal_melee_keys() -> Array:
@@ -399,9 +415,8 @@ func _melee_def(key: String) -> Dictionary:
 
 func _flurry_tick() -> void:
 	## HTML Badger Claws flurry mow — live aim; knock mobs; chip boss; claw sfx
-	var dir := flurry_dir
-	if aim != 0.0:
-		dir = aim
+	# aim is always the facing angle (incl. 0 = right); never treat 0 as "unset"
+	var dir := aim
 	var reach := 118.0
 	var half := 1.0
 	var fdmg := flurry_dmg

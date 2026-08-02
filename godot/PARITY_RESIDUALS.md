@@ -136,7 +136,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Extends / kill-extend | PASS | Score thresholds product |
 | Item magnet / collect line | PASS | Edge cases vacuum |
 | Sixth Sense rates | PASS | — |
-| Twin / dash / bomb numbers | PASS | Visual dashLandExplosion product |
+| Twin / dash / bomb numbers | PASS | dashLandExplosion wired; **dash spawn particles outfit-colored** (2026-08-02) |
 | **Enemy bullet SPD** | **Fixed** `(hard?1:0.8)*(1+stage*0.13)*threatMul` | `test_bullet_spd` PASS |
 | **Armed special** | Was always specials[0] on fire | **Fixed** uses `armed_special` index |
 | **Body hit radius** | e.r+8 | **Fixed** e.r+5 (HTML p.r=3+2) |
@@ -286,6 +286,7 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | Vault hammer flung flight+wall detonate; clear-gate BEYOND/title labels + shop 🍯 |
 | 2026-08-02 | Wynn hell portal hell_r/hy/scale wiring; lotus curl 0.03/life 62; shock spread+spd |
 | 2026-08-02 | Melee swap: armed_melee index (HTML player.melee) not arsenal reorder; clamp on apply |
+| 2026-08-02 | Dash particles use outfitColors; touch skips mouse aim; aim!=0 guard removed (face right valid) |
 | 2026-08-02 | Twin death handoff: legion dialog, #fff particles, roam mtx/mty; option_shot weapon test |
 | 2026-08-02 | FPS hotpath: PLAY WorldDraw 30Hz; Bobina no-live miss; StageBg solid cold; coarser bake buckets |
 | 2026-08-02 | Blank playfield: WorldDraw parse fail on hy_v := ternary (no set type) — explicit float types + load-guard test |

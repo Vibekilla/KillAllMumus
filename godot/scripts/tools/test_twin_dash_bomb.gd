@@ -63,6 +63,20 @@ func _run() -> void:
 	if psrc.find("slash") < 0 and psrc.find("slash_dash") < 0:
 		ok_d = false
 	print("[DASH] timings structure ", "ok" if ok_d else "FAIL")
+
+	# HTML doDash particles use outfitColors alternating; aim uses face (not aim!=0 guard)
+	var psrc2 := FileAccess.get_file_as_string("res://scripts/player/Player.gd")
+	if psrc2.find("outfit_colors") < 0:
+		print("[DASH] FAIL particles must use outfit_colors")
+		ok = false
+	else:
+		print("[DASH] outfit_colors particles ok")
+	if psrc2.find("aim if aim != 0.0") >= 0 or psrc2.find("aim != 0.0 else -PI") >= 0:
+		print("[DASH] FAIL aim==0 is valid face right — no zero guard")
+		ok = false
+	else:
+		print("[DASH] aim base ok")
+
 	ok = ok and ok_d
 
 	# Bomb numbers in Player
