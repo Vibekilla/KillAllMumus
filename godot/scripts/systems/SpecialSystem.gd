@@ -165,12 +165,13 @@ func _update_fx(delta: float) -> void:
 		var typ: String = str(f.get("type", ""))
 		match typ:
 			"laser":
+				# HTML Kraken Cannon: follow player aim; dmg 2/4; cancel non-shell bullets on beam
 				f["t"] = float(f["t"]) - df
 				if player:
 					f["x"] = player.global_position.x
 					f["y"] = player.global_position.y
 					f["ang"] = float(player.get("aim")) if player.get("aim") != null else -PI / 2.0
-				_laser_damage(f)
+				_laser_tick(f, pool, pf)
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"mech":
@@ -182,11 +183,17 @@ func _update_fx(delta: float) -> void:
 					var hy = player.global_position.y + sin(face) * 46.0
 					f["x"] = float(f["x"]) + (hx - float(f["x"])) * 0.2
 					f["y"] = float(f["y"]) + (hy - float(f["y"])) * 0.2
-					if int(f["ct"]) % 3 == 0 and pool and pool.has_method("spawn"):
+					f["x"] = clampf(float(f["x"]), pf.position.x + 16.0, pf.end.x - 16.0)
+					f["y"] = clampf(float(f["y"]), pf.position.y + 18.0, pf.end.y - 18.0)
+					f["face"] = face
+					# HTML: optionShot weapon-matched, ct%3 both cannons
+					if int(f["ct"]) % 3 == 0 and pool:
 						var wep = GameState.current_weapon
 						_option_like(pool, float(f["x"]) - 9, float(f["y"]), face, wep)
 						_option_like(pool, float(f["x"]) + 9, float(f["y"]), face, wep)
-					# HTML mech: shells keep, floaters only (no point drops)
+						if int(f["ct"]) % 9 == 0 and AudioBus:
+							AudioBus.sfx("shoot")
+					# HTML mech shield: shells keep, floaters only
 					if pool and pool.has_method("clear_enemy_near"):
 						pool.clear_enemy_near(player.global_position, 28.0, false)
 				if float(f["t"]) > 0.0:
@@ -216,7 +223,8 @@ func _update_fx(delta: float) -> void:
 				f["y"] = float(f["y"]) + float(f.get("vy", 2.5)) * df
 				f["vy"] = float(f.get("vy", 2.5)) + 0.26 * df
 				if float(f["y"]) >= float(f.get("ty", pf.end.y)):
-					_explode(float(f["x"]), float(f["ty"]), 62.0, 12.0, pool)
+					# HTML: mob r62 dmg12; boss r70 dmg6; shake 4.5; soft bullet clear r54
+					_bombdrop_explode(float(f["x"]), float(f["ty"]), pool)
 				else:
 					keep.append(f)
 			"blackhole":
@@ -279,23 +287,10 @@ func _update_fx(delta: float) -> void:
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"servitor":
+				# HTML Call of the Void — hunt nearest mumu (or boss), fire voidbolts, soak bullets
 				f["t"] = float(f["t"]) - df
 				f["ct"] = float(f.get("ct", 0)) + df
-				if player:
-					var a2 = float(f["ct"]) * 0.05
-					f["x"] = player.global_position.x + cos(a2) * 42.0
-					f["y"] = player.global_position.y + sin(a2) * 42.0
-					if int(f["ct"]) % 8 == 0 and pool:
-						var tgt = _nearest_enemy(Vector2(float(f["x"]), float(f["y"])))
-						if tgt != Vector2.ZERO:
-							var ang = (tgt - Vector2(float(f["x"]), float(f["y"]))).angle()
-							for b in range(-1, 2):
-								var aa = ang + b * 0.16
-								var shot = pool.spawn(Vector2(float(f["x"]), float(f["y"])),
-									Vector2.from_angle(aa) * 9.0 * FRAME, 3.0, Color("9d6bff"), TEAM_PLAYER)
-								if shot and shot.has_method("set_props"):
-									shot.set_props({"laser": true, "voidbolt": true, "pshot": true})
-				if float(f["t"]) > 0.0:
+				if _servitor_tick(f, pool, pf):
 					keep.append(f)
 			"kiss":
 				# HTML: f.t--; f.r+=8
@@ -309,21 +304,53 @@ func _update_fx(delta: float) -> void:
 					keep.append(f)
 	fx = keep
 
-func _laser_damage(f: Dictionary) -> void:
+func _laser_tick(f: Dictionary, pool: Node, pf: Rect2) -> void:
+	## HTML laser beam: onBeam with entity radius; mob 2 / boss 4; cancel bullets
 	var ang: float = float(f.get("ang", -PI / 2))
-	var origin = Vector2(float(f["x"]), float(f["y"]))
-	var dir = Vector2.from_angle(ang)
+	var origin := Vector2(float(f["x"]), float(f["y"]))
+	var dir := Vector2.from_angle(ang)
 	var half_w: float = float(f.get("w", 58)) * 0.5
+	var max_proj := pf.size.x + pf.size.y
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(e):
+		if not is_instance_valid(e) or not e.has_method("take_damage"):
 			continue
+		var er := float(e.get("radius")) if e.get("radius") != null else 15.0
 		var rx: Vector2 = e.global_position - origin
-		var proj = rx.dot(dir)
-		if proj < 0 or proj > 600:
+		var proj := rx.dot(dir)
+		if proj < 0.0 or proj > max_proj:
 			continue
-		var perp = absf(rx.x * dir.y - rx.y * dir.x)
-		if perp < half_w + 12.0 and e.has_method("take_damage"):
-			e.take_damage(2.0 if not e.is_in_group("bosses") else 4.0)
+		var perp := absf(rx.x * dir.y - rx.y * dir.x)
+		if perp < half_w + er:
+			var is_boss := e.is_in_group("bosses")
+			e.take_damage(4.0 if is_boss else 2.0)
+			if "flash" in e:
+				e.flash = 3.0 if is_boss else 4.0
+	# cancel non-shell bullets on beam
+	if pool:
+		for b in pool.iter_active() if pool.has_method("iter_active") else []:
+			if not is_instance_valid(b) or int(b.team) != 1:
+				continue
+			if float(b.get("hp")) > 0.0:
+				continue
+			var brx: Vector2 = b.global_position - origin
+			var bproj := brx.dot(dir)
+			if bproj < 0.0 or bproj > max_proj:
+				continue
+			var bperp := absf(brx.x * dir.y - brx.y * dir.x)
+			if bperp < half_w:
+				b.deactivate()
+	# HTML sparks along beam every 3 frames
+	if int(f.get("t", 0)) % 3 == 0 and CombatHelpers:
+		var d := 40.0 + randf() * 300.0
+		CombatHelpers.particles.append({
+			"x": origin.x + dir.x * d, "y": origin.y + dir.y * d,
+			"vx": (randf() - 0.5) * 2.0, "vy": (randf() - 0.5) * 2.0,
+			"life": 10.0, "c": "#c9a0ff",
+		})
+
+func _laser_damage(f: Dictionary) -> void:
+	## Backward-compatible wrapper
+	_laser_tick(f, null, Config.playfield())
 
 func _ring_damage(x: float, y: float, r: float, dmg: float) -> void:
 	## Generic thin ring (legacy); vault waves use _wave_ring_tick
@@ -448,23 +475,137 @@ func _ram_damage(f: Dictionary, r: float, dmg: float) -> void:
 			f["hit"] = hit
 
 func _explode(x: float, y: float, r: float, dmg: float, pool: Node) -> void:
+	## Generic AoE (legacy)
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):
 			continue
 		if Vector2(x, y).distance_to(e.global_position) < r and e.has_method("take_damage"):
 			e.take_damage(dmg)
-	# HTML bombdrop land: shells keep, no point drops
 	if pool and pool.has_method("clear_enemy_near"):
 		pool.clear_enemy_near(Vector2(x, y), r * 0.9, false)
 
-func _option_like(pool: Node, x: float, y: float, aim: float, _wep: String) -> void:
+func _bombdrop_explode(x: float, y: float, pool: Node) -> void:
+	## HTML bombdrop land: mob 12@62, boss 6@70, shake 4.5, soft clear @54
+	if CombatHelpers:
+		CombatHelpers.burst(x, y, "#ff9a3c")
+		CombatHelpers.burst(x, y, "#ffd27a")
+		CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 4.5)
+		for i in range(18):
+			CombatHelpers.particles.append({
+				"x": x, "y": y,
+				"vx": (randf() - 0.5) * 11.0, "vy": (randf() - 0.5) * 11.0,
+				"life": 24.0, "c": "#ff9a3c" if i % 2 == 0 else "#fff",
+			})
+	if AudioBus and randf() < 0.5:
+		AudioBus.sfx("bomb", 0.65)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e) or not e.has_method("take_damage"):
+			continue
+		var d := Vector2(x, y).distance_to(e.global_position)
+		if e.is_in_group("bosses"):
+			if d < 70.0:
+				e.take_damage(6.0)
+				if "flash" in e:
+					e.flash = 5.0
+		elif d < 62.0:
+			e.take_damage(12.0)
+			if "flash" in e:
+				e.flash = 6.0
+	if pool and pool.has_method("clear_enemy_near"):
+		pool.clear_enemy_near(Vector2(x, y), 54.0, false)
+
+func _option_like(pool: Node, x: float, y: float, aim: float, wep: String) -> void:
+	## HTML optionShot — weapon-matched pellets via FireSystem when available
+	var pl = get_tree().get_first_node_in_group("player") if get_tree() else null
+	if pl and pl.get("fire_sys") and pl.fire_sys.has_method("option_shot"):
+		pl.fire_sys.option_shot(pool, x, y, aim, wep)
+		return
+	# fallback generic pellet
 	pool.spawn(Vector2(x, y), Vector2.from_angle(aim) * 15.0 * FRAME, 1.5, Color("8fb8ff"), TEAM_PLAYER)
 
+func _servitor_tick(f: Dictionary, pool: Node, pf: Rect2) -> bool:
+	## HTML servitor hunt AI. Returns true if still alive.
+	var pos := Vector2(float(f["x"]), float(f["y"]))
+	var tgt_pos := Vector2.ZERO
+	var has_tgt := false
+	# Prefer non-boss enemies; fall back to boss
+	var best_d := 1e12
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e) or e.is_in_group("bosses"):
+			continue
+		var d2 := pos.distance_squared_to(e.global_position)
+		if d2 < best_d:
+			best_d = d2
+			tgt_pos = e.global_position
+			has_tgt = true
+	if not has_tgt:
+		for e in get_tree().get_nodes_in_group("bosses"):
+			if not is_instance_valid(e):
+				continue
+			if bool(e.get("dead")):
+				continue
+			if float(e.get("intro")) > 0.0:
+				continue
+			tgt_pos = e.global_position
+			has_tgt = true
+			break
+	var ct := float(f.get("ct", 0))
+	if has_tgt:
+		var dx := tgt_pos.x - pos.x
+		var dy := tgt_pos.y - pos.y
+		var d := sqrt(dx * dx + dy * dy)
+		if d > 62.0 and d > 0.01:
+			pos.x += dx / d * 2.2
+			pos.y += dy / d * 2.2
+		if int(ct) % 8 == 0 and pool:
+			var base := atan2(dy, dx)
+			for b in range(-1, 2):
+				var a := base + float(b) * 0.16
+				var shot = pool.spawn(pos, Vector2.from_angle(a) * 9.0 * FRAME, 3.0, Color("9d6bff"), TEAM_PLAYER)
+				if shot and shot.has_method("set_props"):
+					shot.set_props({"laser": true, "voidbolt": true, "pshot": true})
+			if int(ct) % 24 == 0 and AudioBus:
+				AudioBus.sfx("shoot")
+	else:
+		pos.x += sin(ct * 0.05) * 0.7
+		pos.y += cos(ct * 0.04) * 0.7
+	pos.x = clampf(pos.x, pf.position.x + 18.0, pf.end.x - 18.0)
+	pos.y = clampf(pos.y, pf.position.y + 18.0, pf.end.y - 18.0)
+	f["x"] = pos.x
+	f["y"] = pos.y
+	# soak enemy bullets (HTML: r=13*sz, hp-=5)
+	var sz := float(f.get("sz", 2.2))
+	var soak_r := 13.0 * sz
+	var hp := float(f.get("hp", 26.0))
+	if pool and pool.has_method("iter_active"):
+		for b in pool.iter_active():
+			if not is_instance_valid(b) or int(b.team) != 1:
+				continue
+			if float(b.get("hp")) > 0.0:
+				continue
+			if pos.distance_to(b.global_position) < soak_r:
+				hp -= 5.0
+				b.deactivate()
+				if CombatHelpers:
+					for i in range(3):
+						CombatHelpers.particles.append({
+							"x": b.global_position.x, "y": b.global_position.y,
+							"vx": (randf() - 0.5) * 3.0, "vy": (randf() - 0.5) * 3.0,
+							"life": 10.0, "c": "#9d6bff",
+						})
+	f["hp"] = hp
+	if hp <= 0.0 or float(f.get("t", 0)) <= 0.0:
+		if CombatHelpers:
+			CombatHelpers.burst(pos.x, pos.y, "#9d6bff")
+		return false
+	return true
+
 func _nearest_enemy(from: Vector2) -> Vector2:
-	var best = Vector2.ZERO
+	## Nearest non-boss mumu position (Vector2.INF if none)
+	var best = Vector2.INF
 	var bd = 1e12
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(e):
+		if not is_instance_valid(e) or e.is_in_group("bosses"):
 			continue
 		var d = from.distance_squared_to(e.global_position)
 		if d < bd:
