@@ -519,9 +519,12 @@ func _twin_swap(other: String, death_handoff: bool = false) -> void:
 		bullet_pool.clear_enemy()
 	var pf: Rect2 = Config.playfield()
 	if death_handoff:
-		# HTML death handoff: swapCd 480+rand*180, flash 14, win sfx, RISES banner
+		# HTML death handoff: swapCd 480+rand*180, flash 14, win sfx, RISES banner,
+		# white burst, legion dialog, new roam target
 		swap_cd = 480.0 + float(randi() % 180)
 		flash = 14.0
+		mtx = pf.position.x + 55.0 + randf() * (pf.size.x - 110.0)
+		mty = pf.position.y + 55.0 + randf() * (pf.size.y - 135.0)
 		if AudioBus:
 			AudioBus.sfx("win")
 		if CombatHelpers:
@@ -533,8 +536,14 @@ func _twin_swap(other: String, death_handoff: bool = false) -> void:
 				CombatHelpers.particles.append({
 					"x": global_position.x, "y": global_position.y,
 					"vx": (randf() - 0.5) * 10.0, "vy": (randf() - 0.5) * 10.0,
-					"life": 34.0, "c": "#ff6ec7",
+					"life": 34.0, "c": "#fff",
 				})
+		# HTML: if(!dialog) startDialog([legion lines], b.data)
+		if StageFlow and StageFlow.get("dialog") == null and StageFlow.has_method("start_dialog"):
+			StageFlow.start_dialog([
+				{"w": 0, "t": "One of us falls — the other pulls the strings. WE ARE LEGION."},
+				{"w": 1, "t": "“Legion.” There are two of you. With the same face."},
+			], data if data is Dictionary else {})
 	else:
 		# HTML twinSwap: swapCd 420+rand*240, flash 10, card sfx, takes-the-strings + taunt
 		swap_cd = 420.0 + float(randi() % 240)

@@ -33,7 +33,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Gap | Detail |
 |-----|--------|
 | Dual as living checklist | Full matrix duals exist but product review incomplete |
-| FPS root cause | Documented; llvmpipe only (~12.5 title / ~7.5 play). **GPU/desktop/web re-measure open** |
+| FPS root cause | Documented; llvmpipe ~27 title / ~14 play after hotpath. **GPU/desktop/web re-measure open** |
 | Structure vs product | `port:gates` all PASS while many product gaps remain (this file) |
 
 ---
@@ -105,7 +105,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | **Boss intro** | Missing startDialog + introDlg gate. **Fixed** entry y=PF.y-40, dialog, clearWave |
 | Boss ambience / mandala | Partial (`drawBossAmbience`) |
 | Hell portal / Wynn hell | Dual stills; live play product |
-| Twin swap (Bogdanoffs) | Code paths; product dual open |
+| Twin swap (Bogdanoffs) | Voluntary FX via StageFlow; **death handoff legion dialog + #fff burst + mtx** (2026-08-02) | product dual open |
 | **Devil** drawer | Exists; wiring/product when HTML shows Devil |
 | Boss patterns/HP/threat | Live play open (not dual-stilled) |
 | Dialog bleed | FlowUI clear-on-dismiss fixed; product taunt lines open |
@@ -286,6 +286,7 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | Vault hammer flung flight+wall detonate; clear-gate BEYOND/title labels + shop 🍯 |
 | 2026-08-02 | Wynn hell portal hell_r/hy/scale wiring; lotus curl 0.03/life 62; shock spread+spd |
 | 2026-08-02 | Melee swap: armed_melee index (HTML player.melee) not arsenal reorder; clamp on apply |
+| 2026-08-02 | Twin death handoff: legion dialog, #fff particles, roam mtx/mty; option_shot weapon test |
 | 2026-08-02 | FPS hotpath: PLAY WorldDraw 30Hz; Bobina no-live miss; StageBg solid cold; coarser bake buckets |
 | 2026-08-02 | Blank playfield: WorldDraw parse fail on hy_v := ternary (no set type) — explicit float types + load-guard test |
 | 2026-08-01 | Lotus curl/life HTML; stageclear introTimer=120; focus ring already shipped |
