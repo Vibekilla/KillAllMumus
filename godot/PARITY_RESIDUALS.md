@@ -143,7 +143,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 | Gamepad map | PASS | Glyph labels product |
 | Consumable tap + CD | PASS | All 11 apply FX product |
 | Emblem toast | PASS | Queue stacking product |
-| Clear gate timing | PASS | Visual portal |
+| Clear gate timing | PASS | Visual portal; **pointer tap shop/portal** (2026-08-02) |
 | **Graze** | Counter + ring + emblems + test | **Structure PASS** (`test_graze.gd`); product eye-pass open |
 | **shotLevel / powerCap** | Exists | Matrix vs HTML at each power product |
 | **optionOffsets / optionPos** | **Fixed this ship** | Dual still re-verify |
@@ -286,6 +286,7 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | Vault hammer flung flight+wall detonate; clear-gate BEYOND/title labels + shop 🍯 |
 | 2026-08-02 | Wynn hell portal hell_r/hy/scale wiring; lotus curl 0.03/life 62; shock spread+spd |
 | 2026-08-02 | Melee swap: armed_melee index (HTML player.melee) not arsenal reorder; clamp on apply |
+| 2026-08-02 | Clear-gate pointer: HTML pdown tap shop r=38 / portal r=44 when field cleared |
 | 2026-08-02 | Dash particles use outfitColors; touch skips mouse aim; aim!=0 guard removed (face right valid) |
 | 2026-08-02 | Twin death handoff: legion dialog, #fff particles, roam mtx/mty; option_shot weapon test |
 | 2026-08-02 | FPS hotpath: PLAY WorldDraw 30Hz; Bobina no-live miss; StageBg solid cold; coarser bake buckets |

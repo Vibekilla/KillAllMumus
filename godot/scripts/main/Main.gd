@@ -38,15 +38,19 @@ func _input(event: InputEvent) -> void:
 		var pos := st.position
 		if st.pressed:
 			JoyPad.pdown(pos)
-			if GameState.state == GameState.State.PLAY and JoyPad.touch_ui_on:
-				# right-rail / pause chip first (HTML .btn / #pausebtn)
-				var k := _touch_button_at(pos)
-				if k != "":
-					_touch_down(k, st.index)
+			if GameState.state == GameState.State.PLAY:
+				# HTML pdown: tap clear shop (r=38) / portal (r=44) after boss
+				if _try_clear_gate_pointer(pos):
 					return
-				# left half → virtual stick
-				if pos.x < Config.W * 0.46:
-					JoyPad.joy_start(pos, st.index)
+				if JoyPad.touch_ui_on:
+					# right-rail / pause chip first (HTML .btn / #pausebtn)
+					var k := _touch_button_at(pos)
+					if k != "":
+						_touch_down(k, st.index)
+						return
+					# left half → virtual stick
+					if pos.x < Config.W * 0.46:
+						JoyPad.joy_start(pos, st.index)
 		else:
 			_touch_up_finger(st.index)
 			JoyPad.pup()
@@ -58,16 +62,44 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			JoyPad.pdown(event.position)
-			# desktop testing of touch chrome when ui=touch
-			if GameState.state == GameState.State.PLAY and JoyPad and JoyPad.touch_ui_on:
-				var k2 := _touch_button_at(event.position)
-				if k2 != "":
-					_touch_down(k2, -1)
+			if GameState.state == GameState.State.PLAY:
+				# HTML pdown works for mouse + touch (tap portal/shop on cleared field)
+				if _try_clear_gate_pointer(event.position):
+					return
+				# desktop testing of touch chrome when ui=touch
+				if JoyPad and JoyPad.touch_ui_on:
+					var k2 := _touch_button_at(event.position)
+					if k2 != "":
+						_touch_down(k2, -1)
 		else:
 			_touch_up_finger(-1)
 			JoyPad.pup()
 	elif event is InputEventMouseMotion:
 		JoyPad.pmove(event.position)
+
+func _try_clear_gate_pointer(pos: Vector2) -> bool:
+	## HTML pdown: if play && run.cleared && tap near clearShop (38) / clearPortal (44)
+	if StageFlow == null or not StageFlow.has_method("is_field_cleared"):
+		return false
+	if not StageFlow.is_field_cleared():
+		return false
+	var shop = StageFlow.clear_shop
+	if shop is Dictionary:
+		var sx := float(shop.get("x", 0))
+		var sy := float(shop.get("y", 0))
+		if Vector2(sx, sy).distance_to(pos) < 38.0:
+			if StageFlow.has_method("enter_shop"):
+				StageFlow.enter_shop()
+			return true
+	var portal = StageFlow.clear_portal
+	if portal is Dictionary:
+		var px := float(portal.get("x", 0))
+		var py := float(portal.get("y", 0))
+		if Vector2(px, py).distance_to(pos) < 44.0:
+			if StageFlow.has_method("enter_portal"):
+				StageFlow.enter_portal()
+			return true
+	return false
 
 func _touch_button_at(pos: Vector2) -> String:
 	var hud := get_node_or_null("UI/HudCanvas")
