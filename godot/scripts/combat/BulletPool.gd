@@ -80,6 +80,35 @@ func clear_enemy_near(pos: Vector2, radius: float, drop_points: bool = true) -> 
 			})
 		b.deactivate()
 
+func blackhole_pull_bullets(pos: Vector2, pull: float, core: float = 16.0, col: String = "#3ae66a") -> void:
+	## HTML blackhole bullet filter: spiral soft bullets; devour d<core; shells keep
+	for b in _pool:
+		if not b.active or int(b.team) != 1:
+			continue
+		var bhp: float = 0.0
+		if b.get("hp") != null:
+			bhp = float(b.get("hp"))
+		if bhp > 0.0:
+			continue
+		var d: float = b.global_position.distance_to(pos)
+		if d >= pull or d < 0.01:
+			continue
+		# HTML: b.vx = b.vx*0.9 + (f-b)/d * g   (px/frame)
+		var g: float = (1.0 - d / pull) * 2.4
+		var n: Vector2 = (pos - b.global_position) / d
+		var v_px: Vector2 = b.velocity / 60.0
+		v_px = v_px * 0.9 + n * g
+		b.velocity = v_px * 60.0
+		if d < core:
+			if ItemSystem:
+				ItemSystem.floaters.append({
+					"x": b.global_position.x, "y": b.global_position.y,
+					"life": 8.0, "vy": -0.3, "scale": 0.24,
+				})
+			if CombatHelpers and CombatHelpers.has_method("sparks"):
+				CombatHelpers.sparks(b.global_position.x, b.global_position.y, col)
+			b.deactivate()
+
 func cancel_enemy_in_annulus(pos: Vector2, lo: float, hi: float) -> void:
 	## HTML wave special: cancel non-shell bullets where lo < d < hi
 	for b in _pool:

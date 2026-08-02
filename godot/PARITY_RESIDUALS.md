@@ -282,4 +282,5 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | Boss body knock (vx 4.5 + knock 6 + hit sfx); dash offx/offy mouse resume; dash window 15; mouse speed keyboard-only |
 | 2026-08-02 | Vault wave hit-once (5/14) + annulus cancel; bull/badger speeds+dmg; tentacle thrash; flurry knock/sfx; screen shake draw; stageclear arsenal |
 | 2026-08-02 | Servitor hunt AI + bullet soak; laser beam cancel/radius; bombdrop boss 6 + shake; mech optionShot weapon-match |
+| 2026-08-02 | Blackhole: launch settle 16f, boss chip 3 no-pull, bullet spiral devour (not clear_near) |
 | 2026-08-01 | Lotus curl/life HTML; stageclear introTimer=120; focus ring already shipped |

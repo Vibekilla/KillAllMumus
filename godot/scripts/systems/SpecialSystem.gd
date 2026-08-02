@@ -228,27 +228,20 @@ func _update_fx(delta: float) -> void:
 				else:
 					keep.append(f)
 			"blackhole":
+				# HTML: launch dt<16 (vx/vy*0.9), settle, pull mobs, boss chip 3/12f,
+				# spiral soft bullets (devour d<16). Boss is NOT pulled.
 				f["t"] = float(f["t"]) - df
 				f["dt"] = float(f.get("dt", 0)) + df
-				# Melee charge BH has vx/vy (px/frame); revenge BH is stationary
-				if f.has("vx") or f.has("vy"):
+				var dt_bh := float(f["dt"])
+				if dt_bh < 16.0:
 					f["x"] = float(f["x"]) + float(f.get("vx", 0.0)) * df
 					f["y"] = float(f["y"]) + float(f.get("vy", 0.0)) * df
+					f["vx"] = float(f.get("vx", 0.0)) * pow(0.9, df)
+					f["vy"] = float(f.get("vy", 0.0)) * pow(0.9, df)
+				f["x"] = clampf(float(f["x"]), pf.position.x + 24.0, pf.end.x - 24.0)
+				f["y"] = clampf(float(f["y"]), pf.position.y + 24.0, pf.end.y - 24.0)
 				f["r"] = minf(15.0, float(f.get("r", 0)) + 1.1 * df)
-				var pull = 155.0
-				for e in get_tree().get_nodes_in_group("enemies"):
-					if not is_instance_valid(e):
-						continue
-					var d: float = Vector2(float(f["x"]), float(f["y"])).distance_to(e.global_position)
-					if d < pull and d > 0.01:
-						var g = (1.0 - d / pull) * 2.6
-						var dir: Vector2 = (Vector2(float(f["x"]), float(f["y"])) - e.global_position).normalized()
-						e.global_position += dir * g
-						if d < 26.0 and int(f["dt"]) % 8 == 0 and e.has_method("take_damage"):
-							e.take_damage(4.0)
-				# HTML blackhole: shells keep, no free point score
-				if pool and pool.has_method("clear_enemy_near"):
-					pool.clear_enemy_near(Vector2(float(f["x"]), float(f["y"])), float(f["r"]) + 16.0, false)
+				_blackhole_tick(f, pool, pf)
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"wave":
@@ -483,6 +476,52 @@ func _explode(x: float, y: float, r: float, dmg: float, pool: Node) -> void:
 			e.take_damage(dmg)
 	if pool and pool.has_method("clear_enemy_near"):
 		pool.clear_enemy_near(Vector2(x, y), r * 0.9, false)
+
+func _blackhole_tick(f: Dictionary, pool: Node, pf: Rect2) -> void:
+	## HTML blackhole pull/damage/bullet spiral (shared revenge + melee charge)
+	var pos := Vector2(float(f["x"]), float(f["y"]))
+	var pull := 155.0
+	var dt_bh := float(f.get("dt", 0))
+	var col := str(f.get("col", "#3ae66a"))
+	# Mumus only — HTML enemies[] loop (not boss)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e) or e.is_in_group("bosses"):
+			continue
+		var d: float = pos.distance_to(e.global_position)
+		if d < pull and d > 0.01:
+			var g := (1.0 - d / pull) * 2.6
+			e.global_position += (pos - e.global_position).normalized() * g
+			if d < 26.0 and int(dt_bh) % 8 == 0 and e.has_method("take_damage"):
+				e.take_damage(4.0)
+				if "flash" in e:
+					e.flash = 4.0
+	# Boss: chip only (no pull), every 12 frames within pull*0.7
+	if int(dt_bh) % 12 == 0:
+		for b in get_tree().get_nodes_in_group("bosses"):
+			if not is_instance_valid(b):
+				continue
+			if bool(b.get("dead")):
+				continue
+			if float(b.get("intro")) > 0.0:
+				continue
+			if pos.distance_to(b.global_position) < pull * 0.7 and b.has_method("take_damage"):
+				b.take_damage(3.0)
+				if "flash" in b:
+					b.flash = 3.0
+	# Bullets: gravity spiral + devour at core (shells keep)
+	if pool and pool.has_method("blackhole_pull_bullets"):
+		pool.blackhole_pull_bullets(pos, pull, 16.0, col)
+	elif pool and pool.has_method("clear_enemy_near"):
+		pool.clear_enemy_near(pos, 16.0, false)
+	# HTML particle stream every 2 frames
+	if int(dt_bh) % 2 == 0 and CombatHelpers:
+		var a := randf() * TAU
+		var rr := pull * (0.5 + randf() * 0.5)
+		CombatHelpers.particles.append({
+			"x": pos.x + cos(a) * rr, "y": pos.y + sin(a) * rr,
+			"vx": -cos(a) * 3.5, "vy": -sin(a) * 3.5,
+			"life": 14.0, "c": col if randf() < 0.55 else "#0a3018",
+		})
 
 func _bombdrop_explode(x: float, y: float, pool: Node) -> void:
 	## HTML bombdrop land: mob 12@62, boss 6@70, shake 4.5, soft clear @54
