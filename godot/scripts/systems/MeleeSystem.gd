@@ -209,9 +209,19 @@ func _charge_fx(player: Node2D, m: Dictionary, dir: float, reach: float, half: f
 				if to2.length() < reach * 1.4:
 					var sx: float = 1.0 if to2.x >= 0.0 else -1.0
 					var sy: float = 1.0 if to2.y >= 0.0 else -1.0
-					# HTML sets e.vx/e.vy in px/frame; apply as one-shot shove
-					e.global_position += Vector2(sx * (13.0 + randf() * 4.0), sy * (3.0 + randf() * 3.0)) * 2.0
-					e.set("stun", maxf(float(e.get("stun")) if e.get("stun") != null else 0.0, 70.0))
+					# HTML: e.vx/vy px/frame, e.flung=44, e.stun=70 — fly until wall detonate
+					if "flung" in e:
+						e.flung = 44.0
+					else:
+						e.set("flung", 44.0)
+					if "flung_vel" in e:
+						e.flung_vel = Vector2(sx * (13.0 + randf() * 4.0), sy * (3.0 + randf() * 3.0))
+					else:
+						e.set("flung_vel", Vector2(sx * (13.0 + randf() * 4.0), sy * (3.0 + randf() * 3.0)))
+					if "stun" in e:
+						e.stun = maxf(float(e.stun), 70.0)
+					else:
+						e.set("stun", 70.0)
 			var pool2: Variant = player.get("bullet_pool")
 			var vap: int = 0
 			var rc: int = 0

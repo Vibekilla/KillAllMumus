@@ -16,6 +16,9 @@ var radius: float = 15.0
 var flash: float = 0.0
 var charm: float = 0.0
 var stun: float = 0.0
+## HTML e.flung — vault hammer flight until wall detonate (px/frame vel)
+var flung: float = 0.0
+var flung_vel: Vector2 = Vector2.ZERO
 var bcol: Color = Color("ff8ac0")
 var elite_type: String = ""
 
@@ -85,6 +88,21 @@ func _physics_process(delta: float) -> void:
 					o.take_damage(3.0)
 		if charm <= 0.0:
 			_die(true)
+		return
+
+	# HTML hammer-flung: fly until wall, then enemyExplode; still body-check player
+	if flung > 0.0:
+		var df_f := delta * FRAME
+		flung = maxf(0.0, flung - df_f)
+		global_position += flung_vel * df_f
+		flung_vel *= pow(0.92, df_f)
+		if global_position.x <= pf.position.x + 12.0 \
+				or global_position.x >= pf.end.x - 12.0 \
+				or global_position.y <= pf.position.y + 10.0 \
+				or global_position.y >= pf.end.y - 10.0:
+			_die(true)  # charmed path → _enemy_explode
+			return
+		_touch_player(p)
 		return
 
 	if stun > 0.0:
@@ -205,12 +223,21 @@ func _enemy_explode() -> void:
 		pool.despawn_enemy_near(global_position, 42.0, 12.0, 0.3)
 	elif pool and pool.has_method("clear_enemy_near"):
 		pool.clear_enemy_near(global_position, 42.0)
+	# HTML enemyExplode: screenShake 3.5 + hit sfx
+	if CombatHelpers:
+		CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 3.5)
+	if AudioBus:
+		AudioBus.sfx("hit")
 	GameState.add_kill(1)
 	if StageFlow:
 		StageFlow.note_kill()
-	GameState.add_score(int(float(score_value) * GameState.score_mul()))
-	if ItemSystem:
-		ItemSystem.drop_loot({"x": px, "y": py, "kind": kind})
+	# Prefer kill_enemy score path when available
+	if ItemSystem and ItemSystem.has_method("kill_enemy"):
+		ItemSystem.kill_enemy({"x": px, "y": py, "kind": kind, "icy": icy}, false)
+	else:
+		GameState.add_score(int(float(score_value) * GameState.score_mul()))
+		if ItemSystem:
+			ItemSystem.drop_loot({"x": px, "y": py, "kind": kind})
 	killed.emit(self)
 	queue_free()
 

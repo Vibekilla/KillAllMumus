@@ -275,18 +275,24 @@ func drawClearGate(portal, shop, msg_t: float) -> void:
 	ctx.line_width(2)
 	ctx.stroke()
 	ctx.restore()
-	# labels (HTML)
+	# labels — HTML: ▼ BEYOND: STAGE + boss title quote
 	ctx.text_align("center")
-	ctx.fill_style("#ffe08a")
-	ctx.font("bold 12px monospace")
 	var next_s: Dictionary = DataRegistry.get_stage(GameState.stage_index + 1)
-	var next_name := str(next_s.get("name", "NEXT"))
-	ctx.fill_text("▸ PORTAL — " + next_name, px, py - 70)
+	var next_name := str(next_s.get("name", "???")).to_upper()
+	ctx.fill_style(_hex_a(bc, 0.95))
+	ctx.font("bold 10px monospace")
+	ctx.fill_text("▼ BEYOND: " + next_name, px, py - 46)
+	var nb: Dictionary = next_s.get("boss", {}) if next_s.get("boss") is Dictionary else {}
+	var nb_title := str(nb.get("title", ""))
+	if nb_title != "":
+		ctx.fill_style("rgba(255,255,255,0.5)")
+		ctx.font("9px Trebuchet MS")
+		ctx.fill_text("“%s” awaits" % nb_title, px, py - 34)
 	if near_p:
 		ctx.fill_style("#fff" if (int(floor(t / 16.0)) % 2) != 0 else bc)
 		ctx.font("bold 12px monospace")
 		ctx.fill_text("[%s] ENTER PORTAL" % MenuHelpers.kb("interact"), px, py + 48)
-	# shop hut (HTML simplified hut + label)
+	# shop hut (HTML: hut + 🍯 + SHOP)
 	if shop != null:
 		var sx := float(shop.get("x", 0))
 		var sy := float(shop.get("y", 0))
@@ -316,6 +322,9 @@ func drawClearGate(portal, shop, msg_t: float) -> void:
 			ctx.close_path()
 			ctx.fill()
 			i += 7.0
+		ctx.fill_style("#ffd27a")
+		ctx.font("14px serif")
+		ctx.fill_text("🍯", 0, -29)
 		ctx.restore()
 		ctx.fill_style("#ffd27a")
 		ctx.font("bold 10px monospace")
