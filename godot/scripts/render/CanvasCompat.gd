@@ -1055,8 +1055,9 @@ func _fill_rect_gradient(x: float, y: float, w: float, h: float) -> void:
 				for si in range(1, pts.size() - 1):
 					_draw_tri(c0, pts[si], pts[si + 1], col)
 		return
-	# Linear: slice along gradient axis into bands
-	var bands2 = 32
+	# Linear: slice along gradient axis into bands (12 is enough for stage/UI gradients;
+	# 32 bands × every fill was a measurable FPS tax on software GL / web).
+	var bands2 = 12
 	var axis = Vector2(g.x1 - g.x0, g.y1 - g.y0)
 	var vertical = absf(axis.x) < absf(axis.y) * 0.35
 	if vertical or absf(axis.x) < 0.001:

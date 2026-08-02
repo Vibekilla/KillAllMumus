@@ -20,6 +20,9 @@ var stage_bg_cache: Node = null
 var tick: int = 0
 var _bullet_pool: Node = null
 var _last_tick: int = -1
+## Adaptive visual cadence: 1 = every sim tick, 2 = 30 Hz, 3 = 20 Hz (sim stays 60 Hz)
+var _play_stride: int = 2
+var _fps_adapt_cd: int = 0
 
 func _ready() -> void:
 	z_index = 0
@@ -57,11 +60,24 @@ func _bind_pool() -> void:
 
 func _process(_d: float) -> void:
 	## Redraw gated on sim_frame (fixed 60 Hz source), not display rate.
+	## PLAY defaults to 30 Hz visual; adapts to 20 Hz if wall FPS is low (sim stays 60 Hz).
+	## CanvasCompat full-field pass is the main bottleneck on software GL / heavy web builds.
 	var nt := int(SimClock.sim_frame) if SimClock else tick + 1
 	if nt == _last_tick:
 		return
-	# Phase 1.3: non-combat field states need less than 60 Hz
-	if GameState.state in [GameState.State.SHOP, GameState.State.STAGE_CLEAR, GameState.State.INTRO]:
+	if GameState.state == GameState.State.PLAY:
+		_fps_adapt_cd -= 1
+		if _fps_adapt_cd <= 0:
+			_fps_adapt_cd = 30
+			var fps := Engine.get_frames_per_second()
+			if fps > 0.0 and fps < 22.0:
+				_play_stride = 3  # ~20 Hz visual
+			elif fps >= 40.0:
+				_play_stride = 2  # 30 Hz once healthy
+			# else keep current stride
+		if (nt % maxi(1, _play_stride)) != 0:
+			return
+	elif GameState.state in [GameState.State.SHOP, GameState.State.STAGE_CLEAR, GameState.State.INTRO]:
 		if (nt % 3) != 0:
 			return
 	elif GameState.state == GameState.State.PAUSED:
@@ -90,19 +106,13 @@ func _in_pf(x: float, y: float, margin: float = 24.0) -> bool:
 	)
 
 func _draw_stage_bg_cached_or_live(pf: Rect2) -> void:
-	## Phase 1.3: blit PF-sized StageBg bake; live drawer until first tex lands.
-	# Boss fights: always live-draw so HSL-correct StageBgFx + dual_freeze soft path apply
-	# (stale cache can hold pre-fix neon mandalas and wipe out ambience parity)
-	var boss_live := false
-	for b in get_tree().get_nodes_in_group("bosses"):
-		if is_instance_valid(b) and not bool(b.get("dead")):
-			boss_live = true
-			break
-	if not boss_live and stage_bg_cache != null and stage_bg_cache.has_method("get_texture"):
+	## Phase 1.3: blit PF-sized StageBg bake. Never live full StageBgFx on the hot path —
+	## that path alone can cost tens of ms/frame (software GL / web). Cache miss → solid
+	## stage gradient only; boss intensity re-bakes via StageBgDrawCache bi bucket.
+	if stage_bg_cache != null and stage_bg_cache.has_method("get_texture"):
 		var tex: Texture2D = stage_bg_cache.get_texture(tick)
 		if tex != null and ctx.has_method("draw_image"):
 			ctx.draw_image(tex, pf.position.x, pf.position.y, pf.size.x, pf.size.y)
-			# Soft PF border (draw_hud.drawStageBg also strokes this)
 			ctx.stroke_style("rgba(255,120,190,0.35)")
 			ctx.line_width(2)
 			ctx.begin_path()
@@ -112,8 +122,37 @@ func _draw_stage_bg_cached_or_live(pf: Rect2) -> void:
 				ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 			ctx.stroke()
 			return
-	if hud.has_method("drawStageBg"):
-		hud.drawStageBg()
+	# Cold cache: 2-stop solid fill (no motifs / StageBgFx)
+	_draw_stage_bg_solid(pf)
+
+func _draw_stage_bg_solid(pf: Rect2) -> void:
+	var s := int(GameState.stage_index) if GameState else 0
+	var top := Color(0.043, 0.141, 0.071)
+	var bot := Color(0.098, 0.247, 0.122)
+	match s:
+		1:
+			top = Color(0.043, 0.102, 0.188); bot = Color(0.110, 0.247, 0.376)
+		2:
+			top = Color(0.051, 0.125, 0.051); bot = Color(0.122, 0.314, 0.110)
+		3:
+			top = Color(0.082, 0.031, 0.149); bot = Color(0.173, 0.086, 0.282)
+		4:
+			top = Color(0.141, 0.094, 0.031); bot = Color(0.247, 0.173, 0.051)
+		5:
+			top = Color(0.039, 0.039, 0.118); bot = Color(0.106, 0.090, 0.275)
+		6:
+			top = Color(0.141, 0.031, 0.071); bot = Color(0.306, 0.063, 0.098)
+	# Native rects — skip CanvasCompat gradient banding cost on cold frames
+	draw_rect(Rect2(pf.position, Vector2(pf.size.x, pf.size.y * 0.55)), top, true)
+	draw_rect(Rect2(Vector2(pf.position.x, pf.position.y + pf.size.y * 0.45), Vector2(pf.size.x, pf.size.y * 0.55)), bot, true)
+	ctx.stroke_style("rgba(255,120,190,0.35)")
+	ctx.line_width(2)
+	ctx.begin_path()
+	if ctx.has_method("round_rect"):
+		ctx.round_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y, 4)
+	else:
+		ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
+	ctx.stroke()
 
 func _draw() -> void:
 	if ctx == null or ported == null:
@@ -682,29 +721,41 @@ func _player_state(player: Node) -> Dictionary:
 	return st
 
 func _draw_bobina_cached_or_live(st: Dictionary) -> void:
-	## Phase 1.2: SubViewport-baked drawBobina when state is cacheable.
-	## High-motion states (dash/bomb) stay live for exact FX.
+	## Phase 1.2: SubViewport-baked drawBobina when cacheable.
+	## Live full drawBobina (4k-line CanvasCompat) is the #1 FPS killer — only for dash/bomb.
 	var dash := float(st.get("dash", 0))
 	var bomb := float(st.get("bombFx", 0))
-	var use_cache := bobina_cache != null and dash <= 0.0 and bomb <= 0.0
-	if use_cache and bobina_cache.has_method("get_play_texture"):
+	var px := float(st.get("x", 0))
+	var py := float(st.get("y", 0))
+	var iframe := float(st.get("iframe", 0))
+	var flash := iframe > 0.0 and (int(floorf(iframe / 4.0)) % 2) == 1
+	if dash > 0.0 or bomb > 0.0:
+		ported.drawBobina(st)
+		return
+	if bobina_cache != null and bobina_cache.has_method("get_play_texture"):
 		var tex: Texture2D = bobina_cache.get_play_texture(st)
 		if tex != null and ctx.has_method("draw_image"):
 			var tw := float(tex.get_width())
 			var th := float(tex.get_height())
-			var px := float(st.get("x", 0))
-			var py := float(st.get("y", 0))
-			# iframe flash (HTML: alpha 0.5 every other 4 frames of invuln)
-			var iframe := float(st.get("iframe", 0))
-			var flash := iframe > 0.0 and (int(floorf(iframe / 4.0)) % 2) == 1
 			if flash:
 				ctx.global_alpha(0.5)
 			ctx.draw_image(tex, px - tw * 0.5, py - th * 0.5, tw, th)
 			if flash:
 				ctx.global_alpha(1.0)
 			return
-	# Live full drawer (cache miss or dash/bomb)
-	ported.drawBobina(st)
+	# Cold cache: cheap stand-in (bake fills within a few frames). Never live-draw here.
+	if flash:
+		ctx.global_alpha(0.5)
+	ctx.fill_style("#ffb6d9")
+	ctx.begin_path()
+	ctx.arc(px, py, 14, 0, TAU)
+	ctx.fill()
+	ctx.fill_style("#fff0f8")
+	ctx.begin_path()
+	ctx.arc(px, py - 2, 8, 0, TAU)
+	ctx.fill()
+	if flash:
+		ctx.global_alpha(1.0)
 
 func _draw_player(player: Node) -> void:
 	var st := _player_state(player)

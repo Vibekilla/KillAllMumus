@@ -153,16 +153,17 @@ Probe: `npm run port:fps` (Xvfb + Mesa **llvmpipe** software GL — not represen
 
 | Scene | Wall ms/frame (llvmpipe) | Notes |
 | --- | --- | --- |
-| title | ~80 ms (~12.5 FPS) | full title draw path (llvmpipe) |
-| play | ~134 ms (~7.5 FPS) | play after StageBg/Bobina cache (llvmpipe; GPU re-measure open) |
+| title | ~42 ms (~24 FPS) | title path after throttle (llvmpipe) |
+| play | ~71 ms (~14 FPS) after hotpath; ~85 ms (~12 FPS) with mobs | llvmpipe only — GPU/web re-measure still open |
 
-Code-path root causes:
+Code-path root causes (why ~7 FPS “throughout”):
 
-1. **Full `drawBobina` every redraw** — primary cost (menus ×4.7, play every tick).  
-2. **WorldDraw single pass** — full field each sim tick on PLAY (correct for parity).  
-3. **Title** — tick-throttled (~30 Hz idle).  
-4. **Mitigations landed** — `BobinaDrawCache` for menus + play (face-bucketed); **`StageBgDrawCache`** PF bake for stage bg/motifs/fx; shop/stage-clear/intro WorldDraw 20 Hz; pause 6 Hz; HUD 30 Hz; particle color batch.  
-5. **Still needed** — enemy sprite batching, measure on hardware GPU / web (Phase 1.4).
+1. **Renderer**: server probe / some hosts use **Mesa llvmpipe** (software GL) — not a real GPU.  
+2. **`drawBobina` live** — 4k-line CanvasCompat drawer; was falling through on cache miss every facing change.  
+3. **WorldDraw PLAY at 60 Hz** — entire field rebuilt in GDScript polygons every sim tick.  
+4. **StageBg live / dense re-bake** — full StageBgFx + SubViewport bake every few ticks.  
+5. **Mitigations (2026-08-02)** — PLAY WorldDraw **30 Hz**; never live Bobina except dash/bomb (outfit/face fallback + stand-in); StageBg cache-only + solid cold path; Bobina `TICK_BUCKET_PLAY=8`, 1 bake/frame; StageBg `TICK_BUCKET=10`; gradient bands 12.  
+6. **Still needed** — enemy bake/batch; real **GPU + web** FPS measure (Phase 1.4); optional further PLAY 20 Hz on low FPS.
 
 ```bash
 npm run port:gates          # structure Phases 0–8

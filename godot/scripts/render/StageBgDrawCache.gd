@@ -3,8 +3,9 @@ extends Node
 ## Re-bake on stage change / tick bucket / boss-intensity bucket.
 ## WorldDraw blits the texture every frame — entities stay 60 Hz; bg amortizes to ~15–20 Hz.
 
-const TICK_BUCKET := 3
-const MAX_ENTRIES := 24
+## ~6 Hz re-bake — StageBgFx is slow-scrolling; tighter buckets burned FPS on soft GL/web
+const TICK_BUCKET := 10
+const MAX_ENTRIES := 16
 
 var _vp: SubViewport
 var _host: Node2D
@@ -105,7 +106,9 @@ func get_texture(tick: int) -> Texture2D:
 				fallback = _ready_tex[k]
 				_touch(str(k))
 				break
-	_enqueue(key, tick, stage, bi_b)
+	# Only re-bake when cold or idle — continuous bi/tick thrash was a FPS sink
+	if fallback == null or _queue.is_empty():
+		_enqueue(key, tick, stage, bi_b)
 	return fallback
 
 func _enqueue(key: String, tick: int, stage: int, bi_b: int) -> void:

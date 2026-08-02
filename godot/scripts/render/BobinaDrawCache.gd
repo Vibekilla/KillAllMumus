@@ -7,9 +7,10 @@ const PAD := 48.0
 const MAX_ENTRIES := 96
 ## Quantize tick so breath/bob anim steps without unique tex every frame
 const TICK_BUCKET := 4
-const TICK_BUCKET_PLAY := 3
+## Play: coarser buckets = fewer SubViewport bakes (full drawBobina is very expensive)
+const TICK_BUCKET_PLAY := 8
 ## In-game facing bins (full 360 body rotate inside drawBobina)
-const FACE_BINS := 16
+const FACE_BINS := 12
 
 var _vp: SubViewport
 var _host: Node2D
@@ -20,6 +21,7 @@ var _order: Array = []  # LRU keys
 var _queue: Array = []  # {key, state, scale, size}
 var _busy: bool = false
 var _last_key: String = ""
+var _last_play_tex: Texture2D = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -82,17 +84,28 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 	var key := cache_key(outfit, expr if expr_key != "null" else null, 0, tick, 1.0, extra)
 	if _ready_tex.has(key):
 		_touch(key)
+		_last_play_tex = _ready_tex[key]
 		return _ready_tex[key]
 	# Stale-but-close: same outfit/face/focus/expr, any tick bucket
-	var prefix := "%s|%s|0|" % [outfit, expr_key]
 	var suffix := "|1.0|%s" % extra
 	var fallback: Texture2D = null
 	for k in _ready_tex.keys():
 		var ks := str(k)
-		if ks.ends_with(suffix) and ("|%s|" % expr_key) in ks:
+		if ks.ends_with(suffix) and ks.begins_with(outfit + "|"):
 			fallback = _ready_tex[k]
 			_touch(ks)
 			break
+	# Any same-outfit play bake (wrong face briefly beats live drawBobina)
+	if fallback == null:
+		var oprefix := outfit + "|"
+		for k2 in _ready_tex.keys():
+			var ks2 := str(k2)
+			if ks2.begins_with(oprefix) and "|1.0|" in ks2:
+				fallback = _ready_tex[k2]
+				_touch(ks2)
+				break
+	if fallback == null and _last_play_tex != null:
+		fallback = _last_play_tex
 	var bake := st.duplicate(true)
 	bake["face"] = face
 	bake["iframe"] = 0  # flash applied at blit
@@ -104,8 +117,14 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 		bake["expr"] = expr
 	else:
 		bake.erase("expr")
-	_get_or_enqueue(key, outfit, expr if expr_key != "null" else null, tick, 1.0, bake)
-	return fallback  # null only until first bake for this facing lands
+	# Full drawBobina bake is the main CPU cost. Prefer stale face/outfit blit over
+	# continuous SubViewport re-bakes while the player aims (face bins thrash).
+	# Enqueue only when cold (no fallback) or when the queue is empty (1 opportunistic).
+	if fallback == null or _queue.is_empty():
+		_get_or_enqueue(key, outfit, expr if expr_key != "null" else null, tick, 1.0, bake)
+	if fallback != null:
+		_last_play_tex = fallback
+	return fallback  # null only until first bake for this outfit lands
 
 func _get_or_enqueue(key: String, outfit: String, expr, tick: int, scale: float, state: Dictionary) -> Texture2D:
 	if _ready_tex.has(key):
@@ -148,6 +167,7 @@ func clear_cache() -> void:
 	_ready_tex.clear()
 	_order.clear()
 	_queue.clear()
+	_last_play_tex = null
 
 func _touch(key: String) -> void:
 	var i := _order.find(key)
@@ -164,16 +184,15 @@ func _process(_d: float) -> void:
 	if _busy or _queue.is_empty():
 		return
 	_busy = true
-	# Drain up to 2 play-priority jobs per frame when queue is deep
+	# One bake per display frame max — each bake runs full drawBobina into a SubViewport
 	_run_batch()
 
 func _run_batch() -> void:
-	var n := mini(2, _queue.size()) if _queue.size() > 3 else 1
-	for _i in range(n):
-		if _queue.is_empty():
-			break
-		var job: Dictionary = _queue.pop_front()
-		await _bake(job)
+	if _queue.is_empty():
+		_busy = false
+		return
+	var job: Dictionary = _queue.pop_front()
+	await _bake(job)
 	_busy = false
 
 func _bake(job: Dictionary) -> void:
