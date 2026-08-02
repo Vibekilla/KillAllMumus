@@ -196,24 +196,28 @@ func _near(pt, r: float) -> bool:
 	return p.global_position.distance_to(Vector2(x, y)) < r
 
 func _cycle_melee() -> void:
+	## HTML meleeswap — cycle player armed melee; do not reorder arsenal
+	var p = _player()
+	if p and p.has_method("cycle_melee"):
+		p.cycle_melee()
+		return
+	# Fallback if player missing API
 	var ar: Dictionary = ProgressStore.progress.get("arsenal", {})
 	var ms: Array = ar.get("m", ["katana"])
 	if ms.size() < 2:
 		return
-	# rotate
-	var first = ms[0]
-	ms.remove_at(0)
-	ms.append(first)
-	ar["m"] = ms
-	ProgressStore.progress["arsenal"] = ar
-	var mdef = {}
-	for m in DataRegistry.melee:
-		if str(m.get("key")) == str(ms[0]):
-			mdef = m
-			break
-	if AudioBus:
-		AudioBus.sfx("item")
-	CombatHelpers.flash("%s %s" % [mdef.get("icon", "🗡"), mdef.get("name", ms[0])], 75.0)
+	if p and p.get("armed_melee") != null:
+		p.armed_melee = (int(p.armed_melee) + 1) % ms.size()
+		var mk = str(ms[int(p.armed_melee)])
+		var mdef = {}
+		for m in DataRegistry.melee:
+			if str(m.get("key")) == mk:
+				mdef = m
+				break
+		if AudioBus:
+			AudioBus.sfx("item")
+		if CombatHelpers:
+			CombatHelpers.flash("%s %s" % [mdef.get("icon", "🗡"), mdef.get("name", mk)], 75.0)
 
 func _player() -> Node:
 	return get_tree().get_first_node_in_group("player") if get_tree() else null

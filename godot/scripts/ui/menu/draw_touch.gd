@@ -247,16 +247,19 @@ func _melee_label() -> String:
 	return icon + "\nMELEE"
 
 func _melee_swap_label() -> String:
+	## HTML touch: show NEXT melee in loadout (after armed_melee)
 	var icon := "🗡"
 	var keys := _arsenal_melee_keys()
-	if keys.size() > 1:
-		var m: Dictionary = _melee_def_by_key(str(keys[1]))
-		if not m.is_empty():
-			icon = str(m.get("icon", "🗡"))
-	elif keys.size() == 1:
-		var m2: Dictionary = _melee_def_by_key(str(keys[0]))
-		if not m2.is_empty():
-			icon = str(m2.get("icon", "🗡"))
+	if keys.is_empty():
+		return icon + "\nMEL⇄"
+	var ai := 0
+	var pl := _player()
+	if pl and pl.get("armed_melee") != null:
+		ai = clampi(int(pl.armed_melee), 0, keys.size() - 1)
+	var next_i := (ai + 1) % keys.size() if keys.size() > 1 else ai
+	var m: Dictionary = _melee_def_by_key(str(keys[next_i]))
+	if not m.is_empty():
+		icon = str(m.get("icon", "🗡"))
 	return icon + "\nMEL⇄"
 
 func hit_key(pos: Vector2) -> String:

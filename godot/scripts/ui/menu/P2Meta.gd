@@ -114,9 +114,10 @@ func _set_ars(type: String, arr: Array) -> void:
 	save_arsenal()
 
 func _apply_arsenal_to_run() -> void:
-	## HTML applyArsenalToRun (subset)
+	## HTML applyArsenalToRun
 	var w = ars_arr("w")
 	var s = ars_arr("s")
+	var mkeys = ars_arr("m")
 	GameState.weapons.clear()
 	for x in w:
 		GameState.weapons.append(str(x))
@@ -127,6 +128,15 @@ func _apply_arsenal_to_run() -> void:
 	GameState.specials.clear()
 	for x in s:
 		GameState.specials.append(str(x))
+	# HTML: if(run.armed>=run.specials.length) run.armed=0; melee snap if not in loadout
+	var pl = _player()
+	if pl:
+		if pl.get("armed_special") != null:
+			if GameState.specials.is_empty() or int(pl.armed_special) >= GameState.specials.size():
+				pl.armed_special = 0
+		if pl.get("armed_melee") != null:
+			if mkeys.is_empty() or int(pl.armed_melee) >= mkeys.size():
+				pl.armed_melee = 0
 
 func armed_spec() -> Dictionary:
 	## HTML armedSpec
@@ -227,6 +237,15 @@ func init_player() -> void:
 		p.offx = 0.0
 	if p.get("offy") != null:
 		p.offy = 0.0
+	# HTML newRun armed:0 — keep loadout selection across stage load (only clamp)
+	if p.get("armed_special") != null and GameState.specials.size():
+		p.armed_special = clampi(int(p.armed_special), 0, GameState.specials.size() - 1)
+	if p.get("armed_melee") != null:
+		var mk: Array = ars_arr("m")
+		if mk.size():
+			p.armed_melee = clampi(int(p.armed_melee), 0, mk.size() - 1)
+		else:
+			p.armed_melee = 0
 	if p.get("shield_t") != null:
 		p.shield_t = keep_shield
 	if p.get("rapid_t") != null:

@@ -34,6 +34,8 @@ var vial_hits: int = 0    # HTML player.vialHits
 var trail: Array = []  # dash comet trail (local points)
 var slash_dash: bool = false
 var armed_special: int = 0
+## HTML player.melee index into run.melees / arsenal m loadout
+var armed_melee: int = 0
 var _shift_tap_t: float = 999.0
 ## HTML p.offx/offy — dash displacement vs cursor; decays so control resumes from landing spot
 var offx: float = 0.0
@@ -262,12 +264,9 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_pressed("melee"):
 		melee.begin_hold()
 	if Input.is_action_just_released("melee"):
-		var mk := "katana"
-		var ar: Dictionary = ProgressStore.progress.get("arsenal", {})
-		var ms: Array = ar.get("m", ["katana"])
-		if ms.size():
-			mk = str(ms[0])
-		melee.release(self, mk, aim)
+		melee.release(self, current_melee_key(), aim)
+	if Input.is_action_just_pressed("meleeswap"):
+		cycle_melee()
 
 	# update bobina sprite state — full fields for drawBobina parity
 	if has_node("Sprite/BobinaSprite"):
@@ -330,11 +329,7 @@ func _do_dash() -> void:
 			CombatHelpers.flash("✦ SLASH DASH!", 42.0)
 			CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 6.0)
 		ProgressStore.unlock_emblem("slash_dash")
-		var mk := "katana"
-		var ar: Dictionary = ProgressStore.progress.get("arsenal", {})
-		var ms: Array = ar.get("m", ["katana"])
-		if ms.size():
-			mk = str(ms[0])
+		var mk := current_melee_key()
 		# HTML doMeleeSwipe(1.0, ang) at dash start, then lock melee CD
 		if melee.has_method("release"):
 			melee.holding = true
@@ -365,6 +360,33 @@ func _do_dash() -> void:
 					"vy": -sin(ang) * 4.0 + (randf() - 0.5) * 2.5,
 					"life": 18.0, "c": "#9ad4ff",
 				})
+
+func arsenal_melee_keys() -> Array:
+	## HTML run.melees / arsenalM loadout order
+	var ar: Dictionary = ProgressStore.progress.get("arsenal", {}) if ProgressStore else {}
+	var ms: Array = ar.get("m", ["katana"]) if ar is Dictionary else ["katana"]
+	if ms.is_empty():
+		return ["katana"]
+	return ms
+
+func current_melee_key() -> String:
+	## HTML MELEE[player.melee] via armed index into loadout
+	var ms := arsenal_melee_keys()
+	var i := clampi(armed_melee, 0, ms.size() - 1)
+	return str(ms[i])
+
+func cycle_melee() -> void:
+	## HTML meleeswap: cycle player.melee through run.melees (does NOT reorder arsenal)
+	var ms := arsenal_melee_keys()
+	if ms.size() < 2:
+		return
+	armed_melee = (clampi(armed_melee, 0, ms.size() - 1) + 1) % ms.size()
+	var mk := current_melee_key()
+	var mdef := _melee_def(mk)
+	if AudioBus:
+		AudioBus.sfx("item")
+	if CombatHelpers:
+		CombatHelpers.flash("%s %s" % [mdef.get("icon", "🗡"), mdef.get("name", mk)], 75.0)
 
 func _melee_def(key: String) -> Dictionary:
 	if DataRegistry:
@@ -403,11 +425,7 @@ func _flurry_tick() -> void:
 				if float(e.get("hp")) <= 0.0:
 					ProgressStore.estats_add("mkills", 1)
 	# HTML: meleeFx slash trail + claw sfx each tick
-	var mk := "katana"
-	var ar: Dictionary = ProgressStore.progress.get("arsenal", {}) if ProgressStore else {}
-	var ms: Array = ar.get("m", ["katana"]) if ar is Dictionary else ["katana"]
-	if ms.size():
-		mk = str(ms[0])
+	var mk := current_melee_key()
 	var mdef: Dictionary = _melee_def(mk)
 	if CombatHelpers:
 		CombatHelpers.melee_fx.append({
@@ -452,11 +470,7 @@ func _dash_plow() -> void:
 			bullet_pool.clear_enemy_near(global_position, 34.0)
 		# slash arcs every 4 frames along the path
 		if int(dash) % 4 == 0:
-			var mk2 := "katana"
-			var ar2: Dictionary = ProgressStore.progress.get("arsenal", {})
-			var ms2: Array = ar2.get("m", ["katana"])
-			if ms2.size():
-				mk2 = str(ms2[0])
+			var mk2 := current_melee_key()
 			var m: Dictionary = _melee_def(mk2)
 			if CombatHelpers:
 				CombatHelpers.melee_fx.append({

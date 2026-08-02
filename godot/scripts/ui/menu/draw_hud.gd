@@ -1165,12 +1165,23 @@ func _melee_idx_list() -> Array:
 	return out
 
 func _current_melee_index() -> int:
+	## HTML player.melee (index into MELEE) via armed_melee into arsenal m
 	var lst := _melee_idx_list()
 	if lst.is_empty():
 		return 0
-	return int(lst[0])
+	var player = _player()
+	var ai := 0
+	if player and player.get("armed_melee") != null:
+		ai = clampi(int(player.armed_melee), 0, lst.size() - 1)
+	return int(lst[ai])
 
 func _current_melee_def() -> Dictionary:
+	var player = _player()
+	if player and player.has_method("current_melee_key"):
+		var key := str(player.current_melee_key())
+		for m in DataRegistry.melee:
+			if str(m.get("key")) == key:
+				return m
 	var i := _current_melee_index()
 	if i >= 0 and i < DataRegistry.melee.size():
 		return DataRegistry.melee[i]

@@ -135,12 +135,17 @@ func start_run() -> void:
 		ItemSystem.reset_run()
 	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/StageFlow"):
 		StageFlow.reset_run()
-	# Reset fire cooldown on player FireSystem if present
+	# Reset fire cooldown + armed indices (HTML newRun armed:0)
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree:
 		var pl = tree.get_first_node_in_group("player")
 		if pl and pl.get("fire_sys") and pl.fire_sys.has_method("reset_run"):
 			pl.fire_sys.reset_run()
+		if pl:
+			if pl.get("armed_special") != null:
+				pl.armed_special = 0
+			if pl.get("armed_melee") != null:
+				pl.armed_melee = 0
 	set_state(State.INTRO)
 	run_started.emit()
 	score_changed.emit(session_score, total_kills, rank_letter())
