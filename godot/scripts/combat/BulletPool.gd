@@ -80,6 +80,20 @@ func clear_enemy_near(pos: Vector2, radius: float, drop_points: bool = true) -> 
 			})
 		b.deactivate()
 
+func cancel_enemy_in_annulus(pos: Vector2, lo: float, hi: float) -> void:
+	## HTML wave special: cancel non-shell bullets where lo < d < hi
+	for b in _pool:
+		if not b.active or int(b.team) != 1:
+			continue
+		var bhp: float = 0.0
+		if b.get("hp") != null:
+			bhp = float(b.get("hp"))
+		if bhp > 0.0:
+			continue
+		var d: float = b.global_position.distance_to(pos)
+		if d > lo and d < hi:
+			b.deactivate()
+
 func despawn_enemy_near(pos: Vector2, radius: float, floater_life: float = 0.0, floater_scale: float = 0.3) -> void:
 	## HTML pure filter: remove ALL enemy bullets in radius (incl. shells).
 	## No point drops — hitPlayer death, slashDash, nadeBoom, enemyExplode.

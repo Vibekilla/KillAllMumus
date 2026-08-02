@@ -244,28 +244,38 @@ func _update_fx(delta: float) -> void:
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"wave":
+				# HTML Emblem Vaults: expand ring r+=9; annulus lo=r-14 hi=r+6;
+				# mob 5 once / boss 14 once; cancel bullets in ring; die when r>PF.w+PF.h
 				if float(f.get("delay", 0)) > 0.0:
 					f["delay"] = float(f["delay"]) - df
 					keep.append(f)
 				else:
 					f["r"] = float(f.get("r", 0)) + 9.0 * df
-					_ring_damage(float(f["x"]), float(f["y"]), float(f["r"]), 4.0)
-					if float(f["r"]) < 280.0:
+					_wave_ring_tick(f, pool)
+					if float(f["r"]) <= pf.size.x + pf.size.y:
 						keep.append(f)
+					else:
+						f["alive"] = false
 			"bull", "badger":
+				# HTML bull: y-=9.5, mob 7 once, boss 3 continuous
+				# HTML badger: x+=dir*12, mob 8 once, boss 3 continuous
 				f["t"] = float(f["t"]) - df
 				if typ == "bull":
-					f["y"] = float(f["y"]) - 6.5 * df
+					f["y"] = float(f["y"]) - 9.5 * df
+					f["x"] = float(f["x"]) + sin((100.0 - float(f["t"])) * 0.2) * 0.6 * df
+					_stampede_tick(f, pool, true)
 				else:
-					f["x"] = float(f["x"]) + float(f.get("dir", 1)) * 7.0 * df
-				_ram_damage(f, 40.0, 6.0)
+					f["x"] = float(f["x"]) + float(f.get("dir", 1)) * 12.0 * df
+					f["y"] = float(f["y"]) + sin((90.0 - float(f["t"])) * 0.3) * 1.2 * df
+					_stampede_tick(f, pool, false)
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"tentacle":
+				# HTML: d < reach pull; dmg 4 every 9f mobs, boss 2 every 12f
 				f["t"] = float(f["t"]) - df
 				f["ct"] = float(f.get("ct", 0)) + df
-				if int(f["ct"]) % 10 == 0:
-					_ring_damage(float(f["x"]), float(f["y"]), float(f.get("reach", 76)), 3.0)
+				f["ph"] = float(f.get("ph", 0)) + 0.13 * df
+				_tentacle_tick(f)
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"servitor":
@@ -316,6 +326,7 @@ func _laser_damage(f: Dictionary) -> void:
 			e.take_damage(2.0 if not e.is_in_group("bosses") else 4.0)
 
 func _ring_damage(x: float, y: float, r: float, dmg: float) -> void:
+	## Generic thin ring (legacy); vault waves use _wave_ring_tick
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):
 			continue
@@ -323,7 +334,106 @@ func _ring_damage(x: float, y: float, r: float, dmg: float) -> void:
 		if absf(d - r) < 18.0 and e.has_method("take_damage"):
 			e.take_damage(dmg)
 
+func _wave_ring_tick(f: Dictionary, pool: Node) -> void:
+	## HTML wave special — annulus hit-once + soft bullet cancel
+	var x := float(f["x"])
+	var y := float(f["y"])
+	var r := float(f["r"])
+	var lo := r - 14.0
+	var hi := r + 6.0
+	var hit: Dictionary = f.get("hit", {})
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e):
+			continue
+		var id := e.get_instance_id()
+		if hit.has(id):
+			continue
+		var d := Vector2(x, y).distance_to(e.global_position)
+		if d > lo and d < hi and e.has_method("take_damage"):
+			hit[id] = true
+			var is_boss := e.is_in_group("bosses")
+			e.take_damage(14.0 if is_boss else 5.0)
+			if "flash" in e:
+				e.flash = 5.0
+	f["hit"] = hit
+	if pool and pool.has_method("cancel_enemy_in_annulus"):
+		pool.cancel_enemy_in_annulus(Vector2(x, y), lo, hi)
+	elif pool and pool.has_method("clear_enemy_near"):
+		pool.clear_enemy_near(Vector2(x, y), hi, false)
+
+func _stampede_tick(f: Dictionary, pool: Node, is_bull: bool) -> void:
+	## HTML bull / badger charge — hit-set for mobs; continuous boss chip
+	var fx := float(f["x"])
+	var fy := float(f["y"])
+	var hit: Dictionary = f.get("hit", {})
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e) or not e.has_method("take_damage"):
+			continue
+		var er := float(e.get("radius")) if e.get("radius") != null else 15.0
+		var is_boss := e.is_in_group("bosses")
+		if is_bull:
+			if is_boss:
+				if absf(e.global_position.x - fx) < 28.0 + er and absf(e.global_position.y - fy) < 34.0:
+					e.take_damage(3.0)
+					if "flash" in e:
+						e.flash = 4.0
+			else:
+				var id := e.get_instance_id()
+				if hit.has(id):
+					continue
+				if absf(e.global_position.x - fx) < 24.0 + er and absf(e.global_position.y - fy) < 30.0:
+					hit[id] = true
+					e.take_damage(7.0)
+					if "flash" in e:
+						e.flash = 5.0
+		else:
+			# badger
+			if is_boss:
+				if absf(e.global_position.x - fx) < 32.0 + er and absf(e.global_position.y - fy) < 26.0:
+					e.take_damage(3.0)
+					if "flash" in e:
+						e.flash = 4.0
+			else:
+				var id2 := e.get_instance_id()
+				if hit.has(id2):
+					continue
+				if absf(e.global_position.x - fx) < 26.0 + er and absf(e.global_position.y - fy) < 22.0:
+					hit[id2] = true
+					e.take_damage(8.0)
+					if "flash" in e:
+						e.flash = 5.0
+	f["hit"] = hit
+	# soft bullet cancel around body
+	if pool and pool.has_method("clear_enemy_near"):
+		pool.clear_enemy_near(Vector2(fx, fy), 28.0 if is_bull else 30.0, false)
+
+func _tentacle_tick(f: Dictionary) -> void:
+	## HTML kraken tentacle thrash
+	var pos := Vector2(float(f["x"]), float(f["y"]))
+	var reach := float(f.get("reach", 76))
+	var tleft := float(f.get("t", 0))
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e):
+			continue
+		var d := pos.distance_to(e.global_position)
+		if d >= reach or d < 0.01:
+			continue
+		if e.is_in_group("bosses"):
+			if int(tleft) % 12 == 0 and e.has_method("take_damage"):
+				e.take_damage(2.0)
+				if "flash" in e:
+					e.flash = 2.0
+		else:
+			if int(tleft) % 9 == 0 and e.has_method("take_damage"):
+				e.take_damage(4.0)
+				if "flash" in e:
+					e.flash = 4.0
+			# pull toward tentacle
+			var g := (1.0 - d / reach) * 0.5
+			e.global_position += (pos - e.global_position).normalized() * g
+
 func _ram_damage(f: Dictionary, r: float, dmg: float) -> void:
+	## Legacy full-circle once-hit (kept for any other callers)
 	var pos = Vector2(float(f["x"]), float(f["y"]))
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):

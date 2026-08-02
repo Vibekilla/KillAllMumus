@@ -114,8 +114,10 @@ func _on_click(p: Vector2) -> void:
 	if not StageFlow:
 		return
 	match GameState.state:
-		GameState.State.INTRO, GameState.State.STAGE_CLEAR:
+		GameState.State.INTRO:
 			StageFlow.advance_screen()
+		GameState.State.STAGE_CLEAR:
+			_stage_clear_click(p)
 		GameState.State.SHOP:
 			_shop_click(p)
 		GameState.State.PLAY:
@@ -133,6 +135,33 @@ func _on_click(p: Vector2) -> void:
 				"w": 76, "h": 76,
 			}):
 				StageFlow.enter_shop()
+
+func _stage_clear_click(p: Vector2) -> void:
+	## HTML stageclear: arsenal btn → arsenalReturn=stageclear; menu → title; else advance
+	if flow_draw and not flow_draw.sc_arsenal_btn.is_empty() \
+			and MenuHelpers.in_btn(p, flow_draw.sc_arsenal_btn):
+		_open_arsenal_from_stage_clear()
+		return
+	if flow_draw and not flow_draw.sc_menu_btn.is_empty() \
+			and MenuHelpers.in_btn(p, flow_draw.sc_menu_btn):
+		GameState.return_to_title()
+		if AudioBus:
+			AudioBus.sfx("item")
+		return
+	# next stage / empty area advances (HTML advanceScreen)
+	StageFlow.advance_screen()
+
+func _open_arsenal_from_stage_clear() -> void:
+	## HTML: arsenalReturn='stageclear'; state='arsenal'
+	var tree := get_tree()
+	if tree == null:
+		return
+	var ts = tree.root.find_child("TitleScreen", true, false)
+	if ts and ts.get("model") != null:
+		ts.model.arsenal_return = "stageclear"
+	GameState.set_state(GameState.State.ARSENAL)
+	if AudioBus:
+		AudioBus.sfx("item")
 
 func _shop_click(p: Vector2) -> void:
 	var hit := false

@@ -8,6 +8,10 @@ var tick: int = 0
 var W: float = 960.0
 var H: float = 540.0
 var shop_btns: Array = []
+## HTML scArsenalBtn / menuBtn / next on stage-clear
+var sc_arsenal_btn: Dictionary = {}
+var sc_menu_btn: Dictionary = {}
+var sc_next_btn: Dictionary = {}
 var badger = null  # drawHoneyBadger optional
 var ported = null  # PortedDraw for 1:1 portrait bust
 
@@ -158,11 +162,12 @@ func drawStageClear(info: Dictionary) -> void:
 				], W / 2.0, yb)
 				yb += 16
 				shown += 1
-	# HTML 🎒 EDIT ARSENAL button
+	# HTML 🎒 EDIT ARSENAL button (scArsenalBtn)
 	var aw := 224.0
 	var ah := 30.0
 	var ax := W / 2.0 - aw / 2.0
 	var ay := H - 86.0
+	sc_arsenal_btn = {"x": ax, "y": ay, "w": aw, "h": ah}
 	ctx.fill_style("rgba(20,40,58,0.85)")
 	ctx.begin_path()
 	ctx.round_rect(ax, ay, aw, ah, 8)
@@ -174,11 +179,12 @@ func drawStageClear(info: Dictionary) -> void:
 	ctx.font("bold 13px Trebuchet MS")
 	ctx.fill_text("🎒 EDIT ARSENAL", W / 2.0, ay + 20)
 	# HTML action buttons: MAIN MENU (left) + NEXT STAGE (right)
-	_draw_sc_menu_btn(W / 2.0 - 90.0, H - 50.0)
+	sc_menu_btn = _draw_sc_menu_btn(W / 2.0 - 90.0, H - 50.0)
 	var nw := 150.0
 	var nh := 28.0
 	var nx := W / 2.0 + 90.0 - nw / 2.0
 	var ny := H - 50.0
+	sc_next_btn = {"x": nx, "y": ny, "w": nw, "h": nh}
 	ctx.fill_style("rgba(40,20,16,0.85)")
 	ctx.begin_path()
 	ctx.round_rect(nx, ny, nw, nh, 8)
@@ -191,7 +197,7 @@ func drawStageClear(info: Dictionary) -> void:
 	ctx.fill_text("NEXT STAGE ▶  [" + MenuHelpers.kb("shoot") + "]", W / 2.0 + 90.0, ny + 19)
 	ctx.text_align("left")
 
-func _draw_sc_menu_btn(cx: float, y: float) -> void:
+func _draw_sc_menu_btn(cx: float, y: float) -> Dictionary:
 	## HTML drawMenuBtn used on stage-clear
 	var w := 150.0
 	var h := 28.0
@@ -207,6 +213,7 @@ func _draw_sc_menu_btn(cx: float, y: float) -> void:
 	ctx.font("bold 13px Trebuchet MS")
 	ctx.text_align("center")
 	ctx.fill_text("⌂ MAIN MENU  [M]", cx, y + 19)
+	return {"x": x, "y": y, "w": w, "h": h}
 
 func drawClearGate(portal, shop, msg_t: float) -> void:
 	## HTML drawClearGate — portal vortex + shop hut + near interact prompts

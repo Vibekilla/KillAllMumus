@@ -376,7 +376,7 @@ func _melee_def(key: String) -> Dictionary:
 	return {}
 
 func _flurry_tick() -> void:
-	## HTML Badger Claws flurry mow — uses live aim so turning sweeps a new arc
+	## HTML Badger Claws flurry mow — live aim; knock mobs; chip boss; claw sfx
 	var dir := flurry_dir
 	if aim != 0.0:
 		dir = aim
@@ -391,8 +391,35 @@ func _flurry_tick() -> void:
 		var d: float = sqrt(dx * dx + dy * dy)
 		var er: float = float(e.get("radius")) if e.get("radius") != null else 15.0
 		if d < reach + er and absf(wrapf(atan2(dy, dx) - dir, -PI, PI)) < half:
+			var is_boss := e.is_in_group("bosses")
 			if e.has_method("take_damage"):
 				e.take_damage(fdmg)
+			if "flash" in e:
+				e.flash = 3.0 if is_boss else 5.0
+			if not is_boss and d > 0.5:
+				var nx := dx / d
+				var ny := dy / d
+				e.global_position += Vector2(nx, ny) * 3.0
+				if float(e.get("hp")) <= 0.0:
+					ProgressStore.estats_add("mkills", 1)
+	# HTML: meleeFx slash trail + claw sfx each tick
+	var mk := "katana"
+	var ar: Dictionary = ProgressStore.progress.get("arsenal", {}) if ProgressStore else {}
+	var ms: Array = ar.get("m", ["katana"]) if ar is Dictionary else ["katana"]
+	if ms.size():
+		mk = str(ms[0])
+	var mdef: Dictionary = _melee_def(mk)
+	if CombatHelpers:
+		CombatHelpers.melee_fx.append({
+			"x": global_position.x, "y": global_position.y,
+			"dir": dir + (randf() - 0.5) * 0.55,
+			"reach": reach * 0.9, "half": 0.9,
+			"col": str(mdef.get("col", "#ff2b4d")),
+			"key": str(mdef.get("key", mk)),
+			"life": 8.0, "t": 0.0, "charge": 0.5,
+		})
+	if AudioBus:
+		AudioBus.sfx("claw")
 
 func _dash_plow() -> void:
 	## HTML: dash kills mumus / chips boss; slash cuts bullets + trail melee arcs

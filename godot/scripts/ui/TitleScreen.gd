@@ -117,7 +117,9 @@ func _on_state(s: StringName) -> void:
 	elif st == GameState.State.ARSENAL:
 		model.ars_tab = "w"
 		model.ars_drag = null
-		model.arsenal_return = "title"
+		# Keep arsenal_return if caller set stageclear (HTML arsenalReturn)
+		if model.arsenal_return != "stageclear":
+			model.arsenal_return = "title"
 	elif st == GameState.State.LEADERBOARD:
 		if model and int(model.dual_hud_face) >= 0:
 			# Dual playtest supplies synthetic rows + expression matrix

@@ -140,6 +140,14 @@ func _draw() -> void:
 	ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	ctx.clip()
 
+	# HTML: if(screenShake>0.3) translate random; screenShake*=0.85
+	if CombatHelpers and float(CombatHelpers.screen_shake) > 0.3:
+		var sh := float(CombatHelpers.screen_shake)
+		ctx.translate((randf() - 0.5) * sh, (randf() - 0.5) * sh)
+		CombatHelpers.screen_shake = sh * 0.85
+	elif CombatHelpers:
+		CombatHelpers.screen_shake = 0.0
+
 	# --- stage bg (cached) + boss ambience (live) ---
 	_draw_stage_bg_cached_or_live(pf)
 	if GameState.state == GameState.State.PLAY or GameState.state == GameState.State.PAUSED:
