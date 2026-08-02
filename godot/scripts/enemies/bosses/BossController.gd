@@ -48,6 +48,8 @@ var hell_r: float = 0.0
 var hell_spin: float = 0.0
 var hell_scale: float = 1.0
 var hell_shake: float = 0.0
+## HTML b._push — one hit-sfx per continuous body contact cycle
+var _push: bool = false
 var hy: float = 0.0
 
 func _ready() -> void:
@@ -207,15 +209,37 @@ func _physics_process(delta: float) -> void:
 	position.x = clampf(position.x, pf.position.x + 40, pf.end.x - 40)
 	position.y = clampf(position.y, pf.position.y + 40, pf.end.y - 80)
 
-	# body collision shove
-	if p:
+	# HTML boss body shove: resolve overlap + one soft knock per contact cycle
+	if p and not bool(p.get("dead")):
 		var dp := p.global_position.distance_to(global_position)
 		var near := radius + 12.0
-		if dp < near and dp > 0.01:
-			var nrm := (p.global_position - global_position) / dp
-			p.global_position += nrm * (near - dp)
+		if dp < near:
+			var nrm := (p.global_position - global_position) / dp if dp > 0.01 else Vector2(0, -1)
+			var push := near - dp
+			p.global_position += nrm * push
 			p.global_position.x = clampf(p.global_position.x, pf.position.x + 8, pf.end.x - 8)
 			p.global_position.y = clampf(p.global_position.y, pf.position.y + 8, pf.end.y - 8)
+			# HTML: if(p.knock<=0){ p.vx=nx*4.5; p.vy=ny*4.5; p.knock=6; sfx once }
+			var p_knock := float(p.get("knock")) if p.get("knock") != null else 0.0
+			if p_knock <= 0.0:
+				if "velocity" in p:
+					p.velocity = nrm * 4.5 * FRAME
+				if "knock" in p:
+					p.knock = 6.0
+				if not _push:
+					_push = true
+					if AudioBus:
+						AudioBus.sfx("hit")
+					if CombatHelpers:
+						var bcol := str(data.get("color", "#ffd27a"))
+						for i in range(3):
+							CombatHelpers.particles.append({
+								"x": p.global_position.x, "y": p.global_position.y,
+								"vx": nrm.x * 2.4, "vy": nrm.y * 2.4,
+								"life": 12.0, "c": bcol,
+							})
+		else:
+			_push = false
 
 	var bvx := position.x - px
 	var bvy := position.y - py

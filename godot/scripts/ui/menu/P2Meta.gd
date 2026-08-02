@@ -223,6 +223,10 @@ func init_player() -> void:
 		p.vial_t = 0.0
 	if p.get("flurry") != null:
 		p.flurry = 0.0
+	if p.get("offx") != null:
+		p.offx = 0.0
+	if p.get("offy") != null:
+		p.offy = 0.0
 	if p.get("shield_t") != null:
 		p.shield_t = keep_shield
 	if p.get("rapid_t") != null:

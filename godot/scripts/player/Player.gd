@@ -35,6 +35,9 @@ var trail: Array = []  # dash comet trail (local points)
 var slash_dash: bool = false
 var armed_special: int = 0
 var _shift_tap_t: float = 999.0
+## HTML p.offx/offy — dash displacement vs cursor; decays so control resumes from landing spot
+var offx: float = 0.0
+var offy: float = 0.0
 ## HTML Badger Claws full-charge flurry (p.flurry / flurryDir / flurryDmg)
 var flurry: float = 0.0
 var flurry_dir: float = -PI / 2.0
@@ -157,12 +160,19 @@ func _physics_process(delta: float) -> void:
 
 	focus = Input.is_action_pressed("focus") and dash <= 0.0
 	var spd := FOCUS_SPEED if focus else SPEED
+	# HTML MOUSE.speed scales keyboard/stick only — not mouse follow
+	var spd_mul := Config.mouse_speed if Config else 1.12
+	spd *= spd_mul
 
-	# double-tap focus → dash
+	# HTML: double-tap focus within 15 frames → dash
 	if Input.is_action_just_pressed("focus"):
-		if _shift_tap_t < 18.0 and dash_cd <= 0.0 and dash <= 0.0:
+		if _shift_tap_t < 15.0 and dash_cd <= 0.0 and dash <= 0.0:
 			_do_dash()
 		_shift_tap_t = 0.0
+
+	# HTML: p.offx/offy *= 0.95 every frame
+	offx *= 0.95
+	offy *= 0.95
 
 	var dir := Vector2(
 		Input.get_axis("move_left", "move_right"),
@@ -180,6 +190,10 @@ func _physics_process(delta: float) -> void:
 		if trail.size() > 16:
 			trail.resize(16)
 		_dash_plow()
+		# HTML: lock dash landing offset vs cursor so control resumes from HERE
+		var mouse_d := get_global_mouse_position()
+		offx = global_position.x - mouse_d.x
+		offy = global_position.y - mouse_d.y
 		if dash <= 0.0:
 			_dash_land()
 			slash_dash = false
@@ -188,32 +202,34 @@ func _physics_process(delta: float) -> void:
 		if trail.size() > 0 and int(Engine.get_process_frames()) % 2 == 0:
 			trail.pop_back()
 	elif knock > 0.0:
+		# HTML knock: ignore input, damp momentum
 		velocity *= 0.9
 	elif dir.length() > 0.1:
 		velocity = velocity.lerp(dir.normalized() * spd, 0.5)
 	else:
-		# mouse follow (desktop) — HTML MOUSE.follow / MOUSE.speed
+		# mouse follow (desktop) — HTML: target = cursor + decaying offx/offy
+		# MOUSE.speed does NOT apply here (only keyboard spd above)
 		var mouse := get_global_mouse_position()
 		var pf: Rect2 = Config.playfield()
 		if pf.grow(40).has_point(mouse):
-			var base_f := Config.mouse_follow if Config else 0.55
-			var spd_mul := Config.mouse_speed if Config else 1.12
+			var base_f := Config.mouse_follow if Config else 0.6
 			var f := maxf(0.28, base_f * 0.5) if focus else base_f
-			velocity = (mouse - global_position) * f * spd_mul * FRAME
+			var tx := clampf(mouse.x + offx, pf.position.x + 8.0, pf.end.x - 8.0)
+			var ty := clampf(mouse.y + offy, pf.position.y + 8.0, pf.end.y - 8.0)
+			# HTML: p.vx = (tx-p.x)*f  (px/frame) → *FRAME for Godot
+			velocity = Vector2(tx - global_position.x, ty - global_position.y) * f * FRAME
 		else:
-			velocity = velocity.lerp(Vector2.ZERO, 0.3)
+			# HTML: p.vx*=0.8 when no mouse
+			velocity *= 0.8
 
 	move_and_slide()
 	_clamp_to_playfield()
 
-	# aim toward movement or mouse
-	var mouse2 := get_global_mouse_position()
-	if (mouse2 - global_position).length() > 4.0:
-		aim = lerp_angle(aim, (mouse2 - global_position).angle(), 0.25)
-	elif velocity.length() > 10.0:
-		aim = lerp_angle(aim, velocity.angle(), 0.15)
-	else:
-		aim = lerp_angle(aim, -PI / 2.0, 0.08)
+	# HTML facing: hold travel heading when stopped (don't snap to mouse while idle)
+	var sp2 := velocity.length() / FRAME  # px/frame equivalent
+	if sp2 > 0.35:
+		aim = lerp_angle(aim, velocity.angle(), 0.26)
+	# else hold aim (HTML holds face when stopped)
 
 	# Unified fire: hold shoot or LMB (same on desktop / touch / Steam — no separate autofire mode).
 	# Touch FIRE button holds shoot via Main._inject_action.
@@ -574,6 +590,8 @@ func _respawn_player() -> void:
 	vial_t = 0.0
 	phase_t = 0.0
 	flurry = 0.0
+	offx = 0.0
+	offy = 0.0
 	# HTML: shieldT:pv.shieldT||0, rapidT:pv.rapidT||0 — keep residual buffs
 	velocity = Vector2.ZERO
 	sprite.modulate.a = 1.0

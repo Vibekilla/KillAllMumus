@@ -279,4 +279,5 @@ Present via other modules or partial — still product-check:
 | 2026-08-01 | Pshot vs enemy bullet score/point drops; focus hit ring; wormhole shake |
 | 2026-08-01 | Bullet cancel split: death/slash/nade/explode pure despawn (no free points); specials soft-cancel; win emblem list cap |
 | 2026-08-01 | loadStage: bombs floor 2 + initPlayer each stage; shield/rapid preserve; mouse_follow default 0.6 |
+| 2026-08-02 | Boss body knock (vx 4.5 + knock 6 + hit sfx); dash offx/offy mouse resume; dash window 15; mouse speed keyboard-only |
 | 2026-08-01 | Lotus curl/life HTML; stageclear introTimer=120; focus ring already shipped |
