@@ -318,12 +318,14 @@ func _draw() -> void:
 		for b in tree.get_nodes_in_group("bosses"):
 			if not is_instance_valid(b):
 				continue
-			var hell_r := float(b.hell_r) if "hell_r" in b else 0.0
-			var hell_on := bool(b.hell) if "hell" in b else false
+			# Explicit types: `:=` + ternary on Node props fails parse ("no set type")
+			# and drops the entire WorldDraw script → blank playfield.
+			var hell_r: float = float(b.hell_r) if "hell_r" in b else 0.0
+			var hell_on: bool = bool(b.hell) if "hell" in b else false
 			if hell_on or hell_r > 1.0:
-				var rad := float(b.radius) if "radius" in b else 40.0
-				var ht := float(b.hell_t) if "hell_t" in b else float(tick)
-				var hy_v := float(b.hy) if "hy" in b else b.global_position.y
+				var rad: float = float(b.radius) if "radius" in b else 40.0
+				var ht: float = float(b.hell_t) if "hell_t" in b else float(tick)
+				var hy_v: float = float(b.hy) if "hy" in b else float(b.global_position.y)
 				# HTML drawHellPortal(cx, hy) — portal anchored at sink origin, not sinking sprite
 				hud.drawHellPortal({
 					"x": b.global_position.x,

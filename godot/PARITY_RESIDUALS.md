@@ -286,4 +286,5 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | Vault hammer flung flight+wall detonate; clear-gate BEYOND/title labels + shop 🍯 |
 | 2026-08-02 | Wynn hell portal hell_r/hy/scale wiring; lotus curl 0.03/life 62; shock spread+spd |
 | 2026-08-02 | Melee swap: armed_melee index (HTML player.melee) not arsenal reorder; clamp on apply |
+| 2026-08-02 | Blank playfield: WorldDraw parse fail on hy_v := ternary (no set type) — explicit float types + load-guard test |
 | 2026-08-01 | Lotus curl/life HTML; stageclear introTimer=120; focus ring already shipped |

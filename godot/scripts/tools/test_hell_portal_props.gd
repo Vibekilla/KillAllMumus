@@ -23,6 +23,16 @@ func _run() -> void:
 	if wd.find("hy_v") < 0 and wd.find("b.hy") < 0:
 		print("[HELL] FAIL portal must use hy origin")
 		ok = false
+	# Explicit typed hy_v — `:= float(...) if ... else b.global_position.y` fails
+	# GDScript parse ("no set type") and drops WorldDraw → blank playfield.
+	if wd.find("hy_v: float") < 0 and wd.find("var hy_v: float") < 0:
+		print("[HELL] FAIL hy_v must be explicitly typed float (parse safety)")
+		ok = false
+	# WorldDraw must actually compile (Main attaches it as WorldCanvas script)
+	var wd_scr: Script = load("res://scripts/html_parity/WorldDraw.gd") as Script
+	if wd_scr == null:
+		print("[HELL] FAIL WorldDraw.gd failed to load/compile")
+		ok = false
 	var fs: String = FileAccess.get_file_as_string("res://scripts/combat/FireSystem.gd")
 	if fs.find("0.03") < 0 or fs.find("62.0") < 0:
 		print("[HELL] FAIL lotus main fire curl 0.03 life 62")
