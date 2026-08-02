@@ -313,20 +313,26 @@ func _draw() -> void:
 		ctx.line_to(pf.position.x + pf.size.x, cl)
 		ctx.stroke()
 
-	# Hell portals on bosses
+	# Hell portals on bosses (BossController: hell / hell_r / hell_t / hy — snake_case)
 	if tree and hud.has_method("drawHellPortal"):
 		for b in tree.get_nodes_in_group("bosses"):
 			if not is_instance_valid(b):
 				continue
-			var hell_r := float(b.get("hellR")) if b.get("hellR") != null else 0.0
-			var hell_on := bool(b.get("hell")) if b.get("hell") != null else false
+			var hell_r := float(b.hell_r) if "hell_r" in b else 0.0
+			var hell_on := bool(b.hell) if "hell" in b else false
 			if hell_on or hell_r > 1.0:
-				var rad := float(b.get("radius")) if b.get("radius") != null else 40.0
-				var ht := float(b.get("t")) if b.get("t") != null else float(tick)
+				var rad := float(b.radius) if "radius" in b else 40.0
+				var ht := float(b.hell_t) if "hell_t" in b else float(tick)
+				var hy_v := float(b.hy) if "hy" in b else b.global_position.y
+				# HTML drawHellPortal(cx, hy) — portal anchored at sink origin, not sinking sprite
 				hud.drawHellPortal({
-					"x": b.global_position.x, "y": b.global_position.y,
+					"x": b.global_position.x,
+					"y": hy_v,
 					"hellR": hell_r if hell_r > 1.0 else rad,
-					"hellT": ht, "hy": b.global_position.y,
+					"hellT": ht,
+					"hy": hy_v,
+					"hellScale": float(b.hell_scale) if "hell_scale" in b else 1.0,
+					"hellSpin": float(b.hell_spin) if "hell_spin" in b else 0.0,
 				})
 
 	ctx.restore()
@@ -554,20 +560,28 @@ func _draw_boss_node(b: Node) -> void:
 	var st := {
 		"x": b.global_position.x,
 		"y": b.global_position.y,
-		"r": float(b.get("radius")) if b.get("radius") != null else 40.0,
-		"t": float(b.get("t")) if b.get("t") != null else float(tick),
-		"hp": float(b.get("hp")) if b.get("hp") != null else 1.0,
+		"r": float(b.radius) if "radius" in b else 40.0,
+		"t": float(b.t) if "t" in b else float(tick),
+		"hp": float(b.hp) if "hp" in b else 1.0,
 		"maxhp": maxhp,
-		"phase": int(b.get("phase")) if b.get("phase") != null else 0,
-		"intro": float(b.get("intro")) if b.get("intro") != null else 0.0,
-		"dead": bool(b.get("dead")) if b.get("dead") != null else false,
+		"phase": int(b.phase) if "phase" in b else 0,
+		"intro": float(b.intro) if "intro" in b else 0.0,
+		"dead": bool(b.dead) if "dead" in b else false,
 		"data": data if data is Dictionary else {},
 		"hudName": hud,
 		"portrait": str(data.get("portrait", "")) if data is Dictionary else "",
-		"flash": float(b.get("flash")) if b.get("flash") != null else 0.0,
-		"face": float(b.get("face")) if b.get("face") != null else (PI / 2.0),
-		"twin": bool(b.get("twin")) if b.get("twin") != null else false,
-		"active": str(b.get("active_twin")) if b.get("active_twin") != null else "",
+		"flash": float(b.flash) if "flash" in b else 0.0,
+		"face": float(b.face) if "face" in b else (PI / 2.0),
+		"twin": bool(b.twin) if "twin" in b else false,
+		"active": str(b.active_twin) if "active_twin" in b else "",
+		# HTML Wynn hell cutscene — drawBoss applies shake/spin/scale
+		"hell": bool(b.hell) if "hell" in b else false,
+		"hellR": float(b.hell_r) if "hell_r" in b else 0.0,
+		"hellT": float(b.hell_t) if "hell_t" in b else 0.0,
+		"hellSpin": float(b.hell_spin) if "hell_spin" in b else 0.0,
+		"hellScale": float(b.hell_scale) if "hell_scale" in b else 1.0,
+		"hellShake": float(b.hell_shake) if "hell_shake" in b else 0.0,
+		"hy": float(b.hy) if "hy" in b else b.global_position.y,
 	}
 	ported.drawBoss(st)
 

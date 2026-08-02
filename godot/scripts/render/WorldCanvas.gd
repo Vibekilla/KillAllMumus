@@ -53,14 +53,18 @@ func _draw() -> void:
 			for b in tree.get_nodes_in_group("bosses"):
 				if not is_instance_valid(b):
 					continue
-				var hell_r := float(b.get("hellR")) if b.get("hellR") != null else 0.0
-				var hell_on := bool(b.get("hell")) if b.get("hell") != null else false
+				# BossController uses hell_r / hell_t / hy (not hellR camelCase)
+				var hell_r := float(b.hell_r) if "hell_r" in b else 0.0
+				var hell_on := bool(b.hell) if "hell" in b else false
 				if hell_on or hell_r > 1.0:
-					var rad := float(b.get("radius")) if b.get("radius") != null else 40.0
-					var ht := float(b.get("t")) if b.get("t") != null else float(tick)
+					var rad := float(b.radius) if "radius" in b else 40.0
+					var ht := float(b.hell_t) if "hell_t" in b else float(tick)
+					var hy_v := float(b.hy) if "hy" in b else b.global_position.y
 					hud.drawHellPortal({
-						"x": b.global_position.x, "y": b.global_position.y,
+						"x": b.global_position.x, "y": hy_v,
 						"hellR": hell_r if hell_r > 1.0 else rad,
 						"hellT": ht,
-						"hy": b.global_position.y,
+						"hy": hy_v,
+						"hellScale": float(b.hell_scale) if "hell_scale" in b else 1.0,
+						"hellSpin": float(b.hell_spin) if "hell_spin" in b else 0.0,
 					})

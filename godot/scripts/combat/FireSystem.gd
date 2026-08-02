@@ -109,18 +109,22 @@ func _fire(player: Node2D, pool: Node, wep: String, focus: bool) -> void:
 			var pos = ppos + perp2 * lat + cax2 * 8.0
 			_spawn_pshot(pool, pos, cax2 * 15.0 * FRAME, 3.0 + lv, {"vrip": true, "pierce": true})
 	elif wep == "lotus":
-		# HTML fire(): n=6+lv*2, curl ±0.035, life 58 (optionShot same curl/life)
+		# HTML fire(): n=6+lv*2, curl ±0.03, life 62 (optionShot uses 0.035/58)
 		var n5 = 6 + lv * 2
 		var spread = 1.5 + lv * 0.4
 		for i in n5:
 			var off = (float(i) - float(n5 - 1) * 0.5) * (spread / maxf(1.0, float(n5 - 1)))
-			shot.call(off, 6.2 + randf() * 1.4, 1.0, {"petal": true, "curl": (-1.0 if off < 0.0 else 1.0) * 0.035, "life": 58.0})
+			shot.call(off, 6.2 + randf() * 1.4, 1.0, {
+				"petal": true,
+				"curl": (-1.0 if off < 0.0 else 1.0) * 0.03,
+				"life": 62.0,
+			})
 	elif wep == "shock":
-		# HTML: j=(random-0.5)*0.5, spd 13+random*4, zap dmg 2
+		# HTML: off=(random-0.5)*(0.55+lv*0.09), spd 13+random*5, zap dmg 2
 		var n6 = 2 + lv
 		for i in n6:
-			var off = randf_range(-0.25, 0.25)  # (random-0.5)*0.5
-			shot.call(off, 13.0 + randf() * 4.0, 2.0, {"zap": true})
+			var off = (randf() - 0.5) * (0.55 + float(lv) * 0.09)
+			shot.call(off, 13.0 + randf() * 5.0, 2.0, {"zap": true})
 	else:
 		# spread (default Emblem Amulets)
 		if focus:
@@ -202,11 +206,13 @@ func option_shot(pool: Node, x: float, y: float, aim: float, wep: String) -> voi
 			dmg = 2.0
 			extra = {"vrip": true, "pierce": true}
 		"lotus":
+			# HTML optionShot lotus: curl ±0.035, life 58
 			off = randf_range(-0.35, 0.35)
 			spd = 7.0
 			extra = {"petal": true, "curl": (-1.0 if off < 0.0 else 1.0) * 0.035, "life": 58.0}
 		"shock":
-			off = randf_range(-0.25, 0.25)
+			# HTML optionShot shock: j=(random-0.5)*0.5, spd 13+random*4
+			off = (randf() - 0.5) * 0.5
 			spd = 13.0 + randf() * 4.0
 			dmg = 2.0
 			extra = {"zap": true}

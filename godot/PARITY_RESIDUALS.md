@@ -284,4 +284,5 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | Servitor hunt AI + bullet soak; laser beam cancel/radius; bombdrop boss 6 + shake; mech optionShot weapon-match |
 | 2026-08-02 | Blackhole: launch settle 16f, boss chip 3 no-pull, bullet spiral devour (not clear_near) |
 | 2026-08-02 | Vault hammer flung flight+wall detonate; clear-gate BEYOND/title labels + shop 🍯 |
+| 2026-08-02 | Wynn hell portal hell_r/hy/scale wiring; lotus curl 0.03/life 62; shock spread+spd |
 | 2026-08-01 | Lotus curl/life HTML; stageclear introTimer=120; focus ring already shipped |
