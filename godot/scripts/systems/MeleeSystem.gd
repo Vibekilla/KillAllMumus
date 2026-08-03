@@ -13,10 +13,12 @@ const FRAME := 60.0
 func tick(delta: float) -> void:
 	var df := delta * FRAME
 	cooldown = maxf(0.0, cooldown - df)
+	# HTML: while hold, meleeChg = min(1, meleeChg + 1/48) per sim frame (~0.8s to full)
 	if holding:
-		charge = minf(1.0, charge + delta * 0.85)
+		charge = minf(1.0, charge + df / 48.0)
 	else:
-		charge = maxf(0.0, charge - delta * 2.0)
+		# HTML zeros on release after swipe; no gradual decay while idle
+		pass
 	# HTML: f.t++; filter f.t < f.life (life is fixed duration, t is elapsed)
 	var keep: Array = []
 	for f in swipe_fx:

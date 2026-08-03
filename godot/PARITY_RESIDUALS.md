@@ -83,7 +83,7 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 ### Melee
 | Gap | Detail |
 |-----|--------|
-| Swipe arcs | Structure duals; charge FX / dash-slash product |
+| Swipe arcs | Structure duals; **charge rate 1/48f** (2026-08-03); charge FX product |
 | `drawMeleeWeapon` | Present; all 5 weapon prop poses product |
 
 ### Aura / FX
@@ -286,6 +286,7 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | Vault hammer flung flight+wall detonate; clear-gate BEYOND/title labels + shop 🍯 |
 | 2026-08-02 | Wynn hell portal hell_r/hy/scale wiring; lotus curl 0.03/life 62; shock spread+spd |
 | 2026-08-02 | Melee swap: armed_melee index (HTML player.melee) not arsenal reorder; clamp on apply |
+| 2026-08-03 | Melee charge rate +1/48/frame HTML (~0.8s full); drop slow delta*0.85 |
 | 2026-08-02 | Clear-gate pointer: HTML pdown tap shop r=38 / portal r=44 when field cleared |
 | 2026-08-02 | Dash particles use outfitColors; touch skips mouse aim; aim!=0 guard removed (face right valid) |
 | 2026-08-02 | Twin death handoff: legion dialog, #fff particles, roam mtx/mty; option_shot weapon test |
