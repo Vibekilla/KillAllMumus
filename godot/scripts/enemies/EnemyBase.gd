@@ -110,10 +110,13 @@ func _physics_process(delta: float) -> void:
 		_touch_player(p)
 		return
 
+	# HTML: attacks and body-hits require !p.dead (no fire/contact while Bobina is down)
+	var p_alive := p != null and not bool(p.get("dead"))
+
 	if kind == "lil":
 		position += vel * delta
 		vel.x += sin(age_frames * 0.06 + position.x * 0.01) * 0.05 * FRAME
-		if p and position.y < pf.position.y + pf.size.y * 0.6:
+		if p_alive and position.y < pf.position.y + pf.size.y * 0.6:
 			vel.x += signf(p.global_position.x - position.x) * 0.012 * FRAME
 		vel.x = clampf(vel.x * 0.99, -2.4 * FRAME, 2.4 * FRAME)
 		if position.x < pf.position.x + 12:
@@ -123,7 +126,7 @@ func _physics_process(delta: float) -> void:
 			position.x = pf.end.x - 12
 			vel.x = -absf(vel.x)
 		var fire_iv := maxi(70, int(round((150.0 if hm else 190.0) * sfr)))
-		if int(age_frames) % fire_iv == 0 and p and position.y < pf.position.y + pf.size.y * 0.7:
+		if int(age_frames) % fire_iv == 0 and p_alive and position.y < pf.position.y + pf.size.y * 0.7:
 			var n := (2 + GameState.stage_index) if icy else (1 + GameState.stage_index)
 			BulletPatterns.fan_at(bullet_pool, position.x, position.y, p.global_position.x, p.global_position.y,
 				n, 0.5 + GameState.stage_index * 0.12, 2.4 if icy else 2.8, 6.0, "#9fe0ff" if icy else "#ff7ad1")
@@ -134,19 +137,22 @@ func _physics_process(delta: float) -> void:
 		else:
 			position.y = hover_y + sin(age_frames * 0.05) * 8.0
 			var drift := sin(age_frames * 0.02) * 0.9 * FRAME
-			if p:
+			if p_alive:
 				drift += signf(p.global_position.x - position.x) * 0.4 * FRAME
 			position.x += drift * delta
 			position.x = clampf(position.x, pf.position.x + 30, pf.end.x - 30)
 		var riv := maxi(40, int(round((70.0 if hm else 95.0) * sfr)))
-		if int(age_frames) % riv == 0 and p:
+		if int(age_frames) % riv == 0 and p_alive:
 			var cnt := (9 if icy else 7) + GameState.stage_index * 2
-			BulletPatterns.ring(bullet_pool, position.x, position.y, cnt, 1.7, 6.0, bcol, age_frames * 0.1)
+			# HTML: e.bcol || (icy ? '#8fd0ff' : '#ff8ac0') — elite has bcol; big uses icy fallback
+			var ring_col: Variant = bcol if kind == "elite" else ("#8fd0ff" if icy else "#ff8ac0")
+			BulletPatterns.ring(bullet_pool, position.x, position.y, cnt, 1.7, 6.0, ring_col, age_frames * 0.1)
 		var hiv := maxi(90, int(round((150.0 if hm else 200.0) * sfr)))
-		if int(age_frames) % hiv == 0 and p:
+		if int(age_frames) % hiv == 0 and p_alive:
 			BulletPatterns.heavy_shell(bullet_pool, position.x, position.y, p.global_position.x, p.global_position.y, 2.5)
 
-	_touch_player(p)
+	if p_alive:
+		_touch_player(p)
 
 	if position.y > pf.end.y + 50 or position.x < pf.position.x - 60 or position.x > pf.end.x + 60:
 		queue_free()
@@ -155,6 +161,9 @@ func _physics_process(delta: float) -> void:
 
 func _touch_player(p: Node2D) -> void:
 	if p == null or not p.has_method("take_hit"):
+		return
+	# HTML: if(!p.dead) body-check; no contact damage while Bobina is down
+	if bool(p.get("dead")):
 		return
 	# HTML: (e.r + p.r + 2) with p.r = 3 → e.r + 5
 	if global_position.distance_to(p.global_position) < radius + 5.0:
