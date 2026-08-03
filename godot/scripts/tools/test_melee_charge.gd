@@ -49,6 +49,30 @@ func _run() -> void:
 			ok = false
 		else:
 			print("[MELEE] 48f full charge=", m.charge)
+		# During CD, hold must not build charge (keep CD above elapsed frames)
+		m.charge = 0.0
+		m.cooldown = 60.0
+		m.begin_hold()
+		for i in range(30):
+			m.tick(1.0 / 60.0)
+		if m.charge > 0.01:
+			print("[MELEE] FAIL charged during CD charge=", m.charge)
+			ok = false
+		else:
+			print("[MELEE] no charge during CD ok")
+	
+	# HTML: no charge build while meleeCd > 0
+	if ms.find("cooldown <= 0") < 0 and ms.find("cooldown <= 0.0") < 0:
+		print("[MELEE] FAIL must gate charge on cooldown<=0")
+		ok = false
+	else:
+		print("[MELEE] charge gated on cooldown ok")
+	if ms.find('snd", "kill"') < 0 and ms.find("snd', 'kill'") < 0 and ms.find('get("snd", "kill")') < 0:
+		print("[MELEE] FAIL default melee sfx should be kill (HTML)")
+		ok = false
+	else:
+		print("[MELEE] default sfx kill ok")
+
 	if ok:
 		print("[MELEE] PASS")
 		quit(0)

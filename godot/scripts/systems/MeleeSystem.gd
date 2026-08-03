@@ -13,12 +13,11 @@ const FRAME := 60.0
 func tick(delta: float) -> void:
 	var df := delta * FRAME
 	cooldown = maxf(0.0, cooldown - df)
-	# HTML: while hold, meleeChg = min(1, meleeChg + 1/48) per sim frame (~0.8s to full)
-	if holding:
+	# HTML: if(keys.melee && meleeCd<=0){ meleeChg=min(1,meleeChg+1/48); meleeHeld=true }
+	# Charge only advances when off cooldown — holding during CD does not build charge.
+	if holding and cooldown <= 0.0:
 		charge = minf(1.0, charge + df / 48.0)
-	else:
-		# HTML zeros on release after swipe; no gradual decay while idle
-		pass
+	# HTML zeros charge on release after swipe; no gradual idle decay
 	# HTML: f.t++; filter f.t < f.life (life is fixed duration, t is elapsed)
 	var keep: Array = []
 	for f in swipe_fx:
@@ -102,7 +101,8 @@ func release(player: Node2D, melee_key: String, dir: float = -PI / 2.0) -> void:
 			2.5 + ch * 5.0 + (float(m.get("kb", 5)) / 9.0) * 2.5
 		)
 	if AudioBus:
-		AudioBus.sfx(str(m.get("snd", "slash")))
+		# HTML: sfx(m.snd||'kill'); sfx('graze')
+		AudioBus.sfx(str(m.get("snd", "kill")))
 		AudioBus.sfx("graze")
 
 	# swipe sparkle particles

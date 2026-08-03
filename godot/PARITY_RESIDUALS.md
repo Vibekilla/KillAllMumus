@@ -286,6 +286,7 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | Vault hammer flung flight+wall detonate; clear-gate BEYOND/title labels + shop 🍯 |
 | 2026-08-02 | Wynn hell portal hell_r/hy/scale wiring; lotus curl 0.03/life 62; shock spread+spd |
 | 2026-08-02 | Melee swap: armed_melee index (HTML player.melee) not arsenal reorder; clamp on apply |
+| 2026-08-03 | Melee: no charge during CD (HTML meleeCd gate); default swipe sfx kill |
 | 2026-08-03 | Melee charge rate +1/48/frame HTML (~0.8s full); drop slow delta*0.85 |
 | 2026-08-02 | Clear-gate pointer: HTML pdown tap shop r=38 / portal r=44 when field cleared |
 | 2026-08-02 | Dash particles use outfitColors; touch skips mouse aim; aim!=0 guard removed (face right valid) |
