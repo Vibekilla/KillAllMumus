@@ -262,6 +262,10 @@ func _physics_process(delta: float) -> void:
 	else:
 		_patterns(s, ph, hm, cx, cy, p)
 
+	# HTML updateBoss: if(b.t%24===0) sfx('shoot') — cadence pulse while boss is live
+	if int(t) % 24 == 0 and AudioBus:
+		AudioBus.sfx("shoot")
+
 	# HTML: special at 45% HP — flashMsg, taunt dialog, bullet cancel, particles
 	if not special_used and not twin and hp <= max_hp * 0.45:
 		_trigger_boss_special()
