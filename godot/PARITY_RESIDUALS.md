@@ -323,3 +323,4 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | FPS hotpath: PLAY WorldDraw 30Hz; Bobina no-live miss; StageBg solid cold; coarser bake buckets |
 | 2026-08-02 | Blank playfield: WorldDraw parse fail on hy_v := ternary (no set type) — explicit float types + load-guard test |
 | 2026-08-01 | Lotus curl/life HTML; stageclear introTimer=120; focus ring already shipped |
+| 2026-08-11 | **UNPLAYABLE:** SimClock catch-up multi-fired just_pressed (bomb×N); edge latch per display frame + soundgate blocks keys |

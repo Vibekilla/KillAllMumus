@@ -15,6 +15,8 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	z_index = 80
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	add_to_group("sound_gate")
 	if AssetBank and AssetBank.has_method("get_tex"):
 		_campfire = AssetBank.get_tex("campfire")
 	# Dual / headless only — never skip for normal web/desktop (HTML re-shows every load)
@@ -31,7 +33,18 @@ func _ready() -> void:
 		_open = true
 		visible = true
 		queue_redraw()
+	set_process_unhandled_input(true)
 	set_process(false)
+
+func _unhandled_input(event: InputEvent) -> void:
+	## While open, eat keyboard so Z/X cannot start/play under the modal (HTML gate blocks keys).
+	if not is_blocking():
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		# Enter / Space / Z dismiss like tapping play-with-sound for accessibility
+		if event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_Z]:
+			_dismiss(true)
+		get_viewport().set_input_as_handled()
 
 func force_dismiss(with_sound: bool = false) -> void:
 	## Used by screenshot/playtest harness

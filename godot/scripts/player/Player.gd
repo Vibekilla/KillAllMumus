@@ -47,6 +47,9 @@ var flurry_dmg: float = 2.0
 ## HTML death / respawn cycle (p.dead, p.respawn)
 var dead: bool = false
 var respawn: float = 0.0
+## SimClock can catch up multiple steps per display frame; is_action_just_pressed
+## stays true for the whole display frame → one X press burned 2–4 bombs. Latch once.
+var _edge_input_frame: int = -1
 const HURT_LINES := [
 	"Ngh—!", "Ow!", "Tch—!", "That stings!", "Is that all?!", "Not today!",
 	"Rugged?! Never!", "Down bad — not down out.", "That’s a dip, not a top.",
@@ -114,6 +117,12 @@ func _physics_process(delta: float) -> void:
 func _step(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
+	# Soundgate still open (race: title start under modal) — freeze combat input
+	var tree := get_tree()
+	if tree:
+		for n in tree.get_nodes_in_group("sound_gate"):
+			if n and n.has_method("is_blocking") and bool(n.is_blocking()):
+				return
 	var df := delta * FRAME
 	# HTML: if(p.dead){ respawn--; … updateItems(); return; } — must run even under dual lock
 	if dead:
@@ -201,8 +210,14 @@ func _step(delta: float) -> void:
 	var spd_mul := Config.mouse_speed if Config else 1.12
 	spd *= spd_mul
 
+	# Edge-triggered inputs once per display frame (SimClock catch-up reuses just_pressed).
+	var proc_f := Engine.get_process_frames()
+	var edge := proc_f != _edge_input_frame
+	if edge:
+		_edge_input_frame = proc_f
+
 	# HTML: double-tap focus within 15 frames → dash
-	if Input.is_action_just_pressed("focus"):
+	if edge and Input.is_action_just_pressed("focus"):
 		if _shift_tap_t < 15.0 and dash_cd <= 0.0 and dash <= 0.0:
 			_do_dash()
 		_shift_tap_t = 0.0
@@ -283,28 +298,28 @@ func _step(delta: float) -> void:
 			AudioBus.sfx("shoot")
 		# Special meter is HTML trickle +0.012/frame (GameState sim) + graze/kills — not per-fire
 
-	if Input.is_action_just_pressed("bomb"):
+	if edge and Input.is_action_just_pressed("bomb"):
 		_try_bomb()
-	if Input.is_action_just_pressed("special") and GameState.specials.size():
+	if edge and Input.is_action_just_pressed("special") and GameState.specials.size():
 		# HTML armedSpec — use armed_special index, not always slot 0
 		var ai := clampi(armed_special, 0, GameState.specials.size() - 1)
 		var key := str(GameState.specials[ai])
 		if specials:
 			specials.use(key, self, bullet_pool)
 	# HTML: swap weapon / cycle special
-	if Input.is_action_just_pressed("swap"):
+	if edge and Input.is_action_just_pressed("swap"):
 		CombatHelpers.swap_weapon()
-	if Input.is_action_just_pressed("cycle_special"):
+	if edge and Input.is_action_just_pressed("cycle_special"):
 		CombatHelpers.cycle_special()
 	# HTML: item_switch cycles; item_use is tap-to-consume (ConsumableSystem.tick)
-	if Input.is_action_just_pressed("item_switch"):
+	if edge and Input.is_action_just_pressed("item_switch"):
 		if consumables:
 			consumables.cycle()
 	if Input.is_action_pressed("melee"):
 		melee.begin_hold()
-	if Input.is_action_just_released("melee"):
+	if edge and Input.is_action_just_released("melee"):
 		melee.release(self, current_melee_key(), aim)
-	if Input.is_action_just_pressed("meleeswap"):
+	if edge and Input.is_action_just_pressed("meleeswap"):
 		cycle_melee()
 
 	# update bobina sprite state — full fields for drawBobina parity

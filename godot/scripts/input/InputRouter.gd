@@ -66,8 +66,20 @@ func _html_name(action: String) -> String:
 		"move_down": return "down"
 		_: return action
 
+func _soundgate_blocking() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	for n in tree.get_nodes_in_group("sound_gate"):
+		if n and n.has_method("is_blocking") and bool(n.is_blocking()):
+			return true
+	return false
+
 func key_press(k: String) -> void:
 	## HTML keyPress(k)
+	# Soundgate modal: no start/play/menu keys until dismissed
+	if _soundgate_blocking():
+		return
 	var state = GameState.state
 	# Arsenal exit
 	if state == GameState.State.ARSENAL:

@@ -147,6 +147,8 @@ func consume_selected() -> bool:
 			CombatHelpers.flash("No %s left — buy some at the shop" % str(c.get("name", k)), 70.0)
 		return false
 
+var _edge_item_frame: int = -1
+
 func tick(delta: float) -> void:
 	## Tap item_use once to consume (3s cooldown). Works in cleared prep too.
 	if GameState.state != GameState.State.PLAY and GameState.state != GameState.State.STAGE_CLEAR:
@@ -157,13 +159,19 @@ func tick(delta: float) -> void:
 	e_held = false
 	e_t = 0.0
 	e_used = false
-	if Input.is_action_just_pressed("item_use"):
-		if e_cd > 0.0:
-			if AudioBus:
-				AudioBus.sfx("hit")
-			CombatHelpers.flash("⌛ Item cooling down — %ds" % int(ceili(e_cd / 60.0)), 60.0)
-		elif consume_selected():
-			e_cd = COOLDOWN_FRAMES
+	# SimClock catch-up: just_pressed stays true for whole display frame
+	var pf := Engine.get_process_frames()
+	if pf == _edge_item_frame:
+		return
+	if not Input.is_action_just_pressed("item_use"):
+		return
+	_edge_item_frame = pf
+	if e_cd > 0.0:
+		if AudioBus:
+			AudioBus.sfx("hit")
+		CombatHelpers.flash("⌛ Item cooling down — %ds" % int(ceili(e_cd / 60.0)), 60.0)
+	elif consume_selected():
+		e_cd = COOLDOWN_FRAMES
 
 func _apply_effect(key: String, p: Node = null) -> void:
 	## HTML CONSUMABLES[i].apply()

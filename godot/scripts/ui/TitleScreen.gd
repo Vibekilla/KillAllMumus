@@ -546,6 +546,12 @@ func _return_title() -> void:
 	_sfx("item")
 
 func _start() -> void:
+	# Don't start under soundgate (HTML gate blocks all keys until dismiss)
+	var tree := get_tree()
+	if tree:
+		for n in tree.get_nodes_in_group("sound_gate"):
+			if n and n.has_method("is_blocking") and bool(n.is_blocking()):
+				return
 	start_pressed.emit()
 	_sfx("item")
 	GameState.start_run()
