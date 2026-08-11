@@ -1,0 +1,1803 @@
+{
+  "count": 299,
+  "byStatus": {
+    "ported": 290,
+    "unmapped": 9
+  },
+  "functions": [
+    {
+      "name": "_hEsc",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuHelpers.gd"
+    },
+    {
+      "name": "_hItem",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "_hSec",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuHelpers.gd"
+    },
+    {
+      "name": "_hexA",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd"
+    },
+    {
+      "name": "_hexRgb",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "_rgbHue",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "actx",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/audio/SfxSynth.gd"
+    },
+    {
+      "name": "addBomb",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "addMelee",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "addPower",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "addSpecial",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "addWeapon",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "advanceScreen",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageFlow.gd"
+    },
+    {
+      "name": "aimAngle",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "angDiff",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "anyModalOpen",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/FlowUI.gd"
+    },
+    {
+      "name": "applyArsenalToRun",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "applyDiff",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "applyLayout",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/autoload/Config.gd"
+    },
+    {
+      "name": "applyMe",
+      "phase": "",
+      "status": "unmapped",
+      "godot": ""
+    },
+    {
+      "name": "applyMusicVol",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/AudioBus.gd"
+    },
+    {
+      "name": "applyProgressSnapshot",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "applySfxVol",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/AudioBus.gd"
+    },
+    {
+      "name": "armedSpec",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "arsArr",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuModel.gd"
+    },
+    {
+      "name": "arsItemByKey",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "arsPool",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuModel.gd"
+    },
+    {
+      "name": "arsenalCount",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "bobinaSay",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd"
+    },
+    {
+      "name": "bodyCtr",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "bossDmgMul",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "bossSpecial",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/enemies/bosses/BossController.gd"
+    },
+    {
+      "name": "bossWepMul",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "buildHelp",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/HelpData.gd"
+    },
+    {
+      "name": "buildProgressSnapshot",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "bulletCancelAll",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "bulletCancelNear",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "bumpIdle",
+      "phase": "",
+      "status": "unmapped",
+      "godot": ""
+    },
+    {
+      "name": "burst",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "cabalUnlocked",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "canvasPos",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/player/Player.gd"
+    },
+    {
+      "name": "chainLightning",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "checkExtend",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "circle",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawBobina.gd"
+    },
+    {
+      "name": "clearWaveMobs",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "closeDisplay",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "closeGate",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "closeHelp",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/PauseMenu.gd"
+    },
+    {
+      "name": "closeKeybinds",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "closeSettings",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "closeShoutouts",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "cloudLinked",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "cloudPullAndMerge",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "coffeeHold",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd"
+    },
+    {
+      "name": "collectItem",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/enemies/EnemyBase.gd"
+    },
+    {
+      "name": "computeEmblems",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "consumById",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ConsumableSystem.gd"
+    },
+    {
+      "name": "consumQty",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuHelpers.gd"
+    },
+    {
+      "name": "consumeSelected",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ConsumableSystem.gd"
+    },
+    {
+      "name": "contentUnlocked",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "controlsHtml",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "cycleConsumable",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ConsumableSystem.gd"
+    },
+    {
+      "name": "cycleSpecial",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "dashLandExplosion",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "diffName",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "diffScoreMul",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "doBomb",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/player/Player.gd"
+    },
+    {
+      "name": "doDash",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/player/Player.gd"
+    },
+    {
+      "name": "doMeleeSwipe",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/systems/MeleeSystem.gd"
+    },
+    {
+      "name": "doSaveScore",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "draw",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/PortedDraw.gd"
+    },
+    {
+      "name": "drawApe",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawApe.gd"
+    },
+    {
+      "name": "drawArsenal",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd"
+    },
+    {
+      "name": "drawBobina",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawBobina.gd"
+    },
+    {
+      "name": "drawBobo",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawBobo.gd"
+    },
+    {
+      "name": "drawBogdanoff",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawBogdanoff.gd"
+    },
+    {
+      "name": "drawBoss",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawBoss.gd"
+    },
+    {
+      "name": "drawBossAmbience",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawBullet",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawBullet.gd"
+    },
+    {
+      "name": "drawBurns",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/render/FxLayer.gd"
+    },
+    {
+      "name": "drawClearGate",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd"
+    },
+    {
+      "name": "drawDashComet",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd"
+    },
+    {
+      "name": "drawDebugLayer",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_debug.gd"
+    },
+    {
+      "name": "drawDevil",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawDevil.gd"
+    },
+    {
+      "name": "drawDialog",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd"
+    },
+    {
+      "name": "drawElite",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawElite.gd"
+    },
+    {
+      "name": "drawEmblemToasts",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawEmblems",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd"
+    },
+    {
+      "name": "drawEmote",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "drawFloater",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/render/FxLayer.gd"
+    },
+    {
+      "name": "drawFx",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawFx.gd"
+    },
+    {
+      "name": "drawGameOver",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/ui/EndScreen.gd"
+    },
+    {
+      "name": "drawHeart",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/EndScreen.gd"
+    },
+    {
+      "name": "drawHellPortal",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawHoneyBadger",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawHoneyBadger.gd"
+    },
+    {
+      "name": "drawIntro",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd"
+    },
+    {
+      "name": "drawItem",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawItem.gd"
+    },
+    {
+      "name": "drawLeaderboard",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd"
+    },
+    {
+      "name": "drawLily",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawLily.gd"
+    },
+    {
+      "name": "drawMaidDance",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawTitle.gd"
+    },
+    {
+      "name": "drawMech",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawMech.gd"
+    },
+    {
+      "name": "drawMeleeFx",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawMeleeFx.gd"
+    },
+    {
+      "name": "drawMeleeWeapon",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd"
+    },
+    {
+      "name": "drawMenuBtn",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawTitle.gd"
+    },
+    {
+      "name": "drawMumina",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawMumina.gd"
+    },
+    {
+      "name": "drawMumu",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawMumu.gd"
+    },
+    {
+      "name": "drawNgSelect",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd"
+    },
+    {
+      "name": "drawOptions",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd"
+    },
+    {
+      "name": "drawOutfitFigure",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd"
+    },
+    {
+      "name": "drawOutfits",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd"
+    },
+    {
+      "name": "drawPShot",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawPShot.gd"
+    },
+    {
+      "name": "drawPanel",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawPanelPortrait",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawPanelTouch",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawPause",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawPhaseVeil",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawPolice",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawPolice.gd"
+    },
+    {
+      "name": "drawPortraitBust",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawPoseProp",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd"
+    },
+    {
+      "name": "drawPosedFigure",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_menus.gd"
+    },
+    {
+      "name": "drawPowerAura",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd"
+    },
+    {
+      "name": "drawPowerRadiance",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd"
+    },
+    {
+      "name": "drawRobotnik",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawRobotnik.gd"
+    },
+    {
+      "name": "drawShareBtn",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/EndScreen.gd"
+    },
+    {
+      "name": "drawShop",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd"
+    },
+    {
+      "name": "drawSlowmoFx",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawStageBg",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawStageBgFx",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "drawStageClear",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd"
+    },
+    {
+      "name": "drawStunStars",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/render/FxLayer.gd"
+    },
+    {
+      "name": "drawTitle",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawTitle.gd"
+    },
+    {
+      "name": "drawTitleBtn",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawTitle.gd"
+    },
+    {
+      "name": "drawWin",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/ui/EndScreen.gd"
+    },
+    {
+      "name": "drawWynn",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawWynn.gd"
+    },
+    {
+      "name": "dropItem",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "dropLoot",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "dropToSlot",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuModel.gd"
+    },
+    {
+      "name": "dropWeapon",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "eb",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/combat/BulletPatterns.gd"
+    },
+    {
+      "name": "eliteHearts",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "emPageCount",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "emblemCount",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "emblemDef",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "emblemTick",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/scripts/systems/EmblemSystem.gd"
+    },
+    {
+      "name": "emote",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "enemyExplode",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "enterPortal",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageFlow.gd"
+    },
+    {
+      "name": "enterShop",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageFlow.gd"
+    },
+    {
+      "name": "exitArsenal",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/TitleScreen.gd"
+    },
+    {
+      "name": "fanAt",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/combat/BulletPatterns.gd"
+    },
+    {
+      "name": "fetchLB",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "fire",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/FireSystem.gd"
+    },
+    {
+      "name": "fit",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/autoload/Config.gd"
+    },
+    {
+      "name": "fmtScore",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuHelpers.gd"
+    },
+    {
+      "name": "gainLife",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "goFullscreenMobile",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/Config.gd"
+    },
+    {
+      "name": "handleTitleClick",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/TitleScreen.gd"
+    },
+    {
+      "name": "hasEmblem",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "heavyShell",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/combat/BulletPatterns.gd"
+    },
+    {
+      "name": "hideNameEntry",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "hitPlayer",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/player/Player.gd"
+    },
+    {
+      "name": "hookCloudSaves",
+      "phase": "",
+      "status": "unmapped",
+      "godot": ""
+    },
+    {
+      "name": "imgOK",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/html_parity/AssetBank.gd"
+    },
+    {
+      "name": "inBtn",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuHelpers.gd"
+    },
+    {
+      "name": "initMaster",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/audio/SfxSynth.gd"
+    },
+    {
+      "name": "initPlayer",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "joyApply",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "joyEnd",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "joyHomePos",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "joyMove",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "joyReset",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "joyShowHome",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "joyStart",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "kb",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/project.godot"
+    },
+    {
+      "name": "keyName",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/project.godot"
+    },
+    {
+      "name": "keyPress",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/InputRouter.gd"
+    },
+    {
+      "name": "killEnemy",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "killExtend",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "lbIsMine",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "lbPageCount",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuModel.gd"
+    },
+    {
+      "name": "lbSetPage",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuModel.gd"
+    },
+    {
+      "name": "leaveShop",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageFlow.gd"
+    },
+    {
+      "name": "lerpAngle",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "limb",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawBobina.gd"
+    },
+    {
+      "name": "lineTime",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "load",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/html_parity/AssetBank.gd"
+    },
+    {
+      "name": "loadMe",
+      "phase": "",
+      "status": "unmapped",
+      "godot": ""
+    },
+    {
+      "name": "loadStage",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageController.gd"
+    },
+    {
+      "name": "lockCost",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "loginHref",
+      "phase": "",
+      "status": "unmapped",
+      "godot": ""
+    },
+    {
+      "name": "loop",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/html_parity/SimClock.gd"
+    },
+    {
+      "name": "manageGifOverlays",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/html_parity/AssetBank.gd"
+    },
+    {
+      "name": "manageTouchUI",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "measureLines",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "meleeChargeFx",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/systems/MeleeSystem.gd"
+    },
+    {
+      "name": "meleeIdxList",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "modeTag",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/autoload/GameState.gd"
+    },
+    {
+      "name": "moveArsenal",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "musicPause",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/AudioBus.gd"
+    },
+    {
+      "name": "musicPlay",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/AudioBus.gd"
+    },
+    {
+      "name": "nadeBoom",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "nearestTarget",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "neutralizeInputs",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageFlow.gd"
+    },
+    {
+      "name": "newRun",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "onBossDefeated",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageFlow.gd"
+    },
+    {
+      "name": "onFsChange",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/autoload/Config.gd"
+    },
+    {
+      "name": "onGameCleared",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "openDisplay",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "openHelp",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "openKeybinds",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "openSettings",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/TitleScreen.gd"
+    },
+    {
+      "name": "openShoutouts",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "optionOffsets",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/FireSystem.gd"
+    },
+    {
+      "name": "optionPos",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/FireSystem.gd"
+    },
+    {
+      "name": "optionShot",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/FireSystem.gd"
+    },
+    {
+      "name": "outfitColors",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/autoload/DataRegistry.gd"
+    },
+    {
+      "name": "outfitUnlocked",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "overlayHide",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "overlayShow",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/FlowUI.gd"
+    },
+    {
+      "name": "pOrb",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawBobina.gd"
+    },
+    {
+      "name": "paint",
+      "phase": "",
+      "status": "unmapped",
+      "godot": ""
+    },
+    {
+      "name": "pauseReturnMenu",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/PauseMenu.gd"
+    },
+    {
+      "name": "pdown",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "pmove",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "pop",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "poseParams",
+      "phase": "3",
+      "status": "ported",
+      "godot": "godot/scripts/render/drawers/drawCombatFx.gd"
+    },
+    {
+      "name": "powerCap",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "powerGainMul",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "pup",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "rankIndex",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "rankLetter",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "readUiOverride",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "rebuildKMAP",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/project.godot"
+    },
+    {
+      "name": "renderKeybinds",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/SettingsMenu.gd"
+    },
+    {
+      "name": "resetInventory",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "resumeGame",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/PauseMenu.gd"
+    },
+    {
+      "name": "ring",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/combat/BulletPatterns.gd"
+    },
+    {
+      "name": "run",
+      "phase": "",
+      "status": "unmapped",
+      "godot": ""
+    },
+    {
+      "name": "saveArsenal",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "saveBinds",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/project.godot"
+    },
+    {
+      "name": "saveConsum",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "saveDisplayPrefs",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/autoload/Config.gd"
+    },
+    {
+      "name": "saveEmblems",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "saveEstats",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "saveHeads",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "saveNgPrefs",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "saveShopUnlocks",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "scheduleCloudSave",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "scoreMult",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "selConsumObj",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ConsumableSystem.gd"
+    },
+    {
+      "name": "setBind",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/project.godot"
+    },
+    {
+      "name": "setDebugLayer",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/autoload/Config.gd"
+    },
+    {
+      "name": "setDisplayScale",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/autoload/Config.gd"
+    },
+    {
+      "name": "setRefreshRate",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/autoload/Config.gd"
+    },
+    {
+      "name": "sfx",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/audio/SfxSynth.gd"
+    },
+    {
+      "name": "shopBuySelected",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/FlowUI.gd"
+    },
+    {
+      "name": "shopList",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_flow.gd"
+    },
+    {
+      "name": "shotLevel",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "shotLevelCap",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "showNameEntry",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "simStep",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/html_parity/SimClock.gd"
+    },
+    {
+      "name": "sparks",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "spawnBig",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/enemies/EnemySpawner.gd"
+    },
+    {
+      "name": "spawnBoss",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageController.gd"
+    },
+    {
+      "name": "spawnBubbles",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "spawnClearGate",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageFlow.gd"
+    },
+    {
+      "name": "spawnElite",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/enemies/EnemySpawner.gd"
+    },
+    {
+      "name": "spawnLil",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/enemies/EnemySpawner.gd"
+    },
+    {
+      "name": "spawnStardust",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "spawnWaves",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/enemies/EnemySpawner.gd"
+    },
+    {
+      "name": "specialButton",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/SpecialSystem.gd"
+    },
+    {
+      "name": "startDialog",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageFlow.gd"
+    },
+    {
+      "name": "startRun",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/autoload/GameState.gd"
+    },
+    {
+      "name": "startWynnHell",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/enemies/bosses/BossController.gd"
+    },
+    {
+      "name": "submitScore",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "swapWeapon",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "syncAccount",
+      "phase": "",
+      "status": "unmapped",
+      "godot": ""
+    },
+    {
+      "name": "syncDisplayUI",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/DisplayMenu.gd"
+    },
+    {
+      "name": "syncPauseUI",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/PauseMenu.gd"
+    },
+    {
+      "name": "syncSettingsUI",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/SettingsMenu.gd"
+    },
+    {
+      "name": "threatMul",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/combat/CombatHelpers.gd"
+    },
+    {
+      "name": "toggleArsenal",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "toggleFullscreen",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/autoload/Config.gd"
+    },
+    {
+      "name": "tweetResult",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "twinSwap",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/stages/StageFlow.gd"
+    },
+    {
+      "name": "unequipArsenal",
+      "phase": "2",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/P2Meta.gd"
+    },
+    {
+      "name": "unlockEmblem",
+      "phase": "8",
+      "status": "ported",
+      "godot": "godot/autoload/ProgressStore.gd"
+    },
+    {
+      "name": "update",
+      "phase": "4",
+      "status": "ported",
+      "godot": "godot/scripts/main/Main.gd"
+    },
+    {
+      "name": "updateBoss",
+      "phase": "6",
+      "status": "ported",
+      "godot": "godot/scripts/enemies/bosses/BossController.gd"
+    },
+    {
+      "name": "updateBurns",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "updateFx",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/SpecialSystem.gd"
+    },
+    {
+      "name": "updateItems",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/ItemSystem.gd"
+    },
+    {
+      "name": "updatePortrait",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "updateTouchButtons",
+      "phase": "1",
+      "status": "ported",
+      "godot": "godot/scripts/input/JoyPad.gd"
+    },
+    {
+      "name": "updateWynnHell",
+      "phase": "9",
+      "status": "ported",
+      "godot": "godot/scripts/enemies/bosses/BossController.gd"
+    },
+    {
+      "name": "useSpecial",
+      "phase": "5",
+      "status": "ported",
+      "godot": "godot/scripts/systems/SpecialSystem.gd"
+    },
+    {
+      "name": "wrap",
+      "phase": "",
+      "status": "unmapped",
+      "godot": ""
+    },
+    {
+      "name": "wrapLines",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/draw_hud.gd"
+    },
+    {
+      "name": "wrapText",
+      "phase": "7",
+      "status": "ported",
+      "godot": "godot/scripts/ui/menu/MenuHelpers.gd"
+    }
+  ]
+}

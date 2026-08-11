@@ -1,0 +1,356 @@
+# HTML → Godot full function matrix (dev)
+
+Generated for final 1:1 port pass. Source: `public/index.html` function declarations.
+
+**Rule:** HTML is truth. No approximations. Status only advances after behavior + dual evidence.
+
+## Counts
+
+| Status | Count |
+| --- | ---: |
+| ported | 290 |
+| unmapped | 9 |
+| **Total** | **299** |
+
+## Method
+
+1. Pick next `unmapped` / open residual by phase (1→7)
+2. Open HTML function body → locate Godot
+3. Diff line-by-line (numbers, order, early-returns)
+4. Fix Godot (or document intentional HTML bug fixed in Godot)
+5. Unit test if numeric; dual still if visual
+6. `npm run export:godot` → verify on https://dev.killallmumus.com/
+7. Update this matrix status
+
+## Phase 1 priority (perf + Bobina draw path)
+
+- [x] `drawBobina` — ported → `godot/scripts/render/drawers/drawBobina.gd`
+- [ ] `drawStageBg` — ported → `godot/scripts/ui/menu/draw_hud.gd`
+- [ ] `drawStageBgFx` — ported → `godot/scripts/ui/menu/draw_hud.gd`
+- [x] `drawPowerAura` — ported → `godot/scripts/render/drawers/drawCombatFx.gd`
+- [x] `drawPowerRadiance` — ported → `godot/scripts/render/drawers/drawCombatFx.gd`
+- [ ] `drawDashComet` — ported → `godot/scripts/render/drawers/drawCombatFx.gd`
+- [x] `drawOptions` — ported → `godot/scripts/render/drawers/drawCombatFx.gd`
+- [x] `bodyCtr` — ported → `godot/scripts/combat/CombatHelpers.gd`
+- [ ] `optionPos` — ported → `godot/scripts/combat/FireSystem.gd`
+- [ ] `optionOffsets` — ported → `godot/scripts/combat/FireSystem.gd`
+- [ ] `pOrb` — ported → `godot/scripts/render/drawers/drawBobina.gd`
+- [ ] `applyLayout` — ported → `godot/autoload/Config.gd`
+- [ ] `update` — ported → `godot/scripts/main/Main.gd`
+
+
+## Phase 1 residual notes (2026-08-11 final pass)
+
+| Item | HTML truth | Godot fix |
+| --- | --- | --- |
+| Feet platform | drawBobina shadow at local (0,20) after rot about feet | Face-bin bake feet at tex center; blit `px-tw/2, py-th/2` |
+| Soap bubble center | `bodyCtr` = orbit of body about (x,y-16) | Aura/options/shield/rapid/vial/phase all use `body_ctr`; visual face shared with face bins (24) |
+| lean | play always 0 | removed invented velocity lean |
+| FPS | canvas 2d cheap | face-bin cache (live only dash/bomb); stage bg bake; play stride 30 Hz |
+
+Unmapped (9): applyMe, bumpIdle, hookCloudSaves, loadMe, loginHref, paint, run, syncAccount, wrap — platform/account wrappers, not combat sim.
+
+
+## Full matrix
+
+| Function | Phase | Status | Godot |
+| --- | --- | --- | --- |
+| `_hEsc` | 7 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |
+| `_hItem` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `_hSec` | 7 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |
+| `_hexA` | 7 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
+| `_hexRgb` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `_rgbHue` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `actx` | 1 | ported | `godot/scripts/audio/SfxSynth.gd` |
+| `addBomb` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `addMelee` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `addPower` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `addSpecial` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `addWeapon` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `advanceScreen` | 6 | ported | `godot/scripts/stages/StageFlow.gd` |
+| `aimAngle` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `angDiff` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `anyModalOpen` | 7 | ported | `godot/scripts/ui/FlowUI.gd` |
+| `applyArsenalToRun` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `applyDiff` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `applyLayout` | 1 | ported | `godot/autoload/Config.gd` |
+| `applyMe` |  | unmapped |  |
+| `applyMusicVol` | 9 | ported | `godot/autoload/AudioBus.gd` |
+| `applyProgressSnapshot` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `applySfxVol` | 9 | ported | `godot/autoload/AudioBus.gd` |
+| `armedSpec` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `arsArr` | 2 | ported | `godot/scripts/ui/menu/MenuModel.gd` |
+| `arsItemByKey` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `arsPool` | 2 | ported | `godot/scripts/ui/menu/MenuModel.gd` |
+| `arsenalCount` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `bobinaSay` | 7 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
+| `bodyCtr` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `bossDmgMul` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `bossSpecial` | 6 | ported | `godot/scripts/enemies/bosses/BossController.gd` |
+| `bossWepMul` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `buildHelp` | 7 | ported | `godot/scripts/ui/menu/HelpData.gd` |
+| `buildProgressSnapshot` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `bulletCancelAll` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `bulletCancelNear` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `bumpIdle` |  | unmapped |  |
+| `burst` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `cabalUnlocked` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `canvasPos` | 1 | ported | `godot/scripts/player/Player.gd` |
+| `chainLightning` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `checkExtend` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `circle` | 3 | ported | `godot/scripts/render/drawers/drawBobina.gd` |
+| `clearWaveMobs` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `closeDisplay` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `closeGate` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `closeHelp` | 7 | ported | `godot/scripts/ui/PauseMenu.gd` |
+| `closeKeybinds` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `closeSettings` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `closeShoutouts` | 7 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `cloudLinked` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `cloudPullAndMerge` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `coffeeHold` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
+| `collectItem` | 5 | ported | `godot/scripts/enemies/EnemyBase.gd` |
+| `computeEmblems` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `consumById` | 9 | ported | `godot/scripts/systems/ConsumableSystem.gd` |
+| `consumQty` | 9 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |
+| `consumeSelected` | 8 | ported | `godot/scripts/systems/ConsumableSystem.gd` |
+| `contentUnlocked` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `controlsHtml` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `cycleConsumable` | 8 | ported | `godot/scripts/systems/ConsumableSystem.gd` |
+| `cycleSpecial` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `dashLandExplosion` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `diffName` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `diffScoreMul` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `doBomb` | 4 | ported | `godot/scripts/player/Player.gd` |
+| `doDash` | 4 | ported | `godot/scripts/player/Player.gd` |
+| `doMeleeSwipe` | 9 | ported | `godot/scripts/systems/MeleeSystem.gd` |
+| `doSaveScore` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `draw` | 7 | ported | `godot/scripts/render/PortedDraw.gd` |
+| `drawApe` | 6 | ported | `godot/scripts/render/drawers/drawApe.gd` |
+| `drawArsenal` | 2 | ported | `godot/scripts/ui/menu/draw_menus.gd` |
+| `drawBobina` | 3 | ported | `godot/scripts/render/drawers/drawBobina.gd` |
+| `drawBobo` | 5 | ported | `godot/scripts/render/drawers/drawBobo.gd` |
+| `drawBogdanoff` | 7 | ported | `godot/scripts/render/drawers/drawBogdanoff.gd` |
+| `drawBoss` | 6 | ported | `godot/scripts/render/drawers/drawBoss.gd` |
+| `drawBossAmbience` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawBullet` | 7 | ported | `godot/scripts/render/drawers/drawBullet.gd` |
+| `drawBurns` | 5 | ported | `godot/scripts/render/FxLayer.gd` |
+| `drawClearGate` | 6 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
+| `drawDashComet` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
+| `drawDebugLayer` | 7 | ported | `godot/scripts/ui/menu/draw_debug.gd` |
+| `drawDevil` | 6 | ported | `godot/scripts/render/drawers/drawDevil.gd` |
+| `drawDialog` | 7 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
+| `drawElite` | 5 | ported | `godot/scripts/render/drawers/drawElite.gd` |
+| `drawEmblemToasts` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawEmblems` | 2 | ported | `godot/scripts/ui/menu/draw_menus.gd` |
+| `drawEmote` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `drawFloater` | 5 | ported | `godot/scripts/render/FxLayer.gd` |
+| `drawFx` | 5 | ported | `godot/scripts/render/drawers/drawFx.gd` |
+| `drawGameOver` | 6 | ported | `godot/scripts/ui/EndScreen.gd` |
+| `drawHeart` | 7 | ported | `godot/scripts/ui/EndScreen.gd` |
+| `drawHellPortal` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawHoneyBadger` | 7 | ported | `godot/scripts/render/drawers/drawHoneyBadger.gd` |
+| `drawIntro` | 6 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
+| `drawItem` | 5 | ported | `godot/scripts/render/drawers/drawItem.gd` |
+| `drawLeaderboard` | 2 | ported | `godot/scripts/ui/menu/draw_menus.gd` |
+| `drawLily` | 6 | ported | `godot/scripts/render/drawers/drawLily.gd` |
+| `drawMaidDance` | 7 | ported | `godot/scripts/render/drawers/drawTitle.gd` |
+| `drawMech` | 5 | ported | `godot/scripts/render/drawers/drawMech.gd` |
+| `drawMeleeFx` | 7 | ported | `godot/scripts/render/drawers/drawMeleeFx.gd` |
+| `drawMeleeWeapon` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
+| `drawMenuBtn` | 2 | ported | `godot/scripts/render/drawers/drawTitle.gd` |
+| `drawMumina` | 6 | ported | `godot/scripts/render/drawers/drawMumina.gd` |
+| `drawMumu` | 5 | ported | `godot/scripts/render/drawers/drawMumu.gd` |
+| `drawNgSelect` | 2 | ported | `godot/scripts/ui/menu/draw_menus.gd` |
+| `drawOptions` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
+| `drawOutfitFigure` | 3 | ported | `godot/scripts/ui/menu/draw_menus.gd` |
+| `drawOutfits` | 2 | ported | `godot/scripts/ui/menu/draw_menus.gd` |
+| `drawPShot` | 7 | ported | `godot/scripts/render/drawers/drawPShot.gd` |
+| `drawPanel` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawPanelPortrait` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawPanelTouch` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawPause` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawPhaseVeil` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawPolice` | 6 | ported | `godot/scripts/render/drawers/drawPolice.gd` |
+| `drawPortraitBust` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawPoseProp` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
+| `drawPosedFigure` | 7 | ported | `godot/scripts/ui/menu/draw_menus.gd` |
+| `drawPowerAura` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
+| `drawPowerRadiance` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
+| `drawRobotnik` | 7 | ported | `godot/scripts/render/drawers/drawRobotnik.gd` |
+| `drawShareBtn` | 7 | ported | `godot/scripts/ui/EndScreen.gd` |
+| `drawShop` | 7 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
+| `drawSlowmoFx` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawStageBg` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawStageBgFx` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawStageClear` | 6 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
+| `drawStunStars` | 7 | ported | `godot/scripts/render/FxLayer.gd` |
+| `drawTitle` | 2 | ported | `godot/scripts/render/drawers/drawTitle.gd` |
+| `drawTitleBtn` | 2 | ported | `godot/scripts/render/drawers/drawTitle.gd` |
+| `drawWin` | 6 | ported | `godot/scripts/ui/EndScreen.gd` |
+| `drawWynn` | 6 | ported | `godot/scripts/render/drawers/drawWynn.gd` |
+| `dropItem` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `dropLoot` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `dropToSlot` | 2 | ported | `godot/scripts/ui/menu/MenuModel.gd` |
+| `dropWeapon` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `eb` | 5 | ported | `godot/scripts/combat/BulletPatterns.gd` |
+| `eliteHearts` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `emPageCount` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `emblemCount` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `emblemDef` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `emblemTick` | 8 | ported | `godot/scripts/systems/EmblemSystem.gd` |
+| `emote` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `enemyExplode` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `enterPortal` | 6 | ported | `godot/scripts/stages/StageFlow.gd` |
+| `enterShop` | 6 | ported | `godot/scripts/stages/StageFlow.gd` |
+| `exitArsenal` | 2 | ported | `godot/scripts/ui/TitleScreen.gd` |
+| `fanAt` | 5 | ported | `godot/scripts/combat/BulletPatterns.gd` |
+| `fetchLB` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `fire` | 4 | ported | `godot/scripts/combat/FireSystem.gd` |
+| `fit` | 1 | ported | `godot/autoload/Config.gd` |
+| `fmtScore` | 2 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |
+| `gainLife` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `goFullscreenMobile` | 9 | ported | `godot/autoload/Config.gd` |
+| `handleTitleClick` | 2 | ported | `godot/scripts/ui/TitleScreen.gd` |
+| `hasEmblem` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `heavyShell` | 5 | ported | `godot/scripts/combat/BulletPatterns.gd` |
+| `hideNameEntry` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `hitPlayer` | 4 | ported | `godot/scripts/player/Player.gd` |
+| `hookCloudSaves` |  | unmapped |  |
+| `imgOK` | 1 | ported | `godot/scripts/html_parity/AssetBank.gd` |
+| `inBtn` | 1 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |
+| `initMaster` | 1 | ported | `godot/scripts/audio/SfxSynth.gd` |
+| `initPlayer` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `joyApply` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `joyEnd` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `joyHomePos` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `joyMove` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `joyReset` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `joyShowHome` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `joyStart` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `kb` | 1 | ported | `godot/project.godot` |
+| `keyName` | 1 | ported | `godot/project.godot` |
+| `keyPress` | 1 | ported | `godot/scripts/input/InputRouter.gd` |
+| `killEnemy` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `killExtend` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `lbIsMine` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `lbPageCount` | 9 | ported | `godot/scripts/ui/menu/MenuModel.gd` |
+| `lbSetPage` | 9 | ported | `godot/scripts/ui/menu/MenuModel.gd` |
+| `leaveShop` | 6 | ported | `godot/scripts/stages/StageFlow.gd` |
+| `lerpAngle` | 3 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `limb` | 3 | ported | `godot/scripts/render/drawers/drawBobina.gd` |
+| `lineTime` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `load` | 1 | ported | `godot/scripts/html_parity/AssetBank.gd` |
+| `loadMe` |  | unmapped |  |
+| `loadStage` | 6 | ported | `godot/scripts/stages/StageController.gd` |
+| `lockCost` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `loginHref` |  | unmapped |  |
+| `loop` | 1 | ported | `godot/scripts/html_parity/SimClock.gd` |
+| `manageGifOverlays` | 7 | ported | `godot/scripts/html_parity/AssetBank.gd` |
+| `manageTouchUI` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `measureLines` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `meleeChargeFx` | 9 | ported | `godot/scripts/systems/MeleeSystem.gd` |
+| `meleeIdxList` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `modeTag` | 2 | ported | `godot/autoload/GameState.gd` |
+| `moveArsenal` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `musicPause` | 9 | ported | `godot/autoload/AudioBus.gd` |
+| `musicPlay` | 9 | ported | `godot/autoload/AudioBus.gd` |
+| `nadeBoom` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `nearestTarget` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `neutralizeInputs` | 7 | ported | `godot/scripts/stages/StageFlow.gd` |
+| `newRun` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `onBossDefeated` | 6 | ported | `godot/scripts/stages/StageFlow.gd` |
+| `onFsChange` | 1 | ported | `godot/autoload/Config.gd` |
+| `onGameCleared` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `openDisplay` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `openHelp` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `openKeybinds` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `openSettings` | 7 | ported | `godot/scripts/ui/TitleScreen.gd` |
+| `openShoutouts` | 7 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `optionOffsets` | 4 | ported | `godot/scripts/combat/FireSystem.gd` |
+| `optionPos` | 4 | ported | `godot/scripts/combat/FireSystem.gd` |
+| `optionShot` | 4 | ported | `godot/scripts/combat/FireSystem.gd` |
+| `outfitColors` | 2 | ported | `godot/autoload/DataRegistry.gd` |
+| `outfitUnlocked` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `overlayHide` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `overlayShow` | 7 | ported | `godot/scripts/ui/FlowUI.gd` |
+| `pOrb` | 3 | ported | `godot/scripts/render/drawers/drawBobina.gd` |
+| `paint` |  | unmapped |  |
+| `pauseReturnMenu` | 7 | ported | `godot/scripts/ui/PauseMenu.gd` |
+| `pdown` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `pmove` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `pop` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `poseParams` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
+| `powerCap` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `powerGainMul` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `pup` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `rankIndex` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `rankLetter` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `readUiOverride` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `rebuildKMAP` | 1 | ported | `godot/project.godot` |
+| `renderKeybinds` | 7 | ported | `godot/scripts/ui/SettingsMenu.gd` |
+| `resetInventory` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `resumeGame` | 7 | ported | `godot/scripts/ui/PauseMenu.gd` |
+| `ring` | 5 | ported | `godot/scripts/combat/BulletPatterns.gd` |
+| `run` |  | unmapped |  |
+| `saveArsenal` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `saveBinds` | 1 | ported | `godot/project.godot` |
+| `saveConsum` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `saveDisplayPrefs` | 1 | ported | `godot/autoload/Config.gd` |
+| `saveEmblems` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `saveEstats` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `saveHeads` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `saveNgPrefs` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `saveShopUnlocks` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `scheduleCloudSave` | 9 | ported | `godot/autoload/ProgressStore.gd` |
+| `scoreMult` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `selConsumObj` | 9 | ported | `godot/scripts/systems/ConsumableSystem.gd` |
+| `setBind` | 1 | ported | `godot/project.godot` |
+| `setDebugLayer` | 1 | ported | `godot/autoload/Config.gd` |
+| `setDisplayScale` | 1 | ported | `godot/autoload/Config.gd` |
+| `setRefreshRate` | 1 | ported | `godot/autoload/Config.gd` |
+| `sfx` | 1 | ported | `godot/scripts/audio/SfxSynth.gd` |
+| `shopBuySelected` | 7 | ported | `godot/scripts/ui/FlowUI.gd` |
+| `shopList` | 7 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
+| `shotLevel` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `shotLevelCap` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `showNameEntry` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `simStep` | 1 | ported | `godot/scripts/html_parity/SimClock.gd` |
+| `sparks` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `spawnBig` | 5 | ported | `godot/scripts/enemies/EnemySpawner.gd` |
+| `spawnBoss` | 6 | ported | `godot/scripts/stages/StageController.gd` |
+| `spawnBubbles` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `spawnClearGate` | 9 | ported | `godot/scripts/stages/StageFlow.gd` |
+| `spawnElite` | 5 | ported | `godot/scripts/enemies/EnemySpawner.gd` |
+| `spawnLil` | 5 | ported | `godot/scripts/enemies/EnemySpawner.gd` |
+| `spawnStardust` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `spawnWaves` | 5 | ported | `godot/scripts/enemies/EnemySpawner.gd` |
+| `specialButton` | 5 | ported | `godot/scripts/systems/SpecialSystem.gd` |
+| `startDialog` | 6 | ported | `godot/scripts/stages/StageFlow.gd` |
+| `startRun` | 2 | ported | `godot/autoload/GameState.gd` |
+| `startWynnHell` | 9 | ported | `godot/scripts/enemies/bosses/BossController.gd` |
+| `submitScore` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `swapWeapon` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `syncAccount` |  | unmapped |  |
+| `syncDisplayUI` | 7 | ported | `godot/scripts/ui/DisplayMenu.gd` |
+| `syncPauseUI` | 7 | ported | `godot/scripts/ui/PauseMenu.gd` |
+| `syncSettingsUI` | 7 | ported | `godot/scripts/ui/SettingsMenu.gd` |
+| `threatMul` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
+| `toggleArsenal` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `toggleFullscreen` | 1 | ported | `godot/autoload/Config.gd` |
+| `tweetResult` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `twinSwap` | 6 | ported | `godot/scripts/stages/StageFlow.gd` |
+| `unequipArsenal` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
+| `unlockEmblem` | 8 | ported | `godot/autoload/ProgressStore.gd` |
+| `update` | 4 | ported | `godot/scripts/main/Main.gd` |
+| `updateBoss` | 6 | ported | `godot/scripts/enemies/bosses/BossController.gd` |
+| `updateBurns` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `updateFx` | 5 | ported | `godot/scripts/systems/SpecialSystem.gd` |
+| `updateItems` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
+| `updatePortrait` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `updateTouchButtons` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
+| `updateWynnHell` | 9 | ported | `godot/scripts/enemies/bosses/BossController.gd` |
+| `useSpecial` | 5 | ported | `godot/scripts/systems/SpecialSystem.gd` |
+| `wrap` |  | unmapped |  |
+| `wrapLines` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `wrapText` | 7 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |

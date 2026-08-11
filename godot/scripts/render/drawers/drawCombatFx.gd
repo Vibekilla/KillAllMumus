@@ -292,16 +292,15 @@ func drawPowerRadiance(p: Dictionary) -> void:
 	ctx.begin_path()
 	ctx.arc(ctr.x, ctr.y, HR, 0, TAU)
 	ctx.fill()
-	# HTML wavy rings — CanvasCompat can't true-add; keep peak α lower + radius tighter
-	# so the soap bubble reads as the hero (HTML ring extent is mostly invisible on dark bg)
-	var rings := 2 + int(floor(pf * 2.0))
+	# HTML: rings=2+floor(pf*3); rr=22+ph*(66+pf*120); al=(1-ph)*(0.05+pf*0.09)
+	var rings := 2 + int(floor(pf * 3.0))
 	for k in range(rings):
 		var ph := fmod(t * 0.009 + float(k) / float(maxi(1, rings)), 1.0)
-		var rr := 22.0 + ph * (42.0 + pf * 58.0)
-		var al := (1.0 - ph) * (0.028 + pf * 0.05)
+		var rr := 22.0 + ph * (66.0 + pf * 120.0)
+		var al := (1.0 - ph) * (0.05 + pf * 0.09)
 		var hue := fmod(hue0 + float(k) * 55.0, 360.0)
 		ctx.stroke_style("hsla(%d,95%%,66%%,%s)" % [int(hue), str(al)])
-		ctx.line_width(1.1 * (1.0 - ph) + 0.35)
+		ctx.line_width(1.4 * (1.0 - ph) + 0.4)
 		ctx.begin_path()
 		var first := true
 		var a := 0.0

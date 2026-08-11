@@ -681,8 +681,13 @@ func _player_state(player: Node) -> Dictionary:
 	var vx_v: float = 0.0
 	var vy_v: float = 0.0
 	if not dual_lock and player.get("velocity") != null:
-		vx_v = float(player.velocity.x)
-		vy_v = float(player.velocity.y)
+		# HTML p.vx/p.vy are px/frame; Godot velocity is px/sec → /60 for drawBobina limb amp
+		vx_v = float(player.velocity.x) / 60.0
+		vy_v = float(player.velocity.y) / 60.0
+	# HTML play never writes p.lean (stays 0 from initPlayer); only poseParams sets lean for menus
+	var lean_v: float = 0.0
+	if player.get("lean") != null:
+		lean_v = float(player.lean)
 	var st := {
 		"x": player.global_position.x,
 		"y": player.global_position.y,
@@ -694,6 +699,7 @@ func _player_state(player: Node) -> Dictionary:
 		"vx": vx_v,
 		"vy": vy_v,
 		"face": face_v,
+		"lean": lean_v,
 		"walk": 0.0,
 		"bombFx": float(player.bomb_fx) if player.get("bomb_fx") != null else 0.0,
 		"dash": float(player.dash) if player.get("dash") != null else 0.0,
@@ -720,84 +726,125 @@ func _player_state(player: Node) -> Dictionary:
 		st["expr"] = player.get("expr")
 	return st
 
+func _face_bucket(face: float) -> float:
+	## Must match BobinaDrawCache.FACE_BINS so aura/bodyCtr share the sprite orientation.
+	if bobina_cache != null and bobina_cache.has_method("_face_bucket"):
+		return float(bobina_cache._face_bucket(face))
+	const FACE_BINS := 24
+	var step := TAU / float(FACE_BINS)
+	return roundf(face / step) * step
+
+func _body_ctr_st(st: Dictionary) -> Vector2:
+	## HTML bodyCtr — every body wrap (aura, shield, rapid, vial, phase) uses this.
+	if CombatHelpers and CombatHelpers.has_method("body_ctr"):
+		return CombatHelpers.body_ctr({
+			"x": float(st.get("x", 0)),
+			"y": float(st.get("y", 0)),
+			"face": float(st.get("face", -PI / 2.0)),
+		})
+	var face := float(st.get("face", -PI / 2.0))
+	var r := face + PI / 2.0
+	return Vector2(float(st.get("x", 0)) - sin(r) * 16.0, (float(st.get("y", 0)) - 16.0) + cos(r) * 16.0)
+
 func _draw_bobina_cached_or_live(st: Dictionary) -> void:
-	## Phase 1.2: SubViewport-baked drawBobina when cacheable.
-	## Live full drawBobina (4k-line CanvasCompat) is the #1 FPS killer — only for dash/bomb.
-	var dash := float(st.get("dash", 0))
-	var bomb := float(st.get("bombFx", 0))
+	## HTML drawBobina: feet at (p.x,p.y); body rotates about (p.x, p.y-16); feet shadow
+	## at local (0,20). Bake host puts feet at texture center → blit at feet, not silhouette
+	## bbox center. Face-bin cache is 1:1 art with shared face for bodyCtr bubble (≤7.5°).
+	## Live path only when dash/bomb (trail motion) or cache cold.
 	var px := float(st.get("x", 0))
 	var py := float(st.get("y", 0))
+	var dash := float(st.get("dash", 0))
+	var bomb := float(st.get("bombFx", 0))
 	var iframe := float(st.get("iframe", 0))
 	var flash := iframe > 0.0 and (int(floorf(iframe / 4.0)) % 2) == 1
-	if dash > 0.0 or bomb > 0.0:
-		ported.drawBobina(st)
-		return
-	if bobina_cache != null and bobina_cache.has_method("get_play_texture"):
+	var need_live := dash > 0.0 or bomb > 0.0
+	if not need_live and bobina_cache != null and bobina_cache.has_method("get_play_texture"):
 		var tex: Texture2D = bobina_cache.get_play_texture(st)
 		if tex != null and ctx.has_method("draw_image"):
 			var tw := float(tex.get_width())
 			var th := float(tex.get_height())
+			# Feet pivot = texture center (BobinaBakeHost: translate(dim/2) + drawBobina x=0,y=0)
 			if flash:
 				ctx.global_alpha(0.5)
 			ctx.draw_image(tex, px - tw * 0.5, py - th * 0.5, tw, th)
 			if flash:
 				ctx.global_alpha(1.0)
 			return
-	# Cold cache: prefer last play bake (stale pose) — NEVER full live drawBobina
-	# every frame (that tanks web FPS and makes the game unplayable).
-	if bobina_cache != null and bobina_cache.has_method("get_last_play_texture"):
-		var last: Texture2D = bobina_cache.get_last_play_texture()
-		if last != null and ctx.has_method("draw_image"):
-			var lw := float(last.get_width())
-			var lh := float(last.get_height())
-			if flash:
-				ctx.global_alpha(0.5)
-			ctx.draw_image(last, px - lw * 0.5, py - lh * 0.5, lw, lh)
-			if flash:
-				ctx.global_alpha(1.0)
-			return
-	# Absolute last resort: tiny blob (one frame until bake lands)
-	if flash:
-		ctx.global_alpha(0.5)
+		# Nearest/last face bake while exact bin queues
+		if bobina_cache.has_method("get_last_play_texture"):
+			var last: Texture2D = bobina_cache.get_last_play_texture()
+			if last != null and ctx.has_method("draw_image"):
+				var lw := float(last.get_width())
+				var lh := float(last.get_height())
+				if flash:
+					ctx.global_alpha(0.5)
+				ctx.draw_image(last, px - lw * 0.5, py - lh * 0.5, lw, lh)
+				if flash:
+					ctx.global_alpha(1.0)
+				return
+	if ported and ported.has_method("drawBobina"):
+		ported.drawBobina(st)
+		return
 	ctx.fill_style("#ffb6d9")
 	ctx.begin_path()
 	ctx.arc(px, py, 14, 0, TAU)
 	ctx.fill()
-	if flash:
-		ctx.global_alpha(1.0)
 
 func _draw_player(player: Node) -> void:
 	var st := _player_state(player)
+	# Continuous face for live/dash; face-bin for cache so soap bubble shares sprite orientation.
+	# HTML face is continuous; 24 bins → ≤7.5° (bodyCtr error ≤ ~2px).
+	var face_cont := float(st.get("face", -PI / 2.0))
+	var dash := float(st.get("dash", 0))
+	var bomb := float(st.get("bombFx", 0))
+	var use_live := dash > 0.0 or bomb > 0.0
+	if use_live:
+		st["face"] = face_cont
+	else:
+		st["face"] = _face_bucket(face_cont)
 	if combat_fx:
 		combat_fx.drawDashComet(st)
 		combat_fx.drawPowerAura(st)
-	# Cache bake preferred; cold uses last bake (never full live drawer every frame)
 	_draw_bobina_cached_or_live(st)
 	if combat_fx:
-		# HTML drawOptions(player) — world optionPos, not local 0,0
+		# HTML drawOptions(player) — world optionPos via face+body pivot
 		combat_fx.drawOptions(st)
-	# shield / rapid / vial / phase rings — HTML overlays on Bobina
+	# --- HTML overlays: ALL use bodyCtr (not feet) except focus hitbox ---
+	var bc := _body_ctr_st(st)
 	var shield_t := float(st.get("shieldT", 0))
 	if shield_t > 0.0:
+		# HTML: bodyCtr + gold ring + 6 arc ticks + shadowBlur
 		var a := 0.55 * (shield_t / 50.0 if shield_t < 50.0 else 1.0)
 		ctx.save()
-		ctx.translate(st["x"], st["y"])
+		ctx.translate(bc.x, bc.y)
 		ctx.global_alpha(a)
 		ctx.stroke_style("#e8a860")
 		ctx.line_width(2.5)
+		if ctx.has_method("shadow_color"):
+			ctx.shadow_color("#e8a860")
+			ctx.shadow_blur(12)
 		ctx.begin_path()
 		ctx.arc(0, 0, 23, 0, TAU)
 		ctx.stroke()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
+		ctx.stroke_style("rgba(255,240,214,0.75)")
+		ctx.line_width(1.2)
+		for i in range(6):
+			var ang := float(tick) * 0.05 + float(i) * 1.047
+			ctx.begin_path()
+			ctx.arc(0, 0, 23, ang, ang + 0.35)
+			ctx.stroke()
 		ctx.restore()
 	var rapid_t := float(st.get("rapidT", 0))
 	if rapid_t > 0.0:
 		ctx.save()
-		ctx.translate(st["x"], st["y"])
+		ctx.translate(bc.x, bc.y)
 		ctx.global_alpha(0.5)
 		ctx.fill_style("#ffe14a")
 		for i in range(3):
 			ctx.begin_path()
-			ctx.arc(randf_range(-6, 6), 10 + randf() * 8, 1.6, 0, TAU)
+			ctx.arc((randf() - 0.5) * 12.0, 10.0 + randf() * 8.0, 1.6, 0, TAU)
 			ctx.fill()
 		ctx.restore()
 	var vial_hits := int(st.get("vialHits", 0))
@@ -805,25 +852,30 @@ func _draw_player(player: Node) -> void:
 	if vial_hits > 0:
 		var vf := vial_t / 50.0 if vial_t < 50.0 else 1.0
 		ctx.save()
-		ctx.translate(st["x"], st["y"])
+		ctx.translate(bc.x, bc.y)
 		ctx.global_alpha(0.62 * vf)
 		ctx.stroke_style("#9d6bff")
 		ctx.line_width(2.4)
+		if ctx.has_method("shadow_color"):
+			ctx.shadow_color("#9d6bff")
+			ctx.shadow_blur(14)
 		ctx.begin_path()
 		ctx.arc(0, 0, 25, 0, TAU)
 		ctx.stroke()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
 		ctx.global_alpha(vf)
 		ctx.fill_style("#c9a6ff")
 		for i in range(vial_hits):
-			var ang := float(tick) * 0.06 + float(i) * (TAU / 3.0)
+			var ang2 := float(tick) * 0.06 + float(i) * (TAU / 3.0)
 			ctx.begin_path()
-			ctx.arc(cos(ang) * 25.0, sin(ang) * 25.0, 3.4, 0, TAU)
+			ctx.arc(cos(ang2) * 25.0, sin(ang2) * 25.0, 3.4, 0, TAU)
 			ctx.fill()
 		ctx.restore()
 	var phase_t := float(st.get("phaseT", 0))
 	if phase_t > 0.0:
 		ctx.save()
-		ctx.translate(st["x"], st["y"])
+		ctx.translate(bc.x, bc.y)
 		if ctx.has_method("global_composite_operation"):
 			ctx.global_composite_operation("lighter")
 		for k in range(2):
@@ -841,7 +893,7 @@ func _draw_player(player: Node) -> void:
 		ctx.arc(0, 0, 28, -PI / 2.0, -PI / 2.0 + TAU * (phase_t / 180.0))
 		ctx.stroke()
 		ctx.restore()
-	# HTML focus hitbox ring (white r=4 + pink core + 4 arc ticks)
+	# HTML focus hitbox ring is at FEET (p.x,p.y) — not bodyCtr (drawBobina end)
 	if bool(st.get("focus", false)) and not bool(st.get("dead", false)):
 		ctx.save()
 		ctx.translate(float(st.get("x", 0)), float(st.get("y", 0)))

@@ -9,8 +9,9 @@ const MAX_ENTRIES := 96
 const TICK_BUCKET := 4
 ## Play: coarser buckets = fewer SubViewport bakes (full drawBobina is very expensive)
 const TICK_BUCKET_PLAY := 8
-## In-game facing bins (full 360 body rotate inside drawBobina)
-const FACE_BINS := 12
+## In-game facing bins (full 360 body rotate inside drawBobina).
+## 24 bins → ≤7.5° step; bodyCtr error ≤ ~2px so soap bubble stays centered on body.
+const FACE_BINS := 24
 
 var _vp: SubViewport
 var _host: Node2D
@@ -212,8 +213,8 @@ func _evict_if_needed() -> void:
 func _process(_d: float) -> void:
 	if _busy or _queue.is_empty():
 		return
-	# Always allow prewarm/face-bin queue to drain (1 bake/frame). That is the HTML
-	# orientation path: drawBobina with rot(face) into bins — not a frozen last blit.
+	# Drain 1 bake/frame always (prewarm + miss). PLAY uses face-bin blit so bakes
+	# must finish; SubViewport get_image is amortized, not every display frame.
 	_busy = true
 	_run_batch()
 
