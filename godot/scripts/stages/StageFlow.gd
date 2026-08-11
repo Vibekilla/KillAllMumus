@@ -89,8 +89,12 @@ func on_stage_start(intro_frames: float = -1.0) -> void:
 		var pl = tree.get_first_node_in_group("player")
 		if pl and pl.get("specials") and pl.specials.has_method("clear_field"):
 			pl.specials.clear_field()
-		if pl and pl.get("fire_sys") and pl.fire_sys.has_method("reset_run"):
-			pl.fire_sys.reset_run()
+		if pl and pl.get("fire_sys"):
+			# HTML loadStage: p.cd=0 only — do not zero global fire tick (braid/wave phase)
+			if pl.fire_sys.has_method("reset_stage_cd"):
+				pl.fire_sys.reset_stage_cd()
+			elif pl.fire_sys.has_method("reset_run"):
+				pl.fire_sys.fire_cd_frames = 0.0
 		if pl and pl.get("consumables") != null:
 			# HTML initPlayer zeros _eCd
 			if "e_cd" in pl.consumables:
@@ -126,8 +130,16 @@ func spawn_clear_gate() -> void:
 	clear_portal = {"x": pf.position.x + pf.size.x * 0.5, "y": pf.position.y + pf.size.y * 0.30}
 	clear_shop = {"x": pf.position.x + pf.size.x * 0.80, "y": pf.position.y + pf.size.y * 0.55}
 	clear_msg_t = 260.0
-	ProgressStore.progress["heads"] = int(ProgressStore.progress.get("heads", 0)) + 15
-	ProgressStore.queue_save()
+	# HTML: mumuHeads+=15; saveHeads() — boss head bounty
+	if ProgressStore:
+		if ProgressStore.has_method("set_heads"):
+			ProgressStore.set_heads(int(ProgressStore.heads()) + 15)
+		else:
+			ProgressStore.progress["heads"] = int(ProgressStore.progress.get("heads", 0)) + 15
+			if ProgressStore.has_method("save_heads"):
+				ProgressStore.save_heads()
+			else:
+				ProgressStore.queue_save()
 	if AudioBus:
 		AudioBus.sfx("win")
 	# stay in PLAY with field interactables

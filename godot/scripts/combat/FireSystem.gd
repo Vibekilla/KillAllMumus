@@ -13,8 +13,12 @@ func _ready() -> void:
 		SimClock.sim_tick.connect(_on_sim_tick)
 
 func reset_run() -> void:
-	## Clear fire cooldown at run start (HTML p.cd = 0)
+	## HTML newRun / hard reset — zero fire tick + CD
 	tick = 0
+	fire_cd_frames = 0.0
+
+func reset_stage_cd() -> void:
+	## HTML initPlayer/loadStage: p.cd=0 only — global tick continues (gatling/wave phase)
 	fire_cd_frames = 0.0
 
 func _on_sim_tick(_dt: float) -> void:

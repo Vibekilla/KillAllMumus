@@ -13,6 +13,11 @@ const BulletPatterns = preload("res://scripts/combat/BulletPatterns.gd")
 func can_use(_key: String) -> bool:
 	return GameState.special_meter >= 100.0
 
+func _ready() -> void:
+	# HTML updateFx advances on fixed sim frames (not display/physics hitch)
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
+
 func clear_field() -> void:
 	## HTML loadStage: fx=[] (and slowmo ends with stage)
 	fx.clear()
@@ -22,16 +27,24 @@ func clear_field() -> void:
 	elif GameState and GameState.has_meta("slowmo"):
 		GameState.remove_meta("slowmo")
 
-func tick(delta: float) -> void:
+func _on_sim_tick(dt: float) -> void:
+	## One HTML frame — gate like play update (pause / death freeze)
 	if GameState.state != GameState.State.PLAY:
 		return
+	if GameState.player_down:
+		return
 	# Dual stills: hold FX in place (player dual_lock_pose + dual_hold_fx)
-	var pl = get_tree().get_first_node_in_group("player") if get_tree() else null
+	var tree := get_tree()
+	var pl = tree.get_first_node_in_group("player") if tree else null
 	if pl and pl.has_meta("dual_lock_pose") and bool(pl.get_meta("dual_lock_pose")) \
 			and pl.has_meta("dual_hold_fx") and bool(pl.get_meta("dual_hold_fx")):
 		return
 	fx_tick += 1
-	_update_fx(delta)
+	_update_fx(dt)
+
+func tick(delta: float) -> void:
+	## Legacy entry — prefer SimClock; keep for tests/tools that call tick()
+	_on_sim_tick(delta)
 
 func use(key: String, player: Node2D, bullet_pool: Node) -> bool:
 	if not can_use(key):

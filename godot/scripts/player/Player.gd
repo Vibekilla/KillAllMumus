@@ -124,8 +124,7 @@ func _physics_process(delta: float) -> void:
 				phase_t = maxf(0.0, phase_t - delta * FRAME)
 			if dash > 0.0:
 				dash = maxf(0.0, dash - delta * FRAME)
-		if specials:
-			specials.tick(delta)
+		# SpecialSystem advances on SimClock (HTML updateFx); melee still input-driven here
 		if melee:
 			melee.tick(delta)
 		return
@@ -143,8 +142,7 @@ func _physics_process(delta: float) -> void:
 	GameState.player_down = false
 	if emblems:
 		emblems.tick_play()
-	if specials:
-		specials.tick(delta)
+	# specials: SimClock-driven (SpecialSystem._on_sim_tick)
 	if melee:
 		melee.tick(delta)
 	if consumables:

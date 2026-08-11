@@ -290,6 +290,8 @@ Present via other modules or partial — still product-check:
 | 2026-08-11 | Honeycomb/wagyu clamp lives (no gain_life 50k overflow); bullet/enemy/boss shape radii; focus hitR 2.2/4.2; wave st%iv schedule |
 | 2026-08-11 | FireSystem tick/CD on SimClock (not display FPS); freeze while player_down |
 | 2026-08-11 | Boss death: remove free life/bomb/flat 5k score — HTML loot rain only + emblems |
+| 2026-08-11 | SpecialSystem on SimClock (updateFx cadence); loadStage fire CD-only (tick persists); clear-gate +15 heads via set_heads |
+
 
 | 2026-08-03 | Enemy AI: no fire/body-hit while player.dead (HTML !p.dead); big ring col fallback |
 | 2026-08-03 | Boss live attack: sfx(shoot) every 24 frames (HTML updateBoss cadence) |
