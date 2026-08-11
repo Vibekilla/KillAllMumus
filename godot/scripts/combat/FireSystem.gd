@@ -7,15 +7,24 @@ const TEAM_PLAYER := 0
 var tick: int = 0
 var fire_cd_frames: float = 0.0
 
+func _ready() -> void:
+	# HTML `tick` / p.cd advance on fixed sim frames only (not display FPS)
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
+
 func reset_run() -> void:
 	## Clear fire cooldown at run start (HTML p.cd = 0)
 	tick = 0
 	fire_cd_frames = 0.0
 
-func _process(delta: float) -> void:
-	if GameState.state == GameState.State.PLAY:
-		tick += 1
-	fire_cd_frames = maxf(0.0, fire_cd_frames - delta * FRAME)
+func _on_sim_tick(_dt: float) -> void:
+	## HTML: one frame → tick++; if(p.cd>0) p.cd-- (gated by play update; frozen while dead)
+	if GameState.state != GameState.State.PLAY:
+		return
+	if GameState.player_down:
+		return
+	tick += 1
+	fire_cd_frames = maxf(0.0, fire_cd_frames - 1.0)
 
 func shot_level() -> int:
 	return CombatHelpers.shot_level() if CombatHelpers else clampi(int(floor(GameState.power)), 1, 5)

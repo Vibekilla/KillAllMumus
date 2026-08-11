@@ -668,6 +668,7 @@ func _on_hp_zero() -> void:
 		bullet_pool.clear_enemy()
 	if AudioBus:
 		AudioBus.sfx("win")
+	# HTML: unlockEmblem + estats only — rewards are loot rain on deadT===1, not free life/bomb/score
 	ProgressStore.estats_add("bosses", 1)
 	if ProgressStore.estats.get("bosses", 0) >= 1:
 		ProgressStore.unlock_emblem("boss_first")
@@ -675,10 +676,6 @@ func _on_hp_zero() -> void:
 		ProgressStore.unlock_emblem("boss_hunter")
 	if portrait == "bogdanoff":
 		ProgressStore.unlock_emblem("bog_slayer")
-	GameState.add_score(int(5000 * GameState.score_mul()))
-	# HTML grants loot rain (not a flat power+1); loot pickups apply via add_power/fullpower
-	GameState.lives = mini(DataRegistry.max_lives(), GameState.lives + 1)
-	GameState.bombs = mini(DataRegistry.max_bombs(), GameState.bombs + 1)
 	# HTML: wynn → startWynnHell immediately; else optional victory monologue
 	if portrait == "wynn":
 		start_wynn_hell()
