@@ -230,11 +230,15 @@ func _update_fx(delta: float) -> void:
 							"vy": 2.3 + randf() * 0.8,
 							"ty": pf.position.y + 80.0 + randf() * (pf.size.y - 150.0),
 						})
-				# HTML volley: vx (random-.5)*3 → ±1.5 px/frame
+				# HTML volley: vx (random-.5)*3 → ±1.5 px/frame; sfx shoot every 9 ct
 				if over and int(f["ct"]) % 3 == 0 and pool:
 					for k in range(-1, 2):
-						pool.spawn(Vector2(float(f["x"]) + k * 10.0, float(f["y"]) + 8.0),
+						var bb = pool.spawn(Vector2(float(f["x"]) + k * 10.0, float(f["y"]) + 8.0),
 							Vector2(randf_range(-1.5, 1.5), 9.0 + randf() * 3.0) * FRAME, 2.0, Color("ff9a3c"), TEAM_PLAYER)
+						if bb and bb.has_method("set_props"):
+							bb.set_props({"pshot": true})
+					if int(f["ct"]) % 9 == 0 and AudioBus:
+						AudioBus.sfx("shoot")
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"bombdrop":

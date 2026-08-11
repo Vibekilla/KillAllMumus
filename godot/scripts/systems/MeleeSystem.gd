@@ -247,9 +247,9 @@ func _charge_fx(player: Node2D, m: Dictionary, dir: float, reach: float, half: f
 			if CombatHelpers:
 				CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 8.0)
 			if AudioBus:
-				AudioBus.sfx("bomb")
+				AudioBus.sfx("boom")  # HTML shockwall: sfx('boom')
 		"flurry":
-			# HTML: p.flurry=30; p.flurryDir=dir; p.flurryDmg=max(1,round(dmg*0.5))
+			# HTML: p.flurry=30; p.flurryDir=dir; p.flurryDmg=max(1,round(dmg*0.5)); sfx('claw')
 			if "flurry" in player:
 				player.flurry = 30.0
 			else:
@@ -263,7 +263,7 @@ func _charge_fx(player: Node2D, m: Dictionary, dir: float, reach: float, half: f
 			else:
 				player.set("flurry_dmg", maxf(1.0, round(dmg * 0.5)))
 			if AudioBus:
-				AudioBus.sfx("slash")
+				AudioBus.sfx("claw")
 
 func _ang_diff(a: float, b: float) -> float:
 	return absf(wrapf(a - b, -PI, PI))

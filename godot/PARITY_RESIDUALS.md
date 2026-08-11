@@ -292,6 +292,8 @@ Present via other modules or partial — still product-check:
 | 2026-08-11 | Boss death: remove free life/bomb/flat 5k score — HTML loot rain only + emblems |
 | 2026-08-11 | SpecialSystem on SimClock (updateFx cadence); loadStage fire CD-only (tick persists); clear-gate +15 heads via set_heads |
 | 2026-08-11 | Bearzooka: 3 bombdrops + volley vx±1.5; neutralize LMB/shift dash leak; emblems start+clear_hell bootstrap |
+| 2026-08-11 | Melee charge SFX boom/claw; bearzooka volley sfx(shoot)+pshot flag for bullet cancel |
+
 
 
 
