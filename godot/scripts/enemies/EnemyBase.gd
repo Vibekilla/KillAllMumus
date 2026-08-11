@@ -56,6 +56,20 @@ func setup(pool: Node, pos: Vector2, opts: Dictionary = {}) -> void:
 		else:
 			bcol = Color("7ed957")
 	age_frames = randf() * 100.0
+	_sync_collision_radius()
+
+func _sync_collision_radius() -> void:
+	## HTML e.r is the hit radius (lil 15 / big+elite 30). pshot check is (e.r+4).
+	## Body check is (e.r+p.r+2) with p.r≈3 → e.r+5. Shape = e.r pairs with pshot r=4 / hurt r=5.
+	var cs := get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if cs == null:
+		return
+	var sh := cs.shape as CircleShape2D
+	if sh == null:
+		return
+	sh = sh.duplicate() as CircleShape2D
+	cs.shape = sh
+	sh.radius = maxf(4.0, radius)
 
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:

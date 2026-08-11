@@ -76,6 +76,24 @@ func _ready() -> void:
 func setup(pool: Node) -> void:
 	bullet_pool = pool
 
+func _sync_hurt_radius() -> void:
+	## HTML hitR = focus ? 2.2 : 4.2 (plus bullet.r via Area2D sum)
+	if hurtbox == null:
+		return
+	var cs := hurtbox.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if cs == null:
+		return
+	var sh := cs.shape as CircleShape2D
+	if sh == null:
+		return
+	if not bool(get_meta("_hurt_shape_owned", false)):
+		sh = sh.duplicate() as CircleShape2D
+		cs.shape = sh
+		set_meta("_hurt_shape_owned", true)
+	else:
+		sh = cs.shape as CircleShape2D
+	sh.radius = 2.2 if focus else 4.2
+
 func _physics_process(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
@@ -163,6 +181,7 @@ func _physics_process(delta: float) -> void:
 			flurry = 0.0
 
 	focus = Input.is_action_pressed("focus") and dash <= 0.0
+	_sync_hurt_radius()
 	var spd := FOCUS_SPEED if focus else SPEED
 	# HTML MOUSE.speed scales keyboard/stick only — not mouse follow
 	var spd_mul := Config.mouse_speed if Config else 1.12

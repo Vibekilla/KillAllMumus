@@ -25,7 +25,7 @@ var flash: float = 0.0
 var special_used: bool = false
 var special_t: float = 0.0
 var stun: float = 0.0
-var radius: float = 36.0
+var radius: float = 38.0  # HTML spawnBoss r:38
 var mtx: float = 0.0
 var mty: float = 0.0
 var dash: bool = false
@@ -101,6 +101,7 @@ func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 		global_position.y = pf.position.y - 40.0
 	add_to_group("enemies")
 	add_to_group("bosses")
+	_sync_collision_radius()
 	# HTML: startDialog(bd.intro, bd); sfx('card')
 	if not GameState.speedrun and StageFlow and StageFlow.has_method("start_dialog"):
 		var intro_lines = data.get("intro", [])
@@ -111,6 +112,19 @@ func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 			intro = 90.0
 	if AudioBus:
 		AudioBus.sfx("card")
+
+func _sync_collision_radius() -> void:
+	## HTML r:38; pshot hit uses (b.r+6) → shape 40 pairs with default pshot r≈4
+	radius = 38.0
+	var cs := get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if cs == null:
+		return
+	var sh := cs.shape as CircleShape2D
+	if sh == null:
+		return
+	sh = sh.duplicate() as CircleShape2D
+	cs.shape = sh
+	sh.radius = 40.0
 
 var _draw_age: int = 0
 

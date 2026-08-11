@@ -287,6 +287,8 @@ Present via other modules or partial — still product-check:
 | 2026-08-02 | Wynn hell portal hell_r/hy/scale wiring; lotus curl 0.03/life 62; shock spread+spd |
 | 2026-08-02 | Melee swap: armed_melee index (HTML player.melee) not arsenal reorder; clamp on apply |
 | 2026-08-03 | Death freeze: combat systems halt while player_down (HTML early-return); items still tick |
+| 2026-08-11 | Honeycomb/wagyu clamp lives (no gain_life 50k overflow); bullet/enemy/boss shape radii; focus hitR 2.2/4.2; wave st%iv schedule |
+
 | 2026-08-03 | Enemy AI: no fire/body-hit while player.dead (HTML !p.dead); big ring col fallback |
 | 2026-08-03 | Boss live attack: sfx(shoot) every 24 frames (HTML updateBoss cadence) |
 | 2026-08-03 | Melee: no charge during CD (HTML meleeCd gate); default swipe sfx kill |

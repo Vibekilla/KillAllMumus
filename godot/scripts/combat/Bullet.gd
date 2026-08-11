@@ -69,6 +69,7 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, col: Color, t: Team) -> vo
 	grazed = false
 	active = true
 	_reset_flags()
+	_sync_collision_radius()
 	show()
 	set_physics_process(true)
 	# Never toggle monitoring inside area signals — deferred avoids Godot spam
@@ -144,7 +145,25 @@ func set_props(props: Dictionary) -> void:
 		radius = 5.0
 	elif shell:
 		radius = 12.0
-	
+	_sync_collision_radius()
+
+func _sync_collision_radius() -> void:
+	## Keep Area2D circle in sync with HTML r (shells r:12, soft r:6, pshots ~3–5).
+	## Duplicate shape so pooled bullets don't share one CircleShape2D.
+	var cs := get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if cs == null:
+		return
+	var sh := cs.shape as CircleShape2D
+	if sh == null:
+		return
+	if not bool(get_meta("_shape_owned", false)):
+		sh = sh.duplicate() as CircleShape2D
+		cs.shape = sh
+		set_meta("_shape_owned", true)
+	else:
+		sh = cs.shape as CircleShape2D
+	sh.radius = maxf(1.0, radius)
+
 func deactivate() -> void:
 	if nade and not _boomed and pshot:
 		_boomed = true

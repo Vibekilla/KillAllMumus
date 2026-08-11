@@ -175,12 +175,13 @@ func _apply_effect(key: String, p: Node = null) -> void:
 		cap = CombatHelpers.power_cap()
 	match key:
 		"honeycomb":
-			if CombatHelpers:
-				CombatHelpers.gain_life()
+			# HTML: run.lives=Math.min(MAX_LIVES, lives+1) — not gainLife (which awards 50k at cap)
+			var max_l := CombatHelpers.MAX_LIVES if CombatHelpers else 9
+			GameState.lives = mini(max_l, GameState.lives + 1)
 		"wagyu":
-			if CombatHelpers:
-				for _i in range(3):
-					CombatHelpers.gain_life()
+			# HTML: +3 hearts clamped — never converts overflow to score
+			var max_w := CombatHelpers.MAX_LIVES if CombatHelpers else 9
+			GameState.lives = mini(max_w, GameState.lives + 3)
 		"bulltears":
 			# HTML: power +0.5 toward cap
 			GameState.power = minf(cap, GameState.power + 0.5)

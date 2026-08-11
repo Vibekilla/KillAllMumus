@@ -8,8 +8,7 @@ var playfield: Node2D
 var stage_time: float = 0.0  # frames @ 60 Hz
 var spawning: bool = false
 var boss_spawned: bool = false
-var roll: int = -1  # last pack index spawned (-1 = none yet)
-var _next_spawn_at: float = 0.0
+var roll: int = 0  # HTML: roll = (st/iv)|0 on each pack frame
 ## Dual / screenshot stills: hard stop all wave activity
 var dual_lock: bool = false
 
@@ -27,8 +26,7 @@ func start_stage(_stage_index: int) -> void:
 	if dual_lock:
 		return
 	stage_time = 0.0
-	roll = -1
-	_next_spawn_at = 0.0  # first pack immediately
+	roll = 0
 	spawning = true
 	boss_spawned = false
 
@@ -79,12 +77,12 @@ func _spawn_waves() -> void:
 	var wave_dur := float(stage.get("waveDur", 1500))
 	var prog := st / maxf(1.0, wave_dur)
 	var base_iv := 70.0 if s == 0 else (60.0 if s == 1 else 52.0)
-	var iv := maxf(18.0, floorf(base_iv * hm * (1.0 - prog * 0.32)))
-	# Schedule packs by absolute stage_time (robust under float dt)
-	if st < _next_spawn_at:
+	var iv := maxi(18, int(floor(base_iv * hm * (1.0 - prog * 0.32))))
+	# HTML: if(st%iv!==0) return; const roll=(st/iv)|0;
+	var st_i := int(st)
+	if iv <= 0 or st_i % iv != 0:
 		return
-	roll += 1
-	_next_spawn_at = st + iv
+	roll = int(st_i / iv)
 	var pf: Rect2 = Config.playfield()
 
 	if s == 0:
