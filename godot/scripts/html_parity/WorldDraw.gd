@@ -743,15 +743,27 @@ func _draw_bobina_cached_or_live(st: Dictionary) -> void:
 			if flash:
 				ctx.global_alpha(1.0)
 			return
-	# Cold cache: full live drawBobina (never pink-circle stand-in — that looked broken)
-	if ported and ported.has_method("drawBobina"):
-		ported.drawBobina(st)
-	elif flash:
+	# Cold cache: prefer last play bake (stale pose) — NEVER full live drawBobina
+	# every frame (that tanks web FPS and makes the game unplayable).
+	if bobina_cache != null and bobina_cache.has_method("get_last_play_texture"):
+		var last: Texture2D = bobina_cache.get_last_play_texture()
+		if last != null and ctx.has_method("draw_image"):
+			var lw := float(last.get_width())
+			var lh := float(last.get_height())
+			if flash:
+				ctx.global_alpha(0.5)
+			ctx.draw_image(last, px - lw * 0.5, py - lh * 0.5, lw, lh)
+			if flash:
+				ctx.global_alpha(1.0)
+			return
+	# Absolute last resort: tiny blob (one frame until bake lands)
+	if flash:
 		ctx.global_alpha(0.5)
-		ctx.fill_style("#ffb6d9")
-		ctx.begin_path()
-		ctx.arc(px, py, 14, 0, TAU)
-		ctx.fill()
+	ctx.fill_style("#ffb6d9")
+	ctx.begin_path()
+	ctx.arc(px, py, 14, 0, TAU)
+	ctx.fill()
+	if flash:
 		ctx.global_alpha(1.0)
 
 func _draw_player(player: Node) -> void:
@@ -759,7 +771,7 @@ func _draw_player(player: Node) -> void:
 	if combat_fx:
 		combat_fx.drawDashComet(st)
 		combat_fx.drawPowerAura(st)
-	# Full drawBobina — cache bake when possible; live fallback (never a placeholder circle)
+	# Cache bake preferred; cold uses last bake (never full live drawer every frame)
 	_draw_bobina_cached_or_live(st)
 	if combat_fx:
 		# HTML drawOptions(player) — world optionPos, not local 0,0

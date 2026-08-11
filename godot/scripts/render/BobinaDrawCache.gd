@@ -23,6 +23,9 @@ var _busy: bool = false
 var _last_key: String = ""
 var _last_play_tex: Texture2D = null
 
+func get_last_play_texture() -> Texture2D:
+	return _last_play_tex
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process(true)

@@ -243,7 +243,7 @@ func _step(delta: float) -> void:
 			trail.resize(16)
 		_dash_plow()
 		# HTML: lock dash landing offset vs cursor so control resumes from HERE
-		var mouse_d := get_global_mouse_position()
+		var mouse_d := JoyPad.mouse if JoyPad else get_global_mouse_position()
 		offx = global_position.x - mouse_d.x
 		offy = global_position.y - mouse_d.y
 		if dash <= 0.0:
@@ -259,17 +259,34 @@ func _step(delta: float) -> void:
 	elif dir.length() > 0.1:
 		velocity = velocity.lerp(dir.normalized() * spd, 0.5)
 	else:
-		# mouse follow (desktop) — HTML: target = cursor + decaying offx/offy
-		# MOUSE.speed does NOT apply here (only keyboard spd above)
-		var mouse := get_global_mouse_position()
+		# HTML mouse follow: ONLY when mouse recently moved (moveT>0) or pointer drag.
+		# Always chasing get_global_mouse_position() yanked Bobina to the cursor
+		# (often top of field) and re-facing every sim catch-up step.
+		var is_touch := JoyPad != null and bool(JoyPad.touch_ui_on)
+		var p_ok := JoyPad != null and bool(JoyPad.pointer_down) and not is_touch
+		var m_ok := JoyPad != null and float(JoyPad.mouse_move_t) > 0.0 and not is_touch
+		var mx := 0.0
+		var my := 0.0
+		if p_ok:
+			mx = JoyPad.pointer.x
+			my = JoyPad.pointer.y
+		elif m_ok:
+			mx = JoyPad.mouse.x
+			my = JoyPad.mouse.y
 		var pf: Rect2 = Config.playfield()
-		if pf.grow(40).has_point(mouse):
+		var in_field := mx > pf.position.x - 40.0 and mx < pf.end.x + 40.0 \
+			and my > pf.position.y - 40.0 and my < pf.end.y + 40.0
+		if (p_ok or m_ok) and in_field:
 			var base_f := Config.mouse_follow if Config else 0.6
 			var f := maxf(0.28, base_f * 0.5) if focus else base_f
-			var tx := clampf(mouse.x + offx, pf.position.x + 8.0, pf.end.x - 8.0)
-			var ty := clampf(mouse.y + offy, pf.position.y + 8.0, pf.end.y - 8.0)
-			# HTML: p.vx = (tx-p.x)*f  (px/frame) → *FRAME for Godot
-			velocity = Vector2(tx - global_position.x, ty - global_position.y) * f * FRAME
+			# Catch-up: re-applying f several times per display frame snaps to cursor.
+			# Only ease on the first sim step of each process frame (HTML: 1 update/raf).
+			if edge:
+				var tx := clampf(mx + offx, pf.position.x + 8.0, pf.end.x - 8.0)
+				var ty := clampf(my + offy, pf.position.y + 8.0, pf.end.y - 8.0)
+				# HTML: p.vx = (tx-p.x)*f  (px/frame) → *FRAME for Godot
+				velocity = Vector2(tx - global_position.x, ty - global_position.y) * f * FRAME
+			# else keep prior velocity this catch-up step (glide)
 		else:
 			# HTML: p.vx*=0.8 when no mouse
 			velocity *= 0.8
