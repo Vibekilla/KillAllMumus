@@ -326,7 +326,7 @@ func tick_fx(delta: float) -> void:
 	var df = delta * FRAME
 	# HTML: flashMsg.t-- runs BEFORE p.dead early-return — keep toast alive during death window
 	_tick_flash(df)
-	# HTML: death early-return freezes particles/score pops (only updateItems runs)
+	# HTML: death early-return freezes particles/score pops/meleeFx (only updateItems runs)
 	if GameState.player_down:
 		return
 	var keep_p: Array = []
@@ -345,6 +345,17 @@ func tick_fx(delta: float) -> void:
 		if float(s["life"]) > 0.0:
 			keep_s.append(s)
 	score_texts = keep_s
+	# HTML: for(const f of meleeFx) f.t++; meleeFx=meleeFx.filter(f=>f.t<f.life)
+	# Rings/bolts land in CombatHelpers.melee_fx (dash land, shockwall, chain) — must age out
+	var keep_m: Array = []
+	for f in melee_fx:
+		if typeof(f) != TYPE_DICTIONARY:
+			continue
+		f["t"] = float(f.get("t", 0.0)) + df
+		var life := float(f.get("life", 16.0))
+		if float(f["t"]) < life:
+			keep_m.append(f)
+	melee_fx = keep_m
 
 func boss_dmg_mul() -> float:
 	## HTML bossDmgMul: 1 - min(0.55, (power-1)*0.11)

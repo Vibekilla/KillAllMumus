@@ -27,6 +27,13 @@ func _ready() -> void:
 	progress = _default()
 	_load_local()
 	_apply_to_fields()
+	# HTML drawEmblemToasts advances e.t every frame including pause (draw still runs)
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+func _process(delta: float) -> void:
+	## Only while SimClock is frozen (pause) — avoid double-tick during PLAY
+	if GameState != null and GameState.state == GameState.State.PAUSED:
+		tick_emblem_toasts(delta * 60.0)
 
 func _default() -> Dictionary:
 	return {
