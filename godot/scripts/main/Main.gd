@@ -181,11 +181,25 @@ func _on_state(s: StringName) -> void:
 	intro_label.visible = false  # canvas FlowUI draws intro 1:1
 	if s == &"INTRO":
 		stages.begin_current_stage()
+		_prewarm_play_visuals()
 	elif s == &"PLAY":
 		# Intro advanced → start waves
 		if stages.has_method("start_waves_if_ready"):
 			stages.start_waves_if_ready()
+		_prewarm_play_visuals()
 	_last_state = s
+
+func _prewarm_play_visuals() -> void:
+	## HTML draws full Bobina (all faces) + StageBg every frame. We pre-bake face bins
+	## + stage bg so play can blit 1:1 art without freezing orientation or dropping bg.
+	var wd = get_node_or_null("WorldCanvas")
+	if wd == null:
+		return
+	var outfit := str(GameState.selected_outfit) if GameState else "og"
+	if "bobina_cache" in wd and wd.bobina_cache != null and wd.bobina_cache.has_method("prewarm_play_outfit"):
+		wd.bobina_cache.prewarm_play_outfit(outfit, true)
+	if "stage_bg_cache" in wd and wd.stage_bg_cache != null and wd.stage_bg_cache.has_method("prewarm_stage"):
+		wd.stage_bg_cache.prewarm_stage(SimClock.sim_frame if SimClock else 0)
 
 func _on_run_started() -> void:
 	if SimClock:
@@ -195,6 +209,7 @@ func _on_run_started() -> void:
 		player.get_node("Sprite/BobinaSprite").set_outfit(GameState.selected_outfit)
 	bullet_pool.clear_all()
 	spawner.clear()
+	_prewarm_play_visuals()
 	# start_run already sets INTRO → _on_state begins stage
 
 func _on_intro(stage: Dictionary) -> void:

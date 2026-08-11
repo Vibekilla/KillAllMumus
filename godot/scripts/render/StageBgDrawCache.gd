@@ -106,11 +106,12 @@ func get_texture(tick: int) -> Texture2D:
 				fallback = _ready_tex[k]
 				_touch(str(k))
 				break
-	# PLAY: never thrash get_image re-bakes if we already have a stage blit
-	var in_play := typeof(GameState) != TYPE_NIL and GameState.state == GameState.State.PLAY
-	if in_play and fallback != null:
+	# Keep last stage blit while new bi/tick bucket bakes (HTML bg is continuous)
+	if fallback != null and _ready_tex.has(key) == false:
+		# enqueue missing key but show fallback this frame
+		if _queue.size() < 2:
+			_enqueue(key, tick, stage, bi_b)
 		return fallback
-	# Only re-bake when cold — continuous bi/tick thrash was a FPS sink
 	if fallback == null and _queue.is_empty():
 		_enqueue(key, tick, stage, bi_b)
 	return fallback
@@ -135,14 +136,17 @@ func _evict_if_needed() -> void:
 func _process(_d: float) -> void:
 	if _busy or _queue.is_empty():
 		return
-	if typeof(GameState) != TYPE_NIL and GameState.state == GameState.State.PLAY:
-		var fps := Engine.get_frames_per_second()
-		if OS.has_feature("web") or (fps > 0.0 and fps < 25.0):
-			if _last_blit_tex != null or not _ready_tex.is_empty():
-				_queue.clear()
-				return
 	_busy = true
 	_run_one()
+
+func prewarm_stage(tick: int = 0) -> void:
+	## Force at least one full StageBg bake for current stage (call on loadStage)
+	_ensure_viewport()
+	var stage := int(GameState.stage_index) if GameState else 0
+	var bi_b := _bi_bucket()
+	var key := cache_key(stage, tick, bi_b)
+	if not _ready_tex.has(key):
+		_enqueue(key, tick, stage, bi_b)
 
 func _run_one() -> void:
 	if _queue.is_empty():

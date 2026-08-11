@@ -68,17 +68,15 @@ func _process(_d: float) -> void:
 	if GameState.state == GameState.State.PLAY:
 		_fps_adapt_cd -= 1
 		if _fps_adapt_cd <= 0:
-			_fps_adapt_cd = 20
+			_fps_adapt_cd = 30
 			var fps := Engine.get_frames_per_second()
-			# Aggressive throttle on web / software GL — fidelity after playable FPS
-			if fps > 0.0 and fps < 12.0:
-				_play_stride = 6  # ~10 Hz visual
-			elif fps > 0.0 and fps < 22.0:
-				_play_stride = 4  # ~15 Hz
-			elif fps > 0.0 and fps < 35.0:
+			# Keep visual cadence near HTML; only ease off under severe load
+			if fps > 0.0 and fps < 18.0:
 				_play_stride = 3  # ~20 Hz
-			elif fps >= 45.0:
-				_play_stride = 2  # 30 Hz once healthy
+			elif fps >= 30.0:
+				_play_stride = 2  # 30 Hz (default play)
+			else:
+				_play_stride = 2
 		if (nt % maxi(1, _play_stride)) != 0:
 			return
 	elif GameState.state in [GameState.State.SHOP, GameState.State.STAGE_CLEAR, GameState.State.INTRO]:
@@ -110,14 +108,8 @@ func _in_pf(x: float, y: float, margin: float = 24.0) -> bool:
 	)
 
 func _draw_stage_bg_cached_or_live(pf: Rect2) -> void:
-	# Low FPS / web: always solid fill — StageBg bake get_image is too expensive
-	var fps := Engine.get_frames_per_second()
-	if fps > 0.0 and fps < 20.0:
-		_draw_stage_bg_solid(pf)
-		return
-	## Phase 1.3: blit PF-sized StageBg bake. Never live full StageBgFx on the hot path —
-	## that path alone can cost tens of ms/frame (software GL / web). Cache miss → solid
-	## stage gradient only; boss intensity re-bakes via StageBgDrawCache bi bucket.
+	## HTML always draws full StageBgFx. We blit a pre-baked PF texture (same drawer
+	## content). Cold miss → solid only until first bake finishes (prewarm on stage load).
 	if stage_bg_cache != null and stage_bg_cache.has_method("get_texture"):
 		var tex: Texture2D = stage_bg_cache.get_texture(tick)
 		if tex != null and ctx.has_method("draw_image"):
@@ -131,7 +123,6 @@ func _draw_stage_bg_cached_or_live(pf: Rect2) -> void:
 				ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 			ctx.stroke()
 			return
-	# Cold cache: 2-stop solid fill (no motifs / StageBgFx)
 	_draw_stage_bg_solid(pf)
 
 func _draw_stage_bg_solid(pf: Rect2) -> void:
@@ -196,11 +187,9 @@ func _draw() -> void:
 	elif CombatHelpers:
 		CombatHelpers.screen_shake = 0.0
 
-	# --- stage bg (cached/solid) + boss ambience (skip when FPS tanked) ---
+	# --- stage bg (HTML full StageBg via bake) + boss ambience ---
 	_draw_stage_bg_cached_or_live(pf)
-	var wall_fps := Engine.get_frames_per_second()
-	var low_fps := wall_fps > 0.0 and wall_fps < 18.0
-	if (GameState.state == GameState.State.PLAY or GameState.state == GameState.State.PAUSED) and not low_fps:
+	if GameState.state == GameState.State.PLAY or GameState.state == GameState.State.PAUSED:
 		if hud.has_method("drawBossAmbience"):
 			hud.drawBossAmbience()
 

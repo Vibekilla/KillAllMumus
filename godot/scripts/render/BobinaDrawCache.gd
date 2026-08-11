@@ -73,13 +73,15 @@ func get_texture(outfit: String, expr, pose: int, tick: int, scale: float, state
 	var key := cache_key(outfit, expr, pose, tick, scale, extra)
 	return _get_or_enqueue(key, outfit, expr, tick, scale, state)
 
-## Playfield Bobina: quantize facing + focus; iframe/alpha applied by caller at blit.
-## Optional st.expr (dual play-scale faces / celebration) is part of the cache key.
+## Playfield Bobina — HTML drawBobina rotates whole body by face (travel heading).
+## We bake FACE_BINS orientations of drawBobina (true rotation in the drawer), then
+## pick the nearest bin each frame. That is 1:1 art/orientation without live re-draw.
 func get_play_texture(st: Dictionary) -> Texture2D:
 	_ensure_viewport()
 	var outfit := str(st.get("outfit", "og"))
 	var face := _face_bucket(float(st.get("face", -PI / 2.0)))
 	var focus := 1 if bool(st.get("focus", false)) else 0
+	# Orientation-critical: tick breath uses coarse bucket so face bins stay primary
 	var tick := int(st.get("tick", 0))
 	var expr = st.get("expr", null)
 	var expr_key := str(expr) if expr != null and str(expr) != "" else "null"
@@ -89,25 +91,14 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 		_touch(key)
 		_last_play_tex = _ready_tex[key]
 		return _ready_tex[key]
-	# Prefer ANY ready texture for this outfit — face thrash must not force re-bakes
-	var fallback: Texture2D = null
-	var oprefix := outfit + "|"
-	for k in _ready_tex.keys():
-		var ks := str(k)
-		if ks.begins_with(oprefix) and "|1.0|" in ks:
-			fallback = _ready_tex[k]
-			_touch(ks)
-			break
+	# Nearest *face* bin already baked for this outfit (not a random frozen pose)
+	var fallback: Texture2D = _nearest_face_tex(outfit, face, focus, expr_key)
 	if fallback == null and _last_play_tex != null:
 		fallback = _last_play_tex
-	# PLAY performance: never enqueue if we already have a blit (get_image is ~web death)
-	var in_play := typeof(GameState) != TYPE_NIL and GameState.state == GameState.State.PLAY
-	if in_play and fallback != null:
-		_last_play_tex = fallback
-		return fallback
+	# Queue exact face bin (rate-limited by _process one bake/frame) — never skip facing
 	var bake := st.duplicate(true)
 	bake["face"] = face
-	bake["iframe"] = 0  # flash applied at blit
+	bake["iframe"] = 0
 	bake["x"] = 0
 	bake["y"] = 0
 	bake["bombFx"] = 0
@@ -116,12 +107,53 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 		bake["expr"] = expr
 	else:
 		bake.erase("expr")
-	# Cold only (no texture yet) — one bake. Never face-bin thrash on web.
-	if fallback == null and _queue.is_empty():
-		_get_or_enqueue(key, outfit, expr if expr_key != "null" else null, tick, 1.0, bake)
+	_get_or_enqueue(key, outfit, expr if expr_key != "null" else null, tick, 1.0, bake)
 	if fallback != null:
 		_last_play_tex = fallback
-	return fallback  # null only until first bake for this outfit lands
+	return fallback
+
+func _play_face_key(outfit: String, face: float, focus: int, expr_key: String, tick: int = 0) -> String:
+	var extra := "f%.3f|fo%d|e%s" % [face, focus, expr_key]
+	return cache_key(outfit, null if expr_key == "null" else expr_key, 0, tick, 1.0, extra)
+
+func _nearest_face_tex(outfit: String, want_face: float, focus: int, expr_key: String) -> Texture2D:
+	## Pick closest prebaked face bin (HTML face is continuous; we sample FACE_BINS).
+	var best: Texture2D = null
+	var best_d := 999.0
+	for i in range(FACE_BINS):
+		var fbin := _face_bucket(-PI + float(i) * TAU / float(FACE_BINS))
+		var k := _play_face_key(outfit, fbin, focus, expr_key, 0)
+		if not _ready_tex.has(k):
+			# also try other tick buckets for same face
+			for k2 in _ready_tex.keys():
+				var ks := str(k2)
+				if ks.find("f%.3f|fo%d|e%s" % [fbin, focus, expr_key]) >= 0 and ks.begins_with(outfit + "|"):
+					k = ks
+					break
+			if not _ready_tex.has(k):
+				continue
+		var d := absf(wrapf(fbin - want_face, -PI, PI))
+		if d < best_d:
+			best_d = d
+			best = _ready_tex[k]
+	return best
+
+func prewarm_play_outfit(outfit: String, focus_both: bool = true) -> void:
+	## Call on run/stage start — bakes all face bins so play can rotate 1:1 without hitching.
+	_ensure_viewport()
+	var focuses := [0, 1] if focus_both else [0]
+	for fo in focuses:
+		for i in range(FACE_BINS):
+			var face := _face_bucket(-PI + float(i) * TAU / float(FACE_BINS))
+			var key := _play_face_key(outfit, face, fo, "null", 0)
+			if _ready_tex.has(key):
+				continue
+			var st := {
+				"outfit": outfit, "face": face, "aim": face, "focus": fo == 1,
+				"tick": 0, "x": 0, "y": 0, "vx": 0, "vy": 0,
+				"iframe": 0, "dash": 0, "bombFx": 0, "lean": 0,
+			}
+			_get_or_enqueue(key, outfit, null, 0, 1.0, st)
 
 func _get_or_enqueue(key: String, outfit: String, expr, tick: int, scale: float, state: Dictionary) -> Texture2D:
 	if _ready_tex.has(key):
@@ -180,15 +212,9 @@ func _evict_if_needed() -> void:
 func _process(_d: float) -> void:
 	if _busy or _queue.is_empty():
 		return
-	# PLAY on web/low FPS: do not pay get_image — keep blitting last texture
-	if typeof(GameState) != TYPE_NIL and GameState.state == GameState.State.PLAY:
-		var fps := Engine.get_frames_per_second()
-		if OS.has_feature("web") or (fps > 0.0 and fps < 25.0):
-			if _last_play_tex != null or not _ready_tex.is_empty():
-				_queue.clear()
-				return
+	# Always allow prewarm/face-bin queue to drain (1 bake/frame). That is the HTML
+	# orientation path: drawBobina with rot(face) into bins — not a frozen last blit.
 	_busy = true
-	# One bake per display frame max — each bake runs full drawBobina into a SubViewport
 	_run_batch()
 
 func _run_batch() -> void:
