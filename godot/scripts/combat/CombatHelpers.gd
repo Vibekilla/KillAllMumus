@@ -4,6 +4,7 @@ extends Node
 const MAX_LIVES := 9
 const MAX_BOMBS := 5
 const KILL_EXTEND := 50
+const FRAME := 60.0
 
 var particles: Array = []  # {x,y,vx,vy,life,c}
 var score_texts: Array = []  # {x,y,txt,color,life}
@@ -16,6 +17,24 @@ var slow_acc_b: float = 0.0
 var slow_mob_w: bool = true
 var slow_elite_w: bool = true
 var slow_boss_w: bool = true
+
+func _ready() -> void:
+	# HTML flashMsg decrements even while paused (update() ticks it before pause return)
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+func _process(delta: float) -> void:
+	## Only when SimClock is frozen (pause) — avoid double-tick during PLAY
+	if GameState == null:
+		return
+	if GameState.state == GameState.State.PAUSED:
+		_tick_flash(delta * FRAME)
+
+func _tick_flash(df: float) -> void:
+	## HTML: if(flashMsg){ flashMsg.t--; } — runs before death/pause early returns
+	if flash_msg.has("t"):
+		flash_msg["t"] = float(flash_msg.get("t", 0.0)) - df
+		if float(flash_msg["t"]) <= 0.0:
+			flash_msg = {}
 
 func start_slowmo(frames: float = 300.0) -> void:
 	## HTML sp.key==='sixth' → slowmoT=300
@@ -304,10 +323,12 @@ func line_time(text: String) -> float:
 
 func tick_fx(delta: float) -> void:
 	# HTML sim is frame-based @60; scale by df frames elapsed
-	# HTML: death early-return freezes particles/score pops too (only updateItems runs)
+	var df = delta * FRAME
+	# HTML: flashMsg.t-- runs BEFORE p.dead early-return — keep toast alive during death window
+	_tick_flash(df)
+	# HTML: death early-return freezes particles/score pops (only updateItems runs)
 	if GameState.player_down:
 		return
-	var df = delta * 60.0
 	var keep_p: Array = []
 	for p in particles:
 		# per-frame velocity (HTML particles push vx in px/frame)
@@ -324,10 +345,6 @@ func tick_fx(delta: float) -> void:
 		if float(s["life"]) > 0.0:
 			keep_s.append(s)
 	score_texts = keep_s
-	if flash_msg.has("t"):
-		flash_msg["t"] = float(flash_msg.get("t", 0)) - df
-		if float(flash_msg["t"]) <= 0.0:
-			flash_msg = {}
 
 func boss_dmg_mul() -> float:
 	## HTML bossDmgMul: 1 - min(0.55, (power-1)*0.11)

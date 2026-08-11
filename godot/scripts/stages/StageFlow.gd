@@ -232,9 +232,13 @@ func on_boss_defeated() -> void:
 	if P2Meta:
 		for i in range(stage_emblem_mark, P2Meta.new_emblems.size()):
 			earned.append(P2Meta.new_emblems[i])
+	# Prefer ItemSystem counter (kill_enemy path); StageFlow.note_kill kept in sync as mirror
+	var ks := kills_this_stage
+	if ItemSystem:
+		ks = maxi(ks, int(ItemSystem.kills_this_stage))
 	clear_info = {
 		"stage": GameState.stage_index,
-		"killsThisStage": kills_this_stage,
+		"killsThisStage": ks,
 		"total": GameState.total_kills,
 		"emblems": earned,
 	}
