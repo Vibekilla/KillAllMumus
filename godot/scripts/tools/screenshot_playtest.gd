@@ -1209,7 +1209,13 @@ func _run() -> void:
 						elif typ == "mech":
 							f["t"] = 200.0
 						elif typ == "bearzooka":
+							# Mid-carpet still: plane over field (bombdrops seeded after pin loop)
+							var cfg_bz = _A("Config")
+							var pf_bz0: Rect2 = cfg_bz.playfield() if cfg_bz and cfg_bz.has_method("playfield") else Rect2(48, 14, 512, 516)
 							f["t"] = 120.0
+							f["ct"] = 40.0
+							f["x"] = player.global_position.x
+							f["y"] = pf_bz0.position.y + 34.0
 						elif typ == "servitor":
 							f["t"] = 520.0
 							f["ct"] = float(si) * 15.0  # desync orbit phase
@@ -1235,6 +1241,30 @@ func _run() -> void:
 							if float(f.get("r", 0)) < 40.0:
 								f["r"] = 80.0 + float(si) * 30.0
 							si += 1
+				# Bearzooka dual: seed carpet bombdrops (HTML fireBurst-style still)
+				if sk == "bearzooka" and sp and sp.get("fx") is Array:
+					var has_bd := false
+					var bz_x: float = player.global_position.x
+					var bz_y: float = player.global_position.y - 80.0
+					for fbd in sp.fx:
+						if typeof(fbd) != TYPE_DICTIONARY:
+							continue
+						if str(fbd.get("type", "")) == "bombdrop":
+							has_bd = true
+						elif str(fbd.get("type", "")) == "bearzooka":
+							bz_x = float(fbd.get("x", bz_x))
+							bz_y = float(fbd.get("y", bz_y))
+					if not has_bd:
+						var cfg_bd = _A("Config")
+						var pf_bd: Rect2 = cfg_bd.playfield() if cfg_bd and cfg_bd.has_method("playfield") else Rect2(48, 14, 512, 516)
+						for d in range(3):
+							sp.fx.append({
+								"type": "bombdrop", "t": 120.0,
+								"x": bz_x + float(d - 1) * 36.0,
+								"y": bz_y + 12.0 + float(d) * 18.0,
+								"vy": 2.5,
+								"ty": pf_bd.position.y + 200.0 + float(d) * 40.0,
+							})
 				var ch_flash = _A("CombatHelpers")
 				if ch_flash:
 					if not ("flash_msg" in ch_flash) or ch_flash.flash_msg.is_empty() or str(ch_flash.flash_msg.get("txt", "")) == "":

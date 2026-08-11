@@ -21,6 +21,83 @@ func _on_sim_tick(dt: float) -> void:
 		if b != null and is_instance_valid(b) and bool(b.get("active")):
 			if b.has_method("sim_step"):
 				b.sim_step(dt)
+	# HTML update() uses distance hit-tests every frame. Area2D signals are unreliable
+	# when bullets/enemies move only on SimClock (not physics), so resolve here too.
+	_resolve_hits_distance()
+
+func _resolve_hits_distance() -> void:
+	## Mirror HTML pshot/enemy bullet distance checks after all positions advance.
+	if GameState.player_down:
+		return
+	var tree := get_tree()
+	if tree == null:
+		return
+	var player: Node2D = tree.get_first_node_in_group("player") as Node2D
+	var enemies: Array = tree.get_nodes_in_group("enemies")
+	for b in _pool:
+		if b == null or not is_instance_valid(b) or not bool(b.get("active")):
+			continue
+		var team := int(b.team) if "team" in b else 1
+		var br := float(b.radius) if "radius" in b else 4.0
+		var bp: Vector2 = b.global_position
+		if team == 0:
+			# Player shot → enemies / bosses
+			var hit_any := false
+			for e in enemies:
+				if not is_instance_valid(e):
+					continue
+				var er := 15.0
+				if "radius" in e:
+					er = float(e.radius)
+				elif e.get("r") != null:
+					er = float(e.get("r"))
+				var rr := br + er
+				if bp.distance_squared_to(e.global_position) > rr * rr:
+					continue
+				var eid: int = e.get_instance_id()
+				var is_pierce: bool = bool(b.get("pierce")) if b.get("pierce") != null else false
+				var hits: Dictionary = b.hit_ids if b.get("hit_ids") is Dictionary else {}
+				if is_pierce and hits.has(eid):
+					continue
+				if bool(b.get("zap")) and ItemSystem and ItemSystem.has_method("chain_lightning"):
+					ItemSystem.chain_lightning(e.global_position.x, e.global_position.y, 2.0, 3, "#8fd0ff")
+				if e.has_method("take_damage"):
+					if e.is_in_group("bosses") and CombatHelpers and CombatHelpers.has_method("scale_boss_shot_damage"):
+						var scaled: float = CombatHelpers.scale_boss_shot_damage(
+							float(b.damage), bool(b.get("voidbolt")), str(GameState.current_weapon) if GameState else "")
+						e.take_damage(scaled, {"pre_scaled": true, "voidbolt": bool(b.get("voidbolt"))})
+					else:
+						e.take_damage(float(b.damage))
+					if "flash" in e:
+						e.flash = 5.0
+				if CombatHelpers and CombatHelpers.has_method("sparks"):
+					CombatHelpers.sparks(bp.x, bp.y, "#cfe8ff" if bool(b.get("zap")) else "#ffd0ec")
+				if is_pierce:
+					if b.get("hit_ids") is Dictionary:
+						b.hit_ids[eid] = true
+					hit_any = true
+				else:
+					if b.has_method("deactivate"):
+						b.deactivate()
+					hit_any = true
+					break
+			if hit_any:
+				continue
+		else:
+			# Enemy bullet → player hurt radius (HTML p.r focus?2.2:4.2)
+			if player == null or not is_instance_valid(player):
+				continue
+			if bool(player.get("dead")):
+				continue
+			var focus_on := bool(player.get("focus"))
+			var hit_r := 2.2 if focus_on else 4.2
+			var rr2 := br + hit_r
+			if bp.distance_squared_to(player.global_position) > rr2 * rr2:
+				continue
+			if player.has_method("take_hit"):
+				player.take_hit(float(b.damage) if "damage" in b else 1.0)
+			if b.has_method("deactivate"):
+				b.deactivate()
 
 func spawn(pos: Vector2, vel: Vector2, damage: float, color: Color, team: int):
 	for b in _pool:

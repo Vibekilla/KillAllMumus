@@ -319,29 +319,11 @@ func _ready() -> void:
 func _on_area(a: Area2D) -> void:
 	if not active:
 		return
+	# Player→enemy body hits are resolved in BulletPool._resolve_hits_distance
+	# (SimClock moves outside physics; Area2D signals miss most overlaps).
 	if team == Team.PLAYER and a.is_in_group("enemies"):
-		var id := a.get_instance_id()
-		if pierce and hit_ids.has(id):
-			return
-		# HTML: if(s.zap) chainLightning(e.x,e.y,2,3,'#8fd0ff')
-		if zap and ItemSystem and ItemSystem.has_method("chain_lightning"):
-			ItemSystem.chain_lightning(a.global_position.x, a.global_position.y, 2.0, 3, "#8fd0ff")
-		if a.has_method("take_damage"):
-			# Bosses: HTML pshot uses bossDmgMul + bossWepMul (voidbolt keeps 0.3*_bm only)
-			if a.is_in_group("bosses") and CombatHelpers and CombatHelpers.has_method("scale_boss_shot_damage"):
-				var scaled := CombatHelpers.scale_boss_shot_damage(damage, voidbolt, str(GameState.current_weapon) if GameState else "")
-				a.take_damage(scaled, {"pre_scaled": true, "voidbolt": voidbolt})
-			else:
-				a.take_damage(damage)
-			if "flash" in a:
-				a.flash = 5.0
-		if CombatHelpers and CombatHelpers.has_method("sparks"):
-			CombatHelpers.sparks(global_position.x, global_position.y, "#cfe8ff" if zap else "#ffd0ec")
-		if pierce:
-			hit_ids[id] = true
-		else:
-			deactivate()
-	elif team == Team.PLAYER and a.is_in_group("enemy_bullet"):
+		return
+	if team == Team.PLAYER and a.is_in_group("enemy_bullet"):
 		# HTML: pshots destroy enemy fire — shells drop point + 80pts; soft bullets 5pts
 		# pierce/grenade pass through without dying
 		_destroy_enemy_projectile(a)

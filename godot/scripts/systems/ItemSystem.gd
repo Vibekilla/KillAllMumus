@@ -262,31 +262,37 @@ func _update_items(df: float) -> void:
 	for it in items:
 		it["t"] = float(it.get("t", 0)) + df
 		if p_alive:
-			var dx := p.global_position.x - float(it.x)
-			var dy := p.global_position.y - float(it.y)
+			var dx := p.global_position.x - float(it.get("x", 0))
+			var dy := p.global_position.y - float(it.get("y", 0))
 			var d := sqrt(dx * dx + dy * dy)
 			if auto_all or d < magnet:
 				it["homing"] = true
 			if bool(it.get("homing", false)) and d > 0.01:
-				var sp := minf(9.0, 3.0 + float(it.t) * 0.1)
-				it["vx"] = float(it.vx) + dx / d * 1.2 * df
-				it["vy"] = float(it.vy) + dy / d * 1.2 * df
-				var s := sqrt(float(it.vx) * float(it.vx) + float(it.vy) * float(it.vy))
+				var sp := minf(9.0, 3.0 + float(it.get("t", 0)) * 0.1)
+				it["vx"] = float(it.get("vx", 0)) + dx / d * 1.2 * df
+				it["vy"] = float(it.get("vy", 0)) + dy / d * 1.2 * df
+				var s := sqrt(float(it["vx"]) * float(it["vx"]) + float(it["vy"]) * float(it["vy"]))
 				if s > sp:
-					it["vx"] = float(it.vx) * sp / s
-					it["vy"] = float(it.vy) * sp / s
-			if d < 14.0:
+					it["vx"] = float(it["vx"]) * sp / s
+					it["vy"] = float(it["vy"]) * sp / s
+		if not bool(it.get("homing", false)):
+			it["vy"] = float(it.get("vy", 0)) + 0.12 * df
+			if float(it["vy"]) > 3.0:
+				it["vy"] = 3.0
+			it["vx"] = float(it.get("vx", 0)) * pow(0.96, df)
+		# Move first, then collect (avoids missing pickups when d dips under 14 mid-step)
+		it["x"] = float(it.get("x", 0)) + float(it.get("vx", 0)) * df
+		it["y"] = float(it.get("y", 0)) + float(it.get("vy", 0)) * df
+		if p_alive:
+			var dx2 := p.global_position.x - float(it["x"])
+			var dy2 := p.global_position.y - float(it["y"])
+			var d2 := sqrt(dx2 * dx2 + dy2 * dy2)
+			# HTML hypot < 14; slight pad so magnetized orbs don't orbit forever
+			if d2 < 16.0:
 				collect_item(it)
 				continue
-		if not bool(it.get("homing", false)):
-			it["vy"] = float(it.vy) + 0.12 * df
-			if float(it.vy) > 3.0:
-				it["vy"] = 3.0
-			it["vx"] = float(it.vx) * pow(0.96, df)
-		it["x"] = float(it.x) + float(it.vx) * df
-		it["y"] = float(it.y) + float(it.vy) * df
 		var pf: Rect2 = Config.playfield()
-		if float(it.y) > pf.end.y + 30.0:
+		if float(it["y"]) > pf.end.y + 30.0:
 			continue
 		keep.append(it)
 	items = keep

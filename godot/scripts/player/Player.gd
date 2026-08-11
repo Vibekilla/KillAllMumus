@@ -114,6 +114,16 @@ func _physics_process(delta: float) -> void:
 func _step(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
+	var df := delta * FRAME
+	# HTML: if(p.dead){ respawn--; … updateItems(); return; } — must run even under dual lock
+	if dead:
+		velocity = Vector2.ZERO
+		GameState.player_down = true
+		respawn = maxf(0.0, respawn - df)
+		sprite.modulate.a = 0.25
+		if respawn <= 0.0 and GameState.lives >= 0:
+			_respawn_player()
+		return
 	# Dual screenshot lock: pin pose/facing; no mouse-follow / fire / move.
 	# Does NOT clear dash/trail/bomb — playtest sets those for stills.
 	if has_meta("dual_lock_pose") and bool(get_meta("dual_lock_pose")):
@@ -128,32 +138,22 @@ func _step(delta: float) -> void:
 		var hold_fx := has_meta("dual_hold_fx") and bool(get_meta("dual_hold_fx"))
 		if not hold_fx:
 			if invuln > 0.0 and invuln < 9000.0:
-				invuln = maxf(0.0, invuln - delta * FRAME)
+				invuln = maxf(0.0, invuln - df)
 			if bomb_fx > 0.0:
-				bomb_fx = maxf(0.0, bomb_fx - delta * FRAME)
+				bomb_fx = maxf(0.0, bomb_fx - df)
 			if shield_t > 0.0:
-				shield_t = maxf(0.0, shield_t - delta * FRAME)
+				shield_t = maxf(0.0, shield_t - df)
 			if rapid_t > 0.0:
-				rapid_t = maxf(0.0, rapid_t - delta * FRAME)
+				rapid_t = maxf(0.0, rapid_t - df)
 			if vial_t > 0.0:
-				vial_t = maxf(0.0, vial_t - delta * FRAME)
+				vial_t = maxf(0.0, vial_t - df)
 			if phase_t > 0.0:
-				phase_t = maxf(0.0, phase_t - delta * FRAME)
+				phase_t = maxf(0.0, phase_t - df)
 			if dash > 0.0:
-				dash = maxf(0.0, dash - delta * FRAME)
+				dash = maxf(0.0, dash - df)
 		# SpecialSystem advances on SimClock (HTML updateFx); melee still input-driven here
 		if melee:
 			melee.tick(delta)
-		return
-	var df := delta * FRAME
-	# HTML: if(p.dead){ respawn--; … updateItems(); return; } — no combat systems
-	if dead:
-		velocity = Vector2.ZERO
-		GameState.player_down = true
-		respawn = maxf(0.0, respawn - df)
-		sprite.modulate.a = 0.25
-		if respawn <= 0.0 and GameState.lives >= 0:
-			_respawn_player()
 		return
 
 	GameState.player_down = false

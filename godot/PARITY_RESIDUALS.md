@@ -297,6 +297,11 @@ Present via other modules or partial — still product-check:
 | 2026-08-11 | flashMsg drains during death + pause (HTML order); stage clear kills uses max(StageFlow, ItemSystem) |
 | 2026-08-11 | CombatHelpers.melee_fx ages out (HTML meleeFx t++/filter); emblem toasts advance while paused |
 | 2026-08-11 | emblemTick during death; dialog freezes while player_down; titleIdleT on SimClock (maid 30s) |
+| 2026-08-11 | **Critical:** BulletPool distance hit-tests (Area2D missed most SimClock overlaps) — kills/items actually work |
+| 2026-08-11 | Item collect: move-then-collect + 16px pad (orbit misses) |
+| 2026-08-11 | Death before dual_lock so respawn always ticks; title control hints above auth chrome |
+| 2026-08-11 | Boss dual: draw mandala under dual_freeze (was vignette-only) |
+| 2026-08-11 | FPS probe (llvmpipe): ~10.8 title / ~10.1 play — GPU re-measure still open |
 
 
 

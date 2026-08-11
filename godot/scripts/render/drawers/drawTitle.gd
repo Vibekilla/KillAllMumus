@@ -291,33 +291,34 @@ func drawTitle() -> void:
 	})
 	ctx.fill_style("#fff" if (int(floorf(float(tick) / 30.0)) % 2) != 0 else "#ffb3d4")
 	ctx.fill_text(st_txt, W / 2.0, ny + pill_h / 2.0 + 7.0)
-	ny += pill_h + (12.0 if is_touch else 16.0)
-	# controls / info — stop above auth+social chrome (HTML DOM overlays sit under footer)
-	var chrome_h := 78.0 if not is_touch else 52.0
-	var max_info_y := H - chrome_h
+	ny += pill_h + (10.0 if is_touch else 12.0)
+	# Auth sits above social strip — keep control lines ABOVE auth (HTML DOM overlaps;
+	# Godot draws both on canvas so we reserve space for a clean layout).
+	var auth_top := H - (10.0 if is_touch else 32.0) - 26.0 - 18.0  # btn + guest line
+	var info_gap := 14.0 if not is_touch else 13.0
+	var lines_h := info_gap * 3.0
+	if ny + lines_h > auth_top - 4.0:
+		ny = maxf(ny - 8.0, auth_top - lines_h - 4.0)
 	if not is_touch:
 		ctx.fill_style("#7a6a82")
 		ctx.font("11px monospace")
-		if ny < max_info_y:
-			ctx.fill_text("Move: mouse/arrows · HOLD Z fire · SPACE melee (hold=charge) · D switch · SHIFT focus (2× = dash) · full-charge+dash = SLASH DASH · X bomb", W / 2.0, ny)
-			ny += 14.0
-		if ny < max_info_y:
-			ctx.fill_style("#6a5a72")
-			var ns := DataRegistry.stages.size()
-			ctx.fill_text("%d stages · %d meme bosses · power fades, grab P · save your score globally" % [ns, ns], W / 2.0, ny)
-			ny += 14.0
-		if ny < max_info_y:
-			ctx.fill_style("#8a6a92")
-			ctx.fill_text("A Bobina Council LLC & Grr Finance production", W / 2.0, ny)
+		ctx.fill_text("Move: mouse/arrows · HOLD Z fire · SPACE melee (hold=charge) · D switch · SHIFT focus (2× = dash) · full-charge+dash = SLASH DASH · X bomb", W / 2.0, ny)
+		ny += info_gap
+		ctx.fill_style("#6a5a72")
+		var ns := DataRegistry.stages.size()
+		ctx.fill_text("%d stages · %d meme bosses · power fades, grab P · save your score globally" % [ns, ns], W / 2.0, ny)
+		ny += info_gap
+		ctx.fill_style("#8a6a92")
+		ctx.fill_text("A Bobina Council LLC & Grr Finance production", W / 2.0, ny)
 	else:
 		ctx.fill_style("#a894b2")
 		ctx.font("bold 11px monospace")
 		ctx.fill_text("◀ JOYSTICK (bottom-left) moves — she auto-fires", W / 2.0, ny)
-		ny += 15.0
+		ny += info_gap
 		ctx.fill_style("#9a8aa2")
 		ctx.font("11px monospace")
 		ctx.fill_text("Buttons ▶  FOCUS · BOMB · SPEC (tap USE! when charged) · SWAP", W / 2.0, ny)
-		ny += 15.0
+		ny += info_gap
 		ctx.fill_style("#8a6a92")
 		ctx.font("10px monospace")
 		ctx.fill_text("A Bobina Council LLC & Grr Finance production · tap ⛶ for fullscreen", W / 2.0, ny)

@@ -48,11 +48,11 @@
       }
     ]
   },
-  "description": "Bobina: Kill All Mumus \u2014 killallmumus.com",
+  "description": "Bobina: Kill All Mumus — killallmumus.com",
   "engines": {
     "node": ">=20.9.0"
   },
   "devDependencies": {
-    "playwright": "^1.61.1"
+    "playwright": "^1.62.1"
   }
 }

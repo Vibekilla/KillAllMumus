@@ -200,10 +200,10 @@ func drawBossAmbience() -> void:
 	if mhp != null and hp != null and float(mhp) > 0.0:
 		rage += (1.0 - float(hp) / float(mhp)) * 0.5
 	rage = minf(1.6, rage)
-	# Dual stills: calm portrait (HTML dual has only a soft vignette)
+	# dual_freeze only stabilizes boss AI pose — HTML dual stills still draw full mandala
 	var dual_soft := boss.has_meta("dual_freeze") and bool(boss.get_meta("dual_freeze"))
 	if dual_soft:
-		rage = 0.35
+		rage = maxf(0.55, rage * 0.85)  # slightly calmer, never skip mandala
 	var spd := 1.0 + rage * 0.5
 	var t := float(tick)
 	ctx.save()
@@ -219,10 +219,6 @@ func drawBossAmbience() -> void:
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	ctx.fill_style("rgba(3,1,6,%s)" % str(0.12 + 0.1 * rage))
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
-	# Dual portrait stills: vignette only (HTML dual is nearly plain field + boss)
-	if dual_soft:
-		ctx.restore()
-		return
 	# Clear any leaked portrait shadows before thin ambience strokes
 	if ctx.has_method("shadow_blur"):
 		ctx.shadow_blur(0)
