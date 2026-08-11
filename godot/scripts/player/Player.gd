@@ -254,10 +254,14 @@ func _physics_process(delta: float) -> void:
 
 	# Unified fire: hold shoot or LMB (same on desktop / touch / Steam — no separate autofire mode).
 	# Touch FIRE button holds shoot via Main._inject_action.
-	var want_fire := (
-		Input.is_action_pressed("shoot")
-		or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	)
+	# HTML neutralizeInputs clears pointer.down — ignore LMB until fully released after shop/portal/intro.
+	var lmb := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	if bool(get_meta("neutralize_lmb", false)):
+		if not lmb:
+			set_meta("neutralize_lmb", false)
+		else:
+			lmb = false
+	var want_fire := Input.is_action_pressed("shoot") or lmb
 	if want_fire and fire_sys:
 		if fire_sys.try_fire(self, bullet_pool, focus):
 			AudioBus.sfx("shoot")

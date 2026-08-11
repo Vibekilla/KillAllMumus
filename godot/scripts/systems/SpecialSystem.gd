@@ -220,18 +220,21 @@ func _update_fx(delta: float) -> void:
 				f["x"] = float(f["x"]) + (pf.size.x + 90) / 156.0 * df
 				f["y"] = pf.position.y + 34 + sin(float(f["ct"]) * 0.14) * 6.0
 				var over = float(f["x"]) > pf.position.x - 14 and float(f["x"]) < pf.end.x + 14
+				# HTML: for(d=0;d<3;d++) bombdrop with x±36, ty PF.y+80+rand*(h-150)
 				if over and int(f["ct"]) % 5 == 0:
-					fx.append({
-						"type": "bombdrop", "t": 150.0,
-						"x": float(f["x"]) + randf_range(-36, 36),
-						"y": float(f["y"]) + 12,
-						"vy": 2.3 + randf() * 0.8,
-						"ty": pf.position.y + 80 + randf() * (pf.size.y - 120),
-					})
+					for _d in range(3):
+						fx.append({
+							"type": "bombdrop", "t": 150.0,
+							"x": float(f["x"]) + (randf() - 0.5) * 72.0,
+							"y": float(f["y"]) + 12.0,
+							"vy": 2.3 + randf() * 0.8,
+							"ty": pf.position.y + 80.0 + randf() * (pf.size.y - 150.0),
+						})
+				# HTML volley: vx (random-.5)*3 → ±1.5 px/frame
 				if over and int(f["ct"]) % 3 == 0 and pool:
 					for k in range(-1, 2):
-						pool.spawn(Vector2(float(f["x"]) + k * 10, float(f["y"]) + 8),
-							Vector2(randf_range(-0.5, 0.5), 9 + randf() * 3) * FRAME, 2.0, Color("ff9a3c"), TEAM_PLAYER)
+						pool.spawn(Vector2(float(f["x"]) + k * 10.0, float(f["y"]) + 8.0),
+							Vector2(randf_range(-1.5, 1.5), 9.0 + randf() * 3.0) * FRAME, 2.0, Color("ff9a3c"), TEAM_PLAYER)
 				if float(f["t"]) > 0.0:
 					keep.append(f)
 			"bombdrop":

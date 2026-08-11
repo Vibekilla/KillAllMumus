@@ -66,9 +66,17 @@ func _apply_to_fields() -> void:
 	if typeof(progress.get("settings", {})) != TYPE_DICTIONARY:
 		progress["settings"] = {}
 	emblems = progress.get("emblems", {"start": true})
+	if typeof(emblems) != TYPE_DICTIONARY:
+		emblems = {"start": true}
+	# HTML: emblemsGot['start']=true every load (no toast) — starter skin always emblem-backed
+	emblems["start"] = true
 	estats = progress.get("estats", {})
 	ng_unlocked = int(progress.get("ngUnlocked", 0))
 	hell_cleared = bool(progress.get("hellCleared", false))
+	# HTML: if(hellCleared && !emblemsGot['clear_hell']) migrate old Cabal unlock
+	if hell_cleared and not bool(emblems.get("clear_hell", false)):
+		emblems["clear_hell"] = true
+	progress["emblems"] = emblems
 	GameState.difficulty = int(progress.get("difficulty", 0))
 	GameState.ng_plus = mini(ng_unlocked, int(progress.get("ngPlus", 0)))
 	GameState.selected_outfit = str(progress.get("outfit", "og"))

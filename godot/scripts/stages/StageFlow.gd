@@ -183,7 +183,8 @@ func leave_shop() -> void:
 		GameState.set_state(GameState.State.PLAY)
 
 func neutralize_inputs() -> void:
-	## HTML neutralizeInputs — prevent transition key/tap from leaking into fire/melee/item
+	## HTML neutralizeInputs — clear keys + pointer.down + lastShiftTap so transition
+	## click/tap doesn't leak into fire, melee charge, item hold, or double-tap dash.
 	var tree := get_tree()
 	if tree == null:
 		return
@@ -198,8 +199,13 @@ func neutralize_inputs() -> void:
 	if pl.get("consumables") != null and pl.consumables:
 		if "e_held" in pl.consumables:
 			pl.consumables.e_held = false
+	# HTML lastShiftTap=-99 — next Focus cannot double-tap-dash off transition
+	if "_shift_tap_t" in pl:
+		pl._shift_tap_t = 999.0
+	# HTML pointer.down=false — ignore held LMB until released (Player want_fire)
+	pl.set_meta("neutralize_lmb", true)
 	# Clear edge-triggered actions that just opened shop/portal
-	for action in ["shoot", "melee", "bomb", "special", "item_use", "interact", "swap"]:
+	for action in ["shoot", "melee", "bomb", "special", "item_use", "interact", "swap", "focus", "cycle_special"]:
 		if InputMap.has_action(action):
 			Input.action_release(action)
 
