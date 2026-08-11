@@ -57,6 +57,15 @@ func _ready() -> void:
 	ctx.bind(self)
 	ported = load("res://scripts/render/PortedDraw.gd").new()
 	ported.setup(ctx)
+	set_physics_process(false)
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
+	if not tree_exiting.is_connected(_disconnect_sim):
+		tree_exiting.connect(_disconnect_sim)
+
+func _disconnect_sim() -> void:
+	if SimClock and SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.disconnect(_on_sim_tick)
 
 func setup(pool: Node, pos: Vector2, stage: Dictionary) -> void:
 	bullet_pool = pool
@@ -134,7 +143,14 @@ func _want_redraw() -> void:
 	if _draw_age % 2 == 0:
 		queue_redraw()
 
+func _on_sim_tick(delta: float) -> void:
+	## HTML updateBoss on fixed sim frames
+	_step(delta)
+
 func _physics_process(delta: float) -> void:
+	_step(delta)
+
+func _step(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
 	# Dual stills: freeze AI / face-tracking / patterns (godot-master: presentation doesn't thrash entity)

@@ -71,7 +71,7 @@ func activate(pos: Vector2, vel: Vector2, dmg: float, col: Color, t: Team) -> vo
 	_reset_flags()
 	_sync_collision_radius()
 	show()
-	set_physics_process(true)
+	set_physics_process(false)  # motion is SimClock-driven via BulletPool → sim_step
 	# Never toggle monitoring inside area signals — deferred avoids Godot spam
 	set_deferred("monitoring", true)
 	set_deferred("monitorable", true)
@@ -179,8 +179,19 @@ func deactivate() -> void:
 func _nade_boom() -> void:
 	ItemSystem.nade_boom(global_position.x, global_position.y)
 
+func sim_step(delta: float) -> void:
+	## One HTML frame — called from BulletPool on SimClock.sim_tick
+	_step(delta)
+
 func _physics_process(delta: float) -> void:
+	# Legacy path: prefer sim_step via pool; keep if something re-enables physics
+	_step(delta)
+
+func _step(delta: float) -> void:
 	if not active:
+		return
+	# Dual stills (screenshot freezes velocity + dual_freeze meta)
+	if has_meta("dual_freeze") and bool(get_meta("dual_freeze")):
 		return
 	# HTML: if(p.dead) return — freeze all projectiles during death window
 	if GameState.player_down:

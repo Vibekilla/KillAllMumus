@@ -12,6 +12,15 @@ func _ready() -> void:
 		b.deactivate()
 		add_child(b)
 		_pool.append(b)
+	# HTML bullets advance on fixed sim frames with the rest of combat (not physics hitch)
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
+
+func _on_sim_tick(dt: float) -> void:
+	for b in _pool:
+		if b != null and is_instance_valid(b) and bool(b.get("active")):
+			if b.has_method("sim_step"):
+				b.sim_step(dt)
 
 func spawn(pos: Vector2, vel: Vector2, damage: float, color: Color, team: int):
 	for b in _pool:

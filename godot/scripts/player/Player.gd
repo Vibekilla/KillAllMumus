@@ -72,6 +72,16 @@ func _ready() -> void:
 	bob.name = "BobinaSprite"
 	sprite.add_child(bob)
 	bob.set_outfit(GameState.selected_outfit)
+	# HTML update(): player combat on fixed 60 Hz with waves/fire/specials
+	set_physics_process(false)
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
+	if not tree_exiting.is_connected(_disconnect_sim):
+		tree_exiting.connect(_disconnect_sim)
+
+func _disconnect_sim() -> void:
+	if SimClock and SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.disconnect(_on_sim_tick)
 
 func setup(pool: Node) -> void:
 	bullet_pool = pool
@@ -94,7 +104,14 @@ func _sync_hurt_radius() -> void:
 		sh = cs.shape as CircleShape2D
 	sh.radius = 2.2 if focus else 4.2
 
+func _on_sim_tick(delta: float) -> void:
+	## HTML play update — one fixed sim frame
+	_step(delta)
+
 func _physics_process(delta: float) -> void:
+	_step(delta)
+
+func _step(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
 	# Dual screenshot lock: pin pose/facing; no mouse-follow / fire / move.

@@ -35,6 +35,15 @@ func _ready() -> void:
 	z_as_relative = false
 	hp = max_hp
 	# Drawing moved to WorldDraw (shared CanvasCompat) — no per-enemy ctx
+	set_physics_process(false)
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
+	if not tree_exiting.is_connected(_disconnect_sim):
+		tree_exiting.connect(_disconnect_sim)
+
+func _disconnect_sim() -> void:
+	if SimClock and SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.disconnect(_on_sim_tick)
 
 func setup(pool: Node, pos: Vector2, opts: Dictionary = {}) -> void:
 	bullet_pool = pool
@@ -71,7 +80,14 @@ func _sync_collision_radius() -> void:
 	cs.shape = sh
 	sh.radius = maxf(4.0, radius)
 
+func _on_sim_tick(delta: float) -> void:
+	## HTML enemy AI on fixed sim frames (with FireSystem / ItemSystem / specials)
+	_step(delta)
+
 func _physics_process(delta: float) -> void:
+	_step(delta)
+
+func _step(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
 	# Dual stills: freeze AI / fire / drift so elite art is readable

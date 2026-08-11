@@ -1103,6 +1103,8 @@ func _run() -> void:
 								b.velocity = Vector2.ZERO
 							if b.has_method("set_physics_process"):
 								b.set_physics_process(false)
+							# SimClock-driven bullets — dual_freeze stops sim_step
+							b.set_meta("dual_freeze", true)
 				await process_frame
 				player.aim = -PI / 2.0
 				player.global_position = Vector2(304, 400)
