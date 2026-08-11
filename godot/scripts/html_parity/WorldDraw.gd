@@ -193,10 +193,18 @@ func _draw() -> void:
 		if hud.has_method("drawBossAmbience"):
 			hud.drawBossAmbience()
 
-	# --- power radiance early (HTML before floaters) ---
+	# --- power radiance early (HTML before floaters; follows victory bob if celebrating) ---
 	if player and is_instance_valid(player) and combat_fx:
 		var pst := _player_state(player)
 		if not bool(pst.get("dead", false)):
+			# HTML: temp player.x/y bob before radiance when boss dead so bubble follows pose
+			if _boss_dead_celebrating() and combat_fx.has_method("poseParams"):
+				var pose_r := 0
+				if ProgressStore and ProgressStore.progress is Dictionary:
+					pose_r = int(ProgressStore.progress.get("pose", 0))
+				var Pr: Dictionary = combat_fx.poseParams(pose_r, float(tick))
+				pst["x"] = float(pst.get("x", 0)) + float(Pr.get("sway", 0)) * 0.4
+				pst["y"] = float(pst.get("y", 0)) - float(Pr.get("bounce", 0)) * 0.4
 			combat_fx.drawPowerRadiance(pst)
 
 	# --- floaters (confused.gif) ---
@@ -790,8 +798,96 @@ func _draw_bobina_cached_or_live(st: Dictionary) -> void:
 	ctx.arc(px, py, 14, 0, TAU)
 	ctx.fill()
 
+func _boss_dead_celebrating() -> bool:
+	## HTML: boss && boss.dead && boss.intro<=0 → on-field victory pose
+	var tree := get_tree()
+	if tree == null:
+		return false
+	for b in tree.get_nodes_in_group("bosses"):
+		if not is_instance_valid(b):
+			continue
+		var dead := bool(b.get("dead")) if b.get("dead") != null else false
+		var intro := float(b.get("intro")) if b.get("intro") != null else 0.0
+		if dead and intro <= 0.0:
+			return true
+	return false
+
+func _draw_posed_field(st: Dictionary, pose: int, expr, face: float) -> void:
+	## HTML drawPosedFigure(..., motionScale=0) for field victory — position already bobbed
+	if combat_fx == null or ported == null or not ported.has_method("drawBobina"):
+		_draw_bobina_cached_or_live(st)
+		return
+	var t := float(tick)
+	var P: Dictionary = combat_fx.poseParams(pose, t) if combat_fx.has_method("poseParams") else {}
+	var expr_f = expr if expr != null else P.get("expr", "smile")
+	var rr := face + PI / 2.0
+	var pcx := -sin(rr) * 16.0
+	var pcy := -16.0 + cos(rr) * 16.0
+	var hold = null
+	if pose == 5 and combat_fx.has_method("coffeeHold"):
+		hold = combat_fx.coffeeHold(t)
+	var bob := {
+		"x": 0.0, "y": 0.0, "iframe": 0, "focus": false, "walk": 0, "bombFx": 0,
+		"face": face,
+		"vx": float(P.get("vx", 0)),
+		"vy": float(P.get("vy", 0)),
+		"lean": float(P.get("lean", 0)),
+		"outfit": str(st.get("outfit", GameState.selected_outfit if GameState else "og")),
+		"tick": tick,
+	}
+	if expr_f != null and str(expr_f) != "":
+		bob["expr"] = expr_f
+	if hold != null:
+		bob["hold"] = hold
+	ctx.save()
+	# motionScale=0: no extra sway/bounce here (already applied to st x/y)
+	ctx.translate(float(st.get("x", 0)), float(st.get("y", 0)))
+	ctx.scale(1.0, float(P.get("sq", 1.0)))
+	ctx.translate(pcx, pcy)
+	ctx.rotate(float(P.get("rot", 0)))
+	ctx.translate(-pcx, -pcy)
+	if ported.has_method("set_tick"):
+		ported.set_tick(tick)
+	ported.drawBobina(bob)
+	if combat_fx.has_method("drawPoseProp"):
+		combat_fx.drawPoseProp(pose, t)
+	ctx.restore()
+
 func _draw_player(player: Node) -> void:
 	var st := _player_state(player)
+	if bool(st.get("dead", false)):
+		return
+	# HTML field victory pose after boss down (drawPosedFigure, motionScale 0)
+	var celeb := _boss_dead_celebrating()
+	if celeb and combat_fx and combat_fx.has_method("poseParams"):
+		var pose := 0
+		if ProgressStore and ProgressStore.progress is Dictionary:
+			pose = int(ProgressStore.progress.get("pose", 0))
+		var face_i := 0
+		if ProgressStore and ProgressStore.progress is Dictionary:
+			face_i = int(ProgressStore.progress.get("face", 0))
+		var P: Dictionary = combat_fx.poseParams(pose, float(tick))
+		# HTML: temp offset player by sway*0.4 / -bounce*0.4 so aura follows bob
+		st["x"] = float(st.get("x", 0)) + float(P.get("sway", 0)) * 0.4
+		st["y"] = float(st.get("y", 0)) - float(P.get("bounce", 0)) * 0.4
+		var face_v := float(st.get("face", -PI / 2.0))
+		var expr = null
+		# MenuHelpers is RefCounted (not autoload) — load const VICTORY_FACES
+		var MH = load("res://scripts/ui/menu/MenuHelpers.gd")
+		var faces: Array = MH.VICTORY_FACES if MH else []
+		if face_i >= 0 and face_i < faces.size():
+			var fd = faces[face_i]
+			if fd is Dictionary and fd.get("expr") != null:
+				expr = fd.get("expr")
+		if combat_fx:
+			combat_fx.drawPowerAura(st)
+		_draw_posed_field(st, pose, expr, face_v)
+		if combat_fx:
+			combat_fx.drawOptions(st)
+		# still draw consumable rings on bodyCtr of bobbed position
+		var bc_c := _body_ctr_st(st)
+		_draw_player_rings(st, bc_c)
+		return
 	# Continuous face for live/dash; face-bin for cache so soap bubble shares sprite orientation.
 	# HTML face is continuous; 24 bins → ≤7.5° (bodyCtr error ≤ ~2px).
 	var face_cont := float(st.get("face", -PI / 2.0))
@@ -809,11 +905,12 @@ func _draw_player(player: Node) -> void:
 	if combat_fx:
 		# HTML drawOptions(player) — world optionPos via face+body pivot
 		combat_fx.drawOptions(st)
-	# --- HTML overlays: ALL use bodyCtr (not feet) except focus hitbox ---
-	var bc := _body_ctr_st(st)
+	_draw_player_rings(st, _body_ctr_st(st))
+
+func _draw_player_rings(st: Dictionary, bc: Vector2) -> void:
+	## HTML overlays: bodyCtr for shield/rapid/vial/phase; feet for focus hitbox
 	var shield_t := float(st.get("shieldT", 0))
 	if shield_t > 0.0:
-		# HTML: bodyCtr + gold ring + 6 arc ticks + shadowBlur
 		var a := 0.55 * (shield_t / 50.0 if shield_t < 50.0 else 1.0)
 		ctx.save()
 		ctx.translate(bc.x, bc.y)
@@ -908,8 +1005,8 @@ func _draw_player(player: Node) -> void:
 		ctx.fill()
 		ctx.stroke_style("rgba(255,120,190,0.7)")
 		for i in range(4):
-			var a := float(tick) * 0.06 + float(i) * 1.57
+			var af := float(tick) * 0.06 + float(i) * 1.57
 			ctx.begin_path()
-			ctx.arc(0, 0, 9, a, a + 0.7)
+			ctx.arc(0, 0, 9, af, af + 0.7)
 			ctx.stroke()
 		ctx.restore()

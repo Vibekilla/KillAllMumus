@@ -25,18 +25,19 @@ Generated for final 1:1 port pass. Source: `public/index.html` function declarat
 ## Phase 1 priority (perf + Bobina draw path)
 
 - [x] `drawBobina` — ported → `godot/scripts/render/drawers/drawBobina.gd`
-- [ ] `drawStageBg` — ported → `godot/scripts/ui/menu/draw_hud.gd`
-- [ ] `drawStageBgFx` — ported → `godot/scripts/ui/menu/draw_hud.gd`
+- [x] `drawStageBg` — ported → `godot/scripts/ui/menu/draw_hud.gd`
+- [x] `drawStageBgFx` — ported → `godot/scripts/ui/menu/draw_hud.gd`
 - [x] `drawPowerAura` — ported → `godot/scripts/render/drawers/drawCombatFx.gd`
 - [x] `drawPowerRadiance` — ported → `godot/scripts/render/drawers/drawCombatFx.gd`
-- [ ] `drawDashComet` — ported → `godot/scripts/render/drawers/drawCombatFx.gd`
+- [x] `drawDashComet` — ported → `godot/scripts/render/drawers/drawCombatFx.gd`
 - [x] `drawOptions` — ported → `godot/scripts/render/drawers/drawCombatFx.gd`
 - [x] `bodyCtr` — ported → `godot/scripts/combat/CombatHelpers.gd`
-- [ ] `optionPos` — ported → `godot/scripts/combat/FireSystem.gd`
-- [ ] `optionOffsets` — ported → `godot/scripts/combat/FireSystem.gd`
-- [ ] `pOrb` — ported → `godot/scripts/render/drawers/drawBobina.gd`
-- [ ] `applyLayout` — ported → `godot/autoload/Config.gd`
+- [x] `optionPos` — ported → `godot/scripts/combat/FireSystem.gd`
+- [x] `optionOffsets` — ported → `godot/scripts/combat/FireSystem.gd`
+- [x] `pOrb` — ported → `godot/scripts/render/drawers/drawBobina.gd`
+- [x] `applyLayout` — ported → `godot/autoload/Config.gd`
 - [ ] `update` — ported → `godot/scripts/main/Main.gd`
+
 
 
 ## Phase 1 residual notes (2026-08-11 final pass)
@@ -47,6 +48,11 @@ Generated for final 1:1 port pass. Source: `public/index.html` function declarat
 | Soap bubble center | `bodyCtr` = orbit of body about (x,y-16) | Aura/options/shield/rapid/vial/phase all use `body_ctr`; visual face shared with face bins (24) |
 | lean | play always 0 | removed invented velocity lean |
 | FPS | canvas 2d cheap | face-bin cache (live only dash/bomb); stage bg bake; play stride 30 Hz |
+| drawDashComet | radial tail + rim=18 head + sparkles | full gradients + particles while dashing |
+| drawPowerAura sparks | LV5 every 3 ticks + pf trail | spawn into CombatHelpers.particles |
+| Field victory pose | drawPosedFigure motionScale 0 after boss dead | `_draw_posed_field` + sway/bounce*0.4 + aura follow |
+| stageTime scroll | `stageTime\|\|tick` motif | drawStageBg uses EnemySpawner.stage_time |
+| optionPos | aim/face + (oy+16) body pivot | FireSystem prefers player.aim |
 
 Unmapped (9): applyMe, bumpIdle, hookCloudSaves, loadMe, loginHref, paint, run, syncAccount, wrap — platform/account wrappers, not combat sim.
 

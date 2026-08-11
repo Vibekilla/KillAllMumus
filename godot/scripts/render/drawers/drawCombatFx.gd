@@ -266,6 +266,28 @@ func drawPowerAura(p: Dictionary) -> void:
 			ctx.arc(bx - br * 0.35, by - br * 0.4, br * 0.24, 0, TAU)
 			ctx.fill()
 	ctx.restore()
+	# HTML drawPowerAura particle spawns (only while PLAY, not paused)
+	if CombatHelpers and GameState and GameState.state == GameState.State.PLAY:
+		var ti := int(t)
+		if power >= 5.0 and (ti % 3) == 0:
+			CombatHelpers.particles.append({
+				"x": ctr.x + (randf() - 0.5) * R * 1.8,
+				"y": ctr.y + R * 0.5,
+				"vx": (randf() - 0.5) * 1.4,
+				"vy": -2.0 - randf() * 2.4,
+				"life": 20.0 + float(randi() % 16),
+				"c": "hsl(%d,100%%,76%%)" % int(fmod(hue0 + randf() * 160.0, 360.0)),
+			})
+		if pf > 0.12 and (ti % maxi(2, 5 - int(floor(pf * 3.0)))) == 0:
+			var hue_p := fmod(hue0 + randf() * 80.0, 360.0)
+			CombatHelpers.particles.append({
+				"x": ctr.x + (randf() - 0.5) * R * 1.5,
+				"y": ctr.y + R * 0.4,
+				"vx": (randf() - 0.5) * 1.3,
+				"vy": -1.6 - randf() * 2.2 * pf,
+				"life": 18.0 + float(randi() % 14),
+				"c": "hsl(%d,100%%,72%%)" % int(hue_p),
+			})
 
 func drawPowerRadiance(p: Dictionary) -> void:
 	## HTML drawPowerRadiance — faint map-bleed only; soap bubble is drawPowerAura
@@ -319,7 +341,7 @@ func drawPowerRadiance(p: Dictionary) -> void:
 	ctx.restore()
 
 func drawDashComet(p: Dictionary) -> void:
-	## HTML drawDashComet — trail + head (local or absolute points in p.trail)
+	## HTML drawDashComet 1:1 — radial-gradient tail + mini soap-bubble head + sparkles
 	var trail: Array = p.get("trail", [])
 	var dashing := bool(p.get("dash", false)) or float(p.get("dash", 0)) > 0.0
 	if not dashing and trail.is_empty():
@@ -329,8 +351,10 @@ func drawDashComet(p: Dictionary) -> void:
 	var hue0 := fmod(t * 4.0, 360.0)
 	var px := float(p.get("x", 0))
 	var py := float(p.get("y", 0))
+	var dash_ang := float(p.get("dashAng", p.get("dash_ang", 0.0)))
 	ctx.save()
 	ctx.global_composite_operation("lighter")
+	# --- rainbow tail (each trail point a shifting hue radial) ---
 	if trail.size() > 1:
 		var n := trail.size()
 		for i in range(n - 1, -1, -1):
@@ -338,11 +362,21 @@ func drawDashComet(p: Dictionary) -> void:
 			var f := 1.0 - float(i) / float(n)
 			var r := 4.0 + f * (26.0 if slash else 20.0)
 			var hue := fmod(hue0 + float(i) * 22.0, 360.0)
+			var qx := float(q.get("x", 0))
+			var qy := float(q.get("y", 0))
 			ctx.global_alpha(0.14 + f * 0.55)
-			ctx.fill_style("hsla(%d,100%%,74%%,1)" % int(hue))
+			if ctx.has_method("createRadialGradient"):
+				var g = ctx.createRadialGradient(qx, qy, 0, qx, qy, r)
+				g.add_color_stop(0, "hsla(%d,100%%,74%%,1)" % int(hue))
+				g.add_color_stop(0.5, "hsla(%d,100%%,56%%,0.55)" % int(fmod(hue + 45.0, 360.0)))
+				g.add_color_stop(1, "hsla(0,0%,0%,0)")
+				ctx.fill_style(g)
+			else:
+				ctx.fill_style("hsla(%d,100%%,74%%,1)" % int(hue))
 			ctx.begin_path()
-			ctx.arc(float(q.get("x", 0)), float(q.get("y", 0)), r, 0, TAU)
+			ctx.arc(qx, qy, r, 0, TAU)
 			ctx.fill()
+		# bright white motion streak
 		ctx.global_alpha(0.85 if slash else 0.55)
 		ctx.stroke_style("rgba(255,255,255,0.9)")
 		ctx.line_width(2.6 if slash else 1.5)
@@ -356,23 +390,50 @@ func drawDashComet(p: Dictionary) -> void:
 				ctx.line_to(float(q2.get("x", 0)), float(q2.get("y", 0)))
 		ctx.stroke()
 		ctx.global_alpha(1.0)
+	# --- comet head: mini psychedelic bubble (rim=18, ar*0.7) ---
 	var aura := 1.0 if dashing else minf(1.0, float(trail.size()) / 16.0)
 	if aura > 0.02:
 		var ar := (26.0 if slash else 19.0) + 4.0 * sin(t * 0.5)
-		ctx.fill_style("hsla(%d,100%%,74%%,%s)" % [int(hue0), str((0.55 if slash else 0.35) * aura)])
+		if ctx.has_method("createRadialGradient"):
+			var gg = ctx.createRadialGradient(px, py, 0, px, py, ar + 12.0)
+			gg.add_color_stop(0, "hsla(%d,100%%,74%%,%s)" % [int(hue0), str((0.7 if slash else 0.5) * aura)])
+			gg.add_color_stop(0.4, "hsla(%d,100%%,56%%,%s)" % [int(fmod(hue0 + 60.0, 360.0)), str(0.32 * aura)])
+			gg.add_color_stop(1, "hsla(0,0%,0%,0)")
+			ctx.fill_style(gg)
+		else:
+			ctx.fill_style("hsla(%d,100%%,74%%,%s)" % [int(hue0), str((0.55 if slash else 0.35) * aura)])
 		ctx.begin_path()
-		ctx.arc(px, py, ar, 0, TAU)
+		ctx.arc(px, py, ar + 12.0, 0, TAU)
 		ctx.fill()
-		# rainbow rim
-		for i in range(8):
-			var a0 := float(i) / 8.0 * TAU + t * 0.2
-			var hue := fmod(hue0 + float(i) * 45.0, 360.0)
-			ctx.stroke_style("hsla(%d,100%%,70%%,%s)" % [int(hue), str(0.4 * aura)])
-			ctx.line_width(2.0)
+		ctx.save()
+		ctx.translate(px, py)
+		var rim := 18
+		ctx.line_width(2.6 if slash else 1.7)
+		ctx.global_alpha(aura)
+		for i in range(rim):
+			var a0 := float(i) / float(rim) * TAU + t * 0.05
+			var a1 := float(i + 1) / float(rim) * TAU + t * 0.05
+			var hue_r := fmod(hue0 + float(i) / float(rim) * 360.0, 360.0)
+			ctx.stroke_style("hsla(%d,100%%,66%%,0.7)" % int(hue_r))
 			ctx.begin_path()
-			ctx.arc(px, py, ar + 2.0, a0, a0 + 0.5)
+			ctx.arc(0, 0, ar * 0.7, a0, a1)
 			ctx.stroke()
+		ctx.restore()
 	ctx.restore()
+	ctx.global_alpha(1.0)
+	# --- trailing psychedelic sparkles (HTML spawns during draw; only while dashing, not paused) ---
+	if dashing and GameState and GameState.state == GameState.State.PLAY and CombatHelpers:
+		var hue_s := fmod(hue0 + randf() * 60.0, 360.0)
+		var nsp := 2 if slash else 1
+		for _k in range(nsp):
+			CombatHelpers.particles.append({
+				"x": px + (randf() - 0.5) * 12.0,
+				"y": py + (randf() - 0.5) * 12.0,
+				"vx": -cos(dash_ang) * (1.0 + randf() * 2.0) + (randf() - 0.5) * 2.0,
+				"vy": -sin(dash_ang) * (1.0 + randf() * 2.0) + (randf() - 0.5) * 2.0,
+				"life": 16.0 + float(randi() % 12),
+				"c": "hsl(%d,100%%,70%%)" % int(hue_s),
+			})
 
 func coffeeHold(t: float) -> Dictionary:
 	var sip := (1.0 - cos(t * 0.025)) / 2.0

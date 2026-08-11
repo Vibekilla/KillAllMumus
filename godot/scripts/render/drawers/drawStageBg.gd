@@ -17,12 +17,19 @@ func set_tick(t: int) -> void:
 	tick = t
 
 func drawStageBg() -> void:
-	## HTML drawStageBg
+	## HTML drawStageBg — sc = stageTime||tick for motif scroll speed
 	var s = GameState.stage_index if GameState else 0
 	var sc = float(tick)
-	if StageFlow and StageFlow.get("kills_this_stage") != null:
-		# stageTime not always tracked; tick is fine for scroll
-		sc = float(tick)
+	# Prefer EnemySpawner.stage_time (HTML stageTime) when in play
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree:
+		var sp = tree.get_first_node_in_group("enemy_spawner")
+		if sp == null and tree.root:
+			sp = tree.root.find_child("EnemySpawner", true, false)
+		if sp != null and sp.get("stage_time") != null:
+			var st := float(sp.stage_time)
+			if st > 0.0:
+				sc = st
 	var top = "#0b2412"
 	var bot = "#193f1f"
 	match s:

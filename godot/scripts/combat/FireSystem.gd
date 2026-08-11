@@ -174,10 +174,13 @@ func option_offsets(lv: int) -> Array:
 	return arr
 
 func option_pos(player: Node2D, o: Dictionary) -> Vector2:
-	## HTML optionPos — map offset through Bobina body rotation so orbs lock when she turns
-	var face := float(player.get("face")) if player.get("face") != null else -PI / 2.0
-	if player.get("aim") != null and player.get("face") == null:
+	## HTML optionPos: rot=(p.face??-π/2)+π/2; x=p.x+c*ox-s*(oy+16); y=p.y-16+s*ox+c*(oy+16)
+	## Player stores travel heading as `aim` (HTML sets aim=face each frame).
+	var face := -PI / 2.0
+	if player.get("aim") != null:
 		face = float(player.aim)
+	elif player.get("face") != null:
+		face = float(player.face)
 	var rot := face + PI / 2.0
 	var c := cos(rot)
 	var s := sin(rot)
