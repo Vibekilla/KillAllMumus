@@ -89,26 +89,22 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 		_touch(key)
 		_last_play_tex = _ready_tex[key]
 		return _ready_tex[key]
-	# Stale-but-close: same outfit/face/focus/expr, any tick bucket
-	var suffix := "|1.0|%s" % extra
+	# Prefer ANY ready texture for this outfit — face thrash must not force re-bakes
 	var fallback: Texture2D = null
+	var oprefix := outfit + "|"
 	for k in _ready_tex.keys():
 		var ks := str(k)
-		if ks.ends_with(suffix) and ks.begins_with(outfit + "|"):
+		if ks.begins_with(oprefix) and "|1.0|" in ks:
 			fallback = _ready_tex[k]
 			_touch(ks)
 			break
-	# Any same-outfit play bake (wrong face briefly beats live drawBobina)
-	if fallback == null:
-		var oprefix := outfit + "|"
-		for k2 in _ready_tex.keys():
-			var ks2 := str(k2)
-			if ks2.begins_with(oprefix) and "|1.0|" in ks2:
-				fallback = _ready_tex[k2]
-				_touch(ks2)
-				break
 	if fallback == null and _last_play_tex != null:
 		fallback = _last_play_tex
+	# PLAY performance: never enqueue if we already have a blit (get_image is ~web death)
+	var in_play := typeof(GameState) != TYPE_NIL and GameState.state == GameState.State.PLAY
+	if in_play and fallback != null:
+		_last_play_tex = fallback
+		return fallback
 	var bake := st.duplicate(true)
 	bake["face"] = face
 	bake["iframe"] = 0  # flash applied at blit
@@ -120,10 +116,8 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 		bake["expr"] = expr
 	else:
 		bake.erase("expr")
-	# Full drawBobina bake is the main CPU cost. Prefer stale face/outfit blit over
-	# continuous SubViewport re-bakes while the player aims (face bins thrash).
-	# Enqueue only when cold (no fallback) or when the queue is empty (1 opportunistic).
-	if fallback == null or _queue.is_empty():
+	# Cold only (no texture yet) — one bake. Never face-bin thrash on web.
+	if fallback == null and _queue.is_empty():
 		_get_or_enqueue(key, outfit, expr if expr_key != "null" else null, tick, 1.0, bake)
 	if fallback != null:
 		_last_play_tex = fallback
@@ -186,6 +180,13 @@ func _evict_if_needed() -> void:
 func _process(_d: float) -> void:
 	if _busy or _queue.is_empty():
 		return
+	# PLAY on web/low FPS: do not pay get_image — keep blitting last texture
+	if typeof(GameState) != TYPE_NIL and GameState.state == GameState.State.PLAY:
+		var fps := Engine.get_frames_per_second()
+		if OS.has_feature("web") or (fps > 0.0 and fps < 25.0):
+			if _last_play_tex != null or not _ready_tex.is_empty():
+				_queue.clear()
+				return
 	_busy = true
 	# One bake per display frame max — each bake runs full drawBobina into a SubViewport
 	_run_batch()

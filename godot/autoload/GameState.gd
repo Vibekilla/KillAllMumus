@@ -94,7 +94,14 @@ func _tick_emblems_play() -> void:
 		ProgressStore.unlock_emblem("weapon_all")
 
 func set_state(s: State) -> void:
+	var prev := state
 	state = s
+	# Leaving play: clear stuck pointer drag so she isn't pinned next run
+	if prev == State.PLAY and s != State.PLAY and s != State.PAUSED:
+		if typeof(JoyPad) != TYPE_NIL and JoyPad.has_method("pup"):
+			JoyPad.pup()
+			if JoyPad.has_method("joy_reset"):
+				JoyPad.joy_reset()
 	state_changed.emit(State.keys()[s])
 
 func apply_difficulty() -> void:

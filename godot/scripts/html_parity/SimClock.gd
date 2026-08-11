@@ -28,7 +28,8 @@ var accumulator: float = 0.0
 ## Fractional progress toward the next sim step in [0, 1) — render interp only.
 var alpha: float = 0.0
 var paused: bool = false
-var max_catchup_frames: int = 4
+## Keep ≤2: multi-step catch-up on lag multiplies input/move and feels like rubber-banding
+var max_catchup_frames: int = 2
 ## Last display-frame delta (not for simulation logic).
 var display_delta: float = 0.0
 

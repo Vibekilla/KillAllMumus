@@ -60,22 +60,24 @@ func _input(event: InputEvent) -> void:
 		JoyPad.pmove(sd.position)
 		JoyPad.joy_move(sd.position, sd.index)
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		# Viewport coords (stretch-safe) — event.position can disagree on web scale
+		var mpos := get_viewport().get_mouse_position()
 		if event.pressed:
-			JoyPad.pdown(event.position)
+			JoyPad.pdown(mpos)
 			if GameState.state == GameState.State.PLAY:
 				# HTML pdown works for mouse + touch (tap portal/shop on cleared field)
-				if _try_clear_gate_pointer(event.position):
+				if _try_clear_gate_pointer(mpos):
 					return
 				# desktop testing of touch chrome when ui=touch
 				if JoyPad and JoyPad.touch_ui_on:
-					var k2 := _touch_button_at(event.position)
+					var k2 := _touch_button_at(mpos)
 					if k2 != "":
 						_touch_down(k2, -1)
 		else:
 			_touch_up_finger(-1)
 			JoyPad.pup()
 	elif event is InputEventMouseMotion:
-		JoyPad.pmove(event.position)
+		JoyPad.pmove(get_viewport().get_mouse_position())
 
 func _try_clear_gate_pointer(pos: Vector2) -> bool:
 	## HTML pdown: if play && run.cleared && tap near clearShop (38) / clearPortal (44)

@@ -130,14 +130,15 @@ func close_gate(go_fs: bool = false) -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 
 func pdown(pos: Vector2) -> void:
-	## HTML pdown (pointer down on game canvas)
+	## HTML pdown — does NOT set moveT (only mousemove does). Setting moveT here
+	## yanked Bobina to the click for ~0.75s and pinned her in corners.
 	pointer_down = true
 	pointer = pos
 	mouse = pos
-	mouse_move_t = 45.0
+	# no mouse_move_t here
 
 func pmove(pos: Vector2) -> void:
-	## HTML pmove
+	## HTML pmove — refresh cursor + moveT=45 so follow only after real motion
 	mouse = pos
 	mouse_move_t = 45.0
 	if pointer_down:

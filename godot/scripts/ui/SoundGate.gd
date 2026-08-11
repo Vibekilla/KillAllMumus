@@ -23,7 +23,8 @@ func _ready() -> void:
 	var auto_skip := OS.has_feature("headless") \
 		or OS.get_environment("PLAYTEST_FAST") != "" \
 		or OS.get_environment("PLAYTEST_FULL") != "" \
-		or OS.get_environment("SKIP_SOUNDGATE") == "1"
+		or OS.get_environment("SKIP_SOUNDGATE") == "1" \
+		or OS.get_environment("PLAYTEST_SHOTS") != ""
 	if auto_skip:
 		_open = false
 		visible = false
