@@ -64,6 +64,9 @@ func _physics_process(delta: float) -> void:
 	if has_meta("dual_freeze") and bool(get_meta("dual_freeze")):
 		vel = Vector2.ZERO
 		return
+	# HTML: if(p.dead) early-return whole play update — freeze mobs during death window
+	if GameState.player_down:
+		return
 	# HTML Sixth Sense: skip this frame for mobs/elites per slowAcc gates
 	if CombatHelpers and CombatHelpers.has_method("slowmo_allows_enemy"):
 		if not CombatHelpers.slowmo_allows_enemy(kind):

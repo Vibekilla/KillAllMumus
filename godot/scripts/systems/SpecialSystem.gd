@@ -151,6 +151,9 @@ func _activate(key: String, player: Node2D, bullet_pool: Node) -> void:
 	set_meta("player", player)
 
 func _update_fx(delta: float) -> void:
+	# HTML: if(p.dead) return — special FX pause with the rest of combat
+	if GameState.player_down:
+		return
 	var df = delta * FRAME
 	var player: Node2D = get_meta("player") if has_meta("player") else null
 	var pool: Node = get_meta("pool") if has_meta("pool") else null

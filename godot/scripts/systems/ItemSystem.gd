@@ -228,7 +228,10 @@ func tick(delta: float) -> void:
 	if GameState.state != GameState.State.PLAY:
 		return
 	var df := delta * FRAME
+	# HTML: while p.dead only updateItems() runs — items keep drifting; burns/FX freeze
 	_update_items(df)
+	if GameState.player_down:
+		return
 	_update_floaters(df)
 	_update_emotes(df)
 	_update_burns(df)

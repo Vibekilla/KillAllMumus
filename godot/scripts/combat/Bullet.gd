@@ -163,6 +163,9 @@ func _nade_boom() -> void:
 func _physics_process(delta: float) -> void:
 	if not active:
 		return
+	# HTML: if(p.dead) return — freeze all projectiles during death window
+	if GameState.player_down:
+		return
 	# HTML: enemy bullets only move when _mobW during Sixth Sense; hit/graze still run
 	var skip_move := false
 	if team == Team.ENEMY and CombatHelpers and CombatHelpers.has_method("slowmo_allows_enemy_bullet"):

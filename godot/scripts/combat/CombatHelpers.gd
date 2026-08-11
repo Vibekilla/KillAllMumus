@@ -304,6 +304,9 @@ func line_time(text: String) -> float:
 
 func tick_fx(delta: float) -> void:
 	# HTML sim is frame-based @60; scale by df frames elapsed
+	# HTML: death early-return freezes particles/score pops too (only updateItems runs)
+	if GameState.player_down:
+		return
 	var df = delta * 60.0
 	var keep_p: Array = []
 	for p in particles:

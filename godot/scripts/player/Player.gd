@@ -111,6 +111,18 @@ func _physics_process(delta: float) -> void:
 		if melee:
 			melee.tick(delta)
 		return
+	var df := delta * FRAME
+	# HTML: if(p.dead){ respawn--; … updateItems(); return; } — no combat systems
+	if dead:
+		velocity = Vector2.ZERO
+		GameState.player_down = true
+		respawn = maxf(0.0, respawn - df)
+		sprite.modulate.a = 0.25
+		if respawn <= 0.0 and GameState.lives >= 0:
+			_respawn_player()
+		return
+
+	GameState.player_down = false
 	if emblems:
 		emblems.tick_play()
 	if specials:
@@ -119,16 +131,6 @@ func _physics_process(delta: float) -> void:
 		melee.tick(delta)
 	if consumables:
 		consumables.tick(delta)
-
-	var df := delta * FRAME
-	# HTML: while dead, only tick respawn then re-init
-	if dead:
-		velocity = Vector2.ZERO
-		respawn = maxf(0.0, respawn - df)
-		sprite.modulate.a = 0.25
-		if respawn <= 0.0 and GameState.lives >= 0:
-			_respawn_player()
-		return
 
 	if invuln > 0.0:
 		invuln -= df
@@ -586,6 +588,7 @@ func take_hit(dmg: float = 1.0) -> void:
 	if AudioBus:
 		AudioBus.sfx("hurt")
 	dead = true
+	GameState.player_down = true
 	respawn = 70.0
 	velocity = Vector2.ZERO
 	dash = 0.0
@@ -630,6 +633,7 @@ func take_hit(dmg: float = 1.0) -> void:
 func _respawn_player() -> void:
 	## HTML initPlayer after death when lives remain — preserves shieldT/rapidT
 	dead = false
+	GameState.player_down = false
 	respawn = 0.0
 	var pf: Rect2 = Config.playfield()
 	global_position = Vector2(pf.position.x + pf.size.x * 0.5, pf.position.y + pf.size.y - 70.0)

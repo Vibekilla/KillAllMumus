@@ -127,6 +127,10 @@ func _physics_process(delta: float) -> void:
 	if has_meta("dual_freeze") and bool(get_meta("dual_freeze")):
 		_want_redraw()
 		return
+	# HTML: if(p.dead) return — freeze live boss AI; still advance boss-death burst if already dead
+	if GameState.player_down and not dead and not hell:
+		_want_redraw()
+		return
 	# HTML Sixth Sense: bosses tick at 0.75x (slowAccB)
 	if CombatHelpers and CombatHelpers.has_method("slowmo_allows_enemy"):
 		if not dead and intro <= 0.0 and not hell:

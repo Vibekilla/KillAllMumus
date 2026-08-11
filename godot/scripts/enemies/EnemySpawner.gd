@@ -54,6 +54,9 @@ func _on_sim_tick(_dt: float) -> void:
 	## Wave timers in HTML frames @ 60 Hz — one unit per fixed sim step.
 	if dual_lock or not spawning or GameState.state != GameState.State.PLAY:
 		return
+	# HTML: whole play update freezes while p.dead (no new waves)
+	if GameState.player_down:
+		return
 	stage_time += 1.0
 	_spawn_waves()
 	# After waveDur frames → boss

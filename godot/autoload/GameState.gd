@@ -29,6 +29,9 @@ var specials: Array[String] = ["mech", "bearzooka"]
 var run_no_death: bool = true
 var run_no_bomb: bool = true
 var speedrun: bool = false
+## HTML: while p.dead the entire play update early-returns (only respawn + updateItems).
+## Combat systems freeze so bullets/mobs/boss don't advance during the death window.
+var player_down: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -48,6 +51,9 @@ func _on_sim_tick(_dt: float) -> void:
 	if CombatHelpers and CombatHelpers.has_method("tick_slowmo"):
 		CombatHelpers.tick_slowmo()
 	if state != State.PLAY:
+		return
+	# HTML: if(p.dead){ … return; } — no special trickle / power bleed while down
+	if player_down:
 		return
 	# HTML: if(run.special<100) run.special=Math.min(100, run.special+0.012)
 	if special_meter < 100.0:
@@ -113,6 +119,7 @@ func start_run() -> void:
 	bombs = 3
 	power = 1.0
 	special_meter = 15.0
+	player_down = false
 	run_no_death = true
 	run_no_bomb = true
 	# sync arsenal weapons if present
