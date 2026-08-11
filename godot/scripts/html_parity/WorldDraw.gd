@@ -743,18 +743,15 @@ func _draw_bobina_cached_or_live(st: Dictionary) -> void:
 			if flash:
 				ctx.global_alpha(1.0)
 			return
-	# Cold cache: cheap stand-in (bake fills within a few frames). Never live-draw here.
-	if flash:
+	# Cold cache: full live drawBobina (never pink-circle stand-in — that looked broken)
+	if ported and ported.has_method("drawBobina"):
+		ported.drawBobina(st)
+	elif flash:
 		ctx.global_alpha(0.5)
-	ctx.fill_style("#ffb6d9")
-	ctx.begin_path()
-	ctx.arc(px, py, 14, 0, TAU)
-	ctx.fill()
-	ctx.fill_style("#fff0f8")
-	ctx.begin_path()
-	ctx.arc(px, py - 2, 8, 0, TAU)
-	ctx.fill()
-	if flash:
+		ctx.fill_style("#ffb6d9")
+		ctx.begin_path()
+		ctx.arc(px, py, 14, 0, TAU)
+		ctx.fill()
 		ctx.global_alpha(1.0)
 
 func _draw_player(player: Node) -> void:

@@ -361,3 +361,55 @@ func tick(delta: float) -> void:
 
 func is_field_cleared() -> bool:
 	return bool(GameState.get_meta("stage_cleared", false)) and clear_portal != null
+
+func shop_buy_selected() -> void:
+	## HTML shop keyboard buy — same rules as FlowUI._shop_buy click path
+	var tree := get_tree()
+	if tree == null:
+		return
+	var flow = tree.get_first_node_in_group("flow_ui")
+	if flow == null:
+		# Main scene path
+		var main = tree.current_scene
+		if main:
+			flow = main.get_node_or_null("UI/FlowUI")
+	if flow and flow.has_method("_shop_buy"):
+		flow._shop_buy()
+		return
+	# Fallback without FlowUI drawers: buy via shop_btns snapshot if present
+	if shop_sel < 0 or shop_sel >= shop_btns.size():
+		return
+	var it: Dictionary = shop_btns[shop_sel] if shop_btns[shop_sel] is Dictionary else {}
+	if it.is_empty():
+		return
+	var heads := int(ProgressStore.progress.get("heads", 0))
+	var cost := int(it.get("cost", 0))
+	if bool(it.get("owned", false)):
+		shop_msg = "Already in your arsenal."
+		shop_msg_t = 90.0
+		if AudioBus:
+			AudioBus.sfx("hit")
+		return
+	if cost <= 0:
+		shop_msg = "Earn its Emblem to unlock this one."
+		shop_msg_t = 110.0
+		if AudioBus:
+			AudioBus.sfx("hit")
+		return
+	if heads < cost:
+		shop_msg = "Not enough heads — go bag more Mumus."
+		shop_msg_t = 120.0
+		if AudioBus:
+			AudioBus.sfx("hit")
+		return
+	ProgressStore.progress["heads"] = heads - cost
+	var su: Dictionary = ProgressStore.progress.get("shopUnlocks", {})
+	var typ := str(it.get("type", shop_tab))
+	var key := str(it.get("key", ""))
+	su["%s:%s" % [typ, key]] = true
+	ProgressStore.progress["shopUnlocks"] = su
+	ProgressStore.queue_save()
+	shop_msg = "Unlocked %s — equip it in your Arsenal!" % str(it.get("name", key))
+	shop_msg_t = 160.0
+	if AudioBus:
+		AudioBus.sfx("win")

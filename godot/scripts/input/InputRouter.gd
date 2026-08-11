@@ -113,34 +113,10 @@ func key_press(k: String) -> void:
 			GameState.set_state(GameState.State.PLAY)
 			get_tree().paused = false
 			return
-	# Play actions
-	if state == GameState.State.PLAY:
-		if k == "item_switch":
-			var p = _player()
-			if p and p.get("consumables"):
-				p.consumables.cycle()
-		if k == "meleeswap":
-			_cycle_melee()
-		if k == "focus":
-			# double-tap dash is handled in Player; keep for HTML parity hook
-			pass
-		if k == "bomb":
-			var p2 = _player()
-			if p2 and p2.has_method("_try_bomb"):
-				p2._try_bomb()
-		if k == "swap":
-			CombatHelpers.swap_weapon()
-		if k == "special":
-			var p3 = _player()
-			if p3 and p3.get("specials") and GameState.specials.size():
-				# HTML armedSpec — respect armed_special cycle index
-				var ai := 0
-				if p3.get("armed_special") != null:
-					ai = clampi(int(p3.armed_special), 0, GameState.specials.size() - 1)
-				p3.specials.use(str(GameState.specials[ai]), p3, p3.get("bullet_pool"))
-		if k == "cycle":
-			CombatHelpers.cycle_special()
-		# "fire" touch chrome holds shoot via Main._inject_action — no autofire toggle
+	# PLAY combat one-shots (bomb/special/swap/cycle/melee/items) are owned by Player
+	# via is_action_just_pressed / hold. InputRouter must NOT also fire them — double
+	# key_press + Player burn 2 bombs and skip every other weapon. Touch injects
+	# InputMap actions only; menu/portal/pause stay here.
 	# Tweet on end screens
 	if k == "tweet" and state in [GameState.State.WIN, GameState.State.GAMEOVER]:
 		if P2Meta and P2Meta.has_method("tweet_result"):

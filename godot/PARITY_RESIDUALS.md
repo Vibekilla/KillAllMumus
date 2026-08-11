@@ -302,6 +302,10 @@ Present via other modules or partial — still product-check:
 | 2026-08-11 | Death before dual_lock so respawn always ticks; title control hints above auth chrome |
 | 2026-08-11 | Boss dual: draw mandala under dual_freeze (was vignette-only) |
 | 2026-08-11 | FPS probe (llvmpipe): ~10.8 title / ~10.1 play — GPU re-measure still open |
+| 2026-08-11 | **BLOCKER:** double PLAY input (InputRouter+Player) → strip router combat one-shots |
+| 2026-08-11 | **BLOCKER:** enemy multi-kill `_dead` gate + special continuous skip corpses |
+| 2026-08-11 | **BLOCKER:** StageFlow.shop_buy_selected (keyboard shop buy) |
+| 2026-08-11 | Bomb refuses while dead; empty arsenal falls back to spread; Bobina cold = live draw not pink circle |
 
 
 

@@ -11,6 +11,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_process(true)
 	z_index = 20
+	add_to_group("flow_ui")
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
 	ctx.bind(self)
 	flow_draw = load("res://scripts/ui/menu/draw_flow.gd").new()

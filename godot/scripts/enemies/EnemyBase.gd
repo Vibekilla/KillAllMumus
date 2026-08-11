@@ -210,6 +210,11 @@ func _touch_player(p: Node2D) -> void:
 		p.take_hit(hearts)
 
 func take_damage(amount: float, opts: Dictionary = {}) -> void:
+	# HTML killEnemy removes from list immediately — never multi-kill a corpse
+	if has_meta("_dead") and bool(get_meta("_dead")):
+		return
+	if hp <= 0.0:
+		return
 	hp -= amount
 	flash = 5.0
 	if hp <= 0.0:
@@ -217,7 +222,11 @@ func take_damage(amount: float, opts: Dictionary = {}) -> void:
 		_die(false, bool(opts.get("silent", false)))
 
 func _die(charmed: bool = false, silent: bool = false) -> void:
-	# HTML killEnemy / enemyExplode (Kiss Me charm expiry)
+	# HTML killEnemy / enemyExplode (Kiss Me charm expiry) — once only
+	if has_meta("_dead") and bool(get_meta("_dead")):
+		return
+	set_meta("_dead", true)
+	hp = 0.0
 	if charmed:
 		_enemy_explode()
 		return

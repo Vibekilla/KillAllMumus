@@ -13,6 +13,16 @@ const BulletPatterns = preload("res://scripts/combat/BulletPatterns.gd")
 func can_use(_key: String) -> bool:
 	return GameState.special_meter >= 100.0
 
+func _enemy_alive(e: Node) -> bool:
+	## Skip queue_free corpses so continuous FX can't multi-kill
+	if e == null or not is_instance_valid(e):
+		return false
+	if e.has_meta("_dead") and bool(e.get_meta("_dead")):
+		return false
+	if "hp" in e and float(e.hp) <= 0.0:
+		return false
+	return true
+
 func _ready() -> void:
 	# HTML updateFx advances on fixed sim frames (not display/physics hitch)
 	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
@@ -330,6 +340,11 @@ func _laser_tick(f: Dictionary, pool: Node, pf: Rect2) -> void:
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e) or not e.has_method("take_damage"):
 			continue
+		# Skip corpses (queue_free pending) — HTML removes from list on kill
+		if e.has_meta("_dead") and bool(e.get_meta("_dead")):
+			continue
+		if "hp" in e and float(e.hp) <= 0.0:
+			continue
 		var er := float(e.get("radius")) if e.get("radius") != null else 15.0
 		var rx: Vector2 = e.global_position - origin
 		var proj := rx.dot(dir)
@@ -410,7 +425,7 @@ func _stampede_tick(f: Dictionary, pool: Node, is_bull: bool) -> void:
 	var fy := float(f["y"])
 	var hit: Dictionary = f.get("hit", {})
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(e) or not e.has_method("take_damage"):
+		if not _enemy_alive(e) or not e.has_method("take_damage"):
 			continue
 		var er := float(e.get("radius")) if e.get("radius") != null else 15.0
 		var is_boss := e.is_in_group("bosses")
@@ -456,7 +471,7 @@ func _tentacle_tick(f: Dictionary) -> void:
 	var reach := float(f.get("reach", 76))
 	var tleft := float(f.get("t", 0))
 	for e in get_tree().get_nodes_in_group("enemies"):
-		if not is_instance_valid(e):
+		if not _enemy_alive(e):
 			continue
 		var d := pos.distance_to(e.global_position)
 		if d >= reach or d < 0.01:

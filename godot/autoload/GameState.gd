@@ -157,7 +157,10 @@ func start_run() -> void:
 		specials.clear()
 		for s in ar["s"]:
 			specials.append(str(s))
-	current_weapon = weapons[0] if weapons.size() else "laser"
+	# HTML newRun: weapon:(arsenalW[0]||'spread') when loadout empty
+	if weapons.is_empty():
+		weapons.append("spread")
+	current_weapon = str(weapons[0])
 	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/P2Meta"):
 		P2Meta.just_saved_score = false
 		P2Meta.end_won = false

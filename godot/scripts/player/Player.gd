@@ -543,7 +543,9 @@ func _dash_land() -> void:
 		CombatHelpers.dash_land_explosion(self, slash_dash)
 
 func _try_bomb() -> void:
-	## HTML doBomb — clear bullets, chip all enemies, BOBINA BLAST juice
+	## HTML doBomb — if(run.bombs<=0 || player.dead) return
+	if dead or GameState.player_down:
+		return
 	if not GameState.use_bomb():
 		return
 	if bullet_pool:
