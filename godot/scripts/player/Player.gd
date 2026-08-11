@@ -157,8 +157,7 @@ func _step(delta: float) -> void:
 		return
 
 	GameState.player_down = false
-	if emblems:
-		emblems.tick_play()
+	# emblems.tick_play: GameState._tick_emblems_play on sim (HTML emblemTick after update, incl. death)
 	# specials: SimClock-driven (SpecialSystem._on_sim_tick)
 	if melee:
 		melee.tick(delta)

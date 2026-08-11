@@ -52,6 +52,9 @@ func _on_sim_tick(_dt: float) -> void:
 		CombatHelpers.tick_slowmo()
 	if state != State.PLAY:
 		return
+	# HTML simStep: update(); emblemTick() — emblemTick runs even while p.dead
+	# (only requires state==='play'). Drive from here so death window still unlocks.
+	_tick_emblems_play()
 	# HTML: if(p.dead){ … return; } — no special trickle / power bleed while down
 	if player_down:
 		return
@@ -67,6 +70,28 @@ func _on_sim_tick(_dt: float) -> void:
 	if cleared or dialog_open:
 		return
 	power = maxf(1.0, power - 0.00085)
+
+func _tick_emblems_play() -> void:
+	## HTML emblemTick() after update() while state==play (including death window)
+	var tree := Engine.get_main_loop()
+	if tree is SceneTree:
+		var p = (tree as SceneTree).get_first_node_in_group("player")
+		if p and p.get("emblems") != null and p.emblems.has_method("tick_play"):
+			p.emblems.tick_play()
+			return
+	# Fallback when player not in tree
+	if session_score >= 1_000_000 and ProgressStore:
+		ProgressStore.unlock_emblem("score_1m")
+	if session_score >= 5_000_000 and ProgressStore:
+		ProgressStore.unlock_emblem("score_5m")
+	if CombatHelpers and CombatHelpers.shot_level() >= 4 and ProgressStore:
+		ProgressStore.unlock_emblem("full_power")
+	if lives >= 8 and ProgressStore:
+		ProgressStore.unlock_emblem("life_8")
+	if CombatHelpers and lives >= CombatHelpers.MAX_LIVES and ProgressStore:
+		ProgressStore.unlock_emblem("max_lives")
+	if weapons.size() >= 5 and ProgressStore:
+		ProgressStore.unlock_emblem("weapon_all")
 
 func set_state(s: State) -> void:
 	state = s

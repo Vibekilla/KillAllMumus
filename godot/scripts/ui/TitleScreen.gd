@@ -83,7 +83,17 @@ func _ready() -> void:
 		ApiClient.scores_failed.connect(_on_scores_failed)
 	GameState.state_changed.connect(_on_state)
 	_sync_visible(GameState.state)
+	# HTML simStep: if(state==='title') titleIdleT++; else titleIdleT=0
+	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
+		SimClock.sim_tick.connect(_on_sim_tick)
 	queue_redraw()
+
+func _on_sim_tick(_dt: float) -> void:
+	## Fixed 60 Hz idle counter (HTML titleIdleT++) — not wall-clock FPS
+	if GameState.state == GameState.State.TITLE:
+		title_idle_t += 1.0
+	else:
+		title_idle_t = 0.0
 
 func _on_scores(scores: Array) -> void:
 	# Dual HUD-mini expression matrix owns lb_cache — ignore network overwrite
@@ -171,11 +181,10 @@ func _refresh_auth() -> void:
 		_login_btn.text = "Sign in with Bobina"
 	_layout_auth_chrome()
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if not visible:
 		return
-	if GameState.state == GameState.State.TITLE:
-		title_idle_t += delta * 60.0
+	# title_idle_t advances on SimClock (HTML titleIdleT++) — not display delta
 	# ctx/title_drawer can be null if CanvasCompat failed to load — guard hard
 	if ctx == null or title_drawer == null or menus == null:
 		return

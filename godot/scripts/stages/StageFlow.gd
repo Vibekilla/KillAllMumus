@@ -304,6 +304,9 @@ func bobina_say(text: String, frames: float = 60.0, hurt: bool = false) -> void:
 func tick_dialog(delta: float) -> void:
 	if dialog == null:
 		return
+	# HTML: dialog.timer-- is after p.dead early-return — freeze monologue/hurt line while down
+	if GameState.player_down:
+		return
 	dialog["timer"] = float(dialog.get("timer", 0)) - delta * FRAME
 	if float(dialog["timer"]) <= 0.0:
 		dialog["i"] = int(dialog.get("i", 0)) + 1

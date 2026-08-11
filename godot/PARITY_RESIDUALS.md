@@ -296,6 +296,8 @@ Present via other modules or partial — still product-check:
 | 2026-08-11 | Combat on SimClock: Player/Enemy/Boss/BulletPool sim_step (HTML single 60Hz update clock) |
 | 2026-08-11 | flashMsg drains during death + pause (HTML order); stage clear kills uses max(StageFlow, ItemSystem) |
 | 2026-08-11 | CombatHelpers.melee_fx ages out (HTML meleeFx t++/filter); emblem toasts advance while paused |
+| 2026-08-11 | emblemTick during death; dialog freezes while player_down; titleIdleT on SimClock (maid 30s) |
+
 
 
 
