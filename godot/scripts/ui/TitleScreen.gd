@@ -536,10 +536,13 @@ func _handle_lb(p: Vector2) -> void:
 	_return_title()
 
 func _exit_arsenal() -> void:
+	## HTML exitArsenal: arsDrag=null; state=arsenalReturn; sfx('item')
+	model.ars_drag = null
 	if model.arsenal_return == "stageclear":
 		GameState.set_state(GameState.State.STAGE_CLEAR)
+		_sfx("item")
 	else:
-		_return_title()
+		_return_title()  # sfx inside
 
 func _return_title() -> void:
 	GameState.return_to_title()

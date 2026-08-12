@@ -101,6 +101,25 @@ HTML `update()` (public/index.html ~2405) is distributed across SimClock subscri
 **Phase 2 residuals fixed 2026-08-12:** empty weapons → laser (HTML starter); dropToSlot sfx; unequip clamps selConsum; P2Meta.drop_to_slot.
 
 
+
+## Phase 2 sign-off (2026-08-12)
+
+**Status: COMPLETE** — all 36 matrix functions present and behavioral checks green.
+
+| Evidence | Result |
+| --- | --- |
+| Name coverage (36/36) | PASS |
+| Structural constants (53 checks) | PASS |
+| Runtime arsenal/mode/fmtScore (`test_phase2_runtime.gd`) | PASS |
+| Static guards (`test_phase2_parity.gd`) | PASS |
+
+Fixes in Phase 2 closeout:
+- empty weapons → laser (HTML starter)
+- dropToSlot sfx + P2Meta API
+- unequip clamps selConsum
+- exitArsenal always sfx('item') + clear arsDrag
+
+
 ## Full matrix
 
 | Function | Phase | Status | Godot |
