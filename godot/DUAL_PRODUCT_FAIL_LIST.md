@@ -3,6 +3,9 @@
 Honest side-by-side review. Dual harness green ≠ product parity.  
 Update after each dual pass. Severity: **FAIL** / **SOFT** / **HARNESS**.
 
+**Status model:** [`tools/port/PHASE_STATUS.md`](../tools/port/PHASE_STATUS.md)  
+Open rows here = **product_partial** (or open harness lies). Closed FAIL ≠ full port.
+
 Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port:dual -- --full`).
 
 ---

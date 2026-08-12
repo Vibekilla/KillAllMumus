@@ -5,6 +5,12 @@
 **Godot surface:** ~128 `.gd` scripts; structure gates 0–8 PASS  
 **Product rule:** dual/structure green ≠ product complete. Sign-off only after behavior + eye-pass.
 
+**Status model:** [`tools/port/PHASE_STATUS.md`](../tools/port/PHASE_STATUS.md)  
+Tiers: `structure` · `product_partial` · `product_ok` · `hold` · `blocked`.  
+This file lists **product_partial** (and open polish) only. Matrix COMPLETE rows do not belong here as “done.”
+
+**Dual queue:** [`DUAL_PRODUCT_FAIL_LIST.md`](./DUAL_PRODUCT_FAIL_LIST.md) (SOFT S1–S11).
+
 ---
 
 ## Method (every ship)
@@ -249,12 +255,15 @@ Present via other modules or partial — still product-check:
 
 ## Priority backlog (next prompts)
 
-1. **Manual music verify** social links keep lofi after hard-refresh  
-2. **Familiar dual still** at power 2–6 (drawOptions world fix — re-shot)  
-3. **Title social + peephole product**  
-4. **Boss live pattern product eye-pass** (HP/intro structure fixed)  
-5. **GPU FPS probe**  
-6. **Full dual --full** + fill Phase 7 log  
+Aligned with `PHASE_STATUS.md` + fail list (2026-08-12):
+
+1. **S8/S4** Special/aura density (mech columns, laser beam, bomb flash)  
+2. **S1/S3** Settings + pause chrome product  
+3. **S10** Manual music cold-load + social tab lofi  
+4. **S11** Title social + peephole product  
+5. **S9 residual** Boss live density polish (harness PASS)  
+6. **GPU FPS probe** then Phase 7 product sign-off discussion  
+7. Familiar dual re-shot at power 2–6 (optional density)
 
 ---
 

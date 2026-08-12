@@ -2,15 +2,25 @@
 
 Generated for final 1:1 port pass. Source: `public/index.html` function declarations.
 
-**Rule:** HTML is truth. No approximations. Status only advances after behavior + dual evidence.
+**Rule:** HTML is truth. No approximations.  
+**This matrix = coverage / structure only.**  
+`ported` here means “has a Godot home + phase unit/structure evidence,” **not** product dual eye-pass.
+
+| Doc | Use for |
+| --- | --- |
+| This file | Function map + matrix phase COMPLETE (structure) |
+| [`tools/port/PHASE_STATUS.md`](../tools/port/PHASE_STATUS.md) | Structure vs product rollup |
+| [`PARITY_RESIDUALS.md`](./PARITY_RESIDUALS.md) / [`DUAL_PRODUCT_FAIL_LIST.md`](./DUAL_PRODUCT_FAIL_LIST.md) | Product gaps |
+
+**Rule for advancing product:** dual still + eye-pass → fail list / residuals, then PHASE_STATUS product column.
 
 ## Counts
 
-| Status | Count |
-| --- | ---: |
-| ported | 290 |
-| unmapped | 9 |
-| **Total** | **299** |
+| Status | Count | Meaning |
+| --- | ---: | --- |
+| ported | 290 | Structure mapped (not product_ok) |
+| unmapped | 9 | Platform wrappers (intentional) |
+| **Total** | **299** | |
 
 ## Method
 
@@ -227,7 +237,7 @@ Fixes in Phase 2 closeout:
 
 ## Phase 7 sign-off (2026-08-12)
 
-**Status: COMPLETE** — 62/62 matrix functions (UI/render/modals).
+**Status: COMPLETE (matrix / structure only)** — 62/62 matrix functions (UI/render/modals).
 
 | Evidence | Result |
 | --- | --- |
@@ -236,7 +246,8 @@ Fixes in Phase 2 closeout:
 | port:gate:7 (dual harness structure) | PASS |
 | Fixes this pass | phase veil 1:1, heart bezier, boss vignette, anyModalOpen |
 
-> Note: matrix Phase 7 ≠ product dual-QA cutover. `USE_GODOT` live remains off until PARITY.md dual sign-off.
+> **matrix COMPLETE ≠ product complete.** Product Phase 7 remains **hold** (CUTOVER HOLD).  
+> See `PHASE_STATUS.md`. `USE_GODOT` stays off until PARITY.md **product** sign-off.
 
 
 ## Full matrix

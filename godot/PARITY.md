@@ -1,12 +1,14 @@
 
-> **Residuals:** tracked in [`PARITY_RESIDUALS.md`](./PARITY_RESIDUALS.md) — structure duals can pass while product gaps remain (music gate, dialog, mechanics matrix, etc.).  
+> **Status rollup (structure vs product):** [`tools/port/PHASE_STATUS.md`](../tools/port/PHASE_STATUS.md) — use tiers `structure` / `product_partial` / `product_ok` / `hold` / `blocked` only.  
+> **Residuals:** [`PARITY_RESIDUALS.md`](./PARITY_RESIDUALS.md) · dual queue [`DUAL_PRODUCT_FAIL_LIST.md`](./DUAL_PRODUCT_FAIL_LIST.md).  
+> **Checkboxes:** [`MIGRATION_CHECKLIST.md`](./MIGRATION_CHECKLIST.md).  
 > **Export method:** `npm run export:godot` writes **dev** `public_godot/` and **mirrors live** `public_godot/` so both `/godot/` previews update (live `/` stays html-legacy until Phase 7).
 
 # HTML → Godot parity (true 1:1 full port)
 
 > **Source of truth** = `public/index.html` + `public/assets/`.  
-> **Real status** = dual QA report + written sign-off.  
-> **Phases 0–7** must be complete (including every weapon, special, melee radius/arc, animation, powerup, variant, aura, and boss visual/mechanical system) before any **Phase 8** cutover, Steam, or OS expansion work begins.
+> **Real status** = dual QA report + written Phase 7 **product** sign-off (not matrix COMPLETE).  
+> **Phases 0–7 product** must be accepted before any **Phase 8** cutover, Steam, or OS expansion work begins.
 
 | Rule | |
 | --- | --- |
@@ -19,7 +21,19 @@
 | Same menus + overlays | Canvas states **and** DOM overlays (settings, pause, help, …) |
 | Live | HTML until **Phase 7** dual QA sign-off (`USE_GODOT` off) |
 
-**File exists ≠ ported.** Real status = **wired into draw path + same behavior + dual QA**.
+**File exists ≠ ported.** Real status = **wired into draw path + same behavior + dual product eye-pass**.
+
+### Structure vs product (short)
+
+| Layer | Meaning | Typical evidence |
+| --- | --- | --- |
+| **structure** | Godot path wired; gate/unit/dual still exists | `port:gates`, matrix, dual harness |
+| **product_partial** | Structure green; density/chrome/E2E open | Residuals, dual SOFT S1–S11 |
+| **product_ok** | Slice accepted | Closed dual FAIL/SOFT |
+| **hold** | Phase 7 product gate not signed | Sign-off log = CUTOVER HOLD |
+| **blocked** | Phase 8 waiting on Phase 7 | USE_GODOT off |
+
+As of 2026-08-12: **structure** largely green for Phases 0–7; **product** remains **product_partial** / Phase 7 **hold**. See `PHASE_STATUS.md`.
 
 ---
 
@@ -121,7 +135,7 @@ godot/
 | --- | --- | --- |
 | 0.1 | Mandate in this file: HTML + assets only; no shortcuts | active |
 | 0.2 | Dual report is the living checklist | active |
-| 0.3 | Profile Godot desktop + web; document FPS root cause | **partial** — see FPS notes below |
+| 0.3 | Profile Godot desktop + web; document FPS root cause | **structure** + **product_partial** — llvmpipe notes; GPU/web open |
 
 ### Simulation clock (fixed step — always)
 
@@ -144,8 +158,8 @@ Rules: **no** pure variable-`delta` combat; **no** wall-clock inside sim; render
 | --- | --- | --- |
 | 1.1 | Menus / outfit previews: cache complex drawers (esp. full `drawBobina`) into SubViewport / bake on state change | **done** — `BobinaDrawCache` + outfit stage bake |
 | 1.2 | In-game Bobina: same caching for outfit + expression + pose | **done** — `get_play_texture` + face bins; dash/bomb live |
-| 1.3 | World / HUD / FX: throttle redraws; keep CanvasCompat hot paths | **partial** — WorldDraw 20 Hz shop/clear/intro, 6 Hz pause; HUD 30 Hz; PLAY 60 Hz entities; **StageBgDrawCache** amortizes bg+fx (~15–20 Hz bake) |
-| 1.4 | Target: 60 FPS desktop, ≥30–45 FPS web | **open** — probe on llvmpipe software GL; re-measure on GPU / web |
+| 1.3 | World / HUD / FX: throttle redraws; keep CanvasCompat hot paths | **structure** — tick gates + StageBg cache; full-field cost residual |
+| 1.4 | Target: 60 FPS desktop, ≥30–45 FPS web | **product_partial** — llvmpipe only; GPU/web re-measure open |
 
 ### FPS root cause notes (Phase 0.3 / 1)
 
@@ -177,11 +191,11 @@ Exact HTML timing and pixels:
 
 | # | Requirement | Status |
 | --- | --- | --- |
-| 2.1 | Breath, head bob, body sway, movement-driven leg kick + arm swing | **partial** — formulas in `drawBobina`; dual breath ticks 0/35 |
-| 2.2 | Blink: `(tick % 230) < 7 and not squee` | **done** (structure + dual open/closed) |
-| 2.3 | Expressions `smile` / `uwu` / `giggle` / `annoyed` / `squee` (eyes/mouth/blush/brows/iris at every scale) | **done dual matrix** — menu ×4.7 + play ×1 + HUD-mini ×0.46 |
-| 2.4 | Every outfit continuous animation (tails, wings, veils, tendrils, …) | **partial** — full 28 skins dual on **outfits menu** ×4.7; anim ticks on wing/tail skins |
-| 2.5 | Full pose system + victory-face mapping + `hold` prop + GIF overlays (`talk`, leekspin, confused) | **partial** — faces/poses/hold via outfits menu; talk/confused/leek dual |
+| 2.1 | Breath, head bob, body sway, movement-driven leg kick + arm swing | **structure** + **product_partial** — formulas dualed; lid polish open |
+| 2.2 | Blink: `(tick % 230) < 7 and not squee` | **structure** (dual open/closed) |
+| 2.3 | Expressions `smile` / `uwu` / `giggle` / `annoyed` / `squee` (eyes/mouth/blush/brows/iris at every scale) | **structure** — menu ×4.7 + play ×1 + HUD-mini ×0.46 |
+| 2.4 | Every outfit continuous animation (tails, wings, veils, tendrils, …) | **structure** + **product_partial** — 28 skins menu dual; product eye-pass open |
+| 2.5 | Full pose system + victory-face mapping + `hold` prop + GIF overlays (`talk`, leekspin, confused) | **structure** + **product_partial** — dual wired; dialog/leek product open |
 
 ### Phase 3 — Exhaustive visual systems
 
@@ -223,20 +237,20 @@ Intros, dialog + portraits, shop + Honey Badger, stage-clear + leekspin + maid d
 
 | # | Requirement | Status |
 | --- | --- | --- |
-| 4.1 | Combat numbers: power bleed 0.00085, graze, extends, shot levels, weapon matrix, options/familiars, specials, melee charge, bombs, dash | open |
-| 4.2 | Boss mechanics — all phases, patterns, HP, threat, specials, twins, defeat across every stage | open |
-| 4.3 | Item / burn / floater systems, consumables hold-to-use, emblem tick / unlock | open |
-| 4.4 | Stage flow: intro → waves → clear gate → shop → dialog → next / win | open |
-| 4.5 | ProgressStore (local + cloud), arsenal / shop, emblems, heads, estats — persist across refresh | open |
-| 4.6 | Input: keyboard, gamepad, touch (exact HTML feel) | **partial** — keyboard+touch+Xbox defaults (`GamepadMap`); keybinds show key · pad glyphs |
-| 4.7 | Fire input unified (hold shoot / LMB / touch hold) — no separate autofire toggle (Steam/mobile/desktop same) | **done** intentional |
+| 4.1 | Combat numbers: power bleed 0.00085, graze, extends, shot levels, weapon matrix, options/familiars, specials, melee charge, bombs, dash | **structure** + **product_partial** — units green; full matrix eye-pass open |
+| 4.2 | Boss mechanics — all phases, patterns, HP, threat, specials, twins, defeat across every stage | **structure** + **product_partial** — BossController + dual stills; live matrix open |
+| 4.3 | Item / burn / floater systems, consumables hold-to-use, emblem tick / unlock | **structure** + **product_partial** |
+| 4.4 | Stage flow: intro → waves → clear gate → shop → dialog → next / win | **structure** + **product_partial** |
+| 4.5 | ProgressStore (local + cloud), arsenal / shop, emblems, heads, estats — persist across refresh | **structure** + **product_partial** — cloud E2E open |
+| 4.6 | Input: keyboard, gamepad, touch (exact HTML feel) | **structure** + **product_partial** — GamepadMap + touch chrome; latency product |
+| 4.7 | Fire input unified (hold shoot / LMB / touch hold) — no separate autofire toggle (Steam/mobile/desktop same) | **product_ok** intentional |
 
 ### Phase 5 — Audio
 
 | # | Requirement | Status |
 | --- | --- | --- |
-| 5.1 | All HTML `sfx()` envelopes (shoot/hit/kill/graze/item/power/extend/bomb/hurt/card/win/slash/whip/thud/boom/claw/warp) | **done** structure — `SfxSynth` 1:1; melee `snd` wired |
-| 5.2 | Music bridge: soundgate → lofi, mute, volume | **partial** — web YT bridge + SoundGate; desktop no stream |
+| 5.1 | All HTML `sfx()` envelopes (shoot/hit/kill/graze/item/power/extend/bomb/hurt/card/win/slash/whip/thud/boom/claw/warp) | **structure** — `SfxSynth` 1:1; melee `snd` wired |
+| 5.2 | Music bridge: soundgate → lofi, mute, volume | **structure** + **product_partial** — web YT + SoundGate; cold-load E2E (S10); desktop no stream |
 
 ### Phase 6 — UI overlays & meta
 
@@ -244,12 +258,13 @@ Settings, Display, Keybinds, Help, Pause, Name Entry, Shoutouts, Soundgate, touc
 
 | Area | Status |
 | --- | --- |
-| Settings / Display / Pause | **structure** — dual `godot_menu_settings`, pause chrome |
-| Keybinds + gamepad glyphs | **partial** — key · pad labels, joy rebind |
-| Help | **structure** — HelpCanvas + dual `godot_menu_help` |
-| Shoutouts | **structure** — title overlay + dual `godot_menu_shoutouts` |
-| Name entry / leaderboard | **structure** — EndScreen + lb dual |
-| Soundgate + touch chrome | **structure** — present |
+| Settings / Display / Pause | **structure** + **product_partial** (S1/S3) |
+| Keybinds + gamepad glyphs | **structure** + **product_partial** — key · pad labels, joy rebind |
+| Help | **structure** + **product_partial** — HelpCanvas dual |
+| Shoutouts | **structure** + **product_partial** |
+| Name entry / leaderboard | **structure** + **product_partial** |
+| Soundgate + touch chrome | **structure** + **product_partial** |
+| Title social / peephole | **structure** + **product_partial** (S11) |
 
 ### Phase 7 — Full dual QA hard gate (“port complete”)
 
@@ -265,12 +280,13 @@ Fresh dual report covering **every** system in Phases 2–6, including:
 
 | Gate | Status |
 | --- | --- |
-| Dual report reviewed (`tools/port/playtest_out/index.html`) | **ran 2026-08-12** — full mode, 100 pairs, 0 MISSING in report; see log |
-| FPS verified (desktop + web targets) | **open** — llvmpipe only (~16.5 title / ~12.4 play); real GPU + web still required |
-| Progress + audio verified | **partial** — structure duals + unit; music cold-load / cloud E2E manual open |
-| **Written sign-off** (date + reviewer below) | **conditional** — dual harness + units + pixel sample green; **no cutover** until GPU FPS + human eye pass |
+| Dual report harness | **structure** — full dual ran; open dual FAILs closed (F1–F8) |
+| Dual product eye-pass | **product_partial** — SOFT S1–S11 + residual density |
+| FPS verified (desktop + web targets) | **product_partial** — llvmpipe only; GPU + web open |
+| Progress + audio verified | **product_partial** — music cold-load / cloud E2E open |
+| **Written product sign-off** | **hold** — PROOF GREEN / CUTOVER HOLD; not full port |
 
-**Only after this sign-off is the game considered fully ported.** Cutover still **blocked** on GPU FPS + residual eye-pass (see `PARITY_RESIDUALS.md`).
+**Only after product sign-off is the game considered fully ported.** Phase 8 remains **blocked**.
 
 ### Phase 8 — Cutover, Steam & OS expansions
 
