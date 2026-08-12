@@ -381,6 +381,19 @@ func _dual_freeze_pshots(pool) -> void:
 		if b.has_method("set_physics_process"):
 			b.set_physics_process(false)
 
+## Freeze all active bullets (player + enemy) for boss danmaku / special stills.
+func _dual_freeze_all_bullets(pool) -> void:
+	if pool == null or not pool.has_method("iter_active"):
+		return
+	for b in pool.iter_active():
+		if not is_instance_valid(b):
+			continue
+		if "velocity" in b:
+			b.velocity = Vector2.ZERO
+		b.set_meta("dual_freeze", true)
+		if b.has_method("set_physics_process"):
+			b.set_physics_process(false)
+
 ## Mid-shot field hold: kill strays + pin Bobina; optionally keep player bullets.
 func _dual_hold_field(player, pool, keep_player_shots: bool = false) -> void:
 	for e in root.get_tree().get_nodes_in_group("enemies"):
@@ -1365,6 +1378,10 @@ func _run() -> void:
 				GameState.session_score = 0
 				GameState.total_kills = 0
 				GameState.graze = 0
+				# Same-state starter kit for optionShot color (mech mirrors Red Death)
+				GameState.weapons.clear()
+				GameState.weapons.append("laser")
+				GameState.current_weapon = "laser"
 				player.aim = -PI / 2.0
 				player.global_position = Vector2(304, 400)
 				player.set_meta("dual_lock_pose", true)
@@ -1379,8 +1396,9 @@ func _run() -> void:
 				if sp and sp.has_method("use"):
 					used = bool(sp.use(sk, player, pool))
 				print("[SHOT] special=", sk, " used=", used, " fx=", (sp.fx.size() if sp and sp.get("fx") is Array else -1))
-				# Settle a few frames then pin FX *after* last tick so orbit/r don't drift before save
-				for _i in range(4):
+				# Settle: mech/bearzooka need more frames so optionShot/carpet density matches HTML ~200ms wait
+				var settle_n := 14 if sk in ["mech", "bearzooka"] else 6
+				for _i in range(settle_n):
 					await process_frame
 					for e in root.get_tree().get_nodes_in_group("enemies"):
 						if is_instance_valid(e) and not e.is_in_group("bosses"):
@@ -1412,7 +1430,12 @@ func _run() -> void:
 							f["x"] = player.global_position.x
 							f["y"] = player.global_position.y
 						elif typ == "mech":
+							# Mid-escort still: hover ahead of Bobina, ct high so volleys already fired
 							f["t"] = 200.0
+							f["ct"] = 60.0
+							f["face"] = -PI / 2.0
+							f["x"] = player.global_position.x
+							f["y"] = player.global_position.y - 46.0
 						elif typ == "bearzooka":
 							# Mid-carpet still: plane over field (bombdrops seeded after pin loop)
 							var cfg_bz = _A("Config")
@@ -1470,6 +1493,50 @@ func _run() -> void:
 								"vy": 2.5,
 								"ty": pf_bd.position.y + 200.0 + float(d) * 40.0,
 							})
+				# S8: mech dual — seed optionShot columns if settle left the field empty (SimClock catch-up)
+				if sk == "mech" and pool and sp:
+					var n_ps := 0
+					if pool.has_method("iter_active"):
+						for b0 in pool.iter_active():
+							if is_instance_valid(b0) and int(b0.team) == 0:
+								n_ps += 1
+					if n_ps < 10:
+						var mx: float = player.global_position.x
+						var my: float = player.global_position.y - 46.0
+						if sp.get("fx") is Array:
+							for fm in sp.fx:
+								if typeof(fm) == TYPE_DICTIONARY and str(fm.get("type", "")) == "mech":
+									mx = float(fm.get("x", mx))
+									my = float(fm.get("y", my))
+									break
+						var fire_sys = player.get("fire_sys")
+						var aim_m: float = -PI / 2.0
+						if fire_sys and fire_sys.has_method("option_shot"):
+							for vol in range(5):
+								var before_ids: Dictionary = {}
+								for bb in pool.iter_active():
+									if is_instance_valid(bb):
+										before_ids[bb.get_instance_id()] = true
+								fire_sys.option_shot(pool, mx - 9.0, my, aim_m, "laser")
+								fire_sys.option_shot(pool, mx + 9.0, my, aim_m, "laser")
+								var nudge_m: Vector2 = Vector2(0, -1) * float(vol) * 28.0
+								for b1 in pool.iter_active():
+									if not is_instance_valid(b1) or int(b1.team) != 0:
+										continue
+									if before_ids.has(b1.get_instance_id()):
+										continue
+									b1.global_position += nudge_m
+									b1.velocity = Vector2.ZERO
+									b1.set_meta("dual_freeze", true)
+					_dual_freeze_pshots(pool)
+					var n_after := 0
+					if pool.has_method("iter_active"):
+						for b2 in pool.iter_active():
+							if is_instance_valid(b2) and int(b2.team) == 0:
+								n_after += 1
+					print("[SHOT] special=mech pshots=", n_after)
+				elif sk == "bearzooka" and pool:
+					_dual_freeze_pshots(pool)
 				var ch_flash = _A("CombatHelpers")
 				if ch_flash:
 					if not ("flash_msg" in ch_flash) or ch_flash.flash_msg.is_empty() or str(ch_flash.flash_msg.get("txt", "")) == "":
@@ -1495,6 +1562,9 @@ func _run() -> void:
 							f2["y"] = player.global_position.y + sin(a2) * 58.0
 							f2["t"] = 520.0
 							sj += 1
+				# Keep pshots frozen through _save's process_frames
+				if sk in ["mech", "bearzooka"] and pool:
+					_dual_freeze_pshots(pool)
 				await _save("godot_special_%s" % sk)
 				if sp:
 					sp.set_process(true)
@@ -1976,11 +2046,15 @@ func _run() -> void:
 							chb.flash_msg = {}
 					var bname := str(stage.get("boss", {}).get("portrait", "boss%d" % si))
 					await _save("godot_boss_%s" % bname)
-					# Boss special dual (stage 0 ape): force 45% special window
+					# Boss special dual (stage 0 ape): Diamond Hands Barrage mid-window WITH danmaku
 					if si == 0 and is_instance_valid(boss) and boss.has_method("_trigger_boss_special"):
 						if StageFlow:
 							StageFlow.dialog = null
+						if pool and pool.has_method("clear_all"):
+							pool.clear_all()
 						boss.set_meta("dual_freeze", false)
+						if "stun" in boss:
+							boss.stun = 0.0
 						if "hp" in boss and "max_hp" in boss:
 							boss.hp = float(boss.max_hp) * 0.40
 						if "special_used" in boss:
@@ -1988,14 +2062,17 @@ func _run() -> void:
 						if "special_t" in boss:
 							boss.special_t = 0.0
 						boss._trigger_boss_special()
-						# Pin special mid-window; allow pattern t to advance a few frames
+						# Mid-window: keep special_t high; let pattern fire (no clear_all)
 						if "special_t" in boss:
 							boss.special_t = 160.0
-						for _j in range(8):
+						for _j in range(36):
 							await process_frame
 							player.global_position = Vector2(px_b, py_b)
 							player.aim = -PI / 2.0
 							GameState.power = 6.0
+							GameState.session_score = 0
+							GameState.total_kills = 0
+							GameState.graze = 0
 							if is_instance_valid(boss):
 								boss.global_position = boss_pos
 								if "special_t" in boss and float(boss.special_t) < 100.0:
@@ -2004,18 +2081,34 @@ func _run() -> void:
 									boss.mtx = boss_pos.x
 								if "mty" in boss:
 									boss.mty = boss_pos.y
-							if pool and pool.has_method("clear_all"):
-								pool.clear_all()
+								if "face" in boss:
+									boss.face = PI / 2.0
+								if "stun" in boss:
+									boss.stun = 0.0
+						# Freeze danmaku for capture; keep flash banner (HTML product)
+						_dual_freeze_all_bullets(pool)
 						boss.set_meta("dual_freeze", true)
 						if "face" in boss:
 							boss.face = PI / 2.0
+						# Suppress taunt dialog chrome for readable still (flashMsg is enough)
+						if StageFlow:
+							StageFlow.dialog = null
+						var n_eb := 0
+						if pool and pool.has_method("iter_active"):
+							for be in pool.iter_active():
+								if is_instance_valid(be) and int(be.team) != 0:
+									n_eb += 1
+						print("[SHOT] boss_special bullets=", n_eb)
 						await process_frame
+						_dual_freeze_all_bullets(pool)
 						await _save("godot_boss_special")
 						if StageFlow:
 							StageFlow.dialog = null
 						var ch_sp = _A("CombatHelpers")
 						if ch_sp and "flash_msg" in ch_sp:
 							ch_sp.flash_msg = {}
+						if pool and pool.has_method("clear_all"):
+							pool.clear_all()
 					# Wynn hell dual (final stage only)
 					if si == 6 and is_instance_valid(boss) and str(stage.get("boss", {}).get("portrait", "")) == "wynn":
 						if StageFlow:
@@ -2050,22 +2143,39 @@ func _run() -> void:
 						await _save("godot_boss_wynn_hell")
 						if StageFlow:
 							StageFlow.dialog = null
-					# Live ambience still (first boss only): leave dual_freeze OFF so mandala shows
+					# S9 live pattern still (ape): phase-0 fan+ring danmaku, not portrait-only
 					if si == 0 and is_instance_valid(boss):
 						if StageFlow:
 							StageFlow.dialog = null
-						boss.remove_meta("dual_freeze")
+						var ch_live = _A("CombatHelpers")
+						if ch_live and "flash_msg" in ch_live:
+							ch_live.flash_msg = {}
+						if pool and pool.has_method("clear_all"):
+							pool.clear_all()
+						if boss.has_meta("dual_freeze"):
+							boss.remove_meta("dual_freeze")
+						boss.set_meta("dual_freeze", false)
 						if "stun" in boss:
-							boss.stun = 99999.0
+							boss.stun = 0.0
 						if "special_t" in boss:
 							boss.special_t = 0.0
+						if "special_used" in boss:
+							boss.special_used = true  # don't re-trigger special mid-pattern
 						if "hp" in boss and "max_hp" in boss:
 							boss.hp = float(boss.max_hp) * 0.55  # mid-fight rage cue
-						for _j in range(8):
+						if "phase" in boss:
+							boss.phase = 0
+						if "intro" in boss:
+							boss.intro = 0.0
+						# Advance ~100 sim frames so fan (t%40) + ring (t%90) seed the field
+						for _j in range(100):
 							await process_frame
 							player.global_position = Vector2(px_b, py_b)
 							player.aim = -PI / 2.0
 							GameState.power = 6.0
+							GameState.session_score = 0
+							GameState.total_kills = 0
+							GameState.graze = 0
 							if is_instance_valid(boss):
 								boss.global_position = boss_pos
 								if "face" in boss:
@@ -2074,9 +2184,34 @@ func _run() -> void:
 									boss.mtx = boss_pos.x
 								if "mty" in boss:
 									boss.mty = boss_pos.y
-							if pool and pool.has_method("clear_all"):
-								pool.clear_all()
+								if "stun" in boss:
+									boss.stun = 0.0
+								if "special_t" in boss:
+									boss.special_t = 0.0
+								if "dash" in boss:
+									boss.dash = false
+						_dual_freeze_all_bullets(pool)
+						boss.set_meta("dual_freeze", true)
+						if "stun" in boss:
+							boss.stun = 99999.0
+						if StageFlow:
+							StageFlow.dialog = null
+						var ch_live2 = _A("CombatHelpers")
+						if ch_live2 and "flash_msg" in ch_live2:
+							ch_live2.flash_msg = {}
+						var n_live := 0
+						if pool and pool.has_method("iter_active"):
+							for bl in pool.iter_active():
+								if is_instance_valid(bl) and int(bl.team) != 0:
+									n_live += 1
+						print("[SHOT] boss_ape_live bullets=", n_live)
+						await process_frame
+						_dual_freeze_all_bullets(pool)
+						if StageFlow:
+							StageFlow.dialog = null
 						await _save("godot_boss_ape_live")
+						if pool and pool.has_method("clear_all"):
+							pool.clear_all()
 						# Boss dialog dual — StageFlow owns state; FlowUI presents
 						boss.set_meta("dual_freeze", true)
 						var bdata: Dictionary = stage.get("boss", {}) if stage.get("boss") is Dictionary else {}

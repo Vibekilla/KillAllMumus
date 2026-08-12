@@ -23,11 +23,11 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 |----|------|----------|------------------------|
 | F1 | ~~**Weapons dual empty field**~~ | Was aura-only; re-dual → pshots present | **CLOSED** — sync freeze + aim nudge |
 | F2 | ~~**Play state mismatch**~~ | power=1 score=0 + 6 lil both sides | **CLOSED** — forcePlayStill |
-| F3 | **Boss still loadout** | power 6 / score 0 / no toast / starter kit | **Harness improved** — stills match better; **S9 live** still open |
+| F3 | ~~**Boss still loadout**~~ | power 6 / score 0 / starter kit | **CLOSED** — portraits + loadout same-state |
 | F4 | ~~**Title dual guest chrome**~~ | 1/44, no NG+, guest auth | **CLOSED** |
 | F5 | ~~**Outfit anim pair names**~~ | `_8`/`_48` | **CLOSED** |
 | F6 | ~~**Mechanics / pickups HTML**~~ | paired | **CLOSED** |
-| F7 | **Special dual HUD** | score/toasts cleared | **Improved** — FX density SOFT |
+| F7 | ~~**Special dual HUD**~~ | score/toasts cleared | **CLOSED** — residual density → S8 |
 | F8 | ~~**Settings volume dual**~~ | was 50% vs 100% | **CLOSED** — dual forces music 100% · sfx 90% |
 
 ---
@@ -43,8 +43,8 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | S5 | Item glyphs | ♥★✸ emoji vs monospace feel |
 | S6 | Stage bg intensity | Motif strength vs HTML psychedelia |
 | S7 | Bobina lids/limbs | Menu vs play scale polish |
-| S8 | Special density | Beams/FX present; ring/particle density still differs |
-| S9 | Boss live patterns | Dual still ≠ live danmaku feel |
+| S8 | Special density | Mech optionShot columns now both sides; Godot column length/beam width still lighter |
+| S9 | Boss live patterns | **Harness PASS** — special 114 bullets + live 216 both sides; residual density/spread SOFT |
 | S10 | Music E2E | Cold load + social tab product verify |
 | S11 | Title social strip | Canvas chips vs HTML DOM #social residual |
 
@@ -55,9 +55,10 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | ID | Issue | Fix |
 |----|-------|-----|
 | H1 | `play_firing` ↔ `play_power6` | Godot now also writes `godot_play_firing`; report prefers it |
-| H2 | `boss_ape` ↔ `boss_ape_live` mixed | Report labels live ambience separately; keep |
+| H2 | `boss_ape` ↔ `boss_ape_live` mixed | Report pairs `html_boss_ape_live` ↔ `godot_boss_ape_live` + special pair |
 | H3 | Combat stills not same-state | Force power=6, clear field, fixed pos, freeze pshots |
 | H4 | Pixel meanΔ false green | Different scores/saves dominate; use eye + behavior |
+| H5 | Boss dual cleared bullets | **CLOSED** — special/live no longer `clear_all`; freeze all bullets |
 
 ---
 
@@ -78,13 +79,16 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-08-12 | Boss dual PASS | typed-array loadout fix verified (7 bosses) |
 | 2026-08-12 | F3 boss | clear toasts + starter Red Death; HTML pin clears unlock chrome |
 | 2026-08-12 | S2 partial | Shop LEAVE → stage clear when `shop_return==stageclear` |
+| 2026-08-12 | S9 harness | `forceBossSpecial` / `forceBossPattern` + Godot freeze-all-bullets; dual shows Diamond Hands + phase-0 danmaku |
+| 2026-08-12 | S8 partial | Mech dual seeds optionShot columns + freeze pshots (was empty field) |
+| 2026-08-12 | F3/F7 closed | residual art density stays SOFT |
 
 ---
 
 ## Next execution order
 
-1. **S9** Boss live pattern eye-pass (stage 1–2 dual tabs).  
-2. **S8/S4** Special/aura particle density product.  
-3. **S1/S3** Settings + pause chrome polish.  
-4. **S10** Music cold-load + social tab.  
+1. **S8/S4** Special/aura particle density polish (mech column length, laser beam width, bomb flash).  
+2. **S1/S3** Settings + pause chrome polish.  
+3. **S10** Music cold-load + social tab.  
+4. **S11** Title social strip.  
 5. GPU FPS — only then Phase 7 product sign-off discussion.

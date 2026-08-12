@@ -285,6 +285,65 @@ function servePublic() {
             "dialog=null;bullets=[];pshots=[];enemies=[];",
             "emblemToasts=[];flashMsg=null;newEmblems=[];sessionScore=0;totalKills=0;graze=0;",
             "return boss&&boss.data?boss.data.portrait:null;",
+            "},",
+            // S9: ape special mid-window WITH danmaku (pair godot_boss_special)
+            "forceBossSpecial:function(){",
+            "if(!run||typeof spawnBoss!=='function')return;",
+            "run.stageIdx=0;run.power=6;run.weapon='laser';run.weapons=['laser'];",
+            "run.specials=['mech'];run.armed=0;",
+            "totalKills=0;sessionScore=0;graze=0;enemies=[];bullets=[];pshots=[];fx=[];",
+            "particles=[];emblemToasts=[];flashMsg=null;newEmblems=[];dialog=null;",
+            "try{spawnBoss();}catch(e){return;}",
+            "if(!boss)return;",
+            "dialog=null;", // spawnBoss always opens intro monologue — kill for combat still
+            "var bx=PF.x+PF.w/2,by=PF.y+140;",
+            "boss.intro=0;boss.introDlg=false;boss.dead=false;boss.dash=false;",
+            "boss.x=bx;boss.y=by;boss.tx=bx;boss.ty=by;boss.mtx=bx;boss.mty=by;",
+            "boss.face=Math.PI/2;boss.px=bx;boss.py=by;boss.phase=0;",
+            "if(boss.maxhp){boss.hp=boss.maxhp*0.4;}",
+            "boss.specialUsed=true;boss.specialT=160;boss.stun=0;boss.flash=10;boss.t=0;boss.spin=0;",
+            "flashMsg={t:120,txt:'★ SPECIAL: '+(boss.data&&boss.data.special?boss.data.special:'SPECIAL')};",
+            "for(var i=0;i<40;i++)particles.push({x:bx,y:by,vx:(Math.random()-.5)*11,vy:(Math.random()-.5)*11,life:34,c:(boss.data&&boss.data.color)||'#ffd27a'});",
+            "if(player){player.x=bx;player.y=PF.y+PF.h-100;player.face=-Math.PI/2;player.aim=-Math.PI/2;player.iframe=9999;player.dead=false;}",
+            // Fire Diamond Hands Barrage; advance bullets each frame so spiral spreads (match Godot)
+            "for(var k=0;k<48;k++){boss.t++;boss.x=bx;boss.y=by;boss.mtx=bx;boss.mty=by;boss.stun=0;",
+            "try{if(typeof bossSpecial==='function')bossSpecial(boss,bx,by);}catch(e){}",
+            "for(var bi=0;bi<bullets.length;bi++){var bb=bullets[bi];if(bb){bb.x+=bb.vx||0;bb.y+=bb.vy||0;}}",
+            "}",
+            "boss.x=bx;boss.y=by;boss.mtx=bx;boss.mty=by;boss.stun=9999;boss.face=Math.PI/2;boss.specialT=160;",
+            "dialog=null;pshots=[];enemies=[];emblemToasts=[];sessionScore=0;totalKills=0;graze=0;",
+            "for(var bi2=0;bi2<bullets.length;bi2++){var b2=bullets[bi2];if(b2){b2.vx=0;b2.vy=0;}}",
+            "},",
+            // S9: ape phase-0 live pattern danmaku (pair godot_boss_ape_live)
+            "forceBossPattern:function(){",
+            "if(!run||typeof spawnBoss!=='function')return;",
+            "run.stageIdx=0;run.power=6;run.weapon='laser';run.weapons=['laser'];",
+            "run.specials=['mech'];run.armed=0;",
+            "totalKills=0;sessionScore=0;graze=0;enemies=[];bullets=[];pshots=[];fx=[];",
+            "particles=[];emblemToasts=[];flashMsg=null;newEmblems=[];dialog=null;",
+            "try{spawnBoss();}catch(e){return;}",
+            "if(!boss)return;",
+            "dialog=null;",
+            "var bx=PF.x+PF.w/2,by=PF.y+140;",
+            "boss.intro=0;boss.introDlg=false;boss.dead=false;boss.dash=false;",
+            "boss.x=bx;boss.y=by;boss.tx=bx;boss.ty=by;boss.mtx=bx;boss.mty=by;",
+            "boss.face=Math.PI/2;boss.px=bx;boss.py=by;boss.phase=0;",
+            "if(boss.maxhp){boss.hp=boss.maxhp*0.55;}",
+            "boss.specialUsed=true;boss.specialT=0;boss.stun=0;boss.flash=0;boss.t=0;boss.spin=0;",
+            "if(player){player.x=bx;player.y=PF.y+PF.h-100;player.face=-Math.PI/2;player.aim=-Math.PI/2;player.iframe=9999;player.dead=false;}",
+            // Replay phase-0 ape patterns + advance bullets each step
+            "var p=player;for(var t=1;t<=100;t++){boss.t=t;boss.x=bx;boss.y=by;boss.mtx=bx;boss.mty=by;boss.stun=0;",
+            "var cx=bx,cy=by,hm=1.25;",
+            "try{",
+            "if(t%Math.floor(40*hm)===0&&typeof fanAt==='function')fanAt(cx,cy,p.x,p.y,7,1.0,2.6,7,'#e6c65a');",
+            "if(t%90===0&&typeof ring==='function')ring(cx,cy,16,1.8,6,'#c9a24b',t*0.05);",
+            "if(t%150===0&&typeof heavyShell==='function')heavyShell(cx,cy,p.x,p.y,3);",
+            "}catch(e){}",
+            "for(var bi=0;bi<bullets.length;bi++){var bb=bullets[bi];if(bb){bb.x+=bb.vx||0;bb.y+=bb.vy||0;}}",
+            "}",
+            "for(var bi2=0;bi2<bullets.length;bi2++){var b2=bullets[bi2];if(b2){b2.vx=0;b2.vy=0;}}",
+            "boss.x=bx;boss.y=by;boss.mtx=bx;boss.mty=by;boss.stun=9999;boss.face=Math.PI/2;",
+            "dialog=null;pshots=[];enemies=[];emblemToasts=[];flashMsg=null;sessionScore=0;totalKills=0;graze=0;",
             "}",
             "};function showNameEntry(){",
           ].join("");
@@ -819,6 +878,12 @@ async function captureHtml() {
             if (window.__kamDual) {
               if (window.__kamDual.clearField) window.__kamDual.clearField();
               if (window.__kamDual.setPower) window.__kamDual.setPower(6);
+              // Same-state starter kit so mech optionShot matches Red Death columns
+              if (run) {
+                run.weapon = "laser";
+                if (!run.weapons || !run.weapons.length) run.weapons = ["laser"];
+                if (run.weapons.indexOf("laser") < 0) run.weapons.push("laser");
+              }
               if (typeof player !== "undefined" && player) {
                 player.face = -Math.PI / 2; player.aim = -Math.PI / 2;
                 player.x = PF.x + PF.w / 2; player.y = PF.y + PF.h - 120;
@@ -837,16 +902,25 @@ async function captureHtml() {
               }
             }
           }, s);
-          await page.waitForTimeout(fast ? 180 : 280);
-          await page.evaluate(() => {
+          // Mech/bearzooka need longer settle for optionShot/carpet density (S8)
+          await page.waitForTimeout(s === "mech" || s === "bearzooka" ? (fast ? 260 : 360) : (fast ? 180 : 280));
+          await page.evaluate((k) => {
             totalKills = 0; sessionScore = 0;
             emblemToasts = [];
             if (player) {
               player.x = PF.x + PF.w / 2; player.y = PF.y + PF.h - 120;
               player.face = -Math.PI / 2; player.aim = -Math.PI / 2;
             }
+            // Freeze pshots for still so columns don't fly off before capture
+            if (k === "mech" || k === "bearzooka") {
+              if (typeof pshots !== "undefined" && pshots) {
+                for (let i = 0; i < pshots.length; i++) {
+                  if (pshots[i]) { pshots[i].vx = 0; pshots[i].vy = 0; }
+                }
+              }
+            }
             if (typeof draw === "function") draw();
-          });
+          }, s);
           await page.screenshot({ path: path.join(htmlDir, `html_special_${s}.png`) });
         }
         console.log("[HTML] specials", specs.length);
@@ -981,22 +1055,81 @@ async function captureHtml() {
           }
           const tag = portrait || `boss${si}`;
           await page.screenshot({ path: path.join(htmlDir, `html_boss_${tag}.png`) });
-          // First boss: also capture intro dialog dual (HTML truth)
+          // First boss: special + live pattern + intro dialog (S9 product duals)
           if (si === 0) {
+            await page.evaluate(() => {
+              if (window.__kamDual && window.__kamDual.forceBossSpecial) {
+                window.__kamDual.forceBossSpecial();
+              }
+              // Re-pin still state (game loop may tick during wait)
+              if (typeof boss !== "undefined" && boss) {
+                const bx = PF.x + PF.w / 2, by = PF.y + 140;
+                boss.x = bx; boss.y = by; boss.mtx = bx; boss.mty = by;
+                boss.stun = 9999; boss.face = Math.PI / 2; boss.specialT = 160;
+              }
+              dialog = null; emblemToasts = []; sessionScore = 0; totalKills = 0; graze = 0;
+              if (typeof bullets !== "undefined" && bullets) {
+                for (let i = 0; i < bullets.length; i++) {
+                  if (bullets[i]) { bullets[i].vx = 0; bullets[i].vy = 0; }
+                }
+              }
+              if (typeof draw === "function") draw();
+            });
+            await page.waitForTimeout(fast ? 40 : 60);
+            await page.evaluate(() => {
+              dialog = null;
+              if (typeof bullets !== "undefined" && bullets) {
+                for (let i = 0; i < bullets.length; i++) {
+                  if (bullets[i]) { bullets[i].vx = 0; bullets[i].vy = 0; }
+                }
+              }
+              if (typeof draw === "function") draw();
+            });
+            await page.screenshot({ path: path.join(htmlDir, "html_boss_special.png") });
+            console.log("[HTML] boss_special");
+            await page.evaluate(() => {
+              if (window.__kamDual && window.__kamDual.forceBossPattern) {
+                window.__kamDual.forceBossPattern();
+              }
+              if (typeof boss !== "undefined" && boss) {
+                const bx = PF.x + PF.w / 2, by = PF.y + 140;
+                boss.x = bx; boss.y = by; boss.mtx = bx; boss.mty = by;
+                boss.stun = 9999; boss.face = Math.PI / 2; boss.specialT = 0;
+              }
+              dialog = null; flashMsg = null; emblemToasts = []; sessionScore = 0; totalKills = 0; graze = 0;
+              if (typeof bullets !== "undefined" && bullets) {
+                for (let i = 0; i < bullets.length; i++) {
+                  if (bullets[i]) { bullets[i].vx = 0; bullets[i].vy = 0; }
+                }
+              }
+              if (typeof draw === "function") draw();
+            });
+            await page.waitForTimeout(fast ? 40 : 60);
+            await page.evaluate(() => {
+              dialog = null; flashMsg = null;
+              if (typeof bullets !== "undefined" && bullets) {
+                for (let i = 0; i < bullets.length; i++) {
+                  if (bullets[i]) { bullets[i].vx = 0; bullets[i].vy = 0; }
+                }
+              }
+              if (typeof draw === "function") draw();
+            });
+            await page.screenshot({ path: path.join(htmlDir, "html_boss_ape_live.png") });
+            console.log("[HTML] boss_ape_live");
             await page.evaluate(() => {
               if (typeof boss === "undefined" || !boss) return;
               const bd = boss.data || {};
               const lines = (bd.intro && bd.intro.length)
                 ? bd.intro.slice()
                 : [{ w: 0, t: "You will not leave this jungle, little bear." }, { w: 1, t: "Watch me." }];
+              bullets = []; pshots = []; enemies = []; flashMsg = null; emblemToasts = [];
               if (typeof startDialog === "function") startDialog(lines, bd);
               else dialog = { boss: bd, queue: lines, i: 0, timer: 9999 };
               if (dialog) { dialog.timer = 9999; dialog.i = 0; }
               const bx = PF.x + PF.w / 2, by = PF.y + 200;
               boss.x = bx; boss.y = by; boss.mtx = bx; boss.mty = by;
-              boss.stun = 9999; boss.face = Math.PI / 2;
+              boss.stun = 9999; boss.face = Math.PI / 2; boss.specialT = 0;
               if (player) { player.x = bx; player.y = PF.y + 70; player.aim = Math.PI / 2; }
-              bullets = []; pshots = []; enemies = [];
             });
             await page.waitForTimeout(fast ? 160 : 240);
             await page.screenshot({ path: path.join(htmlDir, "html_boss_dialog.png") });
@@ -1185,20 +1318,26 @@ function writeIndex() {
     }
   }
   if (want("bosses")) {
-    for (const f of godotShots.filter((x) => x.startsWith("godot_boss_") && !x.includes("dialog") && !x.includes("live"))) {
+    for (const f of godotShots.filter((x) => x.startsWith("godot_boss_") && !x.includes("dialog") && !x.includes("live") && !x.includes("special") && !x.includes("wynn_hell"))) {
       const key = f.replace("godot_boss_", "").replace(".png", "");
       pairs.push([`html_boss_${key}.png`, f, `Boss · ${key}`]);
     }
-    for (const f of htmlShots.filter((x) => x.startsWith("html_boss_") && !x.includes("dialog"))) {
+    for (const f of htmlShots.filter((x) => x.startsWith("html_boss_") && !x.includes("dialog") && !x.includes("live") && !x.includes("special"))) {
       const key = f.replace("html_boss_", "").replace(".png", "");
       const g = `godot_boss_${key}.png`;
       if (!pairs.some((p) => p[0] === f)) pairs.push([f, g, `Boss · ${key}`]);
     }
+    if (godotShots.includes("godot_boss_special.png") || htmlShots.includes("html_boss_special.png")) {
+      pairs.push(["html_boss_special.png", "godot_boss_special.png", "Boss · ape special (Diamond Hands)"]);
+    }
+    if (godotShots.includes("godot_boss_ape_live.png") || htmlShots.includes("html_boss_ape_live.png")) {
+      pairs.push(["html_boss_ape_live.png", "godot_boss_ape_live.png", "Boss · ape live danmaku"]);
+    }
+    if (godotShots.includes("godot_boss_wynn_hell.png") || htmlShots.includes("html_boss_wynn_hell.png")) {
+      pairs.push(["html_boss_wynn_hell.png", "godot_boss_wynn_hell.png", "Boss · Wynn hell"]);
+    }
     if (godotShots.includes("godot_boss_dialog.png") || htmlShots.includes("html_boss_dialog.png")) {
       pairs.push(["html_boss_dialog.png", "godot_boss_dialog.png", "Boss · intro dialog"]);
-    }
-    if (godotShots.includes("godot_boss_ape_live.png")) {
-      pairs.push(["html_boss_ape.png", "godot_boss_ape_live.png", "Boss · ape live ambience"]);
     }
   }
   if (want("wardrobe")) {
