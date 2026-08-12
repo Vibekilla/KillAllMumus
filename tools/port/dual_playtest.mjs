@@ -942,7 +942,13 @@ function writeIndex() {
       ["html_end_win.png", "godot_end_win.png", "Win"],
     );
   }
-  if (want("power6")) pairs.push(["html_play_firing.png", "godot_play_power6.png", "Combat"]);
+  // Prefer same-name play_firing (Godot now also writes godot_play_firing); fallback power6
+  if (want("power6")) {
+    const gFire = godotShots.includes("godot_play_firing.png")
+      ? "godot_play_firing.png"
+      : "godot_play_power6.png";
+    pairs.push(["html_play_firing.png", gFire, "Combat"]);
+  }
   if (want("weapons")) {
     for (const w of ["laser","homing","wave","scatter","gatling","grenade","voidripper","lotus","shock","spread"]) {
       const h = `html_wep_${w}.png`, g = `godot_wep_${w}.png`;

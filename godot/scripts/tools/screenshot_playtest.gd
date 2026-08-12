@@ -292,6 +292,22 @@ func _dual_sanitize(player, pool) -> void:
 			if spn and "spawning" in spn:
 				spn.spawning = false
 
+## Freeze player shots in place for dual stills. Must run synchronously after try_fire —
+## do not await process_frame first: SimClock catch-up can fly pshots off-field in one frame.
+func _dual_freeze_pshots(pool) -> void:
+	if pool == null or not pool.has_method("iter_active"):
+		return
+	for b in pool.iter_active():
+		if not is_instance_valid(b):
+			continue
+		if int(b.team) != 0:
+			continue
+		if "velocity" in b:
+			b.velocity = Vector2.ZERO
+		b.set_meta("dual_freeze", true)
+		if b.has_method("set_physics_process"):
+			b.set_physics_process(false)
+
 ## Mid-shot field hold: kill strays + pin Bobina; optionally keep player bullets.
 func _dual_hold_field(player, pool, keep_player_shots: bool = false) -> void:
 	for e in root.get_tree().get_nodes_in_group("enemies"):
@@ -1037,17 +1053,44 @@ func _run() -> void:
 		GameState.power = 6.0
 		GameState.lives = 6
 		player = root.get_tree().get_first_node_in_group("player")
+		var pool6 = null
+		var fire6 = null
 		if player:
 			player.global_position = Vector2(304, 400)
 			if "invuln" in player:
 				player.invuln = 99999.0
-		for i in range(fire_frames):
-			await process_frame
+			pool6 = player.get("bullet_pool")
+			fire6 = player.get("fire_sys")
+		# HTML fireBurst: freeze each volley then nudge along aim (stream still)
+		var aim6 := Vector2(0, -1)
+		for i in range(8):
 			if player and "invuln" in player:
 				player.invuln = 99999.0
-			if player and player.get("fire_sys") and player.get("bullet_pool"):
-				player.fire_sys.try_fire(player, player.bullet_pool, false)
+			if fire6 and pool6:
+				if "fire_cd_frames" in fire6:
+					fire6.fire_cd_frames = 0.0
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
+				var before6: Dictionary = {}
+				for b0 in pool6.iter_active():
+					if is_instance_valid(b0):
+						before6[b0.get_instance_id()] = true
+				fire6.try_fire(player, pool6, false)
+				_dual_freeze_pshots(pool6)
+				var nudge6 := aim6 * float(i) * 18.0
+				for b1 in pool6.iter_active():
+					if not is_instance_valid(b1) or int(b1.team) != 0:
+						continue
+					if before6.has(b1.get_instance_id()):
+						continue
+					b1.global_position += nudge6
+					b1.velocity = Vector2.ZERO
+					b1.set_meta("dual_freeze", true)
+		for _i in range(2):
+			await process_frame
 		await _save("godot_play_power6")
+		# Alias for dual report pair with HTML html_play_firing
+		await _save("godot_play_firing")
 
 	# ── Phase 3/4: weapons / melee / specials / auras / items / elites / bosses / mechanics / mumus ──
 	if player and (_want("weapons") or _want("melee") or _want("specials") or _want("aura") or _want("items") or _want("elites") or _want("bosses") or _want("mechanics") or _want("mumus") or _want("pickups")):
@@ -1076,38 +1119,50 @@ func _run() -> void:
 				player.aim = -PI / 2.0
 				player.global_position = Vector2(304, 400)
 				player.velocity = Vector2.ZERO
-				# Dense burst like HTML fireBurst — ignore fire-rate CD; short settle so
-				# fast weapons (laser/gatling) are still mid-column when we snap.
+				# HTML fireBurst: spawn volleys, freeze immediately, nudge each volley
+				# along aim so the still reads as a stream (not a muzzle stack / grid).
 				if fire and "fire_cd_frames" in fire:
 					fire.fire_cd_frames = 0.0
-				for i in range(10):
+				var aim_u := Vector2(0, -1)  # -PI/2
+				for i in range(8):
 					GameState.power = 6.0
 					player.aim = -PI / 2.0
 					player.global_position = Vector2(304, 400)
+					var before: Dictionary = {}
+					if pool and pool.has_method("iter_active"):
+						for b0 in pool.iter_active():
+							if is_instance_valid(b0):
+								before[b0.get_instance_id()] = true
 					if fire and pool:
 						if "fire_cd_frames" in fire:
 							fire.fire_cd_frames = 0.0
 						fire.try_fire(player, pool, false)
-					await process_frame
-					# Keep field clear of strays but do NOT touch player shots
+						_dual_freeze_pshots(pool)
+						# Nudge only this volley's new shots along aim (px ≈ i*18)
+						var nudge := aim_u * float(i) * 18.0
+						for b1 in pool.iter_active():
+							if not is_instance_valid(b1) or int(b1.team) != 0:
+								continue
+							if before.has(b1.get_instance_id()):
+								continue
+							b1.global_position += nudge
+							b1.velocity = Vector2.ZERO
+							b1.set_meta("dual_freeze", true)
 					for e in root.get_tree().get_nodes_in_group("enemies"):
 						if is_instance_valid(e) and not e.is_in_group("bosses"):
 							_dual_free_node(e)
 					GameState.session_score = 0
 					GameState.total_kills = 0
-				# Freeze projectiles for a readable still (HTML fireBurst is near-instant)
+				for _i in range(2):
+					await process_frame
+				player.aim = -PI / 2.0
+				player.global_position = Vector2(304, 400)
+				var n_shot := 0
 				if pool and pool.has_method("iter_active"):
 					for b in pool.iter_active():
 						if is_instance_valid(b) and int(b.team) == 0:
-							if "velocity" in b:
-								b.velocity = Vector2.ZERO
-							if b.has_method("set_physics_process"):
-								b.set_physics_process(false)
-							# SimClock-driven bullets — dual_freeze stops sim_step
-							b.set_meta("dual_freeze", true)
-				await process_frame
-				player.aim = -PI / 2.0
-				player.global_position = Vector2(304, 400)
+							n_shot += 1
+				print("[SHOT] wep=%s pshots=%d" % [wep, n_shot])
 				await _save("godot_wep_%s" % wep)
 		if _want("melee"):
 			var mkeys: Array = ["katana", "lash", "scythe", "hammer", "claws"]
