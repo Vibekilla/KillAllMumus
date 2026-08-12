@@ -143,6 +143,29 @@ Fixes in Phase 2 closeout:
 | charge ring body_ctr face-aware | fixed |
 
 
+
+## Phase 4 checklist (combat helpers / bomb / hit / fire)
+
+- [x] `powerCap` / `powerGainMul` / `shotLevel` / `addPower` / `gainLife`
+- [x] `scoreMult` / `threatMul` / `rankIndex` / `rankLetter` / `diffScoreMul`
+- [x] `burst` / `sparks` / `pop` / `aimAngle` / `angDiff` / `lineTime` / `nearestTarget`
+- [x] `swapWeapon` / `cycleSpecial`
+- [x] `fire` / `optionOffsets` / `optionPos` / `optionShot`
+- [x] `doBomb` / `doDash` / `hitPlayer`
+- [x] `update` (Phase 1 map)
+
+## Phase 4 sign-off (2026-08-12)
+
+**Status: COMPLETE** — 25/25 functions.
+
+| Evidence | Result |
+| --- | --- |
+| test_phase4_parity | PASS |
+| nearestTarget skips dead/intro boss | fixed |
+| addPower no extra sfx (HTML) | fixed |
+| optionShot scatter/lotus offsets | HTML formula |
+
+
 ## Full matrix
 
 | Function | Phase | Status | Godot |

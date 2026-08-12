@@ -206,7 +206,8 @@ func option_shot(pool: Node, x: float, y: float, aim: float, wep: String) -> voi
 			spd = 11.0
 			extra = {"wv": 3.2, "wph": float(tick) * 0.4}
 		"scatter":
-			off = randf_range(-0.07, 0.07)
+			# HTML: off=(random-0.5)*0.14
+			off = (randf() - 0.5) * 0.14
 			spd = 10.0 + randf() * 3.0
 			extra = {"life": 22.0}
 		"gatling":
@@ -222,8 +223,8 @@ func option_shot(pool: Node, x: float, y: float, aim: float, wep: String) -> voi
 			dmg = 2.0
 			extra = {"vrip": true, "pierce": true}
 		"lotus":
-			# HTML optionShot lotus: curl ±0.035, life 58
-			off = randf_range(-0.35, 0.35)
+			# HTML optionShot: off=(random-0.5)*0.7, curl ±0.035, life 58
+			off = (randf() - 0.5) * 0.7
 			spd = 7.0
 			extra = {"petal": true, "curl": (-1.0 if off < 0.0 else 1.0) * 0.035, "life": 58.0}
 		"shock":

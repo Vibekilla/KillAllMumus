@@ -227,7 +227,7 @@ func flash(txt: String, t: float = 70.0) -> void:
 	flash_msg = {"t": t, "txt": txt}
 
 func add_power(a: float) -> void:
-	## HTML addPower
+	## HTML addPower — pop + flash on level-up only (no sfx in HTML)
 	var before = shot_level()
 	GameState.power = minf(power_cap(), GameState.power + a * power_gain_mul())
 	var lv = shot_level()
@@ -240,8 +240,6 @@ func add_power(a: float) -> void:
 			flash("★ MAX POWER — LV%d ★" % lv, 70.0)
 		else:
 			flash("POWER UP", 70.0)
-		if AudioBus:
-			AudioBus.sfx("power")
 
 func gain_life() -> void:
 	## HTML gainLife
@@ -301,7 +299,7 @@ func cycle_special() -> void:
 	flash("SPECIAL ▸ " + nm, 60.0)
 
 func nearest_target(x: float, y: float) -> Node2D:
-	## HTML nearestTarget
+	## HTML nearestTarget — enemies + boss if !dead && intro<=0
 	var tree = get_tree()
 	if tree == null:
 		return null
@@ -311,6 +309,15 @@ func nearest_target(x: float, y: float) -> Node2D:
 	for e in tree.get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):
 			continue
+		# skip dead mobs (still in tree for a frame)
+		if e.get("hp") != null and float(e.get("hp")) <= 0.0:
+			continue
+		# HTML: boss only if !dead && intro<=0
+		if e.is_in_group("bosses"):
+			if e.get("dead") != null and bool(e.get("dead")):
+				continue
+			if e.get("intro") != null and float(e.get("intro")) > 0.0:
+				continue
 		var d = origin.distance_squared_to(e.global_position)
 		if d < bd:
 			bd = d

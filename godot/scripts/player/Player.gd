@@ -589,13 +589,16 @@ func _dash_land() -> void:
 		CombatHelpers.dash_land_explosion(self, slash_dash)
 
 func _try_bomb() -> void:
-	## HTML doBomb — if(run.bombs<=0 || player.dead) return
+	## HTML doBomb — bombs--, iframe 140, bombFx 46, cancel all, −8 mobs, 9% boss maxhp
 	if dead or GameState.player_down:
 		return
 	if not GameState.use_bomb():
 		return
+	# HTML bulletCancelAll first (points + floaters)
 	if bullet_pool:
 		bullet_pool.clear_enemy()
+	elif CombatHelpers and CombatHelpers.has_method("bullet_cancel_all"):
+		CombatHelpers.bullet_cancel_all(bullet_pool)
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(e):
 			continue
@@ -608,7 +611,7 @@ func _try_bomb() -> void:
 				if "flash" in e:
 					e.flash = 6.0
 		elif e.has_method("take_damage"):
-			# HTML: e.hp-=8; if dead killEnemy(e,true) — one bomb sfx, not N kill sfx
+			# HTML: e.hp-=8; killEnemy(e,true) silent
 			e.take_damage(8.0, {"silent": true})
 			if "flash" in e:
 				e.flash = 6.0
@@ -625,6 +628,7 @@ func _try_bomb() -> void:
 				"vx": (randf() - 0.5) * 14.0, "vy": (randf() - 0.5) * 14.0,
 				"life": 40.0, "c": cols[i % 3],
 			})
+	# HTML estats.bombs++ then unlock at 50 (use_bomb already increments)
 	if int(ProgressStore.estats.get("bombs", 0)) >= 50:
 		ProgressStore.unlock_emblem("bomb_50")
 	if StageFlow:
