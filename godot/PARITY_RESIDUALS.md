@@ -205,12 +205,13 @@ Line-by-line: pick HTML function → find Godot → **diff behavior** → dual/t
 
 | Gap | Detail |
 |-----|--------|
-| Full `port:dual -- --full` | Core/combat slices green; full wardrobe+all combat night run open |
-| Report review | `tools/port/playtest_out/index.html` must be human-reviewed |
-| FPS GPU | Only llvmpipe numbers exist |
-| Web music verify | After COEP fix — manual |
-| Written Phase 7 log | `PARITY.md` sign-off empty |
-| **USE_GODOT live** | Still banned until sign-off |
+| Full `port:dual -- --full` | **RAN 2026-08-12** — mode=full shots=all, 236.8s, pairs 100, 0 MISSING in report |
+| Report review | Automated pixel sample (24 paired stems): **23 OK / 1 SOFT (aura_bomb) / 0 DRIFT**; human wardrobe/outfit stills still recommended |
+| FPS GPU | llvmpipe **title ~16.5 / play ~12.4** (fps_probe); **real GPU + web device still open** |
+| Web music verify | After COEP fix — manual cold-load still open |
+| Written Phase 7 log | **PROOF GREEN / CUTOVER HOLD** in `PARITY.md` (not full cutover sign-off) |
+| **USE_GODOT live** | Still banned until GPU FPS + residual eye-pass |
+| Naming holes | HTML `play_firing` ↔ Godot `play_power6`; outfit anim `_a/_b` ↔ `_8/_48` (Godot-only extras OK) |
 
 ---
 

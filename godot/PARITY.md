@@ -265,12 +265,12 @@ Fresh dual report covering **every** system in Phases 2–6, including:
 
 | Gate | Status |
 | --- | --- |
-| Dual report reviewed (`tools/port/playtest_out/index.html`) | open |
-| FPS verified (desktop + web targets) | open |
-| Progress + audio verified | open |
-| **Written sign-off** (date + reviewer below) | **not signed** |
+| Dual report reviewed (`tools/port/playtest_out/index.html`) | **ran 2026-08-12** — full mode, 100 pairs, 0 MISSING in report; see log |
+| FPS verified (desktop + web targets) | **open** — llvmpipe only (~16.5 title / ~12.4 play); real GPU + web still required |
+| Progress + audio verified | **partial** — structure duals + unit; music cold-load / cloud E2E manual open |
+| **Written sign-off** (date + reviewer below) | **conditional** — dual harness + units + pixel sample green; **no cutover** until GPU FPS + human eye pass |
 
-**Only after this sign-off is the game considered fully ported.**
+**Only after this sign-off is the game considered fully ported.** Cutover still **blocked** on GPU FPS + residual eye-pass (see `PARITY_RESIDUALS.md`).
 
 ### Phase 8 — Cutover, Steam & OS expansions
 
@@ -339,7 +339,7 @@ Rollback: `USE_GODOT=0` (or unset) + restart → html-legacy.
 
 | Date | Reviewer | Dual report hash / notes | Result |
 | --- | --- | --- | --- |
-| — | — | — | **not signed** |
+| 2026-08-12 | Grok (automated proof run) | `npm run port:dual -- --full` 236.8s · report `tools/port/playtest_out/index.html` sha256 `513a7e6f24bd116b…` · HTML 109 / Godot 162 / pairs 100 · pixel sample 23 OK / 1 SOFT / 0 DRIFT · unit P2–P7 + combat clocks PASS · `port:gates` 0–8 PASS · FPS llvmpipe title~16.5 / play~12.4 | **PROOF GREEN / CUTOVER HOLD** — dual+units ok; GPU FPS + music/cloud E2E + residual eye-pass still open before `USE_GODOT=1` |
 
 ---
 
