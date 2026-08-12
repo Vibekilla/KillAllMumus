@@ -339,9 +339,19 @@ async function captureHtml() {
           if (window.__kamDual) window.__kamDual.setState("outfits");
         }, key);
         await page.waitForTimeout(80);
-        await page.screenshot({ path: path.join(htmlDir, `html_menu_outfit_anim_${key}_a.png`) });
-        await page.waitForTimeout(350);
-        await page.screenshot({ path: path.join(htmlDir, `html_menu_outfit_anim_${key}_b.png`) });
+        // Match Godot ticks 8 / 48 (was _a/_b — report could not pair)
+        await page.evaluate(() => {
+          if (typeof tick !== "undefined") tick = 8;
+          if (typeof draw === "function") draw();
+        });
+        await page.waitForTimeout(80);
+        await page.screenshot({ path: path.join(htmlDir, `html_menu_outfit_anim_${key}_8.png`) });
+        await page.evaluate(() => {
+          if (typeof tick !== "undefined") tick = 48;
+          if (typeof draw === "function") draw();
+        });
+        await page.waitForTimeout(80);
+        await page.screenshot({ path: path.join(htmlDir, `html_menu_outfit_anim_${key}_48.png`) });
       }
       console.log("[HTML] menu_outfits wardrobe", wardrobe.length);
     }
@@ -1068,6 +1078,14 @@ function writeIndex() {
       const h = `html_menu_outfit_${key}.png`;
       if (htmlShots.includes(h) || godotShots.includes(f)) pairs.push([h, f, `Outfit menu · ${key}`]);
     }
+    // Anim ticks 8/48 (F5 — pair HTML↔Godot same stem)
+    for (const f of godotShots.filter((x) => x.includes("menu_outfit_anim_"))) {
+      const stem = f.replace("godot_", "").replace(".png", "");
+      const h = `html_${stem}.png`;
+      if (htmlShots.includes(h) || godotShots.includes(f)) {
+        pairs.push([h, f, `Outfit anim · ${stem.replace("menu_outfit_anim_", "")}`]);
+      }
+    }
   }
 
   let rows = "";
@@ -1081,7 +1099,11 @@ function writeIndex() {
   // Extra Godot-only rows: only when their group is wanted (or no filter)
   const extraGodot = godotShots.filter((f) => {
     if (f.includes("bobina_") || f.includes("gif_")) return want("anims") || want("faces");
-    if (f.includes("menu_outfit_anim_")) return want("wardrobe");
+    // Outfit anims are paired above when both sides exist; only show Godot-only leftovers
+    if (f.includes("menu_outfit_anim_")) {
+      const stem = f.replace("godot_", "");
+      return (want("wardrobe") || want("anims")) && !htmlShots.includes(`html_${stem}`);
+    }
     if (f.includes("play_face_") || f.includes("hud_face_")) return want("faces");
     return false;
   });

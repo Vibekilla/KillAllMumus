@@ -23,9 +23,9 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 |----|------|----------|------------------------|
 | F1 | ~~**Weapons dual empty field**~~ | Was aura-only; re-dual `weapons,power6` → pshots 70–200 | **CLOSED 2026-08-12** — `_dual_freeze_pshots` sync + aim-nudge stream. Still SOFT: HTML toast chrome / score state differs |
 | F2 | ~~**Play state mismatch**~~ | Was mid-fight vs empty; now both power=1 score=0 + 6 lil mumus | **CLOSED 2026-08-12** — `forcePlayStill` / `_dual_force_play_still` |
-| F3 | **Boss still loadout** | HTML spawnBossPortrait now forces power 6 / score 0 | **Partial** — re-dual bosses to verify; weapon row still may differ |
-| F4 | ~~**Title emblem count**~~ | Godot was 16/44 | **CLOSED partial** — strip emblems before title still → 1/44; NG+ row / social still SOFT |
-| F5 | **Outfit anim pair names** | HTML `_a/_b` vs Godot `_8/_48` | Align shot names in dual report |
+| F3 | **Boss still loadout** | HTML spawnBossPortrait forces power 6 / score 0 | **Harness improved** — eye-pass density/patterns still open |
+| F4 | ~~**Title dual guest chrome**~~ | emblems 1/44 + hide NG+ when ngUnlocked=0 | **CLOSED 2026-08-12** — dual forces guest progress; social/auth still SOFT product |
+| F5 | ~~**Outfit anim pair names**~~ | HTML `_a/_b` vs Godot `_8/_48` | **CLOSED** — HTML dual writes `_8`/`_48`; report pairs stems |
 | F6 | **Mechanics / pickups HTML missing** | Report has Godot-only mechanics & vacuum | Add HTML `__kamDual` stills for same states |
 
 ---
@@ -64,6 +64,10 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 |------|-----|------|
 | 2026-08-12 | H1 partial | Alias `godot_play_firing` + report pair preference |
 | 2026-08-12 | F1 closed | Re-dual weapons: laser/spread show shot columns (pshots logged) |
+| 2026-08-12 | F2 closed | same-state play: 6 lil + power 1 + score 0 both sides |
+| 2026-08-12 | F4 closed | title guest: emblems 1/44 + ngUnlocked=0 (no NG+ button) |
+| 2026-08-12 | F5 closed | outfit anim dual names `_8`/`_48` both sides |
+| 2026-08-12 | weapons density | dual volleys 4× with 26px aim nudge (less wall) |
 | 2026-08-12 | S2 partial | Shop LEAVE → stage clear when `shop_return==stageclear` |
 
 ---

@@ -488,13 +488,21 @@ func _run() -> void:
 		await process_frame
 	# Ensure title host redraws after gate
 	var title = _main.get_node_or_null("UI/TitleScreen")
-	# F4 dual fairness: strip emblem unlocks BEFORE title still (HTML guest ≈ 1/44)
+	# F4 dual fairness: guest-like title — emblems 1/44, NG+ hidden (ngUnlocked=0)
 	# In-memory only — process exits; do not queue_save.
 	var _ps = _A("ProgressStore")
 	var _saved_emblems: Dictionary = {}
+	var _saved_ng_unlocked := 0
+	var _saved_ng_plus := 0
 	if _ps:
 		_saved_emblems = _ps.emblems.duplicate(true)
 		_ps.emblems = {"start": true}
+		_saved_ng_unlocked = int(_ps.ng_unlocked)
+		_saved_ng_plus = int(GameState.ng_plus) if GameState else 0
+		_ps.ng_unlocked = 0
+		if "progress" in _ps and _ps.progress is Dictionary:
+			_ps.progress["ngUnlocked"] = 0
+			_ps.progress["ngPlus"] = 0
 	GameState.selected_outfit = "og"
 	GameState.ng_plus = 0
 	if title and "model" in title and title.model:
@@ -693,9 +701,14 @@ func _run() -> void:
 		GameState.set_state(GameState.State.OUTFITS)
 		_force_ui_size(_main)
 
-	# Restore emblems for rest of dual (play may earn more)
+	# Restore emblems / NG unlocks for rest of dual (NG select needs unlocked levels)
 	if _ps:
 		_ps.emblems = _saved_emblems
+		_ps.ng_unlocked = _saved_ng_unlocked
+		if "progress" in _ps and _ps.progress is Dictionary:
+			_ps.progress["ngUnlocked"] = _saved_ng_unlocked
+			_ps.progress["ngPlus"] = _saved_ng_plus
+		GameState.ng_plus = _saved_ng_plus
 
 	# Settings + NG select + help + shoutouts (title meta screens)
 	if _want("core"):
@@ -888,7 +901,6 @@ func _run() -> void:
 				if is_instance_valid(e2) and not e2.is_in_group("bosses"):
 					n_en += 1
 					if n_en <= 2:
-						print("[SHOT] en pos=", e2.global_position, " vis=", e2.visible, " kind=", e2.get("kind"))
 			print("[SHOT] same-state play enemies=", n_en,
 				" power=", GameState.power, " score=", GameState.session_score)
 			if wd:
@@ -1166,9 +1178,9 @@ func _run() -> void:
 				player.invuln = 99999.0
 			pool6 = player.get("bullet_pool")
 			fire6 = player.get("fire_sys")
-		# HTML fireBurst: freeze each volley then nudge along aim (stream still)
+		# HTML fireBurst density (modest stream for dual still)
 		var aim6 := Vector2(0, -1)
-		for i in range(8):
+		for i in range(4):
 			if player and "invuln" in player:
 				player.invuln = 99999.0
 			if fire6 and pool6:
@@ -1182,7 +1194,7 @@ func _run() -> void:
 						before6[b0.get_instance_id()] = true
 				fire6.try_fire(player, pool6, false)
 				_dual_freeze_pshots(pool6)
-				var nudge6 := aim6 * float(i) * 18.0
+				var nudge6 := aim6 * float(i) * 26.0
 				for b1 in pool6.iter_active():
 					if not is_instance_valid(b1) or int(b1.team) != 0:
 						continue
@@ -1224,12 +1236,12 @@ func _run() -> void:
 				player.aim = -PI / 2.0
 				player.global_position = Vector2(304, 400)
 				player.velocity = Vector2.ZERO
-				# HTML fireBurst: spawn volleys, freeze immediately, nudge each volley
-				# along aim so the still reads as a stream (not a muzzle stack / grid).
+				# HTML fireBurst(~10): keep density modest so dual matches HTML mid-burst
+				# (not a solid wall). Freeze sync after each volley; short aim nudge.
 				if fire and "fire_cd_frames" in fire:
 					fire.fire_cd_frames = 0.0
 				var aim_u := Vector2(0, -1)  # -PI/2
-				for i in range(8):
+				for i in range(4):
 					GameState.power = 6.0
 					player.aim = -PI / 2.0
 					player.global_position = Vector2(304, 400)
@@ -1243,8 +1255,8 @@ func _run() -> void:
 							fire.fire_cd_frames = 0.0
 						fire.try_fire(player, pool, false)
 						_dual_freeze_pshots(pool)
-						# Nudge only this volley's new shots along aim (px ≈ i*18)
-						var nudge := aim_u * float(i) * 18.0
+						# ~2 HTML frames of travel between volleys (spd≈13 px/frame)
+						var nudge := aim_u * float(i) * 26.0
 						for b1 in pool.iter_active():
 							if not is_instance_valid(b1) or int(b1.team) != 0:
 								continue
