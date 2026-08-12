@@ -78,8 +78,8 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 ## Next execution order
 
-1. Re-dual **weapons + power6** only → verify F1 closed on stills.  
-2. Same-state **core play** still (power/score/kills).  
-3. Title dual bootstrap (emblems 0 or fixed).  
-4. Live eye-pass: one full stage HTML vs Godot tabs.  
-5. GPU FPS when art density is honest.
+1. **S9** Boss live pattern eye-pass (stage 1–2 dual tabs).  
+2. **S8/S4** Special/aura particle density product.  
+3. **S1/S3** Settings + pause chrome polish.  
+4. **S10** Music cold-load + social tab.  
+5. GPU FPS — only then Phase 7 product sign-off discussion.
