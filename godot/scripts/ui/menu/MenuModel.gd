@@ -138,6 +138,7 @@ func ars_pool(type: String) -> Array:
 	return out
 
 func drop_to_slot(type: String, key: String, slot: int) -> void:
+	## HTML dropToSlot 1:1 + sfx('power')
 	var arr = ars_arr(type)
 	var cap: int = int(MenuHelpers.ARS_CAP.get(type, 5))
 	var was = arr.find(key)
@@ -149,9 +150,11 @@ func drop_to_slot(type: String, key: String, slot: int) -> void:
 		slot = clampi(slot, 0, arr.size())
 		arr.insert(slot, key)
 	else:
-		var s = clampi(slot, 0, arr.size() - 1)
+		var s = clampi(slot, 0, maxi(0, arr.size() - 1))
 		arr[s] = key
 	ars_set(type, arr)
+	if AudioBus:
+		AudioBus.sfx("power")
 
 func unequip_slot(type: String, slot: int) -> void:
 	var arr = ars_arr(type)
@@ -162,6 +165,14 @@ func unequip_slot(type: String, slot: int) -> void:
 		return
 	arr.remove_at(slot)
 	ars_set(type, arr)
+	# HTML unequipArsenal: if type i and selConsum >= length → 0
+	if type == "i":
+		var tree := Engine.get_main_loop() as SceneTree
+		if tree:
+			var pl = tree.get_first_node_in_group("player")
+			if pl and pl.get("consumables") != null and pl.consumables.get("selected") != null:
+				if int(pl.consumables.selected) >= arr.size():
+					pl.consumables.selected = 0
 
 func toggle_equip(type: String, key: String) -> void:
 	var arr = ars_arr(type)

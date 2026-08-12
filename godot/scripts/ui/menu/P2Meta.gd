@@ -94,16 +94,42 @@ func move_arsenal(type: String, key: String, dir: int) -> void:
 	_sfx("item")
 
 func unequip_arsenal(type: String, key: String) -> void:
-	## HTML unequipArsenal
+	## HTML unequipArsenal — minKeep 0 for s/i, 1 for w/m; clamp selConsum for items
 	var arr = ars_arr(type)
 	var min_k = 0 if type == "s" or type == "i" else 1
 	var i = arr.find(key)
 	if i >= 0 and arr.size() > min_k:
 		arr.remove_at(i)
 		_set_ars(type, arr)
+		# HTML: if(type==='i'&&selConsum>=arr.length)selConsum=0
+		if type == "i":
+			var tree := get_tree()
+			if tree:
+				var pl = tree.get_first_node_in_group("player")
+				if pl and pl.get("consumables") != null and pl.consumables.get("selected") != null:
+					if int(pl.consumables.selected) >= arr.size():
+						pl.consumables.selected = 0
 		_sfx("item")
 	else:
 		_sfx("hit")
+
+func drop_to_slot(type: String, key: String, slot: int) -> void:
+	## HTML dropToSlot — reorder if equipped, else equip/replace at slot
+	var arr = ars_arr(type)
+	var cap: int = int(MenuHelpers.ARS_CAP.get(type, 5))
+	var was := arr.find(key)
+	if was >= 0:
+		arr.remove_at(was)
+		slot = clampi(slot, 0, arr.size())
+		arr.insert(slot, key)
+	elif arr.size() < cap:
+		slot = clampi(slot, 0, arr.size())
+		arr.insert(slot, key)
+	else:
+		var s := clampi(slot, 0, maxi(0, arr.size() - 1))
+		arr[s] = key
+	_set_ars(type, arr)
+	_sfx("power")
 
 func _set_ars(type: String, arr: Array) -> void:
 	var ar: Dictionary = ProgressStore.progress.get("arsenal", {})
@@ -121,10 +147,11 @@ func _apply_arsenal_to_run() -> void:
 	GameState.weapons.clear()
 	for x in w:
 		GameState.weapons.append(str(x))
+	# HTML: arsenalW empty → ['laser']; run.weapon falls back to arsenalW[0]||'spread'
 	if GameState.weapons.is_empty():
 		GameState.weapons.append("laser")
 	if GameState.weapons.find(GameState.current_weapon) < 0:
-		GameState.current_weapon = GameState.weapons[0]
+		GameState.current_weapon = str(GameState.weapons[0])
 	GameState.specials.clear()
 	for x in s:
 		GameState.specials.append(str(x))

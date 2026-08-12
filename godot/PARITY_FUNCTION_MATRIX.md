@@ -85,6 +85,22 @@ HTML `update()` (public/index.html ~2405) is distributed across SimClock subscri
 **Intentional HTML fixes in Godot:** mouse drag requires recent `moveT` (not bare LMB) to avoid click-to-fire corner yank.
 
 
+
+## Phase 2 checklist (menus / arsenal / run init)
+
+- [x] `newRun` / `startRun` / `initPlayer` — lives 6, bombs 3, power 1, special 15, iframe 120, y=PF.h-70
+- [x] `toggleArsenal` / `moveArsenal` / `dropToSlot` / `unequipArsenal` / `saveArsenal` — ARS_CAP w5 s5 m2 i3
+- [x] `arsArr` / `arsPool` / `arsItemByKey` / `armedSpec` / `applyArsenalToRun`
+- [x] `addWeapon` / `addSpecial` / `addMelee` / `addBomb` — DataRegistry extend
+- [x] `applyDiff` / `modeTag` / `diffName` / `outfitColors`
+- [x] `drawArsenal` / `drawTitle` / `drawTitleBtn` / `drawMenuBtn`
+- [x] `drawOutfits` / `drawEmblems` / `drawNgSelect` / `drawLeaderboard`
+- [x] `submitScore` / `fetchLB` / `lbIsMine` / `tweetResult`
+- [x] `handleTitleClick` / `exitArsenal` / `fmtScore` / `emPageCount`
+
+**Phase 2 residuals fixed 2026-08-12:** empty weapons → laser (HTML starter); dropToSlot sfx; unequip clamps selConsum; P2Meta.drop_to_slot.
+
+
 ## Full matrix
 
 | Function | Phase | Status | Godot |
