@@ -494,6 +494,9 @@ func enemy_explode(e: Node2D) -> void:
 			pool.clear_enemy_near(e.global_position, 42.0)
 	if e.has_method("take_damage"):
 		e.take_damage(9999.0)
+	# HTML: screenShake=Math.max(screenShake,3.5); sfx('hit')
+	if CombatHelpers:
+		CombatHelpers.screen_shake = maxf(CombatHelpers.screen_shake, 3.5)
 	if AudioBus:
 		AudioBus.sfx("hit")
 

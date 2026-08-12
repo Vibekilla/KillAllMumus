@@ -166,6 +166,29 @@ Fixes in Phase 2 closeout:
 | optionShot scatter/lotus offsets | HTML formula |
 
 
+
+## Phase 5 checklist (items / kills / spawn / specials / draw)
+
+- [x] `killEnemy` / `dropLoot` / `dropItem` / `dropWeapon` / `collectItem`
+- [x] `checkExtend` / `killExtend` / `eliteHearts` / EXTEND_SCORES / KILL_EXTEND
+- [x] `chainLightning` / `nadeBoom` / `enemyExplode`
+- [x] `spawnLil` / `spawnBig` / `spawnElite` / `spawnWaves` / ELITE_* tables
+- [x] `eb` / `ring` / `fanAt` / `heavyShell` (SPD)
+- [x] `spawnBubbles` / `spawnStardust` / `updateItems` / `updateBurns` / `updateFx`
+- [x] `useSpecial` / `specialButton` / `emote`
+- [x] `drawMumu` / `drawElite` / `drawItem` / `drawFx` / `drawMech` / `drawBobo` / `drawFloater` / `drawBurns` / `drawEmote`
+
+## Phase 5 sign-off (2026-08-12)
+
+**Status: COMPLETE** — 36/36 functions.
+
+| Evidence | Result |
+| --- | --- |
+| test_phase5_parity | PASS |
+| Name coverage 36/36 | PASS |
+| enemyExplode screenShake 3.5 | fixed |
+
+
 ## Full matrix
 
 | Function | Phase | Status | Godot |
