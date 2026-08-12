@@ -324,16 +324,15 @@ func _draw_menu_btn(cx: float, y: float) -> Dictionary:
 	ctx.text_align("left")
 	return b
 
-func _draw_heart(x: float, y: float, s: float) -> void:
-	ctx.fill_style("#ff6ec7")
+func _draw_heart(x: float, y: float, r: float) -> void:
+	## HTML drawHeart — cubic bezier heart (#ff4d8d)
+	ctx.fill_style("#ff4d8d")
 	ctx.begin_path()
-	ctx.arc(x - s * 0.35, y, s * 0.4, 0, TAU)
-	ctx.arc(x + s * 0.35, y, s * 0.4, 0, TAU)
-	ctx.fill()
-	ctx.begin_path()
-	ctx.move_to(x - s * 0.7, y)
-	ctx.line_to(x, y + s * 0.85)
-	ctx.line_to(x + s * 0.7, y)
+	ctx.move_to(x, y + r * 0.3)
+	ctx.bezier_curve_to(x, y - r * 0.5, x - r, y - r * 0.5, x - r, y + r * 0.1)
+	ctx.bezier_curve_to(x - r, y + r * 0.7, x, y + r, x, y + r * 1.3)
+	ctx.bezier_curve_to(x, y + r, x + r, y + r * 0.7, x + r, y + r * 0.1)
+	ctx.bezier_curve_to(x + r, y - r * 0.5, x, y - r * 0.5, x, y + r * 0.3)
 	ctx.fill()
 
 func _emblem_def(id: String) -> Dictionary:

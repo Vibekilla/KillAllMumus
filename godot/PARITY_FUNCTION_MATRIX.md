@@ -210,13 +210,42 @@ Fixes in Phase 2 closeout:
 | boss HP ×(2.1+stage×0.07), r38, twin 60%, deadT>150 | verified |
 
 
+## Phase 7 checklist (UI / render helpers / modals)
+
+- [x] `_hEsc` / `wrapText` / `anyModalOpen` — MenuHelpers (+ InputRouter gate)
+- [x] `_hItem` / `_hSec` / `buildHelp` / `openHelp` / `closeHelp` — HelpData + HelpCanvas
+- [x] `_hexA` / `_hexRgb` / `drawHeart` — draw_hud + EndScreen bezier `#ff4d8d`
+- [x] `draw` order / stun stars / charm — WorldDraw + PortedDraw drawers
+- [x] `drawStageBg` / `drawStageBgFx` / `drawBossAmbience` (radial vignette + mandala)
+- [x] `drawPhaseVeil` (lanes + shear 162/26) / `drawSlowmoFx` / `drawHellPortal`
+- [x] `drawPanel` / portrait / touch / `drawEmblemToasts` / `drawPause` → PauseMenu card
+- [x] `drawDialog` / `drawShop` / `shopList` / `shopBuySelected` / `bobinaSay`
+- [x] `drawBullet` / `drawPShot` / `drawMeleeFx` / bosses (Bogdanoff/Robotnik) / HoneyBadger
+- [x] `drawMaidDance` / `drawPosedFigure` / `drawPortraitBust` / `manageGifOverlays` (AssetBank)
+- [x] `neutralizeInputs` / pause-settings-display-keybinds open/close/sync
+- [x] `drawShareBtn` / `drawDebugLayer` / `overlayShow` (DOM→canvas GIF path)
+
+## Phase 7 sign-off (2026-08-12)
+
+**Status: COMPLETE** — 62/62 matrix functions (UI/render/modals).
+
+| Evidence | Result |
+| --- | --- |
+| test_phase7_parity | PASS |
+| test_phase5/6 + neutralize + help_shoutouts | PASS |
+| port:gate:7 (dual harness structure) | PASS |
+| Fixes this pass | phase veil 1:1, heart bezier, boss vignette, anyModalOpen |
+
+> Note: matrix Phase 7 ≠ product dual-QA cutover. `USE_GODOT` live remains off until PARITY.md dual sign-off.
+
+
 ## Full matrix
 
 | Function | Phase | Status | Godot |
 | --- | --- | --- | --- |
-| `_hEsc` | 7 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |
-| `_hItem` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
-| `_hSec` | 7 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |
+| `_hEsc` | 7 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` (`h_esc`) |
+| `_hItem` | 7 | ported | `godot/scripts/ui/menu/HelpData.gd` |
+| `_hSec` | 7 | ported | `godot/scripts/ui/menu/HelpData.gd` |
 | `_hexA` | 7 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
 | `_hexRgb` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
 | `_rgbHue` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
@@ -229,7 +258,7 @@ Fixes in Phase 2 closeout:
 | `advanceScreen` | 6 | ported | `godot/scripts/stages/StageFlow.gd` |
 | `aimAngle` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
 | `angDiff` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
-| `anyModalOpen` | 7 | ported | `godot/scripts/ui/FlowUI.gd` |
+| `anyModalOpen` | 7 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` (+ InputRouter) |
 | `applyArsenalToRun` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
 | `applyDiff` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
 | `applyLayout` | 1 | ported | `godot/autoload/Config.gd` |
@@ -242,7 +271,7 @@ Fixes in Phase 2 closeout:
 | `arsItemByKey` | 2 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
 | `arsPool` | 2 | ported | `godot/scripts/ui/menu/MenuModel.gd` |
 | `arsenalCount` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
-| `bobinaSay` | 7 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
+| `bobinaSay` | 7 | ported | `godot/scripts/stages/StageFlow.gd` |
 | `bodyCtr` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
 | `bossDmgMul` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
 | `bossSpecial` | 6 | ported | `godot/scripts/enemies/bosses/BossController.gd` |
@@ -259,11 +288,11 @@ Fixes in Phase 2 closeout:
 | `checkExtend` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
 | `circle` | 3 | ported | `godot/scripts/render/drawers/drawBobina.gd` |
 | `clearWaveMobs` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
-| `closeDisplay` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `closeDisplay` | 7 | ported | `godot/scripts/ui/DisplayMenu.gd` |
 | `closeGate` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
-| `closeHelp` | 7 | ported | `godot/scripts/ui/PauseMenu.gd` |
-| `closeKeybinds` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
-| `closeSettings` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `closeHelp` | 7 | ported | `godot/scripts/ui/HelpCanvas.gd` |
+| `closeKeybinds` | 7 | ported | `godot/scripts/ui/KeybindsMenu.gd` |
+| `closeSettings` | 7 | ported | `godot/scripts/ui/SettingsMenu.gd` |
 | `closeShoutouts` | 7 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
 | `cloudLinked` | 9 | ported | `godot/autoload/ProgressStore.gd` |
 | `cloudPullAndMerge` | 9 | ported | `godot/autoload/ProgressStore.gd` |
@@ -274,7 +303,7 @@ Fixes in Phase 2 closeout:
 | `consumQty` | 9 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |
 | `consumeSelected` | 8 | ported | `godot/scripts/systems/ConsumableSystem.gd` |
 | `contentUnlocked` | 8 | ported | `godot/autoload/ProgressStore.gd` |
-| `controlsHtml` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `controlsHtml` | 7 | ported | `godot/scripts/ui/SettingsMenu.gd` / HelpData |
 | `cycleConsumable` | 8 | ported | `godot/scripts/systems/ConsumableSystem.gd` |
 | `cycleSpecial` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
 | `dashLandExplosion` | 9 | ported | `godot/scripts/combat/CombatHelpers.gd` |
@@ -284,7 +313,7 @@ Fixes in Phase 2 closeout:
 | `doDash` | 4 | ported | `godot/scripts/player/Player.gd` |
 | `doMeleeSwipe` | 9 | ported | `godot/scripts/systems/MeleeSystem.gd` |
 | `doSaveScore` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
-| `draw` | 7 | ported | `godot/scripts/render/PortedDraw.gd` |
+| `draw` | 7 | ported | `godot/scripts/html_parity/WorldDraw.gd` (+ PortedDraw) |
 | `drawApe` | 6 | ported | `godot/scripts/render/drawers/drawApe.gd` |
 | `drawArsenal` | 2 | ported | `godot/scripts/ui/menu/draw_menus.gd` |
 | `drawBobina` | 3 | ported | `godot/scripts/render/drawers/drawBobina.gd` |
@@ -306,7 +335,7 @@ Fixes in Phase 2 closeout:
 | `drawFloater` | 5 | ported | `godot/scripts/render/FxLayer.gd` |
 | `drawFx` | 5 | ported | `godot/scripts/render/drawers/drawFx.gd` |
 | `drawGameOver` | 6 | ported | `godot/scripts/ui/EndScreen.gd` |
-| `drawHeart` | 7 | ported | `godot/scripts/ui/EndScreen.gd` |
+| `drawHeart` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` + EndScreen |
 | `drawHellPortal` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
 | `drawHoneyBadger` | 7 | ported | `godot/scripts/render/drawers/drawHoneyBadger.gd` |
 | `drawIntro` | 6 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
@@ -328,10 +357,10 @@ Fixes in Phase 2 closeout:
 | `drawPanel` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
 | `drawPanelPortrait` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
 | `drawPanelTouch` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
-| `drawPause` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawPause` | 7 | ported | `godot/scripts/ui/PauseMenu.gd` (HTML #pausescreen) |
 | `drawPhaseVeil` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
 | `drawPolice` | 6 | ported | `godot/scripts/render/drawers/drawPolice.gd` |
-| `drawPortraitBust` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `drawPortraitBust` | 7 | ported | `godot/scripts/render/drawers/drawPortraitBust.gd` |
 | `drawPoseProp` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
 | `drawPosedFigure` | 7 | ported | `godot/scripts/ui/menu/draw_menus.gd` |
 | `drawPowerAura` | 3 | ported | `godot/scripts/render/drawers/drawCombatFx.gd` |
@@ -343,7 +372,7 @@ Fixes in Phase 2 closeout:
 | `drawStageBg` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
 | `drawStageBgFx` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
 | `drawStageClear` | 6 | ported | `godot/scripts/ui/menu/draw_flow.gd` |
-| `drawStunStars` | 7 | ported | `godot/scripts/render/FxLayer.gd` |
+| `drawStunStars` | 7 | ported | `godot/scripts/html_parity/WorldDraw.gd` |
 | `drawTitle` | 2 | ported | `godot/scripts/render/drawers/drawTitle.gd` |
 | `drawTitleBtn` | 2 | ported | `godot/scripts/render/drawers/drawTitle.gd` |
 | `drawWin` | 6 | ported | `godot/scripts/ui/EndScreen.gd` |
@@ -405,9 +434,9 @@ Fixes in Phase 2 closeout:
 | `lockCost` | 8 | ported | `godot/autoload/ProgressStore.gd` |
 | `loginHref` |  | unmapped |  |
 | `loop` | 1 | ported | `godot/scripts/html_parity/SimClock.gd` |
-| `manageGifOverlays` | 7 | ported | `godot/scripts/html_parity/AssetBank.gd` |
+| `manageGifOverlays` | 7 | ported | AssetBank + draw_flow talk gif |
 | `manageTouchUI` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
-| `measureLines` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `measureLines` | 7 | ported | `godot/scripts/ui/menu/draw_flow.gd` (`_wrap_dialog_lines`) |
 | `meleeChargeFx` | 9 | ported | `godot/scripts/systems/MeleeSystem.gd` |
 | `meleeIdxList` | 9 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
 | `modeTag` | 2 | ported | `godot/autoload/GameState.gd` |
@@ -421,18 +450,18 @@ Fixes in Phase 2 closeout:
 | `onBossDefeated` | 6 | ported | `godot/scripts/stages/StageFlow.gd` |
 | `onFsChange` | 1 | ported | `godot/autoload/Config.gd` |
 | `onGameCleared` | 8 | ported | `godot/autoload/ProgressStore.gd` |
-| `openDisplay` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
-| `openHelp` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
-| `openKeybinds` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
-| `openSettings` | 7 | ported | `godot/scripts/ui/TitleScreen.gd` |
+| `openDisplay` | 7 | ported | `godot/scripts/ui/DisplayMenu.gd` |
+| `openHelp` | 7 | ported | `godot/scripts/ui/HelpCanvas.gd` |
+| `openKeybinds` | 7 | ported | `godot/scripts/ui/KeybindsMenu.gd` |
+| `openSettings` | 7 | ported | `godot/scripts/ui/SettingsMenu.gd` / TitleScreen |
 | `openShoutouts` | 7 | ported | `godot/scripts/ui/menu/P2Meta.gd` |
 | `optionOffsets` | 4 | ported | `godot/scripts/combat/FireSystem.gd` |
 | `optionPos` | 4 | ported | `godot/scripts/combat/FireSystem.gd` |
 | `optionShot` | 4 | ported | `godot/scripts/combat/FireSystem.gd` |
 | `outfitColors` | 2 | ported | `godot/autoload/DataRegistry.gd` |
 | `outfitUnlocked` | 8 | ported | `godot/autoload/ProgressStore.gd` |
-| `overlayHide` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
-| `overlayShow` | 7 | ported | `godot/scripts/ui/FlowUI.gd` |
+| `overlayHide` | 7 | ported | canvas GIF path (AssetBank; no DOM) |
+| `overlayShow` | 7 | ported | canvas GIF path (AssetBank; no DOM) |
 | `pOrb` | 3 | ported | `godot/scripts/render/drawers/drawBobina.gd` |
 | `paint` |  | unmapped |  |
 | `pauseReturnMenu` | 7 | ported | `godot/scripts/ui/PauseMenu.gd` |
@@ -447,7 +476,7 @@ Fixes in Phase 2 closeout:
 | `rankLetter` | 4 | ported | `godot/scripts/combat/CombatHelpers.gd` |
 | `readUiOverride` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
 | `rebuildKMAP` | 1 | ported | `godot/project.godot` |
-| `renderKeybinds` | 7 | ported | `godot/scripts/ui/SettingsMenu.gd` |
+| `renderKeybinds` | 7 | ported | `godot/scripts/ui/KeybindsMenu.gd` |
 | `resetInventory` | 8 | ported | `godot/autoload/ProgressStore.gd` |
 | `resumeGame` | 7 | ported | `godot/scripts/ui/PauseMenu.gd` |
 | `ring` | 5 | ported | `godot/scripts/combat/BulletPatterns.gd` |
@@ -506,10 +535,10 @@ Fixes in Phase 2 closeout:
 | `updateBurns` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
 | `updateFx` | 5 | ported | `godot/scripts/systems/SpecialSystem.gd` |
 | `updateItems` | 5 | ported | `godot/scripts/systems/ItemSystem.gd` |
-| `updatePortrait` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `updatePortrait` | 7 | ported | HTML no-op → dialog talk gif in draw_flow |
 | `updateTouchButtons` | 1 | ported | `godot/scripts/input/JoyPad.gd` |
 | `updateWynnHell` | 9 | ported | `godot/scripts/enemies/bosses/BossController.gd` |
 | `useSpecial` | 5 | ported | `godot/scripts/systems/SpecialSystem.gd` |
 | `wrap` |  | unmapped |  |
-| `wrapLines` | 7 | ported | `godot/scripts/ui/menu/draw_hud.gd` |
+| `wrapLines` | 7 | ported | `godot/scripts/ui/menu/draw_flow.gd` (`_wrap_dialog_lines`) |
 | `wrapText` | 7 | ported | `godot/scripts/ui/menu/MenuHelpers.gd` |

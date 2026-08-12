@@ -210,14 +210,22 @@ func drawBossAmbience() -> void:
 	ctx.begin_path()
 	ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	ctx.clip()
-	# 1) darken field — use rgba so we never depend on HSL stroke path for the heavy fill
-	var crgb: Array = _hex_rgb(col_s)
-	var dim_a := 0.22 + 0.12 * rage
-	ctx.fill_style("rgba(%d,%d,%d,%s)" % [
-		int(float(crgb[0]) * 0.12), int(float(crgb[1]) * 0.08), int(float(crgb[2]) * 0.06), str(dim_a)
-	])
-	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
-	ctx.fill_style("rgba(3,1,6,%s)" % str(0.12 + 0.1 * rage))
+	# 1) DARKEN field — HTML radial boss-hued vignette + subtle overall dim
+	if ctx.has_method("createRadialGradient"):
+		var vg = ctx.createRadialGradient(cx, cy, H * 0.14, cx, cy, H * 0.92)
+		vg.add_color_stop(0, "rgba(0,0,0,0)")
+		vg.add_color_stop(0.68, _hsla_rgba(bh, 0.60, 0.05, 0.26 + 0.14 * rage))
+		vg.add_color_stop(1, _hsla_rgba(bh, 0.68, 0.03, 0.58 + 0.14 * rage))
+		ctx.fill_style(vg)
+		ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
+	else:
+		var crgb: Array = _hex_rgb(col_s)
+		var dim_a := 0.22 + 0.12 * rage
+		ctx.fill_style("rgba(%d,%d,%d,%s)" % [
+			int(float(crgb[0]) * 0.12), int(float(crgb[1]) * 0.08), int(float(crgb[2]) * 0.06), str(dim_a)
+		])
+		ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
+	ctx.fill_style("rgba(3,1,6,%s)" % str(0.1 + 0.12 * rage))
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
 	# Clear any leaked portrait shadows before thin ambience strokes
 	if ctx.has_method("shadow_blur"):
@@ -1290,22 +1298,69 @@ func drawEmblemToasts() -> void:
 	ctx.text_align("left")
 
 func drawPhaseVeil() -> void:
+	## HTML drawPhaseVeil — interdimensional veil, lane lines, entry/exit shear bars
 	var p := _player()
-	if p == null or float(p.get("phase_t") if p.get("phase_t") != null else 0.0) <= 0.0:
+	if p == null:
+		return
+	var pt := float(p.get("phase_t") if p.get("phase_t") != null else 0.0)
+	if pt <= 0.0:
 		return
 	var pf: Rect2 = Config.playfield()
+	var t := float(tick)
+	var cx := pf.position.x + pf.size.x * 0.5
+	var cy := pf.position.y + pf.size.y * 0.5
 	ctx.save()
+	ctx.begin_path()
+	ctx.rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
+	ctx.clip()
+	# deep interdimensional veil
 	ctx.fill_style("rgba(14,4,34,0.66)")
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
-	ctx.fill_style("rgba(40,8,70,0.35)")
+	# violet vignette pulling to the edges
+	if ctx.has_method("createRadialGradient"):
+		var vg = ctx.createRadialGradient(cx, cy, 20.0, cx, cy, maxf(pf.size.x, pf.size.y) * 0.7)
+		vg.add_color_stop(0, "rgba(60,20,90,0)")
+		vg.add_color_stop(1, "rgba(40,8,70,0.5)")
+		ctx.fill_style(vg)
+	else:
+		ctx.fill_style("rgba(40,8,70,0.35)")
 	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
-	# drifting motes
-	for i in range(12):
-		var a := float(tick) * 0.05 + float(i)
-		ctx.fill_style("rgba(180,120,255,0.35)")
+	ctx.global_composite_operation("lighter")
+	ctx.fill_style("rgba(60,150,255,0.06)")
+	ctx.fill_rect(pf.position.x, pf.position.y, pf.size.x, pf.size.y)
+	# scrolling lane-lines = the "lane change" feel
+	ctx.stroke_style("rgba(150,230,255,0.22)")
+	ctx.line_width(1)
+	var sp := fmod(t * 4.0, 40.0)
+	var y := pf.position.y - 40.0
+	while y < pf.position.y + pf.size.y:
 		ctx.begin_path()
-		ctx.arc(pf.position.x + fposmod(a * 40.0 + float(i) * 50.0, pf.size.x), pf.position.y + fposmod(a * 30.0 + float(i) * 37.0, pf.size.y), 2, 0, TAU)
-		ctx.fill()
+		ctx.move_to(pf.position.x, y + sp)
+		ctx.line_to(pf.position.x + pf.size.x, y + sp)
+		ctx.stroke()
+		y += 40.0
+	# second, slower violet lane set for parallax
+	ctx.stroke_style("rgba(185,140,255,0.16)")
+	var sp2 := fmod(t * 2.4, 80.0)
+	y = pf.position.y - 80.0
+	while y < pf.position.y + pf.size.y:
+		ctx.begin_path()
+		ctx.move_to(pf.position.x, y + sp2)
+		ctx.line_to(pf.position.x + pf.size.x, y + sp2)
+		ctx.stroke()
+		y += 80.0
+	# shear bars sweep in on entry, out on exit — HTML edge thresholds 162 / 26
+	var edge := 0.0
+	if pt > 162.0:
+		edge = (pt - 162.0) / 18.0
+	elif pt < 26.0:
+		edge = 1.0 - pt / 26.0
+	if edge > 0.0:
+		for i in range(8):
+			var by := pf.position.y + fmod(float(i) * 43.0 + t * 13.0, pf.size.y)
+			var off := sin(t * 0.3 + float(i) * 1.3) * edge * 40.0
+			ctx.fill_style("rgba(120,220,255,%s)" % str(0.28 * edge))
+			ctx.fill_rect(pf.position.x + off, by, pf.size.x, 6.0)
 	ctx.restore()
 
 func drawSlowmoFx() -> void:

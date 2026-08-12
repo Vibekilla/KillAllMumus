@@ -80,6 +80,11 @@ func key_press(k: String) -> void:
 	# Soundgate modal: no start/play/menu keys until dismissed
 	if _soundgate_blocking():
 		return
+	# HTML anyModalOpen() — block game keys while help/display/keybinds/settings/name entry open
+	# (pause toggle still allowed so P can close pause path; Esc/menu for modal close handled by overlays)
+	var MenuHelpers = load("res://scripts/ui/menu/MenuHelpers.gd")
+	if MenuHelpers and MenuHelpers.any_modal_open() and k not in ["pause", "menu"]:
+		return
 	var state = GameState.state
 	# Arsenal exit
 	if state == GameState.State.ARSENAL:

@@ -139,6 +139,7 @@ static func open_url(url: String, same_tab: bool = false) -> void:
 	OS.shell_open(url)
 
 static func wrap_text(ctx, text: String, x: float, y: float, max_w: float, line_h: float, max_lines: int = 4) -> void:
+	## HTML wrapText
 	var words := text.split(" ")
 	var line := ""
 	var ly := y
@@ -157,3 +158,30 @@ static func wrap_text(ctx, text: String, x: float, y: float, max_w: float, line_
 			line = trial
 	if line != "" and lines < max_lines:
 		ctx.fill_text(line, x, ly)
+
+static func h_esc(s: String) -> String:
+	## HTML _hEsc — escape for HTML help builders (HelpCanvas is canvas-only; keep for parity)
+	return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+static func any_modal_open() -> bool:
+	## HTML anyModalOpen — settings / help / keybinds / display / shoutouts / name entry
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return false
+	if GameState and GameState.state == GameState.State.SETTINGS:
+		return true
+	# HelpCanvas: explicit `open` flag
+	for n in tree.get_nodes_in_group("help_canvas"):
+		if n and n.get("open") != null and bool(n.open):
+			return true
+	# Display / keybinds: visible Control overlays
+	for group in ["display_menu", "keybinds_menu"]:
+		for n in tree.get_nodes_in_group(group):
+			if n is CanvasItem and (n as CanvasItem).visible:
+				return true
+	if P2Meta:
+		if P2Meta.get("shoutouts_open") != null and bool(P2Meta.shoutouts_open):
+			return true
+		if P2Meta.get("name_entry_open") != null and bool(P2Meta.name_entry_open):
+			return true
+	return false

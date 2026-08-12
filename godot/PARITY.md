@@ -253,6 +253,9 @@ Settings, Display, Keybinds, Help, Pause, Name Entry, Shoutouts, Soundgate, touc
 
 ### Phase 7 — Full dual QA hard gate (“port complete”)
 
+> **Matrix Phase 7 (62 UI/render/modals functions)** signed COMPLETE in `PARITY_FUNCTION_MATRIX.md` (2026-08-12) via `test_phase7_parity`. That is **not** this dual-QA product gate.
+
+
 Fresh dual report covering **every** system in Phases 2–6, including:
 
 - All weapons, specials, melee (radii/arcs/charge FX), auras, powerups, variants  
