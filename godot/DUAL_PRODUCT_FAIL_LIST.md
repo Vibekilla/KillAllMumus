@@ -36,15 +36,16 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | ID | Area | Notes |
 |----|------|-------|
 | S1 | Settings | Volume defaults 50% vs 100%; icons; help button visible vs crop |
-| S2 | Shop | Random HB quote; LEAVE hint (leave→stage clear) |
+| S2 | Shop | Random HB quote; LEAVE→stage clear improved |
 | S3 | Pause / menus | Dim/blur; Control vs canvas chrome |
 | S4 | Aura bomb | Higher pixel Δ; flash timing |
 | S5 | Item glyphs | ♥★✸ emoji vs monospace feel |
 | S6 | Stage bg intensity | Motif strength vs HTML psychedelia |
 | S7 | Bobina lids/limbs | Menu vs play scale polish |
-| S8 | Special density | Mid-cast particle density product |
+| S8 | Special density | Beams/FX present; ring/particle density still differs |
 | S9 | Boss live patterns | Dual still ≠ live danmaku feel |
 | S10 | Music E2E | Cold load + social tab product verify |
+| S11 | Title social strip | Canvas chips vs HTML DOM #social residual |
 
 ---
 
@@ -70,6 +71,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-08-12 | F5 closed | outfit anim dual names `_8`/`_48` both sides |
 | 2026-08-12 | weapons density | dual volleys 4× with 26px aim nudge (less wall) |
 | 2026-08-12 | F6 closed | HTML mechanics + pickups vacuum stills pair with Godot |
+| 2026-08-12 | F7 partial | special duals clear score/toasts; dual_mode guest auth on title |
 | 2026-08-12 | S2 partial | Shop LEAVE → stage clear when `shop_return==stageclear` |
 
 ---
