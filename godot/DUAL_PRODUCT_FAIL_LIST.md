@@ -23,11 +23,12 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 |----|------|----------|------------------------|
 | F1 | ~~**Weapons dual empty field**~~ | Was aura-only; re-dual → pshots present | **CLOSED** — sync freeze + aim nudge |
 | F2 | ~~**Play state mismatch**~~ | power=1 score=0 + 6 lil both sides | **CLOSED** — forcePlayStill |
-| F3 | **Boss still loadout** | power 6 / score 0 harness | **Harness improved** — live pattern eye-pass open |
-| F4 | ~~**Title dual guest chrome**~~ | 1/44, no NG+, guest auth under dual_mode | **CLOSED** — guest progress + dual_mode auth |
-| F5 | ~~**Outfit anim pair names**~~ | `_8`/`_48` both sides | **CLOSED** |
-| F6 | ~~**Mechanics / pickups HTML missing**~~ | paired stills | **CLOSED** |
-| F7 | **Special dual HUD noise** | HTML score/toasts; flash OK (laser=Kraken Cannon) | **Improved** — clear score/toasts both sides; product FX density still SOFT |
+| F3 | **Boss still loadout** | power 6 / score 0 / no toast / starter kit | **Harness improved** — stills match better; **S9 live** still open |
+| F4 | ~~**Title dual guest chrome**~~ | 1/44, no NG+, guest auth | **CLOSED** |
+| F5 | ~~**Outfit anim pair names**~~ | `_8`/`_48` | **CLOSED** |
+| F6 | ~~**Mechanics / pickups HTML**~~ | paired | **CLOSED** |
+| F7 | **Special dual HUD** | score/toasts cleared | **Improved** — FX density SOFT |
+| F8 | ~~**Settings volume dual**~~ | was 50% vs 100% | **CLOSED** — dual forces music 100% · sfx 90% |
 
 ---
 
@@ -35,7 +36,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Notes |
 |----|------|-------|
-| S1 | Settings | Volume defaults 50% vs 100%; icons; help button visible vs crop |
+| S1 | Settings | Volume dual fixed (100/90); card crop (Controls/Help/Reset) vs HTML viewport still SOFT |
 | S2 | Shop | Random HB quote; LEAVE→stage clear improved |
 | S3 | Pause / menus | Dim/blur; Control vs canvas chrome |
 | S4 | Aura bomb | Higher pixel Δ; flash timing |

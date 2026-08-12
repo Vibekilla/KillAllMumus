@@ -242,7 +242,7 @@ function servePublic() {
             "for(var ui=0;ui<50;ui++){try{if(typeof updateItems==='function')updateItems();}catch(e){break;}}",
             "},",
             "setAura:function(cfg){if(!player||!run)return;cfg=cfg||{};",
-            "emblemToasts=[];flashMsg=null;newEmblems=[];",
+            "emblemToasts=[];flashMsg=null;newEmblems=[];sessionScore=0;totalKills=0;graze=0;",
             "if(cfg.power!=null)run.power=cfg.power;",
             "player.focus=!!cfg.focus;",
             "player.iframe=cfg.iframe!=null?cfg.iframe:120;",
@@ -283,6 +283,7 @@ function servePublic() {
             "if(player){player.face=-Math.PI/2;player.aim=-Math.PI/2;",
             "player.x=PF.x+PF.w/2;player.y=PF.y+PF.h-100;player.iframe=9999;}",
             "dialog=null;bullets=[];pshots=[];enemies=[];",
+            "emblemToasts=[];flashMsg=null;newEmblems=[];sessionScore=0;totalKills=0;graze=0;",
             "return boss&&boss.data?boss.data.portrait:null;",
             "}",
             "};function showNameEntry(){",
@@ -421,11 +422,19 @@ async function captureHtml() {
     // SETTINGS — HTML is a DOM overlay (#settings), not a canvas state
     try {
       await page.evaluate(() => {
+        // S1 same-state: HTML defaults music 100% · sfx 90%
+        try {
+          if (typeof musicVol !== "undefined") musicVol = 1;
+          if (typeof sfxVol !== "undefined") sfxVol = 0.9;
+          if (typeof applyMusicVol === "function") applyMusicVol();
+          if (typeof applySfxVol === "function") applySfxVol();
+        } catch (e) {}
         if (typeof openSettings === "function") openSettings();
         else {
           const el = document.getElementById("settings");
           if (el) el.classList.add("on");
         }
+        if (typeof syncSettingsUI === "function") syncSettingsUI();
       });
       await page.waitForTimeout(fast ? 300 : 500);
       await page.screenshot({ path: path.join(htmlDir, "html_menu_settings.png") });
@@ -928,6 +937,18 @@ async function captureHtml() {
                 boss.x = bx; boss.y = by; boss.mtx = bx; boss.mty = by;
                 boss.stun = 9999; boss.specialT = 0; boss.dash = false;
                 boss.face = Math.PI / 2; bullets = []; pshots = []; dialog = null;
+                if (boss.maxhp) boss.hp = boss.maxhp;
+              }
+              emblemToasts = []; flashMsg = null; sessionScore = 0; totalKills = 0; graze = 0;
+              if (run) {
+                run.power = 6;
+                run.weapon = "laser";
+                if (!run.weapons || !run.weapons.length) run.weapons = ["laser"];
+                if (run.specials && run.specials.length) { /* keep */ } else run.specials = ["mech"];
+              }
+              if (player) {
+                player.x = PF.x + PF.w / 2; player.y = PF.y + PF.h - 100;
+                player.face = -Math.PI / 2; player.aim = -Math.PI / 2; player.iframe = 9999;
               }
             });
             await page.waitForTimeout(fast ? 40 : 60);

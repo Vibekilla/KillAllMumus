@@ -714,10 +714,30 @@ func _run() -> void:
 
 	# Settings + NG select + help + shoutouts (title meta screens)
 	if _want("core"):
+		# S1 same-state: HTML defaults music 100% · sfx 90%
+		var ps_set = _A("ProgressStore")
+		if ps_set and "progress" in ps_set:
+			var st_set: Dictionary = ps_set.progress.get("settings", {})
+			if typeof(st_set) != TYPE_DICTIONARY:
+				st_set = {}
+			st_set["music"] = 100.0
+			st_set["sfx"] = 90.0
+			ps_set.progress["settings"] = st_set
+		var AudioBus = _A("AudioBus")
+		if AudioBus:
+			if AudioBus.has_method("set_music_volume"):
+				AudioBus.set_music_volume(1.0)
+			if AudioBus.has_method("set_sfx_volume"):
+				AudioBus.set_sfx_volume(0.9)
 		GameState.set_state(GameState.State.SETTINGS)
 		_force_ui_size(_main)
+		var settings_ui = _main.get_node_or_null("UI/SettingsMenu")
+		if settings_ui and settings_ui.has_method("_sync_ui"):
+			settings_ui._sync_ui()
 		for _i in range(6 if fast else 10):
 			await process_frame
+			if settings_ui and settings_ui.has_method("_sync_ui"):
+				settings_ui._sync_ui()
 		await _save("godot_menu_settings")
 
 		GameState.set_state(GameState.State.NG_SELECT)
@@ -1492,8 +1512,16 @@ func _run() -> void:
 			player.global_position = Vector2(304, 400)
 			player.aim = -PI / 2.0
 			player.velocity = Vector2.ZERO
+			GameState.session_score = 0
+			GameState.total_kills = 0
+			GameState.graze = 0
+			var ps_aura = _A("ProgressStore")
+			if ps_aura and ps_aura.has_meta("emblem_toasts"):
+				ps_aura.set_meta("emblem_toasts", [])
 			for pwr in [1.0, 3.0, 6.0]:
 				GameState.power = pwr
+				GameState.session_score = 0
+				GameState.total_kills = 0
 				player.set_meta("dual_focus", false)
 				player.focus = false
 				player.shield_t = 0.0
@@ -1848,6 +1876,15 @@ func _run() -> void:
 					GameState.session_score = 0
 					GameState.total_kills = 0
 					GameState.graze = 0
+					# Starter loadout (HTML guest: Red Death + SKOL Mech)
+					GameState.weapons.clear()
+					GameState.weapons.append("laser")
+					GameState.current_weapon = "laser"
+					GameState.specials.clear()
+					GameState.specials.append("mech")
+					var ps_boss = _A("ProgressStore")
+					if ps_boss and ps_boss.has_meta("emblem_toasts"):
+						ps_boss.set_meta("emblem_toasts", [])
 					# HTML spawnBossPortrait: boss mid-field; Bobina lower third for clear read
 					var px_b := pf2.get_center().x
 					var py_b := pf2.position.y + pf2.size.y - 80.0
