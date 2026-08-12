@@ -120,6 +120,29 @@ Fixes in Phase 2 closeout:
 - exitArsenal always sfx('item') + clear arsDrag
 
 
+
+## Phase 3 checklist (render helpers / Bobina FX)
+
+- [x] `lerpAngle` — CombatHelpers.lerp_angle
+- [x] `circle` / `limb` / `pOrb` — drawer modules
+- [x] `coffeeHold` / `poseParams` / `drawPoseProp` — drawCombatFx 1:1
+- [x] `drawMeleeWeapon` — katana/lash/scythe/hammer/claws full HTML
+- [x] `drawPowerAura` / `drawPowerRadiance` / `drawDashComet` / `drawOptions` (shared Phase 1)
+- [x] `drawBobina` — live+cache hybrid (Phase 1)
+- [x] `drawOutfitFigure` / posed figure — draw_menus + field victory
+
+## Phase 3 sign-off (2026-08-12)
+
+**Status: COMPLETE** — 14/14 functions.
+
+| Evidence | Result |
+| --- | --- |
+| test_phase3_parity (poseParams, coffeeHold, lerpAngle, melee keys) | PASS |
+| drawMeleeWeapon HTML lash N=18 + katana ellipse tsuba | fixed |
+| drawPoseProp steam sip&lt;0.5 + gradient flame | fixed |
+| charge ring body_ctr face-aware | fixed |
+
+
 ## Full matrix
 
 | Function | Phase | Status | Godot |

@@ -483,21 +483,22 @@ func poseParams(pose: int, t: float) -> Dictionary:
 	return {"vx": vx, "vy": vy, "lean": lean, "expr": expr, "rot": rot, "bounce": bounce, "sway": sway, "sq": sq}
 
 func drawPoseProp(pose: int, t: float) -> void:
-	## HTML drawPoseProp — This Is Fine fire + coffee
+	## HTML drawPoseProp — This Is Fine fire + coffee (pose===5 only)
 	if pose != 5:
 		return
 	var h := coffeeHold(t)
-	# ring of fire
+	var sip := float(h.get("sip", 0))
+	# ring of fire around base + tall flank flames
 	for i in range(12):
 		var fa := float(i) / 12.0 * TAU
-		var ring := 12.0 if i % 2 else 9.5
+		var ring := 12.0 if (i % 2) else 9.5
 		var fx := cos(fa) * ring
 		var fby := 17.0 + sin(fa) * 4.5
 		var fl := (4.5 + float(i % 3) * 2.4) * (0.55 + 0.45 * absf(sin(t * 0.3 + float(i) * 1.7)))
 		_flame(fx, fby, fl, i, t)
 	for sx in [-13.5, 13.5]:
 		_flame(sx, 14.0, 13.0 + absf(sin(t * 0.25 + sx)) * 6.0, int(sx), t)
-	# coffee mug
+	# coffee mug at hold point
 	ctx.save()
 	ctx.translate(float(h.x), float(h.y) - 0.6)
 	ctx.fill_style("#f4efe6")
@@ -520,41 +521,53 @@ func drawPoseProp(pose: int, t: float) -> void:
 	ctx.begin_path()
 	ctx.arc(2.7, 0.2, 1.3, -1.0, 1.7)
 	ctx.stroke()
-	# steam
-	ctx.stroke_style("rgba(255,255,255,0.45)")
-	ctx.line_width(0.7)
-	for i in range(3):
-		var sx2 := -1.2 + float(i) * 1.2
-		ctx.begin_path()
-		ctx.move_to(sx2, -3.0)
-		ctx.quadratic_curve_to(sx2 + sin(t * 0.1 + float(i)) * 1.2, -5.5 - float(h.sip) * 2.0, sx2, -7.0 - float(h.sip) * 3.0)
-		ctx.stroke()
+	# HTML: steam only while sip < 0.5 (mug not at lips)
+	if sip < 0.5:
+		ctx.stroke_style("rgba(255,255,255,0.4)")
+		ctx.line_width(0.5)
+		for i in range(-1, 2):
+			ctx.begin_path()
+			var s := 0.0
+			while s <= 1.0:
+				var yy := -2.6 - s * 4.0
+				var xx := float(i) * 1.1 + sin(s * 6.0 + t * 0.1 + float(i)) * 0.8
+				if s <= 0.0:
+					ctx.move_to(xx, yy)
+				else:
+					ctx.line_to(xx, yy)
+				s += 0.25
+			ctx.stroke()
 	ctx.restore()
 
 func _flame(fx: float, fby: float, fl: float, i: int, t: float) -> void:
-	ctx.fill_style("#ff2e00")
+	## HTML flame() gradient fill in drawPoseProp
+	if ctx.has_method("createLinearGradient"):
+		var gr = ctx.createLinearGradient(fx, fby, fx, fby - fl)
+		gr.add_color_stop(0, "#ff2e00")
+		gr.add_color_stop(0.5, "#ff8a12")
+		gr.add_color_stop(1, "rgba(255,220,90,0)")
+		ctx.fill_style(gr)
+	else:
+		ctx.fill_style("#ff2e00")
 	ctx.begin_path()
 	ctx.move_to(fx - fl * 0.18 - 0.6, fby)
 	ctx.quadratic_curve_to(fx - 0.8, fby - fl * 0.6, fx + sin(t * 0.22 + float(i)) * 1.3, fby - fl)
 	ctx.quadratic_curve_to(fx + 0.8, fby - fl * 0.6, fx + fl * 0.18 + 0.6, fby)
 	ctx.close_path()
 	ctx.fill()
-	ctx.fill_style("#ff8a12")
-	ctx.begin_path()
-	ctx.move_to(fx - fl * 0.1, fby)
-	ctx.quadratic_curve_to(fx, fby - fl * 0.5, fx + sin(t * 0.3 + float(i)) * 0.6, fby - fl * 0.7)
-	ctx.quadratic_curve_to(fx, fby - fl * 0.4, fx + fl * 0.1, fby)
-	ctx.close_path()
-	ctx.fill()
 
 func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> void:
-	## HTML drawMeleeWeapon — drawn in local space along +X
+	## HTML drawMeleeWeapon 1:1 — local space along +X from hand
+	var lenf := length
 	ctx.line_cap("round")
 	ctx.line_join("round")
+	if ctx.has_method("global_composite_operation"):
+		ctx.global_composite_operation("source-over")
 	if key == "katana":
-		# Handle (no round_rect — triangulation flaky on tiny paths)
 		ctx.fill_style("#241820")
-		ctx.fill_rect(-17, -3.1, 27, 6.2)
+		ctx.begin_path()
+		ctx.round_rect(-17, -3.1, 27, 6.2, 2.6)
+		ctx.fill()
 		ctx.stroke_style("#0d0910")
 		ctx.line_width(1)
 		var wx := -14.0
@@ -567,18 +580,19 @@ func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> 
 			ctx.stroke()
 			wx += 4
 		ctx.fill_style("#3a2a30")
-		ctx.fill_rect(-20, -3.7, 4, 7.4)
+		ctx.begin_path()
+		ctx.round_rect(-20, -3.7, 4, 7.4, 1.5)
+		ctx.fill()
+		# tsuba = ellipse 2.7 x 6.6
 		ctx.fill_style("#e0b040")
 		ctx.begin_path()
-		ctx.arc(10, 0, 4.5, 0, TAU)
+		ctx.ellipse(10, 0, 2.7, 6.6, 0, 0, TAU)
 		ctx.fill()
 		ctx.stroke_style("#8a6a1e")
 		ctx.line_width(0.9)
-		ctx.begin_path()
-		ctx.arc(10, 0, 4.5, 0, TAU)
 		ctx.stroke()
 		var b0 := 13.0
-		var bl := length - b0
+		var bl := lenf - b0
 		ctx.save()
 		ctx.shadow_color(col)
 		ctx.shadow_blur(12 + charge * 8)
@@ -593,12 +607,6 @@ func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> 
 		ctx.restore()
 		ctx.stroke_style("rgba(150,18,38,0.85)")
 		ctx.line_width(0.9)
-		ctx.begin_path()
-		ctx.move_to(b0, -3.1)
-		ctx.quadratic_curve_to(b0 + bl * 0.55, -4.8, b0 + bl, -1.5)
-		ctx.quadratic_curve_to(b0 + bl + 5, 0, b0 + bl, 1.5)
-		ctx.quadratic_curve_to(b0 + bl * 0.55, 3.1, b0, 3.1)
-		ctx.close_path()
 		ctx.stroke()
 		ctx.stroke_style("#fff")
 		ctx.line_width(1.5)
@@ -606,47 +614,85 @@ func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> 
 		ctx.move_to(b0 + 2, -1.4)
 		ctx.quadratic_curve_to(b0 + bl * 0.55, -2.6, b0 + bl - 2, -0.2)
 		ctx.stroke()
+		ctx.stroke_style("rgba(255,190,200,0.7)")
+		ctx.line_width(0.8)
+		ctx.begin_path()
+		ctx.move_to(b0 + 2, 2)
+		ctx.quadratic_curve_to(b0 + bl * 0.55, 1.7, b0 + bl - 2, 0.6)
+		ctx.stroke()
 	elif key == "lash":
-		# whip cord — thick purple lash along +X local
-		ctx.stroke_style(col)
-		ctx.line_width(2.8 + charge * 1.5)
+		# filled wavy tentacle + suckers (HTML N=18)
+		var N := 18
+		var pts: Array = []
+		for i in range(N + 1):
+			var s := lenf * float(i) / float(N)
+			var wob := sin(s * 0.085 + float(tick) * 0.3) * (s / maxf(lenf, 0.01)) * 11.0
+			var w := maxf(1.4, 7.0 * (1.0 - s / maxf(lenf, 0.01) * 0.82))
+			pts.append({"x": s, "y": wob, "w": w})
+		ctx.save()
 		ctx.shadow_color(col)
-		ctx.shadow_blur(10)
+		ctx.shadow_blur(9)
+		ctx.fill_style(col)
 		ctx.begin_path()
-		ctx.move_to(0, 0)
-		ctx.quadratic_curve_to(length * 0.4, -6 - charge * 4, length * 0.75, 2)
-		ctx.quadratic_curve_to(length * 0.9, 4, length, 0)
+		var p0: Dictionary = pts[0]
+		ctx.move_to(float(p0.x), float(p0.y) - float(p0.w))
+		for q in pts:
+			ctx.line_to(float(q.x), float(q.y) - float(q.w))
+		for i in range(N, -1, -1):
+			var q2: Dictionary = pts[i]
+			ctx.line_to(float(q2.x), float(q2.y) + float(q2.w))
+		ctx.close_path()
+		ctx.fill()
+		ctx.restore()
+		ctx.stroke_style("#4a1f7a")
+		ctx.line_width(1)
 		ctx.stroke()
-		ctx.shadow_blur(0)
-		ctx.stroke_style("#fff")
-		ctx.line_width(1.1)
+		ctx.fill_style("#efe0ff")
+		for i in range(2, N, 2):
+			var q3: Dictionary = pts[i]
+			var r := maxf(0.9, float(q3.w) * 0.34)
+			ctx.begin_path()
+			ctx.arc(float(q3.x), float(q3.y) + float(q3.w) * 0.35, r, 0, TAU)
+			ctx.fill()
+		ctx.fill_style("#c9a0f0")
+		for i in range(2, N, 2):
+			var q4: Dictionary = pts[i]
+			ctx.begin_path()
+			ctx.arc(float(q4.x), float(q4.y) + float(q4.w) * 0.35, maxf(0.4, float(q4.w) * 0.15), 0, TAU)
+			ctx.fill()
+		ctx.stroke_style("rgba(255,255,255,0.45)")
+		ctx.line_width(1.4)
 		ctx.begin_path()
-		ctx.move_to(0, 0)
-		ctx.quadratic_curve_to(length * 0.4, -6 - charge * 4, length * 0.75, 2)
-		ctx.quadratic_curve_to(length * 0.9, 4, length, 0)
+		for i in range(N + 1):
+			var q5: Dictionary = pts[i]
+			if i == 0:
+				ctx.move_to(float(q5.x), float(q5.y) - float(q5.w) * 0.45)
+			else:
+				ctx.line_to(float(q5.x), float(q5.y) - float(q5.w) * 0.45)
 		ctx.stroke()
-		ctx.fill_style("#3a2a20")
-		ctx.fill_rect(-8, -3, 12, 6)
 	elif key == "scythe":
-		ctx.stroke_style("#5a4636")
-		ctx.line_width(3.2)
+		var wood := "#3a2c22"
+		ctx.stroke_style(wood)
+		ctx.line_width(3.4)
 		ctx.begin_path()
-		ctx.move_to(-length * 0.2, 0)
-		ctx.line_to(length * 0.9, 0)
+		ctx.move_to(-lenf * 0.2, 0)
+		ctx.line_to(lenf * 0.9, 0)
 		ctx.stroke()
 		ctx.fill_style("#5a4636")
 		ctx.begin_path()
-		ctx.arc(-length * 0.2, 0, 2, 0, TAU)
-		ctx.arc(length * 0.42, 0, 1.8, 0, TAU)
+		ctx.arc(-lenf * 0.2, 0, 2, 0, TAU)
+		ctx.fill()
+		ctx.begin_path()
+		ctx.arc(lenf * 0.42, 0, 1.8, 0, TAU)
 		ctx.fill()
 		ctx.save()
 		ctx.shadow_color(col)
 		ctx.shadow_blur(12)
 		ctx.fill_style(col)
 		ctx.begin_path()
-		ctx.move_to(length * 0.86, 3)
-		ctx.quadratic_curve_to(length * 1.02, -4, length * 0.78, -length * 0.34)
-		ctx.quadratic_curve_to(length * 0.7, -length * 0.16, length * 0.86, -1)
+		ctx.move_to(lenf * 0.86, 3)
+		ctx.quadratic_curve_to(lenf * 1.02, -4, lenf * 0.78, -lenf * 0.34)
+		ctx.quadratic_curve_to(lenf * 0.7, -lenf * 0.16, lenf * 0.86, -1)
 		ctx.close_path()
 		ctx.fill()
 		ctx.restore()
@@ -656,11 +702,19 @@ func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> 
 		ctx.stroke_style("#fff")
 		ctx.line_width(1.1)
 		ctx.begin_path()
-		ctx.move_to(length * 0.88, 1)
-		ctx.quadratic_curve_to(length * 1.0, -4, length * 0.79, -length * 0.31)
+		ctx.move_to(lenf * 0.88, 1)
+		ctx.quadratic_curve_to(lenf * 1.0, -4, lenf * 0.79, -lenf * 0.31)
 		ctx.stroke()
+		ctx.fill_style("#eafff0")
+		ctx.begin_path()
+		ctx.arc(lenf * 0.79, -lenf * 0.32, 1.6, 0, TAU)
+		ctx.fill()
+		ctx.fill_style("#1f7a3a")
+		ctx.begin_path()
+		ctx.arc(lenf * 0.86, 0, 2.4, 0, TAU)
+		ctx.fill()
 	elif key == "hammer":
-		var hlen := length * 0.64
+		var hlen := lenf * 0.64
 		ctx.fill_style("#7a5326")
 		ctx.begin_path()
 		ctx.round_rect(-17, -3, hlen + 17, 6, 2.6)
@@ -672,6 +726,15 @@ func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> 
 		ctx.begin_path()
 		ctx.round_rect(-17, -3, 14, 6, 2.6)
 		ctx.fill()
+		ctx.stroke_style("#2a1c0e")
+		ctx.line_width(1)
+		var gx := -15.0
+		while gx < -3.0:
+			ctx.begin_path()
+			ctx.move_to(gx, -3)
+			ctx.line_to(gx + 1.6, 3)
+			ctx.stroke()
+			gx += 3
 		ctx.save()
 		ctx.translate(hlen + 8, 0)
 		ctx.shadow_color(col)
@@ -685,6 +748,15 @@ func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> 
 		ctx.begin_path()
 		ctx.round_rect(-5, -15, 22, 7, 4)
 		ctx.fill()
+		ctx.fill_style("rgba(120,86,20,0.45)")
+		ctx.begin_path()
+		ctx.round_rect(-5, 9, 22, 6, 4)
+		ctx.fill()
+		ctx.stroke_style("#a9791e")
+		ctx.line_width(1.4)
+		ctx.begin_path()
+		ctx.round_rect(-5, -15, 22, 30, 4)
+		ctx.stroke()
 		ctx.fill_style("#fff8e0")
 		ctx.begin_path()
 		ctx.move_to(9, -8)
@@ -693,22 +765,38 @@ func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> 
 		ctx.line_to(3, 0)
 		ctx.close_path()
 		ctx.fill()
+		ctx.stroke_style("#c9992e")
+		ctx.line_width(1)
+		ctx.stroke()
+		ctx.fill_style("#8a6a1e")
+		for ry in [-11.0, 11.0]:
+			ctx.begin_path()
+			ctx.arc(-1, ry, 1.4, 0, TAU)
+			ctx.fill()
 		ctx.restore()
 	elif key == "claws":
 		ctx.fill_style("#2c2620")
 		ctx.begin_path()
 		ctx.round_rect(-10, -9, 20, 18, 4)
 		ctx.fill()
+		ctx.stroke_style("#4a3a28")
+		ctx.line_width(1)
+		ctx.stroke()
 		ctx.fill_style("#3c3228")
 		ctx.begin_path()
 		ctx.round_rect(3, -8, 9, 16, 3)
 		ctx.fill()
+		ctx.fill_style("#5a4a34")
+		for ky in [-4.0, 0.0, 4.0]:
+			ctx.begin_path()
+			ctx.arc(7, ky, 1.3, 0, TAU)
+			ctx.fill()
 		ctx.save()
 		ctx.shadow_color(col)
 		ctx.shadow_blur(8)
 		for c in range(-1, 2):
 			var y0 := float(c) * 5.5
-			var cl := length - 10.0
+			var cl := lenf - 10.0
 			var tipx := 10.0 + cl
 			var tipy := y0 + float(c) * 9.0
 			ctx.fill_style(col)
@@ -718,12 +806,21 @@ func drawMeleeWeapon(key: String, length: float, col: String, charge: float) -> 
 			ctx.quadratic_curve_to(10 + cl * 0.45, y0 + float(c) * 4.0, 10, y0 + 2.8)
 			ctx.close_path()
 			ctx.fill()
+			ctx.stroke_style("#c9992e")
+			ctx.line_width(0.8)
+			ctx.stroke()
+			ctx.stroke_style("rgba(255,255,255,0.7)")
+			ctx.line_width(0.9)
+			ctx.begin_path()
+			ctx.move_to(12, y0 - 1.9)
+			ctx.quadratic_curve_to(10 + cl * 0.6, y0 + float(c) * 5.0, tipx, tipy)
+			ctx.stroke()
 		ctx.restore()
 	else:
 		ctx.fill_style(col)
 		ctx.shadow_color(col)
 		ctx.shadow_blur(10)
 		ctx.begin_path()
-		ctx.round_rect(8, -2.5, length - 8, 5, 2)
+		ctx.round_rect(8, -2.5, lenf - 8, 5, 2)
 		ctx.fill()
 		ctx.shadow_blur(0)

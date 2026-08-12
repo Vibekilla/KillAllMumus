@@ -205,9 +205,19 @@ func _draw_charge_ring(player: Node, c: float) -> void:
 		if str(m.get("key")) == mk:
 			mcol = str(m.get("col", mcol))
 			break
-	var pos: Vector2 = player.global_position
-	# bodyCtr offset ~ -16 body center
-	var mc = pos + Vector2(0, -16)
+	# HTML charge ring centres on bodyCtr (face-aware)
+	var face := -PI / 2.0
+	if player.get("aim") != null:
+		face = float(player.aim)
+	var mc: Vector2
+	if CombatHelpers and CombatHelpers.has_method("body_ctr"):
+		mc = CombatHelpers.body_ctr({
+			"x": player.global_position.x,
+			"y": player.global_position.y,
+			"face": face,
+		})
+	else:
+		mc = player.global_position + Vector2(0, -16)
 	ctx.save()
 	ctx.global_composite_operation("lighter")
 	ctx.translate(mc.x, mc.y)
