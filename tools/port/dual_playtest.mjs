@@ -437,14 +437,30 @@ async function captureHtml() {
         if (typeof syncSettingsUI === "function") syncSettingsUI();
       });
       await page.waitForTimeout(fast ? 300 : 500);
-      // Capture full .set-card (scrollable) so Controls / Help / Reset match Godot dual
+      // Expand .set-card past max-height so Controls/Help/Reset/Done are in dual still
       try {
+        await page.evaluate(() => {
+          const c = document.querySelector("#settings .set-card");
+          if (c) {
+            c.dataset.dualPrevMax = c.style.maxHeight || "";
+            c.dataset.dualPrevOverflow = c.style.overflow || "";
+            c.style.maxHeight = "none";
+            c.style.overflow = "visible";
+          }
+        });
         const card = page.locator("#settings .set-card").first();
         if (await card.count()) {
           await card.screenshot({ path: path.join(htmlDir, "html_menu_settings.png") });
         } else {
           await page.screenshot({ path: path.join(htmlDir, "html_menu_settings.png") });
         }
+        await page.evaluate(() => {
+          const c = document.querySelector("#settings .set-card");
+          if (c) {
+            c.style.maxHeight = c.dataset.dualPrevMax || "";
+            c.style.overflow = c.dataset.dualPrevOverflow || "";
+          }
+        });
       } catch (_) {
         await page.screenshot({ path: path.join(htmlDir, "html_menu_settings.png") });
       }
