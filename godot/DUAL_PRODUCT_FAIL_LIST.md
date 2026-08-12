@@ -21,12 +21,13 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Evidence | Root cause / next fix |
 |----|------|----------|------------------------|
-| F1 | ~~**Weapons dual empty field**~~ | Was aura-only; re-dual `weapons,power6` → pshots 70–200 | **CLOSED 2026-08-12** — `_dual_freeze_pshots` sync + aim-nudge stream. Still SOFT: HTML toast chrome / score state differs |
-| F2 | ~~**Play state mismatch**~~ | Was mid-fight vs empty; now both power=1 score=0 + 6 lil mumus | **CLOSED 2026-08-12** — `forcePlayStill` / `_dual_force_play_still` |
-| F3 | **Boss still loadout** | HTML spawnBossPortrait forces power 6 / score 0 | **Harness improved** — eye-pass density/patterns still open |
-| F4 | ~~**Title dual guest chrome**~~ | emblems 1/44 + hide NG+ when ngUnlocked=0 | **CLOSED 2026-08-12** — dual forces guest progress; social/auth still SOFT product |
-| F5 | ~~**Outfit anim pair names**~~ | HTML `_a/_b` vs Godot `_8/_48` | **CLOSED** — HTML dual writes `_8`/`_48`; report pairs stems |
-| F6 | ~~**Mechanics / pickups HTML missing**~~ | Report was Godot-only | **CLOSED 2026-08-12** — `forceMechanicsStill` / `forcePickupsVacuum` + paired report |
+| F1 | ~~**Weapons dual empty field**~~ | Was aura-only; re-dual → pshots present | **CLOSED** — sync freeze + aim nudge |
+| F2 | ~~**Play state mismatch**~~ | power=1 score=0 + 6 lil both sides | **CLOSED** — forcePlayStill |
+| F3 | **Boss still loadout** | power 6 / score 0 harness | **Harness improved** — live pattern eye-pass open |
+| F4 | ~~**Title dual guest chrome**~~ | 1/44, no NG+, guest auth under dual_mode | **CLOSED** — guest progress + dual_mode auth |
+| F5 | ~~**Outfit anim pair names**~~ | `_8`/`_48` both sides | **CLOSED** |
+| F6 | ~~**Mechanics / pickups HTML missing**~~ | paired stills | **CLOSED** |
+| F7 | **Special dual HUD noise** | HTML score/toasts; flash OK (laser=Kraken Cannon) | **Improved** — clear score/toasts both sides; product FX density still SOFT |
 
 ---
 

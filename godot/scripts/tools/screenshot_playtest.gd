@@ -476,6 +476,8 @@ func _run() -> void:
 	else:
 		print("[SHOT] filter=all fast=", fast)
 
+	# Dual mode from frame 0 — title guest auth + same-state stills
+	GameState.set_meta("dual_mode", true)
 	# Title — dismiss soundgate like HTML dual clicks #sg-mute
 	GameState.set_state(GameState.State.TITLE)
 	var sg = _main.get_node_or_null("UI/SoundGate")
@@ -1340,10 +1342,19 @@ func _run() -> void:
 				_dual_sanitize(player, pool)
 				GameState.power = 6.0
 				GameState.special_meter = 100.0
+				GameState.session_score = 0
+				GameState.total_kills = 0
+				GameState.graze = 0
 				player.aim = -PI / 2.0
 				player.global_position = Vector2(304, 400)
 				player.set_meta("dual_lock_pose", true)
 				player.set_meta("dual_aim", -PI / 2.0)
+				var ch_clear = _A("CombatHelpers")
+				if ch_clear:
+					ch_clear.flash_msg = {}
+				var ps_sp = _A("ProgressStore")
+				if ps_sp and ps_sp.has_meta("emblem_toasts"):
+					ps_sp.set_meta("emblem_toasts", [])
 				var used := false
 				if sp and sp.has_method("use"):
 					used = bool(sp.use(sk, player, pool))
@@ -1359,6 +1370,9 @@ func _run() -> void:
 					GameState.power = 6.0
 					GameState.session_score = 0
 					GameState.total_kills = 0
+					GameState.graze = 0
+					if ps_sp and ps_sp.has_meta("emblem_toasts"):
+						ps_sp.set_meta("emblem_toasts", [])
 				# Sixth Sense: no fx[] — pin mid-duration slowmo so drawSlowmoFx is visible (a peaks mid-timer)
 				if sk == "sixth":
 					var ch_sm = _A("CombatHelpers")

@@ -341,7 +341,12 @@ func _draw_auth_chrome(W: float, H: float) -> void:
 	var bx := W / 2.0 - btn_w / 2.0
 	var who := ""
 	var logged := false
-	if ApiClient and ApiClient.authenticated:
+	# Dual stills force guest chrome so title pairs match HTML guest screenshots
+	var force_guest := GameState and GameState.has_meta("dual_mode") and bool(GameState.get_meta("dual_mode"))
+	if force_guest:
+		logged = false
+		who = "Play as guest — or link Bobina for cloud saves"
+	elif ApiClient and ApiClient.authenticated:
 		logged = true
 		who = "Signed in as @%s" % str(ApiClient.me.get("username", "Bobina"))
 	else:

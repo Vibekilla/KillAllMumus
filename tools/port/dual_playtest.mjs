@@ -787,11 +787,31 @@ async function captureHtml() {
               if (typeof player !== "undefined" && player) {
                 player.face = -Math.PI / 2; player.aim = -Math.PI / 2;
                 player.x = PF.x + PF.w / 2; player.y = PF.y + PF.h - 120;
+                player.iframe = 9999; player.dead = false; player.focus = false;
               }
+              // Same-state HUD before cast
+              totalKills = 0; sessionScore = 0; graze = 0;
+              emblemToasts = []; flashMsg = null; newEmblems = [];
               window.__kamDual.setSpecial(k);
+              // Keep banner readable mid-window; suppress unlock chrome
+              emblemToasts = [];
+              if (flashMsg) flashMsg.t = 55;
+              // Sixth Sense: pin mid slowmo feel (HTML slowmoT)
+              if (k === "sixth" && typeof slowmoT !== "undefined") {
+                try { slowmoT = 200; } catch (e) {}
+              }
             }
           }, s);
-          await page.waitForTimeout(fast ? 220 : 400);
+          await page.waitForTimeout(fast ? 180 : 280);
+          await page.evaluate(() => {
+            totalKills = 0; sessionScore = 0;
+            emblemToasts = [];
+            if (player) {
+              player.x = PF.x + PF.w / 2; player.y = PF.y + PF.h - 120;
+              player.face = -Math.PI / 2; player.aim = -Math.PI / 2;
+            }
+            if (typeof draw === "function") draw();
+          });
           await page.screenshot({ path: path.join(htmlDir, `html_special_${s}.png`) });
         }
         console.log("[HTML] specials", specs.length);
