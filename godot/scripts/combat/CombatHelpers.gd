@@ -331,9 +331,10 @@ func tick_fx(delta: float) -> void:
 		return
 	var keep_p: Array = []
 	for p in particles:
-		# per-frame velocity (HTML particles push vx in px/frame)
+		# HTML: q.x+=q.vx; q.y+=q.vy; q.vy+=0.12; q.life--
 		p["x"] = float(p.get("x", 0)) + float(p.get("vx", 0)) * df
 		p["y"] = float(p.get("y", 0)) + float(p.get("vy", 0)) * df
+		p["vy"] = float(p.get("vy", 0)) + 0.12 * df
 		p["life"] = float(p.get("life", 0)) - df
 		if float(p["life"]) > 0.0:
 			keep_p.append(p)

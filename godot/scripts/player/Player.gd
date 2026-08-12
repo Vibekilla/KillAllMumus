@@ -241,6 +241,16 @@ func _step(delta: float) -> void:
 		trail.push_front({"wx": global_position.x, "wy": global_position.y})
 		if trail.size() > 16:
 			trail.resize(16)
+		# HTML: outfitColors particle spark each dash frame
+		if CombatHelpers:
+			var oc: Array = CombatHelpers.outfit_colors(str(GameState.selected_outfit) if GameState else "og")
+			if oc.size() < 2:
+				oc = ["#ff5b8d", "#ffd6f2"]
+			CombatHelpers.particles.append({
+				"x": global_position.x, "y": global_position.y,
+				"vx": (randf() - 0.5) * 2.4, "vy": (randf() - 0.5) * 2.4,
+				"life": 16.0, "c": str(oc[0] if randf() < 0.5 else oc[1]),
+			})
 		_dash_plow()
 		# HTML: lock dash landing offset vs cursor so control resumes from HERE
 		var mouse_d := JoyPad.mouse if JoyPad else get_global_mouse_position()
@@ -283,6 +293,13 @@ func _step(delta: float) -> void:
 				velocity *= 0.85  # damp residual during catch-up steps
 		else:
 			velocity *= 0.8
+
+	# HTML: if(Math.abs(p.vx)<0.03)p.vx=0; same for vy — kill micro-drift
+	var vpf := velocity / FRAME  # px/frame
+	if absf(vpf.x) < 0.03:
+		velocity.x = 0.0
+	if absf(vpf.y) < 0.03:
+		velocity.y = 0.0
 
 	# CRITICAL: do NOT use move_and_slide() here — it multiplies by *physics* delta.
 	# Under low FPS physics delta spikes (0.1–0.2s) while velocity is calibrated for
@@ -361,7 +378,8 @@ func _step(delta: float) -> void:
 				"bombFx": bomb_fx,
 				"outfit": GameState.selected_outfit,
 				"power": GameState.power,
-				"lean": clampf(velocity.x / 200.0, -1.0, 1.0),
+				# HTML play never writes p.lean (stays 0)
+				"lean": 0.0,
 				"tick": SimClock.sim_frame if SimClock else 0,
 				"pose": int(ProgressStore.progress.get("pose", 0)),
 			})

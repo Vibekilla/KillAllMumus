@@ -307,9 +307,19 @@ func _update_floaters(df: float) -> void:
 	floaters = keep
 
 func _update_emotes(df: float) -> void:
+	## HTML: em.t++; em.life--; ease toward player (x, y-26)
+	var p := _player()
 	var keep: Array = []
 	for em in emotes:
+		em["t"] = float(em.get("t", 0)) + df
 		em["life"] = float(em.get("life", 0)) - df
+		if p and is_instance_valid(p):
+			var dead_v = p.get("dead")
+			if dead_v == null or not bool(dead_v):
+				# ease factor: HTML *0.3 per frame → for df frames use 1-(1-0.3)^df ≈ clamp
+				var k := 1.0 - pow(0.7, df)
+				em["x"] = float(em.get("x", 0)) + (p.global_position.x - float(em.get("x", 0))) * k
+				em["y"] = float(em.get("y", 0)) + ((p.global_position.y - 26.0) - float(em.get("y", 0))) * k
 		if float(em["life"]) > 0.0:
 			keep.append(em)
 	emotes = keep

@@ -36,11 +36,11 @@ Generated for final 1:1 port pass. Source: `public/index.html` function declarat
 - [x] `optionOffsets` — ported → `godot/scripts/combat/FireSystem.gd`
 - [x] `pOrb` — ported → `godot/scripts/render/drawers/drawBobina.gd`
 - [x] `applyLayout` — ported → `godot/autoload/Config.gd`
-- [ ] `update` — ported → `godot/scripts/main/Main.gd`
+- [x] `update` — ported → `godot/scripts/main/Main.gd`
 
 
 
-## Phase 1 residual notes (2026-08-11 final pass)
+## Phase 1 residual notes (2026-08-12 final pass)
 
 | Item | HTML truth | Godot fix |
 | --- | --- | --- |
@@ -52,9 +52,37 @@ Generated for final 1:1 port pass. Source: `public/index.html` function declarat
 | drawPowerAura sparks | LV5 every 3 ticks + pf trail | spawn into CombatHelpers.particles |
 | Field victory pose | drawPosedFigure motionScale 0 after boss dead | `_draw_posed_field` + sway/bounce*0.4 + aura follow |
 | stageTime scroll | `stageTime\|\|tick` motif | drawStageBg uses EnemySpawner.stage_time |
+| particle gravity | `q.vy+=0.12` | `CombatHelpers.tick_fx` |
 | optionPos | aim/face + (oy+16) body pivot | FireSystem prefers player.aim |
 
 Unmapped (9): applyMe, bumpIdle, hookCloudSaves, loadMe, loginHref, paint, run, syncAccount, wrap — platform/account wrappers, not combat sim.
+
+
+
+## Phase 1 `update()` map (HTML → Godot)
+
+HTML `update()` (public/index.html ~2405) is distributed across SimClock subscribers @ 60 Hz:
+
+| HTML section | Godot |
+| --- | --- |
+| `tick++` | `SimClock._step` → `sim_frame` |
+| `flashMsg.t--` | `CombatHelpers.tick_fx` / `_tick_flash` (before death freeze) |
+| intro / win / !play / paused early-outs | `GameState.state` gates on each subscriber |
+| `p.dead` → respawn + `updateItems` only | `Player._step` death branch; `ItemSystem.tick` items-only when `player_down` |
+| timers iframe/bomb/shield/rapid/dashCd/vial/phase | `Player._step` |
+| `offx/offy*=0.95`, focus, moveT | `Player` + `JoyPad` |
+| movement / dash 18 / knock / face hold | `Player._step` |
+| power −0.00085, special +0.012 | `GameState._on_sim_tick` |
+| fire / melee / flurry | `FireSystem` + `MeleeSystem` + `Player` |
+| waves / stageTime | `EnemySpawner` |
+| pshots / bullets / graze | `BulletPool` + `Bullet` |
+| slowmo 0.4/0.5/0.75 | `CombatHelpers.tick_slowmo` |
+| enemies / burns / boss | `EnemyBase` + `ItemSystem` + `BossController` |
+| items / floaters / emotes | `ItemSystem.tick` |
+| particles `vy+=0.12` + score pops | `CombatHelpers.tick_fx` |
+| `updateFx` specials | `SpecialSystem` |
+
+**Intentional HTML fixes in Godot:** mouse drag requires recent `moveT` (not bare LMB) to avoid click-to-fire corner yank.
 
 
 ## Full matrix
