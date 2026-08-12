@@ -900,7 +900,6 @@ func _run() -> void:
 			for e2 in root.get_tree().get_nodes_in_group("enemies"):
 				if is_instance_valid(e2) and not e2.is_in_group("bosses"):
 					n_en += 1
-					if n_en <= 2:
 			print("[SHOT] same-state play enemies=", n_en,
 				" power=", GameState.power, " score=", GameState.session_score)
 			if wd:
