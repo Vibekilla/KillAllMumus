@@ -189,6 +189,27 @@ Fixes in Phase 2 closeout:
 | enemyExplode screenShake 3.5 | fixed |
 
 
+
+## Phase 6 checklist (stages / boss / clear / win)
+
+- [x] `loadStage` / `spawnBoss` / `updateBoss` / `bossSpecial` / `twinSwap`
+- [x] `onBossDefeated` / `enterPortal` / `enterShop` / `leaveShop` / `advanceScreen`
+- [x] `startDialog` / intro timers 140/120/20 speedrun
+- [x] `drawIntro` / `drawStageClear` / `drawClearGate`
+- [x] `drawBoss` + portrait drawers (ape/mumina/wynn/devil/lily/police/bogdanoff/robotnik)
+- [x] `drawWin` / `drawGameOver` / `onGameCleared` emblems
+
+## Phase 6 sign-off (2026-08-12)
+
+**Status: COMPLETE** — 23/23 functions.
+
+| Evidence | Result |
+| --- | --- |
+| test_phase6_parity | PASS |
+| Name coverage 23/23 | PASS |
+| boss HP ×(2.1+stage×0.07), r38, twin 60%, deadT>150 | verified |
+
+
 ## Full matrix
 
 | Function | Phase | Status | Godot |
