@@ -437,7 +437,17 @@ async function captureHtml() {
         if (typeof syncSettingsUI === "function") syncSettingsUI();
       });
       await page.waitForTimeout(fast ? 300 : 500);
-      await page.screenshot({ path: path.join(htmlDir, "html_menu_settings.png") });
+      // Capture full .set-card (scrollable) so Controls / Help / Reset match Godot dual
+      try {
+        const card = page.locator("#settings .set-card").first();
+        if (await card.count()) {
+          await card.screenshot({ path: path.join(htmlDir, "html_menu_settings.png") });
+        } else {
+          await page.screenshot({ path: path.join(htmlDir, "html_menu_settings.png") });
+        }
+      } catch (_) {
+        await page.screenshot({ path: path.join(htmlDir, "html_menu_settings.png") });
+      }
       console.log("[HTML] menu_settings");
       await page.evaluate(() => {
         const el = document.getElementById("settings");

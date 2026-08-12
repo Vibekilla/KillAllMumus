@@ -36,7 +36,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Notes |
 |----|------|-------|
-| S1 | Settings | Volume dual fixed (100/90); card crop (Controls/Help/Reset) vs HTML viewport still SOFT |
+| S1 | Settings | Volume 100/90 dual fixed; HTML full-card shot + Godot ScrollContainer for Reset/Done |
 | S2 | Shop | Random HB quote; LEAVE→stage clear improved |
 | S3 | Pause / menus | Dim/blur; Control vs canvas chrome |
 | S4 | Aura bomb | Higher pixel Δ; flash timing |
@@ -73,6 +73,10 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-08-12 | weapons density | dual volleys 4× with 26px aim nudge (less wall) |
 | 2026-08-12 | F6 closed | HTML mechanics + pickups vacuum stills pair with Godot |
 | 2026-08-12 | F7 partial | special duals clear score/toasts; dual_mode guest auth on title |
+| 2026-08-12 | F8 closed | settings dual music 100% / sfx 90% both sides |
+| 2026-08-12 | S1 scroll | SettingsMenu ScrollContainer + HTML .set-card element screenshot |
+| 2026-08-12 | Boss dual PASS | typed-array loadout fix verified (7 bosses) |
+| 2026-08-12 | F3 boss | clear toasts + starter Red Death; HTML pin clears unlock chrome |
 | 2026-08-12 | S2 partial | Shop LEAVE → stage clear when `shop_return==stageclear` |
 
 ---

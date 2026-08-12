@@ -47,17 +47,33 @@ func _apply_html_chrome() -> void:
 		panel.custom_minimum_size = Vector2(w, 0)
 		panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var title := get_node_or_null("Panel/VBox/Title") as Label
+		# HTML .set-card max-height + overflow-y:auto — scroll long settings on short viewports
+		var vbox0 := panel.get_node_or_null("VBox") as VBoxContainer
+		if vbox0 == null:
+			var sc0 := panel.get_node_or_null("Scroll") as ScrollContainer
+			if sc0:
+				vbox0 = sc0.get_node_or_null("VBox") as VBoxContainer
+		if vbox0 and panel.get_node_or_null("Scroll") == null:
+			var sc := ScrollContainer.new()
+			sc.name = "Scroll"
+			sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+			sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+			var max_h: float = 480.0
+			if Config:
+				max_h = minf(480.0, float(Config.H) * 0.88)
+			sc.custom_minimum_size = Vector2(w - 8.0, max_h)
+			panel.add_child(sc)
+			vbox0.reparent(sc)
+			vbox0.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var vbox: Node = _settings_vbox()
+	var title := (vbox.get_node_or_null("Title") if vbox else null) as Label
 	if title:
 		title.add_theme_color_override("font_color", OverlayTheme.TITLE_SET)
 		title.add_theme_font_size_override("font_size", 22)
-	var sub := get_node_or_null("Panel/VBox/Sub") as Label
+	var sub := (vbox.get_node_or_null("Sub") if vbox else null) as Label
 	if sub:
 		sub.add_theme_color_override("font_color", OverlayTheme.SUB)
 		sub.add_theme_font_size_override("font_size", 12)
-	var vbox: Node = null
-	if panel:
-		vbox = panel.get_node_or_null("VBox")
 	for sec_name in ["SecAudio", "SecGame", "SecMouse", "SecMore"]:
 		var sec := (vbox.get_node_or_null(sec_name) if vbox else null) as Label
 		if sec:
@@ -138,6 +154,21 @@ func _apply_html_chrome() -> void:
 	if reset_confirm is PanelContainer:
 		(reset_confirm as PanelContainer).add_theme_stylebox_override("panel", OverlayTheme.card_style(OverlayTheme.PINK, 16))
 
+func _settings_vbox() -> VBoxContainer:
+	## Panel/VBox or Panel/Scroll/VBox after HTML-style scroll wrap
+	var panel := get_node_or_null("Panel") as PanelContainer
+	if panel == null:
+		panel = get_node_or_null("CenterHost/Panel") as PanelContainer
+	if panel == null:
+		return null
+	var v := panel.get_node_or_null("VBox") as VBoxContainer
+	if v:
+		return v
+	var sc := panel.get_node_or_null("Scroll") as ScrollContainer
+	if sc:
+		return sc.get_node_or_null("VBox") as VBoxContainer
+	return null
+
 func _insert_hint(vbox: VBoxContainer, after: Node, name: String, text: String) -> void:
 	if after == null or vbox == null:
 		return
@@ -197,11 +228,7 @@ func _refresh_speedrun() -> void:
 			speedrun_btn.add_theme_color_override("font_color", Color(0.776, 0.949, 0.682))
 		else:
 			speedrun_btn.add_theme_color_override("font_color", OverlayTheme.MUTED_BTN)
-	var vbox := get_node_or_null("CenterHost/Panel/VBox")
-	if vbox == null:
-		var p := get_node_or_null("Panel")
-		if p:
-			vbox = p.get_node_or_null("VBox")
+	var vbox := _settings_vbox()
 	var sl := vbox.get_node_or_null("SpeedrunLabel") as Label if vbox else null
 	if sl:
 		var on2 := GameState.speedrun
