@@ -26,7 +26,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | F3 | **Boss still loadout** | HTML spawnBossPortrait forces power 6 / score 0 | **Harness improved** — eye-pass density/patterns still open |
 | F4 | ~~**Title dual guest chrome**~~ | emblems 1/44 + hide NG+ when ngUnlocked=0 | **CLOSED 2026-08-12** — dual forces guest progress; social/auth still SOFT product |
 | F5 | ~~**Outfit anim pair names**~~ | HTML `_a/_b` vs Godot `_8/_48` | **CLOSED** — HTML dual writes `_8`/`_48`; report pairs stems |
-| F6 | **Mechanics / pickups HTML missing** | Report has Godot-only mechanics & vacuum | Add HTML `__kamDual` stills for same states |
+| F6 | ~~**Mechanics / pickups HTML missing**~~ | Report was Godot-only | **CLOSED 2026-08-12** — `forceMechanicsStill` / `forcePickupsVacuum` + paired report |
 
 ---
 
@@ -68,6 +68,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-08-12 | F4 closed | title guest: emblems 1/44 + ngUnlocked=0 (no NG+ button) |
 | 2026-08-12 | F5 closed | outfit anim dual names `_8`/`_48` both sides |
 | 2026-08-12 | weapons density | dual volleys 4× with 26px aim nudge (less wall) |
+| 2026-08-12 | F6 closed | HTML mechanics + pickups vacuum stills pair with Godot |
 | 2026-08-12 | S2 partial | Shop LEAVE → stage clear when `shop_return==stageclear` |
 
 ---

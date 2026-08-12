@@ -204,6 +204,43 @@ function servePublic() {
             "enemies.push({kind:'lil',x:mx,y:my,vx:0,vy:0,r:15,hp:9999,t:0,flash:0,icy:false,stun:0,charm:0});",
             "}",
             "},",
+            // F6: power bleed + graze ring (match godot_mechanics_bleed_graze)
+            "forceMechanicsStill:function(){",
+            "state='play';paused=false;if(!run||!player)return;",
+            "run.stageIdx=0;run.cleared=false;run.power=6;run.special=50;graze=0;totalKills=0;sessionScore=0;",
+            "enemies=[];items=[];fx=[];meleeFx=[];particles=[];boss=null;dialog=null;emblemToasts=[];flashMsg=null;",
+            "player.x=PF.x+PF.w/2;player.y=PF.y+PF.h-120;player.face=-Math.PI/2;player.aim=-Math.PI/2;",
+            "player.iframe=9999;player.focus=false;player.dead=false;player.shieldT=0;player.rapidT=0;player.phaseT=0;",
+            // 90 frames of power bleed (HTML: run.power-=0.00085 when not cleared)
+            "for(var bi=0;bi<90;bi++){if(!run.cleared)run.power=Math.max(1,run.power-0.00085);}",
+            "bullets=[];pshots=[];",
+            "for(var gi=0;gi<12;gi++){",
+            "var ang=gi/12*Math.PI*2, bx=player.x+Math.cos(ang)*14, by=player.y+Math.sin(ang)*14;",
+            "bullets.push({x:bx,y:by,vx:0,vy:0,r:4,dmg:1,col:'#ff6ec7',t:0,life:999,grazed:false,from:'enemy'});",
+            "}",
+            // Simulate graze contacts (HTML graze when near bullet without hit)
+            "for(var g2=0;g2<12;g2++){var b=bullets[g2];if(!b||b.grazed)continue;",
+            "var dx=b.x-player.x,dy=b.y-player.y,d=Math.sqrt(dx*dx+dy*dy);",
+            "if(d>6&&d<22){b.grazed=true;graze++;if(run.special<100)run.special=Math.min(100,(run.special||0)+0.35);}",
+            "}",
+            "sessionScore=0;emblemToasts=[];flashMsg=null;newEmblems=[];",
+            "},",
+            // F6: collect-line vacuum (match godot_pickups_vacuum)
+            "forcePickupsVacuum:function(){",
+            "state='play';paused=false;if(!run||!player)return;",
+            "run.stageIdx=0;run.cleared=false;run.power=2;totalKills=0;sessionScore=0;",
+            "enemies=[];bullets=[];pshots=[];boss=null;dialog=null;emblemToasts=[];",
+            "items=[];",
+            "for(var i=0;i<6;i++){",
+            "var tx=PF.x+80+i*30, ty=PF.y+200;",
+            "items.push({x:tx,y:ty,vx:0,vy:0,type:(i%2===0?'power':'point'),t:0,homing:false});",
+            "}",
+            // park just under collect line so autoAll vacuum runs
+            "player.x=PF.x+PF.w/2;player.y=COLLECT_LINE-8;player.focus=false;player.dead=false;player.iframe=9999;",
+            "player.face=-Math.PI/2;player.aim=-Math.PI/2;",
+            // run updateItems magnet/vacuum several times
+            "for(var ui=0;ui<50;ui++){try{if(typeof updateItems==='function')updateItems();}catch(e){break;}}",
+            "},",
             "setAura:function(cfg){if(!player||!run)return;cfg=cfg||{};",
             "emblemToasts=[];flashMsg=null;newEmblems=[];",
             "if(cfg.power!=null)run.power=cfg.power;",
@@ -901,6 +938,29 @@ async function captureHtml() {
         }
         console.log("[HTML] bosses 7");
       }
+      // F6: mechanics (bleed + graze) + pickups vacuum — pair with Godot stills
+      if (want("pickups") || want("mechanics")) {
+        await page.evaluate(() => {
+          if (window.__kamDual && window.__kamDual.forcePickupsVacuum) {
+            window.__kamDual.forcePickupsVacuum();
+          }
+          if (typeof draw === "function") draw();
+        });
+        await page.waitForTimeout(fast ? 120 : 200);
+        await page.screenshot({ path: path.join(htmlDir, "html_pickups_vacuum.png") });
+        console.log("[HTML] pickups_vacuum");
+      }
+      if (want("mechanics")) {
+        await page.evaluate(() => {
+          if (window.__kamDual && window.__kamDual.forceMechanicsStill) {
+            window.__kamDual.forceMechanicsStill();
+          }
+          if (typeof draw === "function") draw();
+        });
+        await page.waitForTimeout(fast ? 120 : 200);
+        await page.screenshot({ path: path.join(htmlDir, "html_mechanics_bleed_graze.png") });
+        console.log("[HTML] mechanics_bleed_graze");
+      }
     } catch (e) {
       console.log("[HTML] phase3 combat skip", e.message || e);
     }
@@ -1046,13 +1106,15 @@ function writeIndex() {
     }
   }
   if (want("mechanics")) {
-    if (godotShots.includes("godot_mechanics_bleed_graze.png")) {
-      pairs.push(["", "godot_mechanics_bleed_graze.png", "Mechanics · power bleed + graze"]);
+    const hm = "html_mechanics_bleed_graze.png", gm = "godot_mechanics_bleed_graze.png";
+    if (htmlShots.includes(hm) || godotShots.includes(gm)) {
+      pairs.push([hm, gm, "Mechanics · power bleed + graze"]);
     }
   }
   if (want("pickups") || want("mechanics")) {
-    if (godotShots.includes("godot_pickups_vacuum.png")) {
-      pairs.push(["", "godot_pickups_vacuum.png", "Pickups · collect-line vacuum"]);
+    const hp = "html_pickups_vacuum.png", gp = "godot_pickups_vacuum.png";
+    if (htmlShots.includes(hp) || godotShots.includes(gp)) {
+      pairs.push([hp, gp, "Pickups · collect-line vacuum"]);
     }
   }
   if (want("bosses")) {

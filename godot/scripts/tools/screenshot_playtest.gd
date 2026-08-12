@@ -2173,6 +2173,12 @@ func _run() -> void:
 				for b2 in grazers:
 					if is_instance_valid(b2) and b2.has_method("_try_graze"):
 						b2._try_graze()
+			# Same-state HUD: graze count is the product signal; zero score/toasts
+			GameState.session_score = 0
+			GameState.total_kills = 0
+			var ps_m = _A("ProgressStore")
+			if ps_m and ps_m.has_meta("emblem_toasts"):
+				ps_m.set_meta("emblem_toasts", [])
 			print("[SHOT] mechanics power=", GameState.power, " graze=", GameState.graze, " special=", GameState.special_meter)
 			await _save("godot_mechanics_bleed_graze")
 			if pool and pool.has_method("clear_all"):
