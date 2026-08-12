@@ -22,9 +22,9 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | ID | Area | Evidence | Root cause / next fix |
 |----|------|----------|------------------------|
 | F1 | ~~**Weapons dual empty field**~~ | Was aura-only; re-dual `weapons,power6` → pshots 70–200 | **CLOSED 2026-08-12** — `_dual_freeze_pshots` sync + aim-nudge stream. Still SOFT: HTML toast chrome / score state differs |
-| F2 | **Play state mismatch** | `html_play` early stage vs `godot_play` mid-fight | Harness: force same power/kills/score/tick for core play still |
-| F3 | **Boss still loadout** | Boss duals different power/weapon/score than HTML | Same-state force for boss stills |
-| F4 | **Title chrome** | Emblem count, NG+ row, social bar, auth layout differ | Progress bootstrap for dual + layout pass |
+| F2 | ~~**Play state mismatch**~~ | Was mid-fight vs empty; now both power=1 score=0 + 6 lil mumus | **CLOSED 2026-08-12** — `forcePlayStill` / `_dual_force_play_still` |
+| F3 | **Boss still loadout** | HTML spawnBossPortrait now forces power 6 / score 0 | **Partial** — re-dual bosses to verify; weapon row still may differ |
+| F4 | ~~**Title emblem count**~~ | Godot was 16/44 | **CLOSED partial** — strip emblems before title still → 1/44; NG+ row / social still SOFT |
 | F5 | **Outfit anim pair names** | HTML `_a/_b` vs Godot `_8/_48` | Align shot names in dual report |
 | F6 | **Mechanics / pickups HTML missing** | Report has Godot-only mechanics & vacuum | Add HTML `__kamDual` stills for same states |
 

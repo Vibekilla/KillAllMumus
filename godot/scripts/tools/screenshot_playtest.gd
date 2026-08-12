@@ -292,6 +292,79 @@ func _dual_sanitize(player, pool) -> void:
 			if spn and "spawning" in spn:
 				spn.spawning = false
 
+## F2 same-state core play still — matches HTML __kamDual.forcePlayStill
+func _dual_force_play_still(player, pool) -> void:
+	_dual_sanitize(player, pool)
+	# Immediate free residual enemies (queue_free ghosts can linger a frame)
+	for e in root.get_tree().get_nodes_in_group("enemies"):
+		if is_instance_valid(e):
+			_dual_free_node(e)
+	var GS = _A("GameState")
+	if GS:
+		GS.set_state(GS.State.PLAY)
+		GS.stage_index = 0
+		GS.power = 1.0
+		GS.lives = 6
+		GS.bombs = 3
+		GS.session_score = 0
+		GS.total_kills = 0
+		GS.graze = 0
+		GS.current_weapon = "spread"
+		if not GS.weapons.has("spread"):
+			GS.weapons.append("spread")
+		if GS.has_meta("slowmo"):
+			GS.remove_meta("slowmo")
+	if player:
+		player.global_position = Vector2(304, 400)
+		if "aim" in player:
+			player.aim = -PI / 2.0
+		if "velocity" in player:
+			player.velocity = Vector2.ZERO
+		if "invuln" in player:
+			player.invuln = 99999.0
+		if "focus" in player:
+			player.focus = false
+		if "dash" in player:
+			player.dash = 0.0
+		if "trail" in player:
+			player.trail = []
+		player.set_meta("dual_lock_pose", true)
+		player.set_meta("dual_aim", -PI / 2.0)
+		player.set_meta("dual_hold_fx", true)
+		player.set_meta("dual_expr", "")
+	if pool and pool.has_method("clear_all"):
+		pool.clear_all()
+	# Pin 6 lil mumus in a 3×2 grid (HTML forcePlayStill) — same path as elites dual
+	var Cfg = _A("Config")
+	var pf2: Rect2 = Cfg.playfield() if Cfg and Cfg.has_method("playfield") else Rect2(48, 14, 512, 516)
+	var playfield = _main.get_node_or_null("Playfield") if _main else null
+	var EnemyScene = load("res://scenes/enemies/Enemy.tscn")
+	if EnemyScene == null or playfield == null:
+		print("[SHOT] forcePlayStill FAIL playfield=", playfield, " scene=", EnemyScene)
+		return
+	for i in range(6):
+		var mx := pf2.position.x + 90.0 + float(i % 3) * 120.0
+		var my := pf2.position.y + 90.0 + float(int(i / 3)) * 100.0
+		var en = EnemyScene.instantiate()
+		playfield.add_child(en)
+		if en.has_method("setup"):
+			en.setup(pool, Vector2(mx, my), {
+				"kind": "lil",
+				"hp": 9999.0,
+				"vel": Vector2.ZERO,
+				"icy": false,
+				"r": 15.0,
+				"score": 100,
+			})
+		en.visible = true
+		en.set_meta("dual_freeze", true)
+		if "vel" in en:
+			en.vel = Vector2.ZERO
+		if "stun" in en:
+			en.stun = 0.0
+		if "age_frames" in en:
+			en.age_frames = 40.0
+
 ## Freeze player shots in place for dual stills. Must run synchronously after try_fire —
 ## do not await process_frame first: SimClock catch-up can fly pshots off-field in one frame.
 func _dual_freeze_pshots(pool) -> void:
@@ -415,25 +488,25 @@ func _run() -> void:
 		await process_frame
 	# Ensure title host redraws after gate
 	var title = _main.get_node_or_null("UI/TitleScreen")
-	if title and title.has_method("queue_redraw"):
-		title.queue_redraw()
-	for _i in range(4):
-		await process_frame
-	if _want("core"):
-		await _save("godot_title")
-
-	# Dual fairness: HTML guest has only free skins; strip emblem unlocks for menu shots
-	# (in-memory only — process exits; do not queue_save). emblems is Dictionary id→bool.
+	# F4 dual fairness: strip emblem unlocks BEFORE title still (HTML guest ≈ 1/44)
+	# In-memory only — process exits; do not queue_save.
 	var _ps = _A("ProgressStore")
 	var _saved_emblems: Dictionary = {}
 	if _ps:
 		_saved_emblems = _ps.emblems.duplicate(true)
 		_ps.emblems = {"start": true}
 	GameState.selected_outfit = "og"
+	GameState.ng_plus = 0
 	if title and "model" in title and title.model:
 		title.model.outfit_preview = "og"
 		title.model.victory_face = 0
 		title.model.outfit_pose = 0
+	if title and title.has_method("queue_redraw"):
+		title.queue_redraw()
+	for _i in range(4):
+		await process_frame
+	if _want("core"):
+		await _save("godot_title")
 
 	# Meta menus (core dual; skipped on sliced combat duals)
 	if _want("core"):
@@ -779,24 +852,57 @@ func _run() -> void:
 		if player:
 			player.global_position = Vector2(304, 400)
 			player.z_index = 20
-			# Dual playtest: stay alive so godot_play is real combat, not gameover
 			if "invuln" in player:
 				player.invuln = 99999.0
 			GameState.lives = 6
 			var spr = player.get_node_or_null("Sprite")
 			if spr:
 				spr.z_index = 20
-		# Short settle when sliced (no full play firing); long when core
-		var settle := play_frames if _want("core") else (12 if fast else 24)
-		for i in range(settle):
-			await process_frame
-			if player and "invuln" in player:
-				player.invuln = 99999.0
-			if player and player.get("fire_sys") and player.get("bullet_pool") and _want("core"):
-				player.fire_sys.try_fire(player, player.bullet_pool, false)
-		print("[SHOT] enemies=", root.get_tree().get_nodes_in_group("enemies").size(),
-			" player=", player != null, " pos=", player.global_position if player else Vector2.ZERO,
-			" state=", GameState.State.keys()[GameState.state])
+		var pool_play = player.get("bullet_pool") if player else null
+		# F2: same-state play still (not live mid-fight). Sliced combat shots
+		# still get a short settle without the fixed still.
+		if _want("core"):
+			_dual_force_play_still(player, pool_play)
+			var wd = _main.get_node_or_null("WorldCanvas")
+			for _i in range(8 if fast else 12):
+				await process_frame
+				if player and "invuln" in player:
+					player.invuln = 99999.0
+				if player:
+					player.global_position = Vector2(304, 400)
+					if "aim" in player:
+						player.aim = -PI / 2.0
+				GameState.session_score = 0
+				GameState.total_kills = 0
+				GameState.power = 1.0
+				for e in root.get_tree().get_nodes_in_group("enemies"):
+					if is_instance_valid(e) and not e.is_in_group("bosses"):
+						e.visible = true
+						e.set_meta("dual_freeze", true)
+						if "vel" in e:
+							e.vel = Vector2.ZERO
+				if wd:
+					wd.queue_redraw()
+			var n_en := 0
+			for e2 in root.get_tree().get_nodes_in_group("enemies"):
+				if is_instance_valid(e2) and not e2.is_in_group("bosses"):
+					n_en += 1
+					if n_en <= 2:
+						print("[SHOT] en pos=", e2.global_position, " vis=", e2.visible, " kind=", e2.get("kind"))
+			print("[SHOT] same-state play enemies=", n_en,
+				" power=", GameState.power, " score=", GameState.session_score)
+			if wd:
+				wd.queue_redraw()
+			await _save("godot_play")
+		else:
+			var settle := 12 if fast else 24
+			for i in range(settle):
+				await process_frame
+				if player and "invuln" in player:
+					player.invuln = 99999.0
+			print("[SHOT] enemies=", root.get_tree().get_nodes_in_group("enemies").size(),
+				" player=", player != null, " pos=", player.global_position if player else Vector2.ZERO,
+				" state=", GameState.State.keys()[GameState.state])
 		# Ensure still PLAY (player_hit must not have ended the run)
 		if GameState.state != GameState.State.PLAY:
 			GameState.set_state(GameState.State.PLAY)
@@ -807,7 +913,6 @@ func _run() -> void:
 			for _i in range(4):
 				await process_frame
 		if _want("core"):
-			await _save("godot_play")
 			# Touch chrome dual — force ui=touch so joystick + action rail draw
 			var ps_touch = _A("ProgressStore")
 			var joy = _A("JoyPad")

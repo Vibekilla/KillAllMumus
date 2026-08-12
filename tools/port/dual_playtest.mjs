@@ -178,6 +178,32 @@ function servePublic() {
             "setSpecial:function(k){if(!run)return;if(!run.specials)run.specials=[];if(!run.specials.includes(k))run.specials.push(k);run.armed=run.specials.indexOf(k);run.special=100;try{useSpecial();}catch(e){}},",
             "fireBurst:function(n){if(!run||!player)return;var i=n||8;while(i--){try{fire();}catch(e){break;}}},",
             "clearField:function(){enemies=[];bullets=[];pshots=[];items=[];fx=[];meleeFx=[];particles=[];boss=null;dialog=null;},",
+            // Same-state core play still: fixed power/score/pos + pinned lil mumus (no mid-fight drift)
+            "forcePlayStill:function(cfg){",
+            "cfg=cfg||{};",
+            "if(typeof newRun==='function'){try{newRun();}catch(e){}}",
+            "state='play';paused=false;",
+            "if(!run)return;",
+            "run.stageIdx=0;run.lives=6;run.bombs=3;",
+            "run.power=cfg.power!=null?cfg.power:1;",
+            "run.weapon=cfg.weapon||'spread';",
+            "if(!run.weapons)run.weapons=['spread'];",
+            "if(run.weapons.indexOf(run.weapon)<0)run.weapons.push(run.weapon);",
+            "totalKills=cfg.kills!=null?cfg.kills:0;sessionScore=cfg.score!=null?cfg.score:0;graze=0;",
+            "enemies=[];bullets=[];pshots=[];items=[];fx=[];meleeFx=[];particles=[];boss=null;dialog=null;",
+            "emblemToasts=[];flashMsg=null;newEmblems=[];",
+            "if(player){",
+            "player.x=PF.x+PF.w/2;player.y=PF.y+PF.h-120;",
+            "player.face=-Math.PI/2;player.aim=-Math.PI/2;player.vx=0;player.vy=0;",
+            "player.iframe=9999;player.focus=false;player.dead=false;",
+            "player.shieldT=0;player.rapidT=0;player.phaseT=0;player.dash=0;player.bombFx=0;player.trail=[];",
+            "}",
+            "var n=cfg.mumus!=null?cfg.mumus:6;",
+            "for(var i=0;i<n;i++){",
+            "var mx=PF.x+90+(i%3)*120, my=PF.y+90+Math.floor(i/3)*100;",
+            "enemies.push({kind:'lil',x:mx,y:my,vx:0,vy:0,r:15,hp:9999,t:0,flash:0,icy:false,stun:0,charm:0});",
+            "}",
+            "},",
             "setAura:function(cfg){if(!player||!run)return;cfg=cfg||{};",
             "emblemToasts=[];flashMsg=null;newEmblems=[];",
             "if(cfg.power!=null)run.power=cfg.power;",
@@ -207,14 +233,18 @@ function servePublic() {
             "}},",
             "spawnBossPortrait:function(stageIdx){",
             "if(!run)return null;run.stageIdx=stageIdx|0;",
+            // F3 same-state: power 6, score 0, full HP, pinned (match Godot dual)
+            "run.power=6;totalKills=0;sessionScore=0;graze=0;",
             "enemies=[];bullets=[];pshots=[];dialog=null;fx=[];particles=[];emblemToasts=[];flashMsg=null;newEmblems=[];",
             "try{spawnBoss();}catch(e){return null;}",
             // Visible body, pinned center pose (no roam/attack/dialog chrome)
             "if(boss){var bx=PF.x+PF.w/2,by=PF.y+140;",
             "boss.intro=0;boss.introDlg=false;boss.x=bx;boss.y=by;boss.tx=bx;boss.ty=by;boss.mtx=bx;boss.mty=by;",
             "boss.dead=false;boss.specialT=0;boss.stun=9999;boss.flash=0;boss.dash=false;",
+            "if(boss.maxhp)boss.hp=boss.maxhp;",
             "boss.face=Math.PI/2;boss.px=bx;boss.py=by;}",
-            "if(player){player.face=-Math.PI/2;player.aim=-Math.PI/2;}",
+            "if(player){player.face=-Math.PI/2;player.aim=-Math.PI/2;",
+            "player.x=PF.x+PF.w/2;player.y=PF.y+PF.h-100;player.iframe=9999;}",
             "dialog=null;bullets=[];pshots=[];enemies=[];",
             "return boss&&boss.data?boss.data.portrait:null;",
             "}",
@@ -478,7 +508,20 @@ async function captureHtml() {
     await page.keyboard.press("KeyZ");
     await page.waitForTimeout(fast ? 600 : 1200);
     await page.keyboard.press("KeyZ");
-    await page.waitForTimeout(fast ? 900 : 1800);
+    await page.waitForTimeout(fast ? 400 : 600);
+    // F2 same-state play: freeze score/power/pos + pinned mumus (not live mid-fight drift)
+    await page.evaluate(() => {
+      if (window.__kamDual && window.__kamDual.forcePlayStill) {
+        window.__kamDual.forcePlayStill({ power: 1, score: 0, kills: 0, weapon: "spread", mumus: 6 });
+      } else if (window.__kamDual) {
+        window.__kamDual.setState("play");
+        if (window.__kamDual.clearField) window.__kamDual.clearField();
+        if (window.__kamDual.setPower) window.__kamDual.setPower(1);
+        if (window.__kamDual.setScore) window.__kamDual.setScore(0, 0);
+      }
+      if (typeof draw === "function") draw();
+    });
+    await page.waitForTimeout(fast ? 200 : 350);
     await page.screenshot({ path: path.join(htmlDir, "html_play.png") });
     console.log("[HTML] play");
     // Touch chrome dual — force #touch rail + joystick visible
