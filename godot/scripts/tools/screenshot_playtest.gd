@@ -1766,6 +1766,8 @@ func _run() -> void:
 			player.focus = false
 			player.set_meta("dual_focus", false)
 			player.set_meta("dual_hold_fx", true)
+			# Same soap-bubble phase as HTML dual (tick frozen so rings aren't a random dense frame)
+			player.set_meta("dual_lock_tick", 80)
 			var ch_bomb = _A("CombatHelpers")
 			if ch_bomb:
 				if "particles" in ch_bomb:
@@ -1789,6 +1791,8 @@ func _run() -> void:
 			await _save("godot_aura_bomb")
 			player.bomb_fx = 0.0
 			player.invuln = 99999.0
+			if player.has_meta("dual_lock_tick"):
+				player.remove_meta("dual_lock_tick")
 			# Consumable FX duals: bubbles ring + stardust orbit (HTML spawnBubbles / spawnStardust)
 			var items_fx = _A("ItemSystem")
 			if items_fx:

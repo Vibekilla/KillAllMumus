@@ -188,7 +188,8 @@ func drawPShot(s) -> void:
 		ctx.restore()
 		return
 	if bool(s.get("laser", false)):
-		# Red Death — crimson bolt (HTML roundRect+fillRect; fill_rect only = reliable)
+		# HTML: shadowColor #ff3b5c shadowBlur 11; roundRect then 2px core.
+		# fill_rect now honors shadowBlur (pill roundRect r=2 on 4×18 is a rect).
 		ctx.shadow_color("#ff3b5c")
 		ctx.shadow_blur(11)
 		ctx.fill_style("#ffd2da")

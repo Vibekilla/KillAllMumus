@@ -1015,6 +1015,7 @@ async function captureHtml() {
               player.bombFx = 30;
               player.iframe = 0;
             }
+            try { if (typeof tick !== "undefined") tick = 80; } catch (e) {}
             if (typeof draw === "function") draw();
           });
           await page.screenshot({ path: path.join(htmlDir, `html_aura_${name}.png`) });

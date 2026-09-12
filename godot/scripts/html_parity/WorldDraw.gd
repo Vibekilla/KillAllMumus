@@ -160,6 +160,9 @@ func _draw() -> void:
 	if not _is_playish():
 		return
 	ctx.begin_frame()
+	var plock := get_tree().get_first_node_in_group("player") if get_tree() else null
+	if plock and plock.has_meta("dual_lock_tick"):
+		tick = int(plock.get_meta("dual_lock_tick"))
 	if ported.has_method("set_tick"):
 		ported.set_tick(tick)
 	if hud.has_method("set_tick"):

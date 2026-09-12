@@ -1006,6 +1006,19 @@ func fill_rect(x, y, w, h) -> void:
 func _fill_rect_xform(x: float, y: float, w: float, h: float, col: Color) -> void:
 	## Transform-aware rect fill (HTML fillRect under translate/rotate).
 	## Axis-aligned fast path uses draw_rect; rotated uses clipped quads.
+	# HTML fillRect uses current shadowBlur (Red Death / optionShot laser glow).
+	if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
+		var layers := 3
+		var grow_max := clampf(_shadow_blur * 0.42, 1.0, 12.0)
+		for i in range(layers, 0, -1):
+			var t := float(i) / float(layers)
+			var sc := _shadow_col
+			sc.a = _shadow_col.a * _alpha * 0.15 * t
+			var g := grow_max * t
+			_fill_rect_solid(x - g, y - g, w + 2.0 * g, h + 2.0 * g, sc)
+	_fill_rect_solid(x, y, w, h, col)
+
+func _fill_rect_solid(x: float, y: float, w: float, h: float, col: Color) -> void:
 	var p0 := _xform * Vector2(x, y)
 	var p1 := _xform * Vector2(x + w, y)
 	var p2 := _xform * Vector2(x + w, y + h)

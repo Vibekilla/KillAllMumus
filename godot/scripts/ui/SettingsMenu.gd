@@ -58,10 +58,11 @@ func _apply_html_chrome() -> void:
 			sc.name = "Scroll"
 			sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 			sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-			var max_h: float = 480.0
+			var max_h: float = 500.0
 			if Config:
-				max_h = minf(480.0, float(Config.H) * 0.88)
+				max_h = minf(500.0, float(Config.H) * 0.92)
 			sc.custom_minimum_size = Vector2(w - 8.0, max_h)
+			vbox0.add_theme_constant_override("separation", 4)
 			panel.add_child(sc)
 			vbox0.reparent(sc)
 			vbox0.size_flags_horizontal = Control.SIZE_EXPAND_FILL

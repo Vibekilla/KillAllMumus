@@ -241,7 +241,7 @@ static func style_button(b: Button, kind: String = "ghost") -> void:
 	b.add_theme_color_override("font_pressed_color", fc)
 	b.add_theme_font_size_override("font_size", 14)
 	if kind != "primary":
-		b.custom_minimum_size.y = 44
+		b.custom_minimum_size.y = 40
 
 static func style_sec(lab: Label) -> void:
 	if lab == null:

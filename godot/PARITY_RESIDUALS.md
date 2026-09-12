@@ -339,3 +339,5 @@ Aligned with `PHASE_STATUS.md` + fail list (2026-08-12):
 | 2026-09-12 | S4: aura_bomb same-state (bombFx=30, power 4, empty field); guest specials on aura dual |
 | 2026-09-12 | S1/S3: pink HSlider grabber Texture2D (Godot 4 ignores StyleBox grabber) |
 | 2026-09-12 | S1/S3: gold % right-align, cyan Display/Controls, reset/done tints, overlay dim shader, follow 0.6 dual pin |
+| 2026-09-12 | S8: CanvasCompat fillRect honors shadowBlur (mech/Red Death glow); settings 540p shows How to Play |
+| 2026-09-12 | S4: bomb dual pins tick=80 both sides |

@@ -39,14 +39,14 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Notes |
 |----|------|-------|
-| S1 | Settings | Gold % right-align + cyan Display/Controls + reset/done tints (2026-09-12). Dual viewport still crops Help/Reset/Done (HTML element shot is taller); scroll is HTML max-height 92dvh |
+| S1 | Settings | Gold % + cyan buttons. 540p now shows How to Play; Reset/Done still below fold (HTML element shot is taller than 540) |
 | S2 | Shop | Random HB quote; LEAVE→stage clear improved |
 | S3 | Pause / menus | Gold % + 60% follow + cyan Display/Controls (2026-09-12). Backdrop blur weaker than HTML `blur(3px)` in dual SubViewport |
-| S4 | Aura bomb | Same-state mid-window (bombFx=30, power 4, guest kit) dualed 2026-09-12; Godot still shows denser power-aura rings under the pink wash |
+| S4 | Aura bomb | Same-state bombFx=30 / power 4 / tick=80 both sides. Godot soap-bubble still reads denser (GCO lighter stroke boost) |
 | S5 | Item glyphs | ♥★✸ emoji vs monospace feel |
 | S6 | Stage bg intensity | Motif strength vs HTML psychedelia |
 | S7 | Bobina lids/limbs | Menu vs play scale polish |
-| S8 | Special density | **Laser beam 1:1 HTML gradient + 8px core** (2026-09-12); mech columns at live cadence (7×51px, 14 pshots). Residual: CanvasCompat banded gradient vs true canvas; bolt glow slightly lighter |
+| S8 | Special density | Laser beam HTML gradient + 8px core; mech 7×51px; **fillRect now honors shadowBlur** (Red Death glow, 2026-09-12). Residual: banded linearGradient vs true canvas; glow is rect-layered not gaussian |
 | S9 | Boss live patterns | **Harness PASS** — special 114 bullets + live 216 both sides; residual density/spread SOFT |
 | S10 | Music E2E | Cold load + social tab product verify |
 | S11 | Title social strip | Canvas chips vs HTML DOM #social residual |
@@ -90,14 +90,16 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-09-12 | S4 bomb | Same-state bombFx=30 / power 4 / iframe 0 / guest specials |
 | 2026-09-12 | S1/S3 thumbs | HSlider grabber Texture2D is HTML `#ff5b8d` (StyleBox grabber was ignored) |
 | 2026-09-12 | S1/S3 chrome | Gold value spans, cyan Display/Controls, reset/done tints, overlay dim shader, follow 0.6 dual |
+| 2026-09-12 | S8 glow | fillRect shadowBlur (HTML Red Death / optionShot); settings 540p shows How to Play |
+| 2026-09-12 | S4 tick | dual_lock_tick=80 both sides for bomb still |
 
 ---
 
 ## Next execution order
 
-1. **S8 residual** CanvasCompat true linearGradient (banded approx) + mech bolt glow.  
-2. **S4 residual** Power-aura intensity under bomb wash.  
-3. **S1 residual** Settings dual crop of Help/Reset/Done (product rows exist; scroll).  
+1. **S4 residual** Soap-bubble density under bomb wash (GCO lighter).  
+2. **S8 residual** Gaussian vs layered fillRect glow; true linearGradient.  
+3. **S1 residual** Reset/Done below 540p fold.  
 4. **S3 residual** Pause backdrop blur vs HTML.  
 5. **S10** Music cold-load + social tab.  
 5. **S11** Title social strip.  
