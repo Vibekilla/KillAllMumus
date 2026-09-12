@@ -1001,13 +1001,33 @@ func fill_rect(x, y, w, h) -> void:
 	if _fill_grad != null:
 		_fill_rect_gradient(float(x), float(y), float(w), float(h))
 		return
+	_fill_rect_xform(float(x), float(y), float(w), float(h), _c(_fill))
+
+func _fill_rect_xform(x: float, y: float, w: float, h: float, col: Color) -> void:
+	## Transform-aware rect fill (HTML fillRect under translate/rotate).
+	## Axis-aligned fast path uses draw_rect; rotated uses clipped quads.
 	var p0 := _xform * Vector2(x, y)
-	var p1 := _xform * Vector2(x + w, y + h)
-	var r := Rect2(p0, p1 - p0).abs()
-	r = _clip_rect(r)
-	if r.size.x <= 0.0 or r.size.y <= 0.0:
+	var p1 := _xform * Vector2(x + w, y)
+	var p2 := _xform * Vector2(x + w, y + h)
+	var p3 := _xform * Vector2(x, y + h)
+	var axis := absf(p0.y - p1.y) < 0.35 and absf(p0.x - p3.x) < 0.35
+	if axis:
+		var r := Rect2(p0, p2 - p0).abs()
+		r = _clip_rect(r)
+		if r.size.x <= 0.0 or r.size.y <= 0.0:
+			return
+		node.draw_rect(r, col, true)
 		return
-	node.draw_rect(r, _c(_fill), true)
+	var pts := PackedVector2Array([p0, p1, p2, p3])
+	pts = _clip_poly(pts)
+	if pts.size() < 3:
+		return
+	var saved = _fill_grad
+	_fill_grad = null
+	var c0: Vector2 = pts[0]
+	for i in range(1, pts.size() - 1):
+		_draw_tri(c0, pts[i], pts[i + 1], col)
+	_fill_grad = saved
 
 func _sample_grad_at_local(local: Vector2) -> Color:
 	## Sample gradient using local (pre-xform) coords matching HTML canvas space.
@@ -1055,29 +1075,35 @@ func _fill_rect_gradient(x: float, y: float, w: float, h: float) -> void:
 				for si in range(1, pts.size() - 1):
 					_draw_tri(c0, pts[si], pts[si + 1], col)
 		return
-	# Linear: slice along gradient axis into bands (12 is enough for stage/UI gradients;
-	# 32 bands × every fill was a measurable FPS tax on software GL / web).
-	var bands2 = 12
+	# Linear: slice the LOCAL rect along the gradient axis, then transform each band.
+	# (Axis-aligned draw_rect after translating only the origin broke rotate() — Kraken beam.)
+	var span := maxf(absf(g.x1 - g.x0), absf(g.y1 - g.y0))
+	# Stage/UI gradients are wide (12 bands). Narrow beams (Kraken w=58) need ~1px slices
+	# or the linearGradient reads as a striped slab vs HTML's smooth falloff.
+	var bands2 := 12
+	if span < 96.0:
+		bands2 = clampi(int(round(span)), 32, 64)
 	var axis = Vector2(g.x1 - g.x0, g.y1 - g.y0)
 	var vertical = absf(axis.x) < absf(axis.y) * 0.35
+	var saved_g = _fill_grad
+	_fill_grad = null
 	if vertical or absf(axis.x) < 0.001:
 		for i in range(bands2):
 			var t0 = float(i) / float(bands2)
 			var t1 = float(i + 1) / float(bands2)
 			var yy = y + h * t0
-			var hh = h * (t1 - t0) + 0.5
+			var hh = h * (t1 - t0) + 0.35
 			var col = _c(g.sample((t0 + t1) * 0.5))
-			var p = _xform * Vector2(x, yy)
-			node.draw_rect(Rect2(p, Vector2(w, hh)), col, true)
+			_fill_rect_xform(x, yy, w, hh, col)
 	else:
 		for i in range(bands2):
 			var t0b = float(i) / float(bands2)
 			var t1b = float(i + 1) / float(bands2)
 			var xx = x + w * t0b
-			var ww = w * (t1b - t0b) + 0.5
+			var ww = w * (t1b - t0b) + 0.35
 			var colb = _c(g.sample((t0b + t1b) * 0.5))
-			var pb = _xform * Vector2(xx, y)
-			node.draw_rect(Rect2(pb, Vector2(ww, h)), colb, true)
+			_fill_rect_xform(xx, y, ww, h, colb)
+	_fill_grad = saved_g
 
 func stroke_rect(x, y, w, h) -> void:
 	if node == null:

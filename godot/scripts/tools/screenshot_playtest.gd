@@ -1382,6 +1382,13 @@ func _run() -> void:
 				GameState.weapons.clear()
 				GameState.weapons.append("laser")
 				GameState.current_weapon = "laser"
+				# HTML guest arsenalS=['mech','bearzooka'] then setSpecial pushes this key
+				GameState.specials.clear()
+				GameState.specials.append("mech")
+				GameState.specials.append("bearzooka")
+				if sk not in GameState.specials:
+					GameState.specials.append(sk)
+				player.armed_special = int(GameState.specials.find(sk))
 				player.aim = -PI / 2.0
 				player.global_position = Vector2(304, 400)
 				player.set_meta("dual_lock_pose", true)
@@ -1411,6 +1418,9 @@ func _run() -> void:
 					GameState.graze = 0
 					if ps_sp and ps_sp.has_meta("emblem_toasts"):
 						ps_sp.set_meta("emblem_toasts", [])
+					var ai2: int = int(GameState.specials.find(sk))
+					if ai2 >= 0:
+						player.armed_special = ai2
 				# Sixth Sense: no fx[] — pin mid-duration slowmo so drawSlowmoFx is visible (a peaks mid-timer)
 				if sk == "sixth":
 					var ch_sm = _A("CombatHelpers")
@@ -1493,41 +1503,38 @@ func _run() -> void:
 								"vy": 2.5,
 								"ty": pf_bd.position.y + 200.0 + float(d) * 40.0,
 							})
-				# S8: mech dual — seed optionShot columns if settle left the field empty (SimClock catch-up)
+				# S8: mech dual — HTML updateFx fires both cannons every 3f at laser spd 17
+				# 360ms HTML wait ≈ 7 volleys; spacing = 17*3 = 51px (live cadence, not packed)
 				if sk == "mech" and pool and sp:
-					var n_ps := 0
-					if pool.has_method("iter_active"):
-						for b0 in pool.iter_active():
-							if is_instance_valid(b0) and int(b0.team) == 0:
-								n_ps += 1
-					if n_ps < 10:
-						var mx: float = player.global_position.x
-						var my: float = player.global_position.y - 46.0
-						if sp.get("fx") is Array:
-							for fm in sp.fx:
-								if typeof(fm) == TYPE_DICTIONARY and str(fm.get("type", "")) == "mech":
-									mx = float(fm.get("x", mx))
-									my = float(fm.get("y", my))
-									break
-						var fire_sys = player.get("fire_sys")
-						var aim_m: float = -PI / 2.0
-						if fire_sys and fire_sys.has_method("option_shot"):
-							for vol in range(5):
-								var before_ids: Dictionary = {}
-								for bb in pool.iter_active():
-									if is_instance_valid(bb):
-										before_ids[bb.get_instance_id()] = true
-								fire_sys.option_shot(pool, mx - 9.0, my, aim_m, "laser")
-								fire_sys.option_shot(pool, mx + 9.0, my, aim_m, "laser")
-								var nudge_m: Vector2 = Vector2(0, -1) * float(vol) * 28.0
-								for b1 in pool.iter_active():
-									if not is_instance_valid(b1) or int(b1.team) != 0:
-										continue
-									if before_ids.has(b1.get_instance_id()):
-										continue
-									b1.global_position += nudge_m
-									b1.velocity = Vector2.ZERO
-									b1.set_meta("dual_freeze", true)
+					if pool.has_method("clear_all"):
+						pool.clear_all()
+					var mx: float = player.global_position.x
+					var my: float = player.global_position.y - 46.0
+					if sp.get("fx") is Array:
+						for fm in sp.fx:
+							if typeof(fm) == TYPE_DICTIONARY and str(fm.get("type", "")) == "mech":
+								mx = float(fm.get("x", mx))
+								my = float(fm.get("y", my))
+								break
+					var fire_sys = player.get("fire_sys")
+					var aim_m: float = -PI / 2.0
+					if fire_sys and fire_sys.has_method("option_shot"):
+						for vol in range(7):
+							var before_ids: Dictionary = {}
+							for bb in pool.iter_active():
+								if is_instance_valid(bb):
+									before_ids[bb.get_instance_id()] = true
+							fire_sys.option_shot(pool, mx - 9.0, my, aim_m, "laser")
+							fire_sys.option_shot(pool, mx + 9.0, my, aim_m, "laser")
+							var nudge_m: Vector2 = Vector2(0, -1) * float(vol) * 51.0
+							for b1 in pool.iter_active():
+								if not is_instance_valid(b1) or int(b1.team) != 0:
+									continue
+								if before_ids.has(b1.get_instance_id()):
+									continue
+								b1.global_position += nudge_m
+								b1.velocity = Vector2.ZERO
+								b1.set_meta("dual_freeze", true)
 					_dual_freeze_pshots(pool)
 					var n_after := 0
 					if pool.has_method("iter_active"):
@@ -1585,6 +1592,14 @@ func _run() -> void:
 			GameState.session_score = 0
 			GameState.total_kills = 0
 			GameState.graze = 0
+			# Guest kit — don't inherit specials appended during the specials dual
+			GameState.specials.clear()
+			GameState.specials.append("mech")
+			GameState.specials.append("bearzooka")
+			player.armed_special = 0
+			GameState.weapons.clear()
+			GameState.weapons.append("laser")
+			GameState.current_weapon = "laser"
 			var ps_aura = _A("ProgressStore")
 			if ps_aura and ps_aura.has_meta("emblem_toasts"):
 				ps_aura.set_meta("emblem_toasts", [])
@@ -1715,14 +1730,43 @@ func _run() -> void:
 			await _save("godot_aura_dash")
 			player.dash = 0.0
 			player.trail = []
+			# S4: same-state bomb flash — empty field, power 4, mid-window bombFx=30 (HTML alpha≈0.33)
+			_dual_sanitize(player, pool)
+			GameState.power = 4.0
+			GameState.session_score = 0
+			GameState.total_kills = 0
+			GameState.graze = 0
+			player.invuln = 0.0  # no iframe blink; pink wash is the product still
 			player.bomb_fx = 30.0
+			player.shield_t = 0.0
+			player.rapid_t = 0.0
+			player.phase_t = 0.0
+			player.focus = false
+			player.set_meta("dual_focus", false)
+			player.set_meta("dual_hold_fx", true)
+			var ch_bomb = _A("CombatHelpers")
+			if ch_bomb:
+				if "particles" in ch_bomb:
+					ch_bomb.particles.clear()
+				if "flash_msg" in ch_bomb:
+					ch_bomb.flash_msg = {}
 			for _i in range(4):
 				await process_frame
 				player.bomb_fx = 30.0
+				player.invuln = 0.0
 				player.aim = -PI / 2.0
 				player.global_position = Vector2(304, 400)
+				GameState.power = 4.0
+				GameState.session_score = 0
+				for e in root.get_tree().get_nodes_in_group("enemies"):
+					if is_instance_valid(e) and not e.is_in_group("bosses"):
+						_dual_free_node(e)
+				if pool and pool.has_method("clear_all"):
+					pool.clear_all()
+			print("[SHOT] aura_bomb bomb_fx=", player.bomb_fx, " power=", GameState.power)
 			await _save("godot_aura_bomb")
 			player.bomb_fx = 0.0
+			player.invuln = 99999.0
 			# Consumable FX duals: bubbles ring + stardust orbit (HTML spawnBubbles / spawnStardust)
 			var items_fx = _A("ItemSystem")
 			if items_fx:

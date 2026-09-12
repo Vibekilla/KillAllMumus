@@ -42,11 +42,11 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | S1 | Settings | Volume 100/90 dual fixed; HTML full-card shot + Godot ScrollContainer for Reset/Done |
 | S2 | Shop | Random HB quote; LEAVE→stage clear improved |
 | S3 | Pause / menus | Dim/blur; Control vs canvas chrome |
-| S4 | Aura bomb | Higher pixel Δ; flash timing |
+| S4 | Aura bomb | Same-state mid-window (bombFx=30, power 4, guest kit) dualed 2026-09-12; Godot still shows denser power-aura rings under the pink wash |
 | S5 | Item glyphs | ♥★✸ emoji vs monospace feel |
 | S6 | Stage bg intensity | Motif strength vs HTML psychedelia |
 | S7 | Bobina lids/limbs | Menu vs play scale polish |
-| S8 | Special density | Mech optionShot columns now both sides; Godot column length/beam width still lighter |
+| S8 | Special density | **Laser beam 1:1 HTML gradient + 8px core** (2026-09-12); mech columns at live cadence (7×51px, 14 pshots). Residual: CanvasCompat banded gradient vs true canvas; bolt glow slightly lighter |
 | S9 | Boss live patterns | **Harness PASS** — special 114 bullets + live 216 both sides; residual density/spread SOFT |
 | S10 | Music E2E | Cold load + social tab product verify |
 | S11 | Title social strip | Canvas chips vs HTML DOM #social residual |
@@ -85,13 +85,18 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-08-12 | S9 harness | `forceBossSpecial` / `forceBossPattern` + Godot freeze-all-bullets; dual shows Diamond Hands + phase-0 danmaku |
 | 2026-08-12 | S8 partial | Mech dual seeds optionShot columns + freeze pshots (was empty field) |
 | 2026-08-12 | F3/F7 closed | residual art density stays SOFT |
+| 2026-09-12 | S8 laser | HTML `createLinearGradient(-hw,0,hw,0)` + 8px core; CanvasCompat fillRect now transform-safe |
+| 2026-09-12 | S8 mech | Guest kit + armed special; 7 volleys × 51px (HTML `ct%3` × laser spd 17) |
+| 2026-09-12 | S4 bomb | Same-state bombFx=30 / power 4 / iframe 0 / guest specials |
+| 2026-09-12 | S1/S3 thumbs | HSlider grabber Texture2D is HTML `#ff5b8d` (StyleBox grabber was ignored) |
 
 ---
 
 ## Next execution order
 
-1. **S8/S4** Special/aura particle density polish (mech column length, laser beam width, bomb flash).  
-2. **S1/S3** Settings + pause chrome polish.  
-3. **S10** Music cold-load + social tab.  
-4. **S11** Title social strip.  
-5. GPU FPS — only then Phase 7 product sign-off discussion.
+1. **S1/S3** Settings + pause chrome (pink thumbs shipped; % right-align + blur residual).  
+2. **S8 residual** CanvasCompat true linearGradient (banded approx) + mech bolt glow.  
+3. **S4 residual** Power-aura intensity under bomb wash.  
+4. **S10** Music cold-load + social tab.  
+5. **S11** Title social strip.  
+6. GPU FPS — only then Phase 7 product sign-off discussion.

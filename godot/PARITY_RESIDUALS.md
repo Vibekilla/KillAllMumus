@@ -334,3 +334,7 @@ Aligned with `PHASE_STATUS.md` + fail list (2026-08-12):
 | 2026-08-02 | Blank playfield: WorldDraw parse fail on hy_v := ternary (no set type) — explicit float types + load-guard test |
 | 2026-08-01 | Lotus curl/life HTML; stageclear introTimer=120; focus ring already shipped |
 | 2026-08-11 | **UNPLAYABLE:** SimClock catch-up multi-fired just_pressed (bomb×N); edge latch per display frame + soundgate blocks keys |
+| 2026-09-12 | S8: Kraken beam uses HTML linearGradient + 8px core; CanvasCompat fill_rect/gradient now xform quads (was AABB slab / too-thin bands) |
+| 2026-09-12 | S8: mech dual columns at live optionShot cadence (7×51px); specials HUD guest kit + arm used key |
+| 2026-09-12 | S4: aura_bomb same-state (bombFx=30, power 4, empty field); guest specials on aura dual |
+| 2026-09-12 | S1/S3: pink HSlider grabber Texture2D (Godot 4 ignores StyleBox grabber) |

@@ -243,6 +243,8 @@ function servePublic() {
             "},",
             "setAura:function(cfg){if(!player||!run)return;cfg=cfg||{};",
             "emblemToasts=[];flashMsg=null;newEmblems=[];sessionScore=0;totalKills=0;graze=0;",
+            // Same-state starter HUD (match Godot dual guest kit)
+            "run.weapon='laser';run.weapons=['laser'];run.specials=['mech'];run.armed=0;",
             "if(cfg.power!=null)run.power=cfg.power;",
             "player.focus=!!cfg.focus;",
             "player.iframe=cfg.iframe!=null?cfg.iframe:120;",
@@ -914,6 +916,31 @@ async function captureHtml() {
             // Freeze pshots for still so columns don't fly off before capture
             if (k === "mech" || k === "bearzooka") {
               if (typeof pshots !== "undefined" && pshots) {
+                // S8: if sparse, seed dual laser columns like Godot dual (optionShot from mech)
+                if (k === "mech" && pshots.length < 12 && typeof optionShot === "function" && player) {
+                  const face = player.aim !== undefined ? player.aim : -Math.PI / 2;
+                  let mx = player.x, my = player.y - 46;
+                  if (typeof fx !== "undefined" && fx) {
+                    for (let fi = 0; fi < fx.length; fi++) {
+                      if (fx[fi] && fx[fi].type === "mech") { mx = fx[fi].x; my = fx[fi].y; break; }
+                    }
+                  }
+                  pshots = [];
+                  // Live cadence: optionShot every 3f at laser spd 17 → 51px; 360ms ≈ 7 volleys
+                  for (let vol = 0; vol < 7; vol++) {
+                    try {
+                      optionShot(mx - 9, my, face, "laser");
+                      optionShot(mx + 9, my, face, "laser");
+                    } catch (e) {}
+                    const n = pshots.length;
+                    for (let j = Math.max(0, n - 2); j < n; j++) {
+                      if (pshots[j]) {
+                        pshots[j].x += Math.cos(face) * vol * 51;
+                        pshots[j].y += Math.sin(face) * vol * 51;
+                      }
+                    }
+                  }
+                }
                 for (let i = 0; i < pshots.length; i++) {
                   if (pshots[i]) { pshots[i].vx = 0; pshots[i].vy = 0; }
                 }
@@ -952,13 +979,36 @@ async function captureHtml() {
           ["vial", { power: 4, vialT: 120, vialHits: 3, iframe: 9999 }],
           ["phase", { power: 4, phaseT: 120, iframe: 9999 }],
           ["dash", { power: 4, dash: 12, dashAng: -Math.PI / 2, iframe: 9999 }],
-          ["bomb", { power: 4, bombFx: 30, iframe: 9999 }],
+          // S4: mid-window pink wash only (iframe 0 so Bobina solid; clear field)
+          ["bomb", { power: 4, bombFx: 30, iframe: 0 }],
         ];
         for (const [name, cfg] of auraShots) {
           await page.evaluate((c) => {
-            if (window.__kamDual && window.__kamDual.setAura) window.__kamDual.setAura(c);
+            if (window.__kamDual) {
+              if (window.__kamDual.clearField) window.__kamDual.clearField();
+              if (window.__kamDual.setAura) window.__kamDual.setAura(c);
+            }
+            // Re-pin still after clear
+            if (player) {
+              player.x = PF.x + PF.w / 2;
+              player.y = PF.y + PF.h - 120;
+              player.face = -Math.PI / 2;
+              player.aim = -Math.PI / 2;
+              player.dead = false;
+            }
+            totalKills = 0; sessionScore = 0; graze = 0;
+            emblemToasts = []; flashMsg = null; newEmblems = [];
+            if (typeof draw === "function") draw();
           }, cfg);
           await page.waitForTimeout(fast ? 100 : 160);
+          await page.evaluate(() => {
+            if (player && player.bombFx > 0) {
+              // hold mid-window (setAura may tick during wait)
+              player.bombFx = 30;
+              player.iframe = 0;
+            }
+            if (typeof draw === "function") draw();
+          });
           await page.screenshot({ path: path.join(htmlDir, `html_aura_${name}.png`) });
         }
         console.log("[HTML] auras", 3 + auraShots.length);

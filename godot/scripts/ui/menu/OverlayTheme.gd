@@ -75,6 +75,30 @@ static func slider_grabber() -> StyleBoxFlat:
 	sb.set_expand_margin_all(4)
 	return sb
 
+static var _grabber_tex: Texture2D
+
+static func grabber_texture() -> Texture2D:
+	## Godot 4 HSlider grabber is a Texture2D, not a StyleBox (HTML range thumb is #ff5b8d).
+	if _grabber_tex != null:
+		return _grabber_tex
+	var s := 18
+	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var cx := (s - 1) * 0.5
+	var r := 6.5
+	for y in range(s):
+		for x in range(s):
+			var d := Vector2(float(x), float(y)).distance_to(Vector2(cx, cx))
+			if d <= r + 0.6:
+				var a := clampf(r + 0.6 - d, 0.0, 1.0)
+				var col := PINK
+				if d <= r - 1.2:
+					col = Color(1.0, 0.48, 0.64)  # inner highlight like HTML thumb
+				col.a = a
+				img.set_pixel(x, y, col)
+	_grabber_tex = ImageTexture.create_from_image(img)
+	return _grabber_tex
+
 static func slider_area() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(1, 1, 1, 0.12)
@@ -98,6 +122,10 @@ static func style_slider(s: HSlider) -> void:
 	var g := slider_grabber()
 	s.add_theme_stylebox_override("grabber", g)
 	s.add_theme_stylebox_override("grabber_highlight", g)
+	var gt := grabber_texture()
+	s.add_theme_icon_override("grabber", gt)
+	s.add_theme_icon_override("grabber_highlight", gt)
+	s.add_theme_icon_override("grabber_disabled", gt)
 	s.custom_minimum_size.y = 18
 
 static func style_button(b: Button, kind: String = "ghost") -> void:
