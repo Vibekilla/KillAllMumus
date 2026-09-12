@@ -60,11 +60,25 @@ static func _hue_to_rgb(p: float, q: float, t: float) -> float:
 		return p + (q - p) * (2.0 / 3.0 - tt) * 6.0
 	return p
 
+## Hot-path cache — drawers pass the same #hex / rgba() strings thousands of times/frame.
+const _CSS_CACHE_MAX := 2048
+static var _css_cache: Dictionary = {}
+
 static func parse_css(c) -> Color:
 	## HTML fillStyle / strokeStyle strings: #hex, rgb(), rgba(), hsl(), hsla()
 	if c is Color:
 		return c
 	var s := str(c).strip_edges().replace("'", "").replace('"', '')
+	if s.is_empty():
+		return Color.WHITE
+	if _css_cache.has(s):
+		return _css_cache[s]
+	var col := _parse_css_uncached(s)
+	if _css_cache.size() < _CSS_CACHE_MAX:
+		_css_cache[s] = col
+	return col
+
+static func _parse_css_uncached(s: String) -> Color:
 	if s.begins_with("rgba(") or s.begins_with("rgb("):
 		var inner := s.trim_prefix("rgba(").trim_prefix("rgb(").trim_suffix(")")
 		var parts := inner.split(",")

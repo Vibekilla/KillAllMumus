@@ -47,25 +47,9 @@ func _apply_html_chrome() -> void:
 		panel.custom_minimum_size = Vector2(w, 0)
 		panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		# HTML .set-card max-height + overflow-y:auto — scroll long settings on short viewports
 		var vbox0 := panel.get_node_or_null("VBox") as VBoxContainer
-		if vbox0 == null:
-			var sc0 := panel.get_node_or_null("Scroll") as ScrollContainer
-			if sc0:
-				vbox0 = sc0.get_node_or_null("VBox") as VBoxContainer
-		if vbox0 and panel.get_node_or_null("Scroll") == null:
-			var sc := ScrollContainer.new()
-			sc.name = "Scroll"
-			sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-			sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-			var max_h: float = 500.0
-			if Config:
-				max_h = minf(500.0, float(Config.H) * 0.92)
-			sc.custom_minimum_size = Vector2(w - 8.0, max_h)
+		if vbox0:
 			vbox0.add_theme_constant_override("separation", 4)
-			panel.add_child(sc)
-			vbox0.reparent(sc)
-			vbox0.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var vbox: Node = _settings_vbox()
 	var title := (vbox.get_node_or_null("Title") if vbox else null) as Label
 	if title:
@@ -155,6 +139,14 @@ func _apply_html_chrome() -> void:
 		ver.text = "🐻 Bobina: KILL ALL MUMUS!!  ·  v1.9.0  ·  A Bobina Council production"
 	if reset_confirm is PanelContainer:
 		(reset_confirm as PanelContainer).add_theme_stylebox_override("panel", OverlayTheme.card_style(OverlayTheme.PINK, 16))
+	# HTML overflow-y:auto after all chrome/hints exist so the card sizes to content
+	if panel:
+		var vb := _settings_vbox()
+		if vb:
+			var max_h: float = 500.0
+			if Config:
+				max_h = minf(500.0, float(Config.H) * 0.92)
+			OverlayTheme.wrap_overflow_scroll(panel, vb, 440.0, max_h)
 
 func _settings_vbox() -> VBoxContainer:
 	## Panel/VBox or Panel/Scroll/VBox after HTML-style scroll wrap

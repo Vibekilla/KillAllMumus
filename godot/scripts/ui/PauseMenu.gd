@@ -31,8 +31,7 @@ func _apply_html_chrome() -> void:
 	var dim := get_node_or_null("Dim") as ColorRect
 	var pc := panel as PanelContainer
 	OverlayTheme.apply_pause_card(pc, dim)
-	_center_panel(pc, 380.0)
-	var vbox := pc.get_node_or_null("VBox") as VBoxContainer if pc else null
+	var vbox := _pause_vbox(pc)
 	var title := (vbox.get_node_or_null("Title") if vbox else null) as Label
 	if title:
 		title.text = "⏸ PAUSED"
@@ -96,6 +95,20 @@ func _apply_html_chrome() -> void:
 		hint.add_theme_color_override("font_color", OverlayTheme.HINT)
 		hint.add_theme_font_size_override("font_size", 12)
 		vbox.add_child(hint)
+	_center_panel(pc, 380.0)
+
+func _pause_vbox(pc: PanelContainer = null) -> VBoxContainer:
+	if pc == null:
+		pc = panel as PanelContainer
+	if pc == null:
+		return null
+	var v := pc.get_node_or_null("VBox") as VBoxContainer
+	if v:
+		return v
+	var sc := pc.get_node_or_null("Scroll") as ScrollContainer
+	if sc:
+		return sc.get_node_or_null("VBox") as VBoxContainer
+	return null
 
 func _viewport_size() -> Vector2:
 	var vs := get_viewport().get_visible_rect().size if get_viewport() else Vector2.ZERO
@@ -146,19 +159,16 @@ func _center_panel(pc: PanelContainer, w: float) -> void:
 	pc.anchor_bottom = 0.0
 	pc.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	pc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	# HTML .ps-card max-height ~92vh — fit content; prefer full buttons over broken scroll reparent
+	# HTML .ps-card max-height ~92vh; overflow-y:auto — compact then scroll, never clip buttons
 	var max_h := vs.y * 0.92
-	# Undo any prior ScrollContainer wrap (broken dual attempts)
-	var scroll := pc.get_node_or_null("Scroll") as ScrollContainer
-	if scroll:
-		var inner := scroll.get_node_or_null("VBox") as VBoxContainer
-		if inner:
-			inner.reparent(pc)
-		scroll.queue_free()
+	var vbox := _pause_vbox(pc)
+	if vbox:
+		vbox.add_theme_constant_override("separation", 5)
+		OverlayTheme.wrap_overflow_scroll(pc, vbox, w, max_h)
 	pc.reset_size()
 	var ph := maxf(pc.get_combined_minimum_size().y, pc.size.y)
 	if ph < 120.0:
-		ph = 420.0
+		ph = 120.0
 	ph = minf(ph, max_h)
 	pc.custom_minimum_size = Vector2(w, 0)
 	pc.size = Vector2(w, ph)

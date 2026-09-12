@@ -23,6 +23,8 @@ var _queue: Array = []  # {key, state, scale, size}
 var _busy: bool = false
 var _last_key: String = ""
 var _last_play_tex: Texture2D = null
+## outfit|foN|eEXPR -> { "f-1.571": Texture2D } — O(bins) nearest, not O(bins×cache)
+var _face_index: Dictionary = {}
 
 func get_last_play_texture() -> Texture2D:
 	return _last_play_tex
@@ -119,25 +121,43 @@ func _play_face_key(outfit: String, face: float, focus: int, expr_key: String, t
 
 func _nearest_face_tex(outfit: String, want_face: float, focus: int, expr_key: String) -> Texture2D:
 	## Pick closest prebaked face bin (HTML face is continuous; we sample FACE_BINS).
+	var idx_key := "%s|fo%d|e%s" % [outfit, focus, expr_key]
+	var bucket: Dictionary = _face_index.get(idx_key, {})
+	if bucket.is_empty():
+		return null
+	var want := "f%.3f" % want_face
+	if bucket.has(want):
+		return bucket[want]
 	var best: Texture2D = null
 	var best_d := 999.0
-	for i in range(FACE_BINS):
-		var fbin := _face_bucket(-PI + float(i) * TAU / float(FACE_BINS))
-		var k := _play_face_key(outfit, fbin, focus, expr_key, 0)
-		if not _ready_tex.has(k):
-			# also try other tick buckets for same face
-			for k2 in _ready_tex.keys():
-				var ks := str(k2)
-				if ks.find("f%.3f|fo%d|e%s" % [fbin, focus, expr_key]) >= 0 and ks.begins_with(outfit + "|"):
-					k = ks
-					break
-			if not _ready_tex.has(k):
-				continue
-		var d := absf(wrapf(fbin - want_face, -PI, PI))
+	for fk in bucket.keys():
+		var f := float(str(fk).substr(1))
+		var d := absf(wrapf(f - want_face, -PI, PI))
 		if d < best_d:
 			best_d = d
-			best = _ready_tex[k]
+			best = bucket[fk]
 	return best
+
+func _index_play(key: String, tex: Texture2D) -> void:
+	var parts := key.split("|")
+	if parts.size() < 8:
+		return
+	if not str(parts[5]).begins_with("f"):
+		return
+	var idx_key := "%s|%s|%s" % [parts[0], parts[6], parts[7]]
+	if not _face_index.has(idx_key):
+		_face_index[idx_key] = {}
+	_face_index[idx_key][parts[5]] = tex
+
+func _unindex_play(key: String) -> void:
+	var parts := key.split("|")
+	if parts.size() < 8:
+		return
+	if not str(parts[5]).begins_with("f"):
+		return
+	var idx_key := "%s|%s|%s" % [parts[0], parts[6], parts[7]]
+	if _face_index.has(idx_key):
+		_face_index[idx_key].erase(parts[5])
 
 func prewarm_play_outfit(outfit: String, focus_both: bool = true) -> void:
 	## Call on run/stage start — bakes all face bins so play can rotate 1:1 without hitching.
@@ -197,6 +217,7 @@ func clear_cache() -> void:
 	_ready_tex.clear()
 	_order.clear()
 	_queue.clear()
+	_face_index.clear()
 	_last_play_tex = null
 
 func _touch(key: String) -> void:
@@ -209,6 +230,7 @@ func _evict_if_needed() -> void:
 	while _ready_tex.size() > MAX_ENTRIES and _order.size():
 		var old: String = str(_order.pop_front())
 		_ready_tex.erase(old)
+		_unindex_play(old)
 
 func _process(_d: float) -> void:
 	if _busy or _queue.is_empty():
@@ -249,6 +271,7 @@ func _bake(job: Dictionary) -> void:
 		return
 	var itex := ImageTexture.create_from_image(img)
 	_ready_tex[key] = itex
+	_index_play(key, itex)
 	_touch(key)
 	_evict_if_needed()
 	_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED

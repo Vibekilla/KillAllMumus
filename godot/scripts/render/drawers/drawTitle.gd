@@ -31,8 +31,12 @@ var difficulty: int = 0
 var ng_plus: int = 0
 var ng_unlocked: int = 0
 var _bobina  # drawBobina module (optional)
+var _bob_cache  # BobinaDrawCache — title mini blit (HTML pixels, no live 4k drawer)
 var _W: float = 960.0
 var _H: float = 540.0
+var _bg_tex: Texture2D = null
+var _bg_h: float = -1.0
+var _social_layout: Dictionary = {}
 
 func setup(c) -> void:
 	ctx = c
@@ -47,6 +51,9 @@ func set_outfit(o: String) -> void:
 
 func set_bobina(b) -> void:
 	_bobina = b
+
+func set_bob_cache(c) -> void:
+	_bob_cache = c
 
 func set_menu_state(st: Dictionary) -> void:
 	if st.has("outfit"):
@@ -129,31 +136,62 @@ func drawMenuBtn(cx, y) -> Dictionary:
 	ctx.text_align("left")
 	return btn
 
+func _title_bg_tex(W: float, H: float) -> Texture2D:
+	## 1px-wide vertical strip of the HTML title gradient, stretched to W×H.
+	if _bg_tex != null and _bg_h == H:
+		return _bg_tex
+	var ih := maxi(1, int(H))
+	var img := Image.create(1, ih, false, Image.FORMAT_RGBA8)
+	var c0 := Color.html("#1a0e26")
+	var c1 := Color.html("#3a1030")
+	var c2 := Color.html("#12060c")
+	var last := maxf(1.0, H - 1.0)
+	for y in range(ih):
+		var t := float(y) / last
+		var col: Color
+		if t <= 0.6:
+			col = c0.lerp(c1, t / 0.6)
+		else:
+			col = c1.lerp(c2, (t - 0.6) / 0.4)
+		img.set_pixel(0, y, col)
+	_bg_tex = ImageTexture.create_from_image(img)
+	_bg_h = H
+	return _bg_tex
+
 func drawTitle() -> void:
 	title_btns = []
 	social_hits = []
 	var W := _W
 	var H := _H
-	# HTML: linearGradient 0→0.6→1 #1a0e26 / #3a1030 / #12060c
-	var bg = ctx.create_linear_gradient(0, 0, 0, H)
-	bg.addColorStop(0, "#1a0e26")
-	bg.addColorStop(0.6, "#3a1030")
-	bg.addColorStop(1, "#12060c")
-	ctx.fill_style(bg)
-	ctx.fill_rect(0, 0, W, H)
-	# Floating particles
+	# HTML: linearGradient 0→0.6→1 #1a0e26 / #3a1030 / #12060c — bake once, blit
+	var bgtex := _title_bg_tex(W, H)
+	if bgtex != null and ctx.has_method("draw_image"):
+		ctx.draw_image(bgtex, 0, 0, W, H)
+	else:
+		var bg = ctx.create_linear_gradient(0, 0, 0, H)
+		bg.addColorStop(0, "#1a0e26")
+		bg.addColorStop(0.6, "#3a1030")
+		bg.addColorStop(1, "#12060c")
+		ctx.fill_style(bg)
+		ctx.fill_rect(0, 0, W, H)
+	# Floating particles (native discs — same 40 HTML sparkles, no path tessellation)
 	var cols := ["#ff6ec7", "#ffd27a", "#8fd0ff"]
-	for i in range(40):
-		var a := float(tick) * 0.01 + float(i)
-		var x := W / 2.0 + cos(a) * (120.0 + float(i) * 7.0)
-		var y := 140.0 + sin(a * 1.3) * 80.0 + float(i) * 3.0
-		ctx.fill_style(cols[i % 3])
-		ctx.global_alpha(0.5)
-		ctx.begin_path()
-		var px := fposmod(x, W)
-		var py := fposmod(y, H)
-		ctx.arc(px, py, 3, 0, TAU)
-		ctx.fill()
+	var use_circ: bool = ctx.has_method("fill_circle")
+	ctx.global_alpha(0.5)
+	for ci in range(3):
+		ctx.fill_style(cols[ci])
+		for i in range(ci, 40, 3):
+			var a := float(tick) * 0.01 + float(i)
+			var x := W / 2.0 + cos(a) * (120.0 + float(i) * 7.0)
+			var y := 140.0 + sin(a * 1.3) * 80.0 + float(i) * 3.0
+			var px := fposmod(x, W)
+			var py := fposmod(y, H)
+			if use_circ:
+				ctx.fill_circle(px, py, 3)
+			else:
+				ctx.begin_path()
+				ctx.arc(px, py, 3, 0, TAU)
+				ctx.fill()
 	ctx.global_alpha(1.0)
 	# Peephole portrait — HTML: clip circle then drawImage + gold stroke
 	var S := 146.0
@@ -206,20 +244,8 @@ func drawTitle() -> void:
 	if not ProgressStore.outfit_unlocked(selected_outfit):
 		selected_outfit = "og"
 		GameState.selected_outfit = "og"
-	# Mini Bobina next to outfit button — HTML full drawBobina
-	if _bobina:
-		ctx.save()
-		ctx.translate(ox - 26.0, oy + bh / 2.0)
-		ctx.scale(1.15, 1.15)
-		_bobina.set_outfit(selected_outfit)
-		_bobina.set_tick(tick)
-		_bobina.drawBobina({
-			"x": 0, "y": 0, "iframe": 0, "focus": false, "walk": 0, "bombFx": 0,
-			"face": -PI / 2.0, "vx": 0, "vy": 0, "outfit": selected_outfit, "tick": tick,
-		})
-		if ctx.has_method("clear_shadow"):
-			ctx.clear_shadow()
-		ctx.restore()
+	# Mini Bobina next to outfit button — HTML full drawBobina (cached blit)
+	_blit_title_bobina(ox - 26.0, oy + bh / 2.0, 1.15)
 	drawTitleBtn(ox, oy, oW, bh, "👗 OUTFIT: " + _outfit_name(selected_outfit) + "  ▸", "#ff9ecb", "outfit")
 	var mW := 250.0 if is_touch else 232.0
 	var lW := 150.0 if is_touch else 126.0
@@ -292,13 +318,8 @@ func drawTitle() -> void:
 	ctx.fill_style("#fff" if (int(floorf(float(tick) / 30.0)) % 2) != 0 else "#ffb3d4")
 	ctx.fill_text(st_txt, W / 2.0, ny + pill_h / 2.0 + 7.0)
 	ny += pill_h + (10.0 if is_touch else 12.0)
-	# Auth sits above social strip — keep control lines ABOVE auth (HTML DOM overlaps;
-	# Godot draws both on canvas so we reserve space for a clean layout).
-	var auth_top := H - (10.0 if is_touch else 32.0) - 26.0 - 18.0  # btn + guest line
+	# HTML DOM overlays hint lines; do not shove copy up to make room for auth.
 	var info_gap := 14.0 if not is_touch else 13.0
-	var lines_h := info_gap * 3.0
-	if ny + lines_h > auth_top - 4.0:
-		ny = maxf(ny - 8.0, auth_top - lines_h - 4.0)
 	if not is_touch:
 		ctx.fill_style("#7a6a82")
 		ctx.font("11px monospace")
@@ -331,87 +352,137 @@ func drawTitle() -> void:
 	if title_idle_t > 1800.0:
 		drawMaidDance()
 
+func _blit_title_bobina(cx: float, cy: float, sc: float) -> void:
+	## HTML drawBobina at (ox-26, oy+bh/2) scale 1.15 — bake, don't run the 4k drawer live.
+	var st := {
+		"x": 0, "y": 0, "iframe": 0, "focus": false, "walk": 0, "bombFx": 0,
+		"face": -PI / 2.0, "vx": 0, "vy": 0, "outfit": selected_outfit, "tick": tick,
+	}
+	if _bob_cache and _bob_cache.has_method("get_texture"):
+		var tex: Texture2D = _bob_cache.get_texture(selected_outfit, null, 0, tick, sc, st)
+		if tex != null and ctx.has_method("draw_image"):
+			var tw := float(tex.get_width())
+			var th := float(tex.get_height())
+			ctx.draw_image(tex, cx - tw * 0.5, cy - th * 0.5, tw, th)
+			return
+	if _bobina == null:
+		return
+	ctx.save()
+	ctx.translate(cx, cy)
+	ctx.scale(sc, sc)
+	_bobina.set_outfit(selected_outfit)
+	_bobina.set_tick(tick)
+	_bobina.drawBobina(st)
+	if ctx.has_method("clear_shadow"):
+		ctx.clear_shadow()
+	ctx.restore()
+
 func _draw_auth_chrome(W: float, H: float) -> void:
-	## HTML #bobinaAuth guest / signed-in row — sits just above social chips
-	var touch := is_touch
-	var bottom := 10.0 if touch else 32.0
-	var btn_h := 26.0
-	var btn_w := 200.0
-	var by := H - bottom - btn_h
-	var bx := W / 2.0 - btn_w / 2.0
-	var who := ""
-	var logged := false
-	# Dual stills force guest chrome so title pairs match HTML guest screenshots
+	## HTML #bobinaAuth — guest is a single pink pill (no caption). Signed-in is .who chip.
 	var force_guest := GameState and GameState.has_meta("dual_mode") and bool(GameState.get_meta("dual_mode"))
-	if force_guest:
-		logged = false
-		who = "Play as guest — or link Bobina for cloud saves"
-	elif ApiClient and ApiClient.authenticated:
+	var logged := false
+	var who := ""
+	if not force_guest and ApiClient and ApiClient.authenticated:
 		logged = true
 		who = "Signed in as @%s" % str(ApiClient.me.get("username", "Bobina"))
-	else:
-		who = "Play as guest — or link Bobina for cloud saves"
-	ctx.text_align("center")
-	ctx.fill_style("#ffd0e4")
-	ctx.font("11px Trebuchet MS")
-	ctx.fill_text(who, W / 2.0, by - 6.0)
+	var label := "Cloud sync ready" if logged else "Sign in with Bobina"
+	ctx.font("bold 13px Trebuchet MS")
+	var tw := float(ctx.measure_text(label).get("width", 140))
+	var btn_w := tw + 32.0
+	var btn_h := 34.0
+	# HTML #bobinaAuth { bottom: 52px } — bottom edge of the pill, above #social
+	var by := H - (10.0 if is_touch else 52.0) - btn_h
+	var bx := W / 2.0 - btn_w / 2.0
 	title_btns.append({"x": bx, "y": by, "w": btn_w, "h": btn_h, "id": "login"})
 	if logged:
-		ctx.fill_style("rgba(20,8,16,0.92)")
+		ctx.fill_style("rgba(20,8,16,0.88)")
 		ctx.stroke_style("#ff7ab5")
+		ctx.line_width(1.0)
+		ctx.begin_path()
+		ctx.round_rect(bx, by, btn_w, btn_h, 999)
+		ctx.fill()
+		ctx.stroke()
 	else:
-		ctx.fill_style("rgba(255,90,140,0.35)")
-		ctx.stroke_style("#ff9ecb")
-	ctx.line_width(1.5)
-	ctx.begin_path()
-	ctx.round_rect(bx, by, btn_w, btn_h, 999)
-	ctx.fill()
-	ctx.stroke()
-	ctx.fill_style("#fff")
+		# HTML: linear-gradient(180deg,#ff5b8d,#c42a5c); border:0; box-shadow:0 2px 10px rgba(0,0,0,.4)
+		if ctx.has_method("shadow_color"):
+			ctx.shadow_color("rgba(0,0,0,0.4)")
+			ctx.shadow_blur(10)
+		var g = ctx.create_linear_gradient(bx, by, bx, by + btn_h)
+		g.addColorStop(0, "#ff5b8d")
+		g.addColorStop(1, "#c42a5c")
+		ctx.fill_style(g)
+		ctx.begin_path()
+		ctx.round_rect(bx, by, btn_w, btn_h, 999)
+		ctx.fill()
+		if ctx.has_method("clear_shadow"):
+			ctx.clear_shadow()
+	ctx.text_align("center")
+	ctx.fill_style("#fff" if not logged else "#ffd0e4")
 	ctx.font("bold 13px Trebuchet MS")
-	ctx.fill_text("Cloud sync ready" if logged else "Sign in with Bobina", W / 2.0, by + btn_h / 2.0 + 4.0)
+	ctx.fill_text(label, W / 2.0, by + btn_h / 2.0 + 4.5)
+	if logged and who != "":
+		ctx.fill_style("#ffd0e4")
+		ctx.font("11px Trebuchet MS")
+		ctx.fill_text(who, W / 2.0, by - 6.0)
 	ctx.text_align("left")
 
 func _draw_social_bar(W: float, H: float) -> void:
-	## HTML #social chips — centered bottom row
+	## HTML #social { flex-wrap; gap:7px; padding:0 10px; bottom:6px; font 11 / padding 5px 9px }
 	social_hits = []
-	var gap := 6.0
-	var pad_x := 8.0
+	var gap := 7.0
+	var pad_x := 9.0
+	var h := 21.0
 	var font_px := 11
-	ctx.font("bold %dpx Trebuchet MS" % font_px)
-	var widths: Array = []
-	var total := 0.0
-	for s in SOCIAL_LINKS:
-		var tw := float(ctx.measure_text(str(s["label"])).get("width", 60))
-		var w := tw + pad_x * 2.0
-		widths.append(w)
-		total += w
-	total += gap * float(SOCIAL_LINKS.size() - 1)
-	var scale := 1.0
-	if total > W - 16.0:
-		scale = (W - 16.0) / total
-		total = W - 16.0
-	var x0 := W / 2.0 - total / 2.0
-	var y := H - 26.0
-	var h := 20.0
-	var x := x0
-	for i in range(SOCIAL_LINKS.size()):
-		var s: Dictionary = SOCIAL_LINKS[i]
-		var w: float = float(widths[i]) * scale
-		social_hits.append({"x": x, "y": y, "w": w, "h": h, "url": str(s["url"])})
-		ctx.fill_style("rgba(28,16,38,0.85)")
-		ctx.begin_path()
-		ctx.round_rect(x, y, w, h, 8)
-		ctx.fill()
-		ctx.stroke_style("rgba(255,120,190,0.45)")
-		ctx.line_width(1)
-		ctx.stroke()
-		ctx.fill_style("#e8d0e8")
-		ctx.font("bold %dpx Trebuchet MS" % maxi(9, int(float(font_px) * scale)))
-		ctx.text_align("center")
-		ctx.fill_text(str(s["label"]), x + w / 2.0, y + h / 2.0 + 3.5)
-		ctx.text_align("left")
-		x += w + gap * scale
+	ctx.font("%dpx Trebuchet MS" % font_px)
+	if _social_layout.get("W") != W or _social_layout.is_empty():
+		var chips: Array = []
+		for s in SOCIAL_LINKS:
+			var lab := str(s["label"])
+			var tw := float(ctx.measure_text(lab).get("width", 60))
+			# HTML letter-spacing:.3px; Godot emoji advance is a bit narrower than HTML 𝕏
+			tw += 0.3 * maxf(0.0, float(lab.length() - 1)) + 6.0
+			chips.append({"s": s, "w": tw + pad_x * 2.0})
+		var max_row := W - 20.0
+		var rows: Array = []
+		var cur: Array = []
+		var row_w := 0.0
+		for c in chips:
+			var cw: float = float(c["w"])
+			if cur.size() > 0 and row_w + gap + cw > max_row:
+				rows.append({"items": cur, "w": row_w})
+				cur = []
+				row_w = 0.0
+			if cur.size() > 0:
+				row_w += gap
+			row_w += cw
+			cur.append(c)
+		if cur.size() > 0:
+			rows.append({"items": cur, "w": row_w})
+		_social_layout = {"W": W, "h": h, "gap": gap, "rows": rows}
+	var rows_c: Array = _social_layout.get("rows", [])
+	var y := H - 6.0 - h
+	for ri in range(rows_c.size() - 1, -1, -1):
+		var row: Dictionary = rows_c[ri]
+		var items: Array = row["items"]
+		var x := W / 2.0 - float(row["w"]) / 2.0
+		for c in items:
+			var s: Dictionary = c["s"]
+			var w: float = float(c["w"])
+			social_hits.append({"x": x, "y": y, "w": w, "h": h, "url": str(s["url"])})
+			ctx.fill_style("rgba(28,16,38,0.72)")
+			ctx.begin_path()
+			ctx.round_rect(x, y, w, h, 8)
+			ctx.fill()
+			ctx.stroke_style("rgba(255,120,190,0.28)")
+			ctx.line_width(1)
+			ctx.stroke()
+			ctx.fill_style("#c8b0d0")
+			ctx.font("%dpx Trebuchet MS" % font_px)
+			ctx.text_align("center")
+			ctx.fill_text(str(s["label"]), x + w / 2.0, y + h / 2.0 + 3.5)
+			ctx.text_align("left")
+			x += w + gap
+		y -= h + gap
 
 
 func drawMaidDance() -> void:

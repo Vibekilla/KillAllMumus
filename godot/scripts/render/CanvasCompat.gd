@@ -111,6 +111,8 @@ class CanvasGradient:
 var node: CanvasItem
 var _fill: Color = Color.WHITE
 var _stroke: Color = Color.WHITE
+var _fill_src = null  # last fill_style arg (skip reparse)
+var _stroke_src = null
 var _fill_grad = null  # CanvasGradient or null
 var _lw: float = 1.0
 var _alpha: float = 1.0
@@ -167,18 +169,10 @@ func _c(col: Color) -> Color:
 	# Approximate Canvas GCO on Godot CanvasItem (no true blend modes mid-draw)
 	match _gco:
 		"lighter", "screen", "plus-lighter":
-			# Additive-ish on dark bg. Never floor alpha — a +0.08 floor turned
-			# HTML faint map-bleed (α≈0.03–0.09) into opaque purple mud.
-			if c.a < 0.15:
-				c.a = minf(1.0, c.a * 1.12)
-				c.r = minf(1.0, c.r * 1.04)
-				c.g = minf(1.0, c.g * 1.04)
-				c.b = minf(1.0, c.b * 1.04)
-			else:
-				c.a = minf(1.0, c.a * 1.22 + 0.02)
-				c.r = minf(1.0, c.r * 1.06 + 0.02)
-				c.g = minf(1.0, c.g * 1.06 + 0.02)
-				c.b = minf(1.0, c.b * 1.06 + 0.02)
+			# HTML source-over + lighter is additive. Boosting RGB/alpha here made
+			# soap-bubble rings and map-bleed read as opaque mud (S4). Keep a tiny
+			# lift only so faint strokes stay visible on dark PF.
+			c.a = minf(1.0, c.a * 1.04)
 		"multiply", "darken":
 			c.a = minf(1.0, c.a * 0.85)
 			c.r *= 0.92
@@ -198,6 +192,9 @@ func _parse_color(c) -> Color:
 
 func fill_style(c) -> void:
 	## Accept solid color OR CanvasGradient (HTML fillStyle = gradient)
+	if not (c is CanvasGradient) and _fill_grad == null and _fill_src != null and typeof(c) == typeof(_fill_src) and c == _fill_src:
+		return
+	_fill_src = c
 	if c is CanvasGradient:
 		_fill_grad = c
 		_fill = c.mid_color()
@@ -223,6 +220,9 @@ func fill_style(c) -> void:
 
 func stroke_style(c) -> void:
 	## Solid stroke; gradients sample mid color (HTML strokeStyle with gradient is rare)
+	if not (c is CanvasGradient) and _stroke_src != null and typeof(c) == typeof(_stroke_src) and c == _stroke_src:
+		return
+	_stroke_src = c
 	if c is CanvasGradient:
 		_stroke = c.mid_color()
 		return
@@ -994,6 +994,19 @@ func stroke() -> void:
 				if shifted.size() >= 2:
 					node.draw_polyline(shifted, sc, maxf(0.5, elw * 0.85), true)
 		node.draw_polyline(pts, col, elw, true)
+
+func fill_circle(x, y, r) -> void:
+	## Native disc — particles / title sparkles skip path tessellation.
+	if node == null:
+		return
+	var c := _xform * Vector2(float(x), float(y))
+	if not _point_in_clip(c):
+		return
+	var sc := _xform.get_scale()
+	var rr := float(r) * (absf(sc.x) + absf(sc.y)) * 0.5
+	if rr < 0.05:
+		return
+	node.draw_circle(c, rr, _c(_fill))
 
 func fill_rect(x, y, w, h) -> void:
 	if node == null:

@@ -71,6 +71,8 @@ func _ready() -> void:
 		bob_cache = load("res://scripts/render/BobinaDrawCache.gd").new()
 		bob_cache.name = "BobinaDrawCache"
 		add_child(bob_cache)
+	if title_drawer.has_method("set_bob_cache"):
+		title_drawer.set_bob_cache(bob_cache)
 	menus = load("res://scripts/ui/menu/draw_menus.gd").new()
 	menus.setup(ctx, model, bobina, bob_cache)
 
@@ -195,8 +197,9 @@ func _process(_delta: float) -> void:
 	# Title still needs idle animation, but only when tick advances
 	if t == _last_draw_tick:
 		return
-	# Title drawBobina is very expensive — 30 Hz is enough for particles + idle bob
-	if GameState.state == GameState.State.TITLE and title_idle_t <= 1800.0 and (t % 2) != 0:
+	# Title drawBobina is very expensive — 30 Hz desktop / 20 Hz web
+	var title_stride := 3 if OS.has_feature("web") else 2
+	if GameState.state == GameState.State.TITLE and title_idle_t <= 1800.0 and (t % title_stride) != 0:
 		return
 	_last_draw_tick = t
 	if title_drawer.has_method("set_tick"):

@@ -19,6 +19,7 @@ var bobina_cache: Node = null
 var stage_bg_cache: Node = null
 var tick: int = 0
 var _bullet_pool: Node = null
+var _player_node: Node = null
 var _last_tick: int = -1
 ## Adaptive visual cadence: 1 = every sim tick, 2 = 30 Hz, 3 = 20 Hz (sim stays 60 Hz)
 var _play_stride: int = 2
@@ -51,12 +52,15 @@ func _ready() -> void:
 		stage_bg_cache = load("res://scripts/render/StageBgDrawCache.gd").new()
 		stage_bg_cache.name = "StageBgDrawCache"
 		add_child(stage_bg_cache)
+	if OS.has_feature("web"):
+		_play_stride = 3  # ~20 Hz visual on WASM; sim stays 60 Hz
 	call_deferred("_bind_pool")
 
 func _bind_pool() -> void:
 	var main := get_parent()
 	if main:
 		_bullet_pool = main.get_node_or_null("BulletPool")
+	_player_node = get_tree().get_first_node_in_group("player") if get_tree() else null
 
 func _process(_d: float) -> void:
 	## Redraw gated on sim_frame (fixed 60 Hz source), not display rate.
@@ -70,13 +74,13 @@ func _process(_d: float) -> void:
 		if _fps_adapt_cd <= 0:
 			_fps_adapt_cd = 30
 			var fps := Engine.get_frames_per_second()
-			# Keep visual cadence near HTML; only ease off under severe load
-			if fps > 0.0 and fps < 18.0:
+			# Keep visual cadence near HTML; WASM/web stays 20 Hz unless the GPU is actually fast.
+			if OS.has_feature("web"):
+				_play_stride = 2 if fps >= 48.0 else 3
+			elif fps > 0.0 and fps < 18.0:
 				_play_stride = 3  # ~20 Hz
-			elif fps >= 30.0:
-				_play_stride = 2  # 30 Hz (default play)
 			else:
-				_play_stride = 2
+				_play_stride = 2  # 30 Hz (default play)
 		if (nt % maxi(1, _play_stride)) != 0:
 			return
 	elif GameState.state in [GameState.State.SHOP, GameState.State.STAGE_CLEAR, GameState.State.INTRO]:
@@ -90,6 +94,13 @@ func _process(_d: float) -> void:
 	tick = nt
 	if _is_playish():
 		queue_redraw()
+
+func _player() -> Node:
+	if is_instance_valid(_player_node):
+		return _player_node
+	var tree := get_tree()
+	_player_node = tree.get_first_node_in_group("player") if tree else null
+	return _player_node
 
 func _is_playish() -> bool:
 	return GameState.state in [
@@ -160,7 +171,7 @@ func _draw() -> void:
 	if not _is_playish():
 		return
 	ctx.begin_frame()
-	var plock := get_tree().get_first_node_in_group("player") if get_tree() else null
+	var plock := _player()
 	if plock and plock.has_meta("dual_lock_tick"):
 		tick = int(plock.get_meta("dual_lock_tick"))
 	if ported.has_method("set_tick"):
@@ -174,7 +185,7 @@ func _draw() -> void:
 
 	var pf: Rect2 = Config.playfield()
 	var tree := get_tree()
-	var player = tree.get_first_node_in_group("player") if tree else null
+	var player = _player()
 
 	# HTML: ctx.save(); clip playfield
 	ctx.save()
@@ -217,23 +228,23 @@ func _draw() -> void:
 				_draw_floater(f)
 
 	# --- enemies then burns then bosses (HTML order) ---
-	if tree:
-		for e in tree.get_nodes_in_group("enemies"):
-			if not is_instance_valid(e) or e.is_in_group("bosses"):
-				continue
-			var er := float(e.get("radius")) if e.get("radius") != null else 15.0
-			if not _in_pf(e.global_position.x, e.global_position.y, er):
-				continue
-			_draw_enemy(e)
+	var enemies: Array = tree.get_nodes_in_group("enemies") if tree else []
+	var bosses: Array = tree.get_nodes_in_group("bosses") if tree else []
+	for e in enemies:
+		if not is_instance_valid(e) or e.is_in_group("bosses"):
+			continue
+		var er := float(e.get("radius")) if e.get("radius") != null else 15.0
+		if not _in_pf(e.global_position.x, e.global_position.y, er):
+			continue
+		_draw_enemy(e)
 	if ItemSystem:
 		for bn in ItemSystem.burns:
 			var br := float(bn.get("reach", bn.get("r", 40)))
 			if _in_pf(float(bn.get("x", 0)), float(bn.get("y", 0)), br):
 				_draw_burn(bn)
-	if tree:
-		for b in tree.get_nodes_in_group("bosses"):
-			if is_instance_valid(b):
-				_draw_boss_node(b)
+	for b in bosses:
+		if is_instance_valid(b):
+			_draw_boss_node(b)
 
 	# --- field clear gate ---
 	if StageFlow and StageFlow.has_method("is_field_cleared") and StageFlow.is_field_cleared():
@@ -299,14 +310,18 @@ func _draw() -> void:
 			if not by_col.has(col):
 				by_col[col] = []
 			by_col[col].append(p)
+		var use_circ: bool = ctx.has_method("fill_circle")
 		for col in by_col.keys():
 			ctx.fill_style(str(col))
 			for p in by_col[col]:
 				var life := float(p.get("life", 0))
 				ctx.global_alpha(clampf(life / 30.0, 0.0, 1.0))
-				ctx.begin_path()
-				ctx.arc(float(p.get("x", 0)), float(p.get("y", 0)), 2.2, 0, TAU)
-				ctx.fill()
+				if use_circ:
+					ctx.fill_circle(float(p.get("x", 0)), float(p.get("y", 0)), 2.2)
+				else:
+					ctx.begin_path()
+					ctx.arc(float(p.get("x", 0)), float(p.get("y", 0)), 2.2, 0, TAU)
+					ctx.fill()
 			ctx.global_alpha(1.0)
 		if ported.has_method("drawMeleeFx"):
 			var mfx: Array = []
@@ -364,8 +379,8 @@ func _draw() -> void:
 		ctx.stroke()
 
 	# Hell portals on bosses (BossController: hell / hell_r / hell_t / hy — snake_case)
-	if tree and hud.has_method("drawHellPortal"):
-		for b in tree.get_nodes_in_group("bosses"):
+	if hud.has_method("drawHellPortal"):
+		for b in bosses:
 			if not is_instance_valid(b):
 				continue
 			# Explicit types: `:=` + ternary on Node props fails parse ("no set type")

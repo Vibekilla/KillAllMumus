@@ -347,3 +347,34 @@ static func apply_settings_card(panel: PanelContainer, dim: ColorRect) -> void:
 		sb.bg_color = CARD_TOP
 		panel.add_theme_stylebox_override("panel", sb)
 		panel.custom_minimum_size = Vector2(440, 0)
+
+static func wrap_overflow_scroll(panel: PanelContainer, vbox: VBoxContainer, width: float, max_h: float) -> void:
+	## HTML .ps-card / .set-card { max-height:92vh; overflow-y:auto } — size to content, then scroll.
+	if panel == null or vbox == null:
+		return
+	var scroll := panel.get_node_or_null("Scroll") as ScrollContainer
+	if scroll == null and vbox.get_parent() == panel:
+		scroll = ScrollContainer.new()
+		scroll.name = "Scroll"
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		var idx := vbox.get_index()
+		panel.add_child(scroll)
+		panel.move_child(scroll, idx)
+		vbox.reparent(scroll)
+		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	elif scroll == null and vbox.get_parent() is ScrollContainer:
+		scroll = vbox.get_parent() as ScrollContainer
+	if scroll == null:
+		return
+	var pad := 32.0
+	var content_h := vbox.get_combined_minimum_size().y
+	if content_h < 80.0:
+		content_h = 80.0
+	var inner := minf(content_h, maxf(120.0, max_h - pad))
+	scroll.custom_minimum_size = Vector2(maxf(64.0, width - 12.0), inner)
+	panel.clip_contents = true
+	panel.custom_minimum_size = Vector2(width, 0)
+	panel.reset_size()
