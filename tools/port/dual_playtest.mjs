@@ -487,6 +487,7 @@ async function captureHtml() {
         try {
           if (typeof musicVol !== "undefined") musicVol = 1;
           if (typeof sfxVol !== "undefined") sfxVol = 0.9;
+          if (typeof MOUSE !== "undefined") { MOUSE.follow = 0.6; MOUSE.speed = 1.12; }
           if (typeof applyMusicVol === "function") applyMusicVol();
           if (typeof applySfxVol === "function") applySfxVol();
         } catch (e) {}
@@ -709,6 +710,13 @@ async function captureHtml() {
     // Pause overlay (HTML #pausescreen when state=play && paused)
     try {
       await page.evaluate(() => {
+        try {
+          if (typeof musicVol !== "undefined") musicVol = 1;
+          if (typeof sfxVol !== "undefined") sfxVol = 0.9;
+          if (typeof MOUSE !== "undefined") { MOUSE.follow = 0.6; MOUSE.speed = 1.12; }
+          if (typeof applyMusicVol === "function") applyMusicVol();
+          if (typeof applySfxVol === "function") applySfxVol();
+        } catch (e) {}
         if (window.__kamDual && window.__kamDual.setPaused) window.__kamDual.setPaused(true);
         const ps = document.getElementById("pausescreen");
         if (ps) {

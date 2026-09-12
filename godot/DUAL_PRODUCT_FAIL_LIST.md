@@ -39,9 +39,9 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Notes |
 |----|------|-------|
-| S1 | Settings | Volume 100/90 dual fixed; HTML full-card shot + Godot ScrollContainer for Reset/Done |
+| S1 | Settings | Gold % right-align + cyan Display/Controls + reset/done tints (2026-09-12). Dual viewport still crops Help/Reset/Done (HTML element shot is taller); scroll is HTML max-height 92dvh |
 | S2 | Shop | Random HB quote; LEAVE→stage clear improved |
-| S3 | Pause / menus | Dim/blur; Control vs canvas chrome |
+| S3 | Pause / menus | Gold % + 60% follow + cyan Display/Controls (2026-09-12). Backdrop blur weaker than HTML `blur(3px)` in dual SubViewport |
 | S4 | Aura bomb | Same-state mid-window (bombFx=30, power 4, guest kit) dualed 2026-09-12; Godot still shows denser power-aura rings under the pink wash |
 | S5 | Item glyphs | ♥★✸ emoji vs monospace feel |
 | S6 | Stage bg intensity | Motif strength vs HTML psychedelia |
@@ -89,14 +89,16 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-09-12 | S8 mech | Guest kit + armed special; 7 volleys × 51px (HTML `ct%3` × laser spd 17) |
 | 2026-09-12 | S4 bomb | Same-state bombFx=30 / power 4 / iframe 0 / guest specials |
 | 2026-09-12 | S1/S3 thumbs | HSlider grabber Texture2D is HTML `#ff5b8d` (StyleBox grabber was ignored) |
+| 2026-09-12 | S1/S3 chrome | Gold value spans, cyan Display/Controls, reset/done tints, overlay dim shader, follow 0.6 dual |
 
 ---
 
 ## Next execution order
 
-1. **S1/S3** Settings + pause chrome (pink thumbs shipped; % right-align + blur residual).  
-2. **S8 residual** CanvasCompat true linearGradient (banded approx) + mech bolt glow.  
-3. **S4 residual** Power-aura intensity under bomb wash.  
-4. **S10** Music cold-load + social tab.  
+1. **S8 residual** CanvasCompat true linearGradient (banded approx) + mech bolt glow.  
+2. **S4 residual** Power-aura intensity under bomb wash.  
+3. **S1 residual** Settings dual crop of Help/Reset/Done (product rows exist; scroll).  
+4. **S3 residual** Pause backdrop blur vs HTML.  
+5. **S10** Music cold-load + social tab.  
 5. **S11** Title social strip.  
 6. GPU FPS — only then Phase 7 product sign-off discussion.

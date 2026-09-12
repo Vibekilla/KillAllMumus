@@ -38,10 +38,18 @@ func _apply_html_chrome() -> void:
 		title.text = "⏸ PAUSED"
 		title.add_theme_color_override("font_color", Color.WHITE)
 		title.add_theme_font_size_override("font_size", 32)
+		title.add_theme_color_override("font_shadow_color", Color(1.0, 0.353, 0.549, 0.55))
+		title.add_theme_constant_override("shadow_outline_size", 10)
+		title.add_theme_constant_override("shadow_offset_x", 0)
+		title.add_theme_constant_override("shadow_offset_y", 0)
 	OverlayTheme.style_label(music_label)
 	OverlayTheme.style_label(sfx_label)
 	OverlayTheme.style_label(follow_label)
 	OverlayTheme.style_label(speed_label)
+	OverlayTheme.split_value_row(music_label)
+	OverlayTheme.split_value_row(sfx_label)
+	OverlayTheme.split_value_row(follow_label)
+	OverlayTheme.split_value_row(speed_label)
 	OverlayTheme.style_slider(music_slider)
 	OverlayTheme.style_slider(sfx_slider)
 	OverlayTheme.style_slider(follow_slider)
@@ -53,12 +61,12 @@ func _apply_html_chrome() -> void:
 	OverlayTheme.style_button(resume, "primary")
 	if resume:
 		resume.add_theme_font_size_override("font_size", 18)
-		resume.custom_minimum_size.y = 48
+		resume.custom_minimum_size.y = 52
 		resume.text = "▶ RESUME"
-	OverlayTheme.style_button(display, "ghost")
+	OverlayTheme.style_button(display, "cyan")
 	if display:
 		display.text = "🖥 Display"
-	OverlayTheme.style_button(keybinds, "ghost")
+	OverlayTheme.style_button(keybinds, "cyan")
 	if keybinds:
 		keybinds.text = "🎮 Controls"
 	OverlayTheme.style_button(menu, "ghost")
@@ -71,14 +79,14 @@ func _apply_html_chrome() -> void:
 		sa.text = "AUDIO"
 		OverlayTheme.style_sec(sa)
 		vbox.add_child(sa)
-		vbox.move_child(sa, music_label.get_index() if music_label else 1)
+		vbox.move_child(sa, OverlayTheme.vbox_child(music_label).get_index() if music_label else 1)
 		var sm := Label.new()
 		sm.name = "SecMouse"
 		sm.text = "MOUSE"
 		OverlayTheme.style_sec(sm)
 		vbox.add_child(sm)
 		if follow_label:
-			vbox.move_child(sm, follow_label.get_index())
+			vbox.move_child(sm, OverlayTheme.vbox_child(follow_label).get_index())
 		var hint := Label.new()
 		hint.name = "Hint"
 		# HTML .ps-hint
@@ -121,8 +129,7 @@ func _center_panel(pc: PanelContainer, w: float) -> void:
 		if dim.get_parent() != self:
 			dim.reparent(self)
 		_fill_rect(dim, vs)
-		dim.color = Color(6.0 / 255.0, 4.0 / 255.0, 10.0 / 255.0, 0.72)
-		dim.mouse_filter = Control.MOUSE_FILTER_STOP
+		OverlayTheme.apply_dim(dim, "pause")
 		move_child(dim, 0)
 	# Drop CenterHost if present — absolute center is more reliable under SubViewport dual
 	var host := get_node_or_null("CenterHost")
@@ -184,10 +191,8 @@ func _sync_ui() -> void:
 		music_slider.value = music_v
 	if sfx_slider:
 		sfx_slider.value = sfx_v
-	if music_label:
-		music_label.text = "🎵 Music Volume  %d%%" % int(round(music_v))
-	if sfx_label:
-		sfx_label.text = "🔊 Sound FX  %d%%" % int(round(sfx_v))
+	OverlayTheme.set_row_value(music_label, "🎵 Music Volume", "%d%%" % int(round(music_v)))
+	OverlayTheme.set_row_value(sfx_label, "🔊 Sound FX", "%d%%" % int(round(sfx_v)))
 	var follow := float(st.get("follow", Config.mouse_follow))
 	if follow <= 1.0:
 		follow *= 100.0
@@ -202,9 +207,9 @@ func _sync_ui() -> void:
 
 func _refresh_mouse_labels() -> void:
 	if follow_label and follow_slider:
-		follow_label.text = "Cursor Follow Tightness  %d%%" % int(follow_slider.value)
+		OverlayTheme.set_row_value(follow_label, "Cursor Follow Tightness", "%d%%" % int(follow_slider.value))
 	if speed_label and speed_slider:
-		speed_label.text = "Movement Speed  %.2f×" % (speed_slider.value / 100.0)
+		OverlayTheme.set_row_value(speed_label, "Movement Speed", "%.2f×" % (speed_slider.value / 100.0))
 
 func _save_setting(key: String, v) -> void:
 	var st: Dictionary = ProgressStore.progress.get("settings", {}) if ProgressStore else {}
@@ -222,15 +227,13 @@ func _on_music(v: float) -> void:
 		MusicBridge.set_volume(clampf(v / 100.0, 0.0, 1.0))
 		if v > 0.5 and not MusicBridge.enabled:
 			MusicBridge.play()
-	if music_label:
-		music_label.text = "🎵 Music Volume  %d%%" % int(round(v))
+	OverlayTheme.set_row_value(music_label, "🎵 Music Volume", "%d%%" % int(round(v)))
 	_save_setting("music", v)
 
 func _on_sfx(v: float) -> void:
 	if AudioBus:
 		AudioBus.set_sfx_volume(v / 100.0)
-	if sfx_label:
-		sfx_label.text = "🔊 Sound FX  %d%%" % int(round(v))
+	OverlayTheme.set_row_value(sfx_label, "🔊 Sound FX", "%d%%" % int(round(v)))
 	_save_setting("sfx", v)
 
 func _on_follow(v: float) -> void:

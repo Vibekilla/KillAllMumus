@@ -735,7 +735,13 @@ func _run() -> void:
 				st_set = {}
 			st_set["music"] = 100.0
 			st_set["sfx"] = 90.0
+			st_set["follow"] = 0.6
+			st_set["mspeed"] = 1.12
 			ps_set.progress["settings"] = st_set
+		var cfg_set = _A("Config")
+		if cfg_set:
+			cfg_set.mouse_follow = 0.6
+			cfg_set.mouse_speed = 1.12
 		var AudioBus = _A("AudioBus")
 		if AudioBus:
 			if AudioBus.has_method("set_music_volume"):
@@ -1055,7 +1061,23 @@ func _run() -> void:
 	if _want("core") and player:
 		GameState.set_state(GameState.State.PAUSED)
 		_force_ui_size(_main)
+		var ps_pause = _A("ProgressStore")
+		if ps_pause and "progress" in ps_pause:
+			var st_p: Dictionary = ps_pause.progress.get("settings", {})
+			if typeof(st_p) != TYPE_DICTIONARY:
+				st_p = {}
+			st_p["music"] = 100.0
+			st_p["sfx"] = 90.0
+			st_p["follow"] = 0.6
+			st_p["mspeed"] = 1.12
+			ps_pause.progress["settings"] = st_p
+		var cfg_p = _A("Config")
+		if cfg_p:
+			cfg_p.mouse_follow = 0.6
+			cfg_p.mouse_speed = 1.12
 		var pause_ui = _main.get_node_or_null("UI/PauseMenu")
+		if pause_ui and pause_ui.has_method("_sync_ui"):
+			pause_ui._sync_ui()
 		if pause_ui and pause_ui.has_method("_center_panel") and pause_ui.get("panel"):
 			pause_ui._center_panel(pause_ui.panel as PanelContainer, 380.0)
 		var ch = _A("CombatHelpers")

@@ -32,7 +32,7 @@ func _apply_html_chrome() -> void:
 	var panel := get_node_or_null("Panel") as PanelContainer
 	OverlayTheme.apply_settings_card(panel, dim)
 	if panel:
-		var w := 420.0
+		var w := 440.0
 		var host: CenterContainer = get_node_or_null("CenterHost") as CenterContainer
 		if host == null:
 			host = CenterContainer.new()
@@ -92,13 +92,13 @@ func _apply_html_chrome() -> void:
 			node = speed_slider
 		elif vbox:
 			node = vbox.get_node_or_null(n)
-		if node and node is CanvasItem:
-			(node as CanvasItem).visible = false
+		OverlayTheme.hide_row(node)
 	OverlayTheme.style_label(music_label)
 	OverlayTheme.style_label(sfx_label)
+	OverlayTheme.split_value_row(music_label)
+	OverlayTheme.split_value_row(sfx_label)
 	OverlayTheme.style_slider(music_slider)
 	OverlayTheme.style_slider(sfx_slider)
-	OverlayTheme.style_button(speedrun_btn, "ghost")
 	if speedrun_btn:
 		speedrun_btn.text = "Skip villain monologues"
 	# HTML .set-hint copy under rows
@@ -141,11 +141,12 @@ func _apply_html_chrome() -> void:
 		OverlayTheme.style_label(sl)
 		vbox.add_child(sl)
 		vbox.move_child(sl, speedrun_btn.get_index())
-	OverlayTheme.style_button(display, "ghost")
-	OverlayTheme.style_button(keybinds, "ghost")
+		OverlayTheme.split_value_row(sl)
+	OverlayTheme.style_button(display, "cyan")
+	OverlayTheme.style_button(keybinds, "cyan")
 	OverlayTheme.style_button(help, "help")
-	OverlayTheme.style_button(reset_btn, "ghost")
-	OverlayTheme.style_button(close, "ghost")
+	OverlayTheme.style_button(reset_btn, "reset")
+	OverlayTheme.style_button(close, "done")
 	var ver := (vbox.get_node_or_null("Ver") if vbox else null) as Label
 	if ver:
 		ver.add_theme_color_override("font_color", Color(0.416, 0.353, 0.447))
@@ -209,14 +210,14 @@ func _sync_ui() -> void:
 	_refresh_speedrun()
 
 func _set_pct_label(lab: Label, prefix: String, v: float) -> void:
-	if lab:
-		lab.text = "%s  %d%%" % [prefix, int(round(v))]
+	OverlayTheme.set_row_value(lab, prefix, "%d%%" % int(round(v)))
 
 func _refresh_follow_labels() -> void:
-	if follow_label and follow_slider:
-		follow_label.text = "Cursor Follow Tightness  %d%%" % int(follow_slider.value)
-	if speed_label and speed_slider:
-		speed_label.text = "Movement Speed  %.2f×" % (speed_slider.value / 100.0)
+	# Main settings hides mouse rows (HTML: those live under Controls / pause).
+	if follow_label and follow_label.visible and follow_slider:
+		OverlayTheme.set_row_value(follow_label, "Cursor Follow Tightness", "%d%%" % int(follow_slider.value))
+	if speed_label and speed_label.visible and speed_slider:
+		OverlayTheme.set_row_value(speed_label, "Movement Speed", "%.2f×" % (speed_slider.value / 100.0))
 
 func _refresh_speedrun() -> void:
 	if speedrun_btn:
@@ -229,11 +230,13 @@ func _refresh_speedrun() -> void:
 		else:
 			speedrun_btn.add_theme_color_override("font_color", OverlayTheme.MUTED_BTN)
 	var vbox := _settings_vbox()
-	var sl := vbox.get_node_or_null("SpeedrunLabel") as Label if vbox else null
+	var sl := vbox.find_child("SpeedrunLabel", true, false) as Label if vbox else null
 	if sl:
 		var on2 := GameState.speedrun
-		sl.text = "🏁 Speedrun Mode                    %s" % ("ON" if on2 else "OFF")
-		sl.add_theme_color_override("font_color", Color(1.0, 0.82, 0.48) if on2 else OverlayTheme.LABEL)
+		OverlayTheme.set_row_value(sl, "🏁 Speedrun Mode", "ON" if on2 else "OFF")
+	if speedrun_btn:
+		OverlayTheme.style_button(speedrun_btn, "toggle_on" if GameState.speedrun else "toggle_off")
+		speedrun_btn.text = "Skip villain monologues"
 
 func _on_music(v: float) -> void:
 	if AudioBus:
