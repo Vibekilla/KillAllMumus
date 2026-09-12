@@ -24,6 +24,7 @@ var _last_tick: int = -1
 ## Adaptive visual cadence: 1 = every sim tick, 2 = 30 Hz, 3 = 20 Hz (sim stays 60 Hz)
 var _play_stride: int = 2
 var _fps_adapt_cd: int = 0
+var last_draw_usec: int = 0
 
 func _ready() -> void:
 	z_index = 0
@@ -170,6 +171,7 @@ func _draw() -> void:
 		return
 	if not _is_playish():
 		return
+	var _t0 := Time.get_ticks_usec()
 	ctx.begin_frame()
 	var plock := _player()
 	if plock and plock.has_meta("dual_lock_tick"):
@@ -407,6 +409,7 @@ func _draw() -> void:
 	ctx.stroke_style("rgba(255,140,200,0.5)")
 	ctx.line_width(2)
 	ctx.stroke_rect(pf.position.x - 1, pf.position.y - 1, pf.size.x + 2, pf.size.y + 2)
+	last_draw_usec = Time.get_ticks_usec() - _t0
 
 func _draw_flash_msg(pf: Rect2) -> void:
 	var ft := float(CombatHelpers.flash_msg.get("t", 0))

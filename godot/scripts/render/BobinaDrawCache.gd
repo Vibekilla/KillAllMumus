@@ -4,11 +4,13 @@ extends Node
 ## HTML still owns pixels — this only avoids re-running the drawer every frame.
 
 const PAD := 48.0
-const MAX_ENTRIES := 96
+const MAX_ENTRIES := 128
 ## Quantize tick so breath/bob anim steps without unique tex every frame
 const TICK_BUCKET := 4
 ## Play: coarser buckets = fewer SubViewport bakes (full drawBobina is very expensive)
 const TICK_BUCKET_PLAY := 8
+## Title mini: 2 breath poses. Play face bins freeze tick (see cache_key).
+const BREATH_BINS := 2
 ## In-game facing bins (full 360 body rotate inside drawBobina).
 ## 24 bins → ≤7.5° step; bodyCtr error ≤ ~2px so soap bubble stays centered on body.
 const FACE_BINS := 24
@@ -23,6 +25,8 @@ var _queue: Array = []  # {key, state, scale, size}
 var _busy: bool = false
 var _last_key: String = ""
 var _last_play_tex: Texture2D = null
+var bake_count: int = 0
+var bake_usec_total: int = 0
 ## outfit|foN|eEXPR -> { "f-1.571": Texture2D } — O(bins) nearest, not O(bins×cache)
 var _face_index: Dictionary = {}
 
@@ -57,7 +61,15 @@ func _ensure_viewport() -> void:
 
 func cache_key(outfit: String, expr, pose: int, tick: int, scale: float, extra: String = "") -> String:
 	var e := str(expr) if expr != null else "null"
-	var tb := int(floor(float(tick) / float(TICK_BUCKET if scale >= 2.0 else TICK_BUCKET_PLAY)))
+	var tb: int
+	if scale >= 2.0:
+		tb = int(floor(float(tick) / float(TICK_BUCKET)))
+	elif extra.begins_with("f"):
+		# Play face-bin: tick in the key made 24×2 new textures every 8 frames and
+		# get_image() thrash. Full drawBobina pixels stay; breath is frozen in the bake.
+		tb = 0
+	else:
+		tb = int(floor(float(tick) / float(TICK_BUCKET_PLAY))) % BREATH_BINS
 	var sc := snappedf(scale, 0.1)
 	return "%s|%s|%d|%d|%.1f|%s" % [outfit, e, pose, tb, sc, extra]
 
@@ -84,12 +96,12 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 	var outfit := str(st.get("outfit", "og"))
 	var face := _face_bucket(float(st.get("face", -PI / 2.0)))
 	var focus := 1 if bool(st.get("focus", false)) else 0
-	# Orientation-critical: tick breath uses coarse bucket so face bins stay primary
-	var tick := int(st.get("tick", 0))
+	# Face bins are tick-stable (tb=0). Passing sim tick here used to mint a new
+	# key every TICK_BUCKET_PLAY frames and GPU-readback forever.
 	var expr = st.get("expr", null)
 	var expr_key := str(expr) if expr != null and str(expr) != "" else "null"
 	var extra := "f%.3f|fo%d|e%s" % [face, focus, expr_key]
-	var key := cache_key(outfit, expr if expr_key != "null" else null, 0, tick, 1.0, extra)
+	var key := cache_key(outfit, expr if expr_key != "null" else null, 0, 0, 1.0, extra)
 	if _ready_tex.has(key):
 		_touch(key)
 		_last_play_tex = _ready_tex[key]
@@ -98,9 +110,13 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 	var fallback: Texture2D = _nearest_face_tex(outfit, face, focus, expr_key)
 	if fallback == null and _last_play_tex != null:
 		fallback = _last_play_tex
-	# Queue exact face bin (rate-limited by _process one bake/frame) — never skip facing
+	# Cap the bake queue — spinning the stick used to enqueue all 24 bins at once
+	if fallback != null and _queue.size() >= 8:
+		_last_play_tex = fallback
+		return fallback
 	var bake := st.duplicate(true)
 	bake["face"] = face
+	bake["tick"] = 0
 	bake["iframe"] = 0
 	bake["x"] = 0
 	bake["y"] = 0
@@ -110,7 +126,7 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 		bake["expr"] = expr
 	else:
 		bake.erase("expr")
-	_get_or_enqueue(key, outfit, expr if expr_key != "null" else null, tick, 1.0, bake)
+	_get_or_enqueue(key, outfit, expr if expr_key != "null" else null, 0, 1.0, bake)
 	if fallback != null:
 		_last_play_tex = fallback
 	return fallback
@@ -206,11 +222,10 @@ func has_play_texture(st: Dictionary) -> bool:
 	var outfit := str(st.get("outfit", "og"))
 	var face := _face_bucket(float(st.get("face", -PI / 2.0)))
 	var focus := 1 if bool(st.get("focus", false)) else 0
-	var tick := int(st.get("tick", 0))
 	var expr = st.get("expr", null)
 	var expr_key := str(expr) if expr != null and str(expr) != "" else "null"
 	var extra := "f%.3f|fo%d|e%s" % [face, focus, expr_key]
-	return _ready_tex.has(cache_key(outfit, expr if expr_key != "null" else null, 0, tick, 1.0, extra))
+	return _ready_tex.has(cache_key(outfit, expr if expr_key != "null" else null, 0, 0, 1.0, extra))
 
 func clear_cache() -> void:
 	## Dual playtest: drop bakes when forcing expr/outfit matrix
@@ -266,7 +281,10 @@ func _bake(job: Dictionary) -> void:
 	var vtex: ViewportTexture = _vp.get_texture()
 	if vtex == null:
 		return
+	var t0 := Time.get_ticks_usec()
 	var img: Image = vtex.get_image()
+	bake_usec_total += Time.get_ticks_usec() - t0
+	bake_count += 1
 	if img == null or img.is_empty():
 		return
 	var itex := ImageTexture.create_from_image(img)

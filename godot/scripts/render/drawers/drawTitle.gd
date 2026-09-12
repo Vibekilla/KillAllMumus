@@ -37,6 +37,11 @@ var _H: float = 540.0
 var _bg_tex: Texture2D = null
 var _bg_h: float = -1.0
 var _social_layout: Dictionary = {}
+var chrome_btns: Array = []
+var _live_bob: Vector2 = Vector2.ZERO
+var _live_bob_sc: float = 1.15
+var _live_start_y: float = 400.0
+var _live_bh: float = 28.0
 
 func setup(c) -> void:
 	ctx = c
@@ -159,11 +164,15 @@ func _title_bg_tex(W: float, H: float) -> Texture2D:
 	return _bg_tex
 
 func drawTitle() -> void:
+	drawTitleChrome()
+	drawTitleLive()
+
+func drawTitleChrome() -> void:
+	## Static title (wordmark glow, buttons, hints, auth, social) — baked to a SubViewport.
 	title_btns = []
 	social_hits = []
 	var W := _W
 	var H := _H
-	# HTML: linearGradient 0→0.6→1 #1a0e26 / #3a1030 / #12060c — bake once, blit
 	var bgtex := _title_bg_tex(W, H)
 	if bgtex != null and ctx.has_method("draw_image"):
 		ctx.draw_image(bgtex, 0, 0, W, H)
@@ -174,25 +183,6 @@ func drawTitle() -> void:
 		bg.addColorStop(1, "#12060c")
 		ctx.fill_style(bg)
 		ctx.fill_rect(0, 0, W, H)
-	# Floating particles (native discs — same 40 HTML sparkles, no path tessellation)
-	var cols := ["#ff6ec7", "#ffd27a", "#8fd0ff"]
-	var use_circ: bool = ctx.has_method("fill_circle")
-	ctx.global_alpha(0.5)
-	for ci in range(3):
-		ctx.fill_style(cols[ci])
-		for i in range(ci, 40, 3):
-			var a := float(tick) * 0.01 + float(i)
-			var x := W / 2.0 + cos(a) * (120.0 + float(i) * 7.0)
-			var y := 140.0 + sin(a * 1.3) * 80.0 + float(i) * 3.0
-			var px := fposmod(x, W)
-			var py := fposmod(y, H)
-			if use_circ:
-				ctx.fill_circle(px, py, 3)
-			else:
-				ctx.begin_path()
-				ctx.arc(px, py, 3, 0, TAU)
-				ctx.fill()
-	ctx.global_alpha(1.0)
 	# Peephole portrait — HTML: clip circle then drawImage + gold stroke
 	var S := 146.0
 	var py0 := 20.0
@@ -244,8 +234,9 @@ func drawTitle() -> void:
 	if not ProgressStore.outfit_unlocked(selected_outfit):
 		selected_outfit = "og"
 		GameState.selected_outfit = "og"
-	# Mini Bobina next to outfit button — HTML full drawBobina (cached blit)
-	_blit_title_bobina(ox - 26.0, oy + bh / 2.0, 1.15)
+	_live_bob = Vector2(ox - 26.0, oy + bh / 2.0)
+	_live_bob_sc = 1.15
+	_live_bh = bh
 	drawTitleBtn(ox, oy, oW, bh, "👗 OUTFIT: " + _outfit_name(selected_outfit) + "  ▸", "#ff9ecb", "outfit")
 	var mW := 250.0 if is_touch else 232.0
 	var lW := 150.0 if is_touch else 126.0
@@ -286,38 +277,9 @@ func drawTitle() -> void:
 		drawTitleBtn(sx0 + float(i) * (bw + gap), ny, bw, bh, r["l"], r["c"], r["id"])
 	ny += bh
 	ctx.text_align("center")
-	# START pill
-	ny += 12.0 if is_touch else 16.0
-	var st_txt: String
-	if is_touch:
-		st_txt = "▶  TAP TO START  ◀"
-	else:
-		var k := _kb_shoot()
-		if k.strip_edges() == "" or k == "None" or k == "Unknown":
-			k = "Z"
-		st_txt = "▶  PRESS " + k + "   /   TAP TO START  ◀"
-	ctx.font("bold %dpx monospace" % (22 if is_touch else 20))
-	var stw: float = float(ctx.measure_text(st_txt).get("width", 280))
-	var pad := 20.0
+	_live_start_y = ny + (12.0 if is_touch else 16.0)
 	var pill_h := 34.0 if is_touch else 32.0
-	ctx.fill_style("rgba(255,90,140,0.14)")
-	ctx.stroke_style("rgba(255,120,190,0.4)")
-	ctx.line_width(1.5)
-	ctx.begin_path()
-	ctx.round_rect(W / 2.0 - stw / 2.0 - pad, ny, stw + pad * 2.0, pill_h, 10)
-	ctx.fill()
-	ctx.stroke()
-	# Start is a full-width clickable region (handleTitleClick falls through to startRun)
-	title_btns.append({
-		"x": W / 2.0 - stw / 2.0 - pad,
-		"y": ny,
-		"w": stw + pad * 2.0,
-		"h": pill_h,
-		"id": "start",
-	})
-	ctx.fill_style("#fff" if (int(floorf(float(tick) / 30.0)) % 2) != 0 else "#ffb3d4")
-	ctx.fill_text(st_txt, W / 2.0, ny + pill_h / 2.0 + 7.0)
-	ny += pill_h + (10.0 if is_touch else 12.0)
+	ny = _live_start_y + pill_h + (10.0 if is_touch else 12.0)
 	# HTML DOM overlays hint lines; do not shove copy up to make room for auth.
 	var info_gap := 14.0 if not is_touch else 13.0
 	if not is_touch:
@@ -349,6 +311,63 @@ func drawTitle() -> void:
 	# HTML #social — desktop bottom strip (touch: hidden, lives in SHOUTOUTS)
 	if not is_touch:
 		_draw_social_bar(W, H)
+	chrome_btns = title_btns.duplicate()
+
+func drawTitleLive() -> void:
+	## Particles, mini Bobina, blinking start pill — cheap, runs every title frame.
+	title_btns = chrome_btns.duplicate()
+	var W := _W
+	var H := _H
+	var cols := ["#ff6ec7", "#ffd27a", "#8fd0ff"]
+	var use_circ: bool = ctx.has_method("fill_circle")
+	ctx.global_alpha(0.5)
+	for ci in range(3):
+		ctx.fill_style(cols[ci])
+		for i in range(ci, 40, 3):
+			var a := float(tick) * 0.01 + float(i)
+			var x := W / 2.0 + cos(a) * (120.0 + float(i) * 7.0)
+			var y := 140.0 + sin(a * 1.3) * 80.0 + float(i) * 3.0
+			var px := fposmod(x, W)
+			var py := fposmod(y, H)
+			if use_circ:
+				ctx.fill_circle(px, py, 3)
+			else:
+				ctx.begin_path()
+				ctx.arc(px, py, 3, 0, TAU)
+				ctx.fill()
+	ctx.global_alpha(1.0)
+	_blit_title_bobina(_live_bob.x, _live_bob.y, _live_bob_sc)
+	var st_txt: String
+	if is_touch:
+		st_txt = "▶  TAP TO START  ◀"
+	else:
+		var k := _kb_shoot()
+		if k.strip_edges() == "" or k == "None" or k == "Unknown":
+			k = "Z"
+		st_txt = "▶  PRESS " + k + "   /   TAP TO START  ◀"
+	ctx.text_align("center")
+	ctx.font("bold %dpx monospace" % (22 if is_touch else 20))
+	var stw: float = float(ctx.measure_text(st_txt).get("width", 280))
+	var pad := 20.0
+	var pill_h := 34.0 if is_touch else 32.0
+	var ny := _live_start_y
+	ctx.fill_style("rgba(255,90,140,0.14)")
+	ctx.stroke_style("rgba(255,120,190,0.4)")
+	ctx.line_width(1.5)
+	ctx.begin_path()
+	ctx.round_rect(W / 2.0 - stw / 2.0 - pad, ny, stw + pad * 2.0, pill_h, 10)
+	ctx.fill()
+	ctx.stroke()
+	title_btns.append({
+		"x": W / 2.0 - stw / 2.0 - pad,
+		"y": ny,
+		"w": stw + pad * 2.0,
+		"h": pill_h,
+		"id": "start",
+	})
+	ctx.fill_style("#fff" if (int(floorf(float(tick) / 30.0)) % 2) != 0 else "#ffb3d4")
+	ctx.fill_text(st_txt, W / 2.0, ny + pill_h / 2.0 + 7.0)
+	ctx.text_align("left")
 	if title_idle_t > 1800.0:
 		drawMaidDance()
 

@@ -31,6 +31,9 @@ func _run() -> void:
 
 	print("[PROF] renderer=%s" % _renderer_name())
 	await _wall("title", null)
+	var ts = main.get_node_or_null("UI/TitleScreen")
+	if ts and ts.get("last_draw_usec") != null:
+		print("[PROF] title_draw_last=%.2fms" % (float(ts.last_draw_usec) / 1000.0))
 
 	gs.start_run()
 	gs.set_state(gs.State.PLAY)
@@ -50,6 +53,9 @@ func _run() -> void:
 		_report_cache(wd)
 		print("[PROF] play_stride=%s" % str(wd.get("_play_stride")))
 
+	var hudc = main.get_node_or_null("UI/HudCanvas")
+	if hudc and hudc.get("last_draw_usec") != null:
+		print("[PROF] hud_draw_last=%.2fms" % (float(hudc.last_draw_usec) / 1000.0))
 	await _wall("play", player)
 
 	var n_en := root.get_tree().get_nodes_in_group("enemies").size()
@@ -82,8 +88,25 @@ func _report_cache(wd: Node) -> void:
 	var sc = wd.get("stage_bg_cache")
 	var bn := 0
 	var sn := 0
-	if bc and bc.get("_ready_tex") != null:
-		bn = int(bc._ready_tex.size())
-	if sc and sc.get("_ready_tex") != null:
-		sn = int(sc._ready_tex.size())
-	print("[PROF] cache bobina_entries=%d stage_bg_entries=%d" % [bn, sn])
+	var bb := 0
+	var sb := 0
+	var bu := 0
+	if bc:
+		if bc.get("_ready_tex") != null:
+			bn = int(bc._ready_tex.size())
+		if bc.get("bake_count") != null:
+			bb = int(bc.bake_count)
+		if bc.get("bake_usec_total") != null:
+			bu = int(bc.bake_usec_total)
+	if sc:
+		if sc.get("_ready_tex") != null:
+			sn = int(sc._ready_tex.size())
+		if sc.get("bake_count") != null:
+			sb = int(sc.bake_count)
+	print("[PROF] cache bobina_entries=%d bobina_bakes=%d bobina_get_image_ms=%.1f stage_bg_bakes=%d" % [
+		bn, bb, float(bu) / 1000.0, sb
+	])
+	if wd.get("last_draw_usec") != null:
+		print("[PROF] world_draw_last=%.2fms stride=%s" % [
+			float(wd.last_draw_usec) / 1000.0, str(wd.get("_play_stride"))
+		])

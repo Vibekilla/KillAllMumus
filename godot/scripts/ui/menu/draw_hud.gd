@@ -692,7 +692,7 @@ func _draw_panel_landscape() -> void:
 	if pfrac > 0.04 and pw > 4.0:
 		ctx.save()
 		ctx.global_composite_operation("lighter")
-		var nfl := maxi(1, int(floor(pw / 6.0)))
+		var nfl := clampi(int(floor(pw / 18.0)), 1, 10)
 		for i in range(nfl):
 			var fx := x + 18 + float(i) * 6.0
 			var fh := (2.5 + pfrac * 8.0) * (0.5 + 0.5 * absf(sin(float(tick) * 0.32 + float(i) * 1.2)))

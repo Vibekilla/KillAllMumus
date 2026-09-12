@@ -143,6 +143,8 @@ var _last_full_ellipse: Dictionary = {}
 ## All full circles / ellipses in the current path (Bobina ears, sleeves, shoes, blush)
 var _full_arcs: Array = []
 var _full_ellipses: Array = []
+## Last round_rect in local space — native 3-rect+4-circle fill (HUD chips)
+var _rr: Dictionary = {}
 
 func bind(n: CanvasItem) -> void:
 	node = n
@@ -159,6 +161,7 @@ func begin_frame() -> void:
 	_last_full_ellipse = {}
 	_full_arcs.clear()
 	_full_ellipses.clear()
+	_rr = {}
 	# Reset shadow — leaked gold boss-portrait shadows were neon-spoking ambience strokes
 	_shadow_col = Color(0, 0, 0, 0)
 	_shadow_blur = 0.0
@@ -375,6 +378,7 @@ func begin_path() -> void:
 	_last_full_ellipse = {}
 	_full_arcs.clear()
 	_full_ellipses.clear()
+	_rr = {}
 
 func close_path() -> void:
 	_path_closed = true
@@ -506,6 +510,7 @@ func round_rect(x, y, w, h, r) -> void:
 		rect(xf, yf, wf, hf)
 		return
 	begin_path()
+	_rr = {"x": xf, "y": yf, "w": wf, "h": hf, "r": rf}
 	move_to(xf + rf, yf)
 	line_to(xf + wf - rf, yf)
 	_arc_corner(xf + wf - rf, yf + rf, rf, -PI / 2.0, 0.0)
@@ -516,6 +521,45 @@ func round_rect(x, y, w, h, r) -> void:
 	line_to(xf, yf + rf)
 	_arc_corner(xf + rf, yf + rf, rf, PI, PI * 1.5)
 	close_path()
+
+func _fill_rr_native(info: Dictionary) -> void:
+	## Axis-aligned round-rect: 3 rects + 4 corner discs. HUD chips call this every frame.
+	if node == null:
+		return
+	var xf := float(info.get("x", 0))
+	var yf := float(info.get("y", 0))
+	var wf := float(info.get("w", 0))
+	var hf := float(info.get("h", 0))
+	var rf := float(info.get("r", 0))
+	var col := _c(_fill)
+	var p0 := _xform * Vector2(xf, yf)
+	var p1 := _xform * Vector2(xf + wf, yf)
+	var axis := absf(p0.y - p1.y) < 0.35 and absf((_xform * Vector2(xf, yf + hf)).x - p0.x) < 0.35
+	if not axis:
+		# Rotated: fall through to triangulated path still in _path
+		_rr = {}
+		var subs := _all_subpaths()
+		for sp in subs:
+			_fill_one_subpath(sp as PackedVector2Array)
+		return
+	var origin := p0
+	var sc := _xform.get_scale()
+	var ww := wf * absf(sc.x)
+	var hh := hf * absf(sc.y)
+	var rr := rf * (absf(sc.x) + absf(sc.y)) * 0.5
+	if ww <= 0.05 or hh <= 0.05:
+		return
+	rr = minf(rr, minf(ww, hh) * 0.5)
+	var r := Rect2(origin, Vector2(ww, hh)).abs()
+	r = _clip_rect(r) if has_method("_clip_rect") else r
+	if r.size.x <= 0.0 or r.size.y <= 0.0:
+		return
+	node.draw_rect(Rect2(r.position.x + rr, r.position.y, r.size.x - 2.0 * rr, r.size.y), col, true)
+	node.draw_rect(Rect2(r.position.x, r.position.y + rr, r.size.x, r.size.y - 2.0 * rr), col, true)
+	node.draw_circle(Vector2(r.position.x + rr, r.position.y + rr), rr, col)
+	node.draw_circle(Vector2(r.position.x + r.size.x - rr, r.position.y + rr), rr, col)
+	node.draw_circle(Vector2(r.position.x + rr, r.position.y + r.size.y - rr), rr, col)
+	node.draw_circle(Vector2(r.position.x + r.size.x - rr, r.position.y + r.size.y - rr), rr, col)
 
 func _arc_corner(cx: float, cy: float, r: float, a0: float, a1: float) -> void:
 	var steps := 8
@@ -531,6 +575,9 @@ func fill() -> void:
 	## HTML CanvasRenderingContext2D.fill — evenodd not used; nonzero fill via triangulation.
 	## Full-circle / multi-disc paths (ears, sleeves, shoes, blush) use native draw_circle.
 	if node == null:
+		return
+	if _fill_grad == null and _clip.is_empty() and not _rr.is_empty() and _full_arcs.is_empty() and _full_ellipses.is_empty():
+		_fill_rr_native(_rr)
 		return
 	var subs := _all_subpaths()
 	var total_pts := 0

@@ -32,6 +32,12 @@ var _last_draw_tick: int = -1
 var _login_btn: Button
 var _auth_label: Label
 var _pointer_down = false
+var _chrome_vp: SubViewport
+var _chrome_host: Node2D
+var _chrome_key: String = ""
+var _chrome_ready: bool = false
+var _chrome_pending: bool = false
+var last_draw_usec: int = 0
 
 func _ready() -> void:
 	# Hide Control stub children (VBox / Backdrop)
@@ -73,6 +79,7 @@ func _ready() -> void:
 		add_child(bob_cache)
 	if title_drawer.has_method("set_bob_cache"):
 		title_drawer.set_bob_cache(bob_cache)
+	_ensure_title_chrome()
 	menus = load("res://scripts/ui/menu/draw_menus.gd").new()
 	menus.setup(ctx, model, bobina, bob_cache)
 
@@ -89,6 +96,32 @@ func _ready() -> void:
 	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
 		SimClock.sim_tick.connect(_on_sim_tick)
 	queue_redraw()
+
+func _ensure_title_chrome() -> void:
+	if _chrome_vp != null:
+		return
+	_chrome_vp = SubViewport.new()
+	_chrome_vp.name = "TitleChromeVP"
+	_chrome_vp.transparent_bg = false
+	_chrome_vp.handle_input_locally = false
+	_chrome_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	_chrome_vp.size = Vector2i(int(Config.W), int(Config.H))
+	add_child(_chrome_vp)
+	_chrome_host = Node2D.new()
+	_chrome_host.name = "TitleChromeHost"
+	_chrome_host.set_script(load("res://scripts/render/TitleChromeHost.gd"))
+	_chrome_vp.add_child(_chrome_host)
+	if _chrome_host.has_method("configure"):
+		_chrome_host.configure(ctx, title_drawer)
+
+func _title_chrome_key() -> String:
+	return "%s|%d|%d|%d|%d" % [
+		str(GameState.selected_outfit),
+		int(GameState.difficulty),
+		int(GameState.ng_plus),
+		int(ProgressStore.ng_unlocked) if ProgressStore else 0,
+		1 if _is_touch_ui() else 0,
+	]
 
 func _on_sim_tick(_dt: float) -> void:
 	## Fixed 60 Hz idle counter (HTML titleIdleT++) — not wall-clock FPS
@@ -208,11 +241,37 @@ func _process(_delta: float) -> void:
 		menus.set_tick(t)
 	if bobina and bobina.has_method("set_tick"):
 		bobina.set_tick(t)
+	if GameState.state == GameState.State.TITLE:
+		var ck := _title_chrome_key()
+		if ck != _chrome_key:
+			_chrome_key = ck
+			_chrome_ready = false
+			title_drawer.set_menu_state({
+				"outfit": GameState.selected_outfit,
+				"tick": t,
+				"title_idle_t": title_idle_t,
+				"is_touch": _is_touch_ui(),
+				"difficulty": GameState.difficulty,
+				"ng_plus": GameState.ng_plus,
+				"ng_unlocked": ProgressStore.ng_unlocked,
+			})
+			if _chrome_host and _chrome_host.has_method("set_bake"):
+				_chrome_host.set_bake()
+			if _chrome_vp:
+				_chrome_vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+			_chrome_pending = true
+		elif _chrome_pending:
+			_chrome_ready = true
+			_chrome_pending = false
+			if _chrome_vp:
+				_chrome_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	queue_redraw()
 
 func _draw() -> void:
 	if ctx == null:
 		return
+	var t0 := Time.get_ticks_usec()
+	ctx.bind(self)
 	ctx.begin_frame()
 	model.reset_hits()
 	var t: int = int(SimClock.sim_frame) if SimClock else int(title_drawer.tick)
@@ -227,7 +286,12 @@ func _draw() -> void:
 				"ng_plus": GameState.ng_plus,
 				"ng_unlocked": ProgressStore.ng_unlocked,
 			})
-			title_drawer.drawTitle()
+			var tex: Texture2D = _chrome_vp.get_texture() if _chrome_vp else null
+			if _chrome_ready and tex != null:
+				draw_texture_rect(tex, Rect2(0, 0, Config.W, Config.H), false)
+				title_drawer.drawTitleLive()
+			else:
+				title_drawer.drawTitle()
 			model.title_btns = title_drawer.title_btns
 		GameState.State.OUTFITS:
 			menus.drawOutfits()
@@ -241,6 +305,7 @@ func _draw() -> void:
 			menus.drawLeaderboard()
 	if P2Meta.shoutouts_open:
 		_draw_shoutouts()
+	last_draw_usec = Time.get_ticks_usec() - t0
 
 func _gui_input(event: InputEvent) -> void:
 	if not visible:

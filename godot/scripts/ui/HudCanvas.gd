@@ -27,6 +27,7 @@ func _ready() -> void:
 	visible = true
 
 var _last_tick: int = -1
+var last_draw_usec: int = 0
 
 func _process(_d: float) -> void:
 	# HTML #pausescreen is a full-viewport DOM overlay — hide canvas HUD while paused
@@ -40,9 +41,10 @@ func _process(_d: float) -> void:
 	var nt := SimClock.sim_frame if SimClock else tick + 1
 	if nt == _last_tick:
 		return
-	# Emblem toasts need full 60 Hz for fade; panel meters can be 30 Hz
+	# Emblem toasts need full 60 Hz for fade; panel meters 30 Hz desktop / 20 Hz web
 	var toasting := ProgressStore and ProgressStore.has_method("has_emblem_toasts") and ProgressStore.has_emblem_toasts()
-	if not toasting and (nt % 2) != 0:
+	var hud_stride := 3 if OS.has_feature("web") else 2
+	if not toasting and (nt % hud_stride) != 0:
 		return
 	_last_tick = nt
 	tick = nt
@@ -58,6 +60,7 @@ func _draw() -> void:
 		return
 	if GameState.state == GameState.State.PAUSED:
 		return
+	var t0 := Time.get_ticks_usec()
 	ctx.begin_frame()
 	hud.set_tick(tick)
 	var playish := GameState.state in [
@@ -75,6 +78,7 @@ func _draw() -> void:
 	if Config.debug_layer and debug_draw and debug_draw.has_method("draw_debug_layer"):
 		debug_draw.set_tick(tick)
 		debug_draw.draw_debug_layer()
+	last_draw_usec = Time.get_ticks_usec() - t0
 
 func touch_hit(pos: Vector2) -> String:
 	if touch_draw and touch_draw.has_method("hit_key"):

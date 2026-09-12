@@ -3,8 +3,9 @@ extends Node
 ## Re-bake on stage change / tick bucket / boss-intensity bucket.
 ## WorldDraw blits the texture every frame — entities stay 60 Hz; bg amortizes to ~15–20 Hz.
 
-## ~6 Hz re-bake — StageBgFx is slow-scrolling; tighter buckets burned FPS on soft GL/web
-const TICK_BUCKET := 10
+## ~4 Hz re-bake — StageBgFx is slow-scrolling. Blit the SubViewport texture
+## directly (no get_image CPU readback — that was a play-frame killer).
+const TICK_BUCKET := 15
 const MAX_ENTRIES := 16
 
 var _vp: SubViewport
@@ -17,6 +18,8 @@ var _queue: Array = []  # {key, tick, stage, bi}
 var _busy: bool = false
 var _last_blit_key: String = ""
 var _last_blit_tex: Texture2D = null
+var _has_frame: bool = false
+var bake_count: int = 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -90,31 +93,11 @@ func get_texture(tick: int) -> Texture2D:
 	var stage := int(GameState.stage_index) if GameState else 0
 	var bi_b := _bi_bucket()
 	var key := cache_key(stage, tick, bi_b)
-	if _ready_tex.has(key):
-		_touch(key)
-		_last_blit_key = key
-		_last_blit_tex = _ready_tex[key]
-		return _ready_tex[key]
-	# Stale same-stage texture while new bucket bakes (keeps bg continuous)
-	var prefix := "s%d|" % stage
-	var fallback: Texture2D = null
-	if _last_blit_tex != null and _last_blit_key.begins_with(prefix):
-		fallback = _last_blit_tex
-	else:
-		for k in _ready_tex.keys():
-			if str(k).begins_with(prefix):
-				fallback = _ready_tex[k]
-				_touch(str(k))
-				break
-	# Keep last stage blit while new bi/tick bucket bakes (HTML bg is continuous)
-	if fallback != null and _ready_tex.has(key) == false:
-		# enqueue missing key but show fallback this frame
-		if _queue.size() < 2:
-			_enqueue(key, tick, stage, bi_b)
-		return fallback
-	if fallback == null and _queue.is_empty():
+	if key != _last_blit_key:
 		_enqueue(key, tick, stage, bi_b)
-	return fallback
+	if _has_frame:
+		return _vp.get_texture()
+	return _last_blit_tex
 
 func _enqueue(key: String, tick: int, stage: int, bi_b: int) -> void:
 	for q in _queue:
@@ -145,7 +128,7 @@ func prewarm_stage(tick: int = 0) -> void:
 	var stage := int(GameState.stage_index) if GameState else 0
 	var bi_b := _bi_bucket()
 	var key := cache_key(stage, tick, bi_b)
-	if not _ready_tex.has(key):
+	if key != _last_blit_key:
 		_enqueue(key, tick, stage, bi_b)
 
 func _run_one() -> void:
@@ -158,7 +141,7 @@ func _run_one() -> void:
 
 func _bake(job: Dictionary) -> void:
 	var key: String = str(job.get("key", ""))
-	if key == "" or _ready_tex.has(key):
+	if key == "" or (key == _last_blit_key and _has_frame):
 		return
 	var tick: int = int(job.get("tick", 0))
 	var pf: Rect2 = Config.playfield() if Config else Rect2(48, 14, 512, 516)
@@ -171,18 +154,11 @@ func _bake(job: Dictionary) -> void:
 		_host.set_bake(tick, pf)
 	_vp.render_target_update_mode = SubViewport.UPDATE_ONCE
 	await RenderingServer.frame_post_draw
-	var vtex: ViewportTexture = _vp.get_texture()
-	if vtex == null:
-		_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
-		return
-	var img: Image = vtex.get_image()
-	if img == null or img.is_empty():
-		_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
-		return
-	var itex := ImageTexture.create_from_image(img)
-	_ready_tex[key] = itex
-	_touch(key)
-	_evict_if_needed()
-	_last_blit_key = key
-	_last_blit_tex = itex
+	# Keep the GPU texture — do NOT get_image() (CPU readback of 512×516 every bucket).
 	_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	if _vp.get_texture() == null:
+		return
+	_has_frame = true
+	_last_blit_key = key
+	_last_blit_tex = _vp.get_texture()
+	bake_count += 1

@@ -35,10 +35,19 @@ func _run() -> void:
 			print("[FPS] FAIL missing TICK_BUCKET_PLAY")
 			ok = false
 	var sbg: String = FileAccess.get_file_as_string("res://scripts/render/StageBgDrawCache.gd")
-	if sbg.find("TICK_BUCKET := 10") < 0 and sbg.find("TICK_BUCKET = 10") < 0:
-		if "TICK_BUCKET :=" in sbg:
-			# extract number
-			pass
+	if sbg.find("create_from_image") >= 0:
+		print("[FPS] FAIL StageBg must blit ViewportTexture (no ImageTexture snapshot)")
+		ok = false
+	if sbg.find("_vp.get_texture()") < 0:
+		print("[FPS] FAIL StageBg must return SubViewport texture")
+		ok = false
+	if sbg.find("TICK_BUCKET") < 0:
+		print("[FPS] FAIL missing StageBg TICK_BUCKET")
+		ok = false
+	var bc2: String = FileAccess.get_file_as_string("res://scripts/render/BobinaDrawCache.gd")
+	if bc2.find("extra.begins_with(\"f\")") < 0 and bc2.find("tb = 0") < 0:
+		print("[FPS] FAIL play Bobina cache key must be tick-stable")
+		ok = false
 	# Must compile
 	var scr = load("res://scripts/html_parity/WorldDraw.gd")
 	if scr == null:
