@@ -20,6 +20,7 @@ var _last_blit_key: String = ""
 var _last_blit_tex: Texture2D = null
 var _has_frame: bool = false
 var bake_count: int = 0
+var _seeded_stage: int = -1
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -44,15 +45,12 @@ func _ensure_viewport() -> void:
 	_ctx.bind(_host)
 	_drawer = load("res://scripts/render/drawers/drawStageBg.gd").new()
 	_drawer.setup(_ctx)
-	# Stable seeds for cache lifetime (HTML re-rolls only on stage construct)
-	if "bg_seed" in _drawer:
-		_drawer.bg_seed = 1.7
-	if "bg_hue_seed" in _drawer:
-		_drawer.bg_hue_seed = 12.0
-	if "bg_petals" in _drawer:
-		_drawer.bg_petals = 5
+	# HTML re-rolls seeds per stage construct; cache follows stage_index
+	if _drawer.has_method("reroll_seeds"):
+		_drawer.reroll_seeds()
 	if _host.has_method("configure"):
 		_host.configure(_ctx, _drawer)
+	_seeded_stage = int(GameState.stage_index) if GameState else 0
 
 func _bi_bucket() -> int:
 	## Match drawStageBgFx boss intensity — quantize so we re-bake on fight intensity shifts.
@@ -91,6 +89,13 @@ func cache_key(stage: int, tick: int, bi_b: int) -> String:
 func get_texture(tick: int) -> Texture2D:
 	_ensure_viewport()
 	var stage := int(GameState.stage_index) if GameState else 0
+	if stage != _seeded_stage:
+		_seeded_stage = stage
+		if _drawer and _drawer.has_method("reroll_seeds"):
+			_drawer.reroll_seeds()
+		_ready_tex.clear()
+		_order.clear()
+		_last_blit_key = ""
 	var bi_b := _bi_bucket()
 	var key := cache_key(stage, tick, bi_b)
 	if key != _last_blit_key:

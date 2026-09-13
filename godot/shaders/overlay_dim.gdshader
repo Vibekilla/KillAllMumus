@@ -14,20 +14,25 @@ void fragment() {
 	vec2 uv = SCREEN_UV;
 	vec2 px = SCREEN_PIXEL_SIZE * blur_px;
 	vec2 px2 = px * 2.0;
-	// Weighted 13-tap — closer to CSS blur(3px)/blur(4px) than a 9-tap box
-	vec4 blur = texture(screen_texture, uv) * 0.18;
-	blur += texture(screen_texture, uv + vec2(px.x, 0.0)) * 0.10;
-	blur += texture(screen_texture, uv - vec2(px.x, 0.0)) * 0.10;
-	blur += texture(screen_texture, uv + vec2(0.0, px.y)) * 0.10;
-	blur += texture(screen_texture, uv - vec2(0.0, px.y)) * 0.10;
-	blur += texture(screen_texture, uv + px) * 0.07;
-	blur += texture(screen_texture, uv - px) * 0.07;
-	blur += texture(screen_texture, uv + vec2(px.x, -px.y)) * 0.07;
-	blur += texture(screen_texture, uv + vec2(-px.x, px.y)) * 0.07;
-	blur += texture(screen_texture, uv + vec2(px2.x, 0.0)) * 0.035;
-	blur += texture(screen_texture, uv - vec2(px2.x, 0.0)) * 0.035;
-	blur += texture(screen_texture, uv + vec2(0.0, px2.y)) * 0.035;
-	blur += texture(screen_texture, uv - vec2(0.0, px2.y)) * 0.035;
+	vec2 px15 = px * 1.5;
+	// Weighted gaussian-ish — CSS blur(3px)/blur(4px)
+	vec4 blur = texture(screen_texture, uv) * 0.16;
+	blur += texture(screen_texture, uv + vec2(px.x, 0.0)) * 0.09;
+	blur += texture(screen_texture, uv - vec2(px.x, 0.0)) * 0.09;
+	blur += texture(screen_texture, uv + vec2(0.0, px.y)) * 0.09;
+	blur += texture(screen_texture, uv - vec2(0.0, px.y)) * 0.09;
+	blur += texture(screen_texture, uv + px) * 0.06;
+	blur += texture(screen_texture, uv - px) * 0.06;
+	blur += texture(screen_texture, uv + vec2(px.x, -px.y)) * 0.06;
+	blur += texture(screen_texture, uv + vec2(-px.x, px.y)) * 0.06;
+	blur += texture(screen_texture, uv + vec2(px15.x, 0.0)) * 0.04;
+	blur += texture(screen_texture, uv - vec2(px15.x, 0.0)) * 0.04;
+	blur += texture(screen_texture, uv + vec2(0.0, px15.y)) * 0.04;
+	blur += texture(screen_texture, uv - vec2(0.0, px15.y)) * 0.04;
+	blur += texture(screen_texture, uv + vec2(px2.x, 0.0)) * 0.02;
+	blur += texture(screen_texture, uv - vec2(px2.x, 0.0)) * 0.02;
+	blur += texture(screen_texture, uv + vec2(0.0, px2.y)) * 0.02;
+	blur += texture(screen_texture, uv - vec2(0.0, px2.y)) * 0.02;
 
 	vec4 veil = inner;
 	if (radial > 0.5) {

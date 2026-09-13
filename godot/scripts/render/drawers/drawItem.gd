@@ -10,6 +10,66 @@ func setup(c) -> void:
 func set_tick(t: int) -> void:
 	tick = t
 
+func _draw_item_glyph(g: String, px: float) -> bool:
+	## Compact filled glyphs — same weight as 10–13px monospace, no color-emoji blob.
+	var s := px * 0.42
+	if g == "♥":
+		ctx.begin_path()
+		ctx.move_to(0, s * 0.85)
+		ctx.bezier_curve_to(-s * 1.1, s * 0.05, -s * 0.95, -s * 0.85, 0, -s * 0.25)
+		ctx.bezier_curve_to(s * 0.95, -s * 0.85, s * 1.1, s * 0.05, 0, s * 0.85)
+		ctx.close_path()
+		ctx.fill()
+		return true
+	if g == "★":
+		ctx.begin_path()
+		for i in range(5):
+			var a0 := -PI / 2.0 + float(i) * TAU / 5.0
+			var a1 := a0 + TAU / 10.0
+			if i == 0:
+				ctx.move_to(cos(a0) * s, sin(a0) * s)
+			else:
+				ctx.line_to(cos(a0) * s, sin(a0) * s)
+			ctx.line_to(cos(a1) * s * 0.42, sin(a1) * s * 0.42)
+		ctx.close_path()
+		ctx.fill()
+		return true
+	if g == "✸":
+		ctx.begin_path()
+		for i in range(8):
+			var a0 := -PI / 2.0 + float(i) * TAU / 8.0
+			var a1 := a0 + TAU / 16.0
+			if i == 0:
+				ctx.move_to(cos(a0) * s, sin(a0) * s)
+			else:
+				ctx.line_to(cos(a0) * s, sin(a0) * s)
+			ctx.line_to(cos(a1) * s * 0.38, sin(a1) * s * 0.38)
+		ctx.close_path()
+		ctx.fill()
+		return true
+	if g == "◈":
+		ctx.begin_path()
+		ctx.move_to(0, -s)
+		ctx.line_to(s * 0.72, 0)
+		ctx.line_to(0, s)
+		ctx.line_to(-s * 0.72, 0)
+		ctx.close_path()
+		ctx.fill()
+		return true
+	if g == "»":
+		ctx.begin_path()
+		ctx.move_to(-s * 0.55, -s * 0.7)
+		ctx.line_to(s * 0.05, 0)
+		ctx.line_to(-s * 0.55, s * 0.7)
+		ctx.move_to(s * 0.05, -s * 0.7)
+		ctx.line_to(s * 0.65, 0)
+		ctx.line_to(s * 0.05, s * 0.7)
+		ctx.stroke_style("#1a0e14")
+		ctx.line_width(1.6)
+		ctx.stroke()
+		return true
+	return false
+
 func drawItem(it: Dictionary) -> void:
 	ctx.save()
 	ctx.translate(float(it.get("x", 0)), float(it.get("y", 0)))
@@ -89,8 +149,11 @@ func drawItem(it: Dictionary) -> void:
 	ctx.fill()
 	ctx.shadow_blur(0)
 	ctx.fill_style("#1a0e14")
-	ctx.font("bold %dpx monospace" % int(sz2 + 2))
 	ctx.text_align("center")
-	ctx.fill_text(str(m[1]), 0, 1)
+	# HTML fillText emoji in monospace; Godot Noto Color Emoji reads as stickers.
+	# Vector glyphs keep the same color/size as the 1:1 HTML tile.
+	if not _draw_item_glyph(str(m[1]), sz2 + 2.0):
+		ctx.font("bold %dpx monospace" % int(sz2 + 2))
+		ctx.fill_text(str(m[1]), 0, 1)
 	ctx.text_align("left")
 	ctx.restore()

@@ -15,6 +15,12 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if OS.has_feature("web"):
 		_ensure_js_bridge()
+		call_deferred("_cold_volume")
+
+func _cold_volume() -> void:
+	## HTML applyMusicVol on load (localStorage) before the first play() gesture.
+	if AudioBus:
+		set_volume(AudioBus.music_volume)
 
 func _process(_d: float) -> void:
 	if _retry_left <= 0:
@@ -34,8 +40,8 @@ func play() -> void:
 	_ensure_js_bridge()
 	_js_resume_audio_context()
 	_js_play_once()
-	# YT iframe API may still be loading — retry for ~3s
-	_retry_left = 180
+	# YT iframe API may still be loading — retry ~6s (cold social-tab / slow iframe)
+	_retry_left = 360
 	set_process(true)
 
 func pause() -> void:

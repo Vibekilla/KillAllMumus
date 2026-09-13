@@ -501,12 +501,33 @@ func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 	ctx.fill_style("#c8a878")
 	ctx.font("italic 12px Trebuchet MS")
 	ctx.fill_text("Reality-Bending Merchant", dx + 18, dy + 40)
+	# HTML HONEY_LINES — rotating in-character patter (floor(t/220) % length)
 	var lines := [
-		"Heads only. No refunds. No regrets. Mostly.",
-		"You break it, you bought it.",
+		"Buy something. Don’t care.",
+		"Wares may bend reality. Not my problem.",
+		"Heads for gear. No refunds, no whining.",
+		"Honey Badger don’t haggle.",
+		"That galaxy in a jar? Yours, for enough heads.",
+		"Touch the merchandise, lose a finger. Kidding. Maybe.",
+		"You bag the Mumus, I bank the heads. Fair’s fair.",
+		"Reality’s on sale today. So am I. Sort of.",
+		"Pick something or leave. Either way — whatever.",
+		"Best prices in the multiverse. Also the only ones.",
+		"No warranties. Just vibes and consequences.",
+		"More heads, more toys. Even a bear can do that math.",
+		"Careful with the black hole. Last kid’s still falling.",
+		"It’s not stealing if you pay. So pay.",
+		"I’ve seen every timeline. You still lose in most.",
+		"That’ll be some heads. Or your soul. Heads is easier.",
+		"Restocking’s a pain across dimensions. Buy in bulk.",
+		"You break it, you bought it. You bought it, you break it. Same thing here.",
+		"Bobo says hi. Or he will. Time’s weird in here.",
+		"Everything’s ethically sourced. From a version of me that cared.",
+		"Loitering costs extra. Buying costs heads. Choose.",
 		"A honey badger fears nothing. Except a slow day. Buy.",
 		"Warranty void where reality is.",
 		"Discounts? For you? …No.",
+		"I don’t upsell. I just stand here menacingly near the good stuff.",
 		"Come back richer. Or don’t come back.",
 	]
 	var line_i := int(floorf(float(tick) / 220.0)) % lines.size()

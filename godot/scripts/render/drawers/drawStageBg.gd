@@ -9,9 +9,13 @@ var bg_petals: int = 5
 
 func setup(c) -> void:
 	ctx = c
+	reroll_seeds()
+
+func reroll_seeds() -> void:
+	## HTML newRun/loadStage: bgSeed=random*2π; bgHueSeed=random*60-30; bgPetals=3+(random*4|0)*2
 	bg_seed = randf() * TAU
-	bg_hue_seed = randf() * 40.0
-	bg_petals = 3 + randi() % 5
+	bg_hue_seed = randf() * 60.0 - 30.0
+	bg_petals = 3 + (randi() % 4) * 2
 
 func set_tick(t: int) -> void:
 	tick = t
