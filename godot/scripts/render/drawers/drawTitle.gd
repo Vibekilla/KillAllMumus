@@ -42,6 +42,8 @@ var _live_bob: Vector2 = Vector2.ZERO
 var _live_bob_sc: float = 1.15
 var _live_start_y: float = 400.0
 var _live_bh: float = 28.0
+## TitleScreen SocialBar Control owns HTML #social (DOM chips). Skip canvas paint.
+var skip_canvas_social: bool = true
 
 func setup(c) -> void:
 	ctx = c
@@ -308,8 +310,9 @@ func drawTitleChrome() -> void:
 	ctx.text_align("left")
 	# HTML #bobinaAuth — centered pill above social (drawn on canvas for 1:1)
 	_draw_auth_chrome(W, H)
-	# HTML #social — desktop bottom strip (touch: hidden, lives in SHOUTOUTS)
-	if not is_touch:
+	# HTML #social — desktop bottom strip (touch: hidden, lives in SHOUTOUTS).
+	# Default: TitleScreen SocialBar Control (DOM chips). Canvas path is fallback.
+	if not is_touch and not skip_canvas_social:
 		_draw_social_bar(W, H)
 	chrome_btns = title_btns.duplicate()
 

@@ -42,14 +42,14 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | S1 | Settings | Gold % + cyan buttons. Dual still is now a taller viewport (HTML expanded .set-card). In-game Reset/Done still scroll at 540p (`max-height:92dvh`) |
 | S2 | Shop | Random HB quote; LEAVE→stage clear improved |
 | S3 | Pause / menus | BackBufferCopy + 13-tap blur; dual now samples a play frame first. Residual: CSS `blur(3px)` vs box kernel |
-| S4 | Aura bomb | WorldDraw additive child (CanvasItemMaterial ADD) for GCO lighter (2026-09-13). Residual: not every primitive routes through the ADD RID |
+| S4 | Aura bomb | ADD layer covers circles/tris/polylines/rects/ellipses/round-rects. Residual: texture/string still source-over |
 | S5 | Item glyphs | ♥★✸ emoji vs monospace feel |
 | S6 | Stage bg intensity | Motif strength vs HTML psychedelia |
 | S7 | Bobina lids/limbs | Menu vs play scale polish |
-| S8 | Special density | Vertex-colored linearGradient strips + quadratic fillRect glow (2026-09-13). Residual: radial still concentric bands |
+| S8 | Special density | Vertex-colored linear + radial rings (2026-09-13). Residual: true CanvasGradient vs sampled strips |
 | S9 | Boss live patterns | **Harness PASS** — special 114 bullets + live 216 both sides; residual density/spread SOFT |
 | S10 | Music E2E | Mute no longer zeros musicVol (HTML). start_run honors lofiOn. Social-tab YT E2E still manual |
-| S11 | Title social strip | Canvas chips vs HTML DOM #social residual |
+| S11 | Title social strip | SocialBar Control chips (HTML #social DOM). Residual: letter-spacing .3px |
 
 ---
 

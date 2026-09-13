@@ -38,6 +38,7 @@ var _chrome_key: String = ""
 var _chrome_ready: bool = false
 var _chrome_pending: bool = false
 var last_draw_usec: int = 0
+var _social_bar: Control = null
 
 func _ready() -> void:
 	# Hide Control stub children (VBox / Backdrop)
@@ -61,6 +62,8 @@ func _ready() -> void:
 	_login_btn.pressed.connect(_on_login_pressed)
 	add_child(_login_btn)
 	_layout_auth_chrome()
+	_social_bar = preload("res://scripts/ui/SocialBar.gd").new()
+	add_child(_social_bar)
 
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
 	ctx.bind(self)
@@ -183,6 +186,9 @@ func _sync_visible(st: GameState.State) -> void:
 		_login_btn.visible = false
 	if _auth_label:
 		_auth_label.visible = false
+	# HTML #social only on desktop title (touch uses SHOUTOUTS modal)
+	if _social_bar:
+		_social_bar.visible = visible and st == GameState.State.TITLE and not _is_touch_ui()
 
 func _is_touch_ui() -> bool:
 	## HTML body.touch class — force desktop layout under dual/playtest

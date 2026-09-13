@@ -371,6 +371,23 @@ func _ci_rect(r: Rect2, col: Color, filled: bool = true, width: float = -1.0) ->
 		else:
 			node.draw_rect(r, col, false, width)
 
+func _ci_xform(origin: Vector2, rot: float, scl: Vector2) -> void:
+	if _should_add():
+		var xf := Transform2D(rot, origin)
+		xf.x *= scl.x
+		xf.y *= scl.y
+		RenderingServer.canvas_item_add_set_transform(_add_rid(), xf)
+		return
+	if node:
+		node.draw_set_transform(origin, rot, scl)
+
+func _ci_xform_reset() -> void:
+	if _should_add():
+		RenderingServer.canvas_item_add_set_transform(_add_rid(), Transform2D.IDENTITY)
+		return
+	if node:
+		node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
 func set_line_dash(_segments = []) -> void:
 	# CanvasItem polyline dash not fully supported — no-op (solid stroke)
 	pass
@@ -610,12 +627,12 @@ func _fill_rr_native(info: Dictionary) -> void:
 	r = _clip_rect(r) if has_method("_clip_rect") else r
 	if r.size.x <= 0.0 or r.size.y <= 0.0:
 		return
-	node.draw_rect(Rect2(r.position.x + rr, r.position.y, r.size.x - 2.0 * rr, r.size.y), col, true)
-	node.draw_rect(Rect2(r.position.x, r.position.y + rr, r.size.x, r.size.y - 2.0 * rr), col, true)
-	node.draw_circle(Vector2(r.position.x + rr, r.position.y + rr), rr, col)
-	node.draw_circle(Vector2(r.position.x + r.size.x - rr, r.position.y + rr), rr, col)
-	node.draw_circle(Vector2(r.position.x + rr, r.position.y + r.size.y - rr), rr, col)
-	node.draw_circle(Vector2(r.position.x + r.size.x - rr, r.position.y + r.size.y - rr), rr, col)
+	_ci_rect(Rect2(r.position.x + rr, r.position.y, r.size.x - 2.0 * rr, r.size.y), col, true)
+	_ci_rect(Rect2(r.position.x, r.position.y + rr, r.size.x, r.size.y - 2.0 * rr), col, true)
+	_ci_circle(Vector2(r.position.x + rr, r.position.y + rr), rr, col)
+	_ci_circle(Vector2(r.position.x + r.size.x - rr, r.position.y + rr), rr, col)
+	_ci_circle(Vector2(r.position.x + rr, r.position.y + r.size.y - rr), rr, col)
+	_ci_circle(Vector2(r.position.x + r.size.x - rr, r.position.y + r.size.y - rr), rr, col)
 
 func _arc_corner(cx: float, cy: float, r: float, a0: float, a1: float) -> void:
 	var steps := 8
@@ -661,9 +678,9 @@ func fill() -> void:
 				var ery: float = float(e.get("ry", 0.0))
 				var erot: float = float(e.get("rot", 0.0))
 				if erx > 0.05 and ery > 0.05 and _point_in_clip(ec):
-					node.draw_set_transform(ec, erot, Vector2(erx, ery))
-					node.draw_circle(Vector2.ZERO, 1.0, col_e)
-					node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+					_ci_xform(ec, erot, Vector2(erx, ery))
+					_ci_circle(Vector2.ZERO, 1.0, col_e)
+					_ci_xform_reset()
 			return
 		# Gradient: only first full ellipse (Bobina single iris per fill call)
 		_fill_ellipse_gradient(_full_ellipses[0] if _full_ellipses.size() else _last_full_ellipse)
@@ -720,9 +737,9 @@ func _fill_one_subpath(src: PackedVector2Array) -> void:
 		if erx > 0.05 and ery > 0.05 and _point_in_clip(ec):
 			if _fill_grad == null:
 				var col_e := _c(_fill)
-				node.draw_set_transform(ec, erot, Vector2(erx, ery))
-				node.draw_circle(Vector2.ZERO, 1.0, col_e)
-				node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				_ci_xform(ec, erot, Vector2(erx, ery))
+				_ci_circle(Vector2.ZERO, 1.0, col_e)
+				_ci_xform_reset()
 				return
 			_fill_ellipse_gradient(_last_full_ellipse)
 			return
@@ -774,9 +791,9 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 			var wry := ec.distance_to(ey)
 			if wrx < 0.2 or wry < 0.2:
 				continue
-			node.draw_set_transform(ec, rotf + _xform.get_rotation(), Vector2(wrx, wry))
-			node.draw_circle(Vector2.ZERO, 1.0, col)
-			node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			_ci_xform(ec, rotf + _xform.get_rotation(), Vector2(wrx, wry))
+			_ci_circle(Vector2.ZERO, 1.0, col)
+			_ci_xform_reset()
 		return
 	var bands := 16
 	var cs := cos(rotf)
@@ -1052,7 +1069,7 @@ func _draw_shadow_poly(poly: PackedVector2Array, _col: Color) -> void:
 		var c0: Vector2 = shifted[i + 1]
 		var cr := absf((b0 - a0).cross(c0 - a0))
 		if cr > 0.5 and is_finite(a0.x) and is_finite(b0.x) and is_finite(c0.x):
-			node.draw_colored_polygon(PackedVector2Array([a0, b0, c0]), sc)
+			_ci_tri_cols(a0, b0, c0, sc, sc, sc)
 
 func _dedupe_path(src: PackedVector2Array) -> PackedVector2Array:
 	var out := PackedVector2Array()
@@ -1124,7 +1141,17 @@ func stroke_circle(x, y, r) -> void:
 	var rr := float(r) * (absf(sc.x) + absf(sc.y)) * 0.5
 	if rr < 0.05:
 		return
-	node.draw_arc(c, rr, 0.0, TAU, 24, _c(_stroke), _effective_lw(), true)
+	var col := _c(_stroke)
+	var lw := _effective_lw()
+	if _should_add():
+		var pts := PackedVector2Array()
+		for i in range(25):
+			var ang := float(i) / 24.0 * TAU
+			pts.append(c + Vector2(cos(ang), sin(ang)) * rr)
+		_ci_polyline(pts, col, lw)
+		return
+	if node:
+		node.draw_arc(c, rr, 0.0, TAU, 24, col, lw, true)
 
 func fill_rect(x, y, w, h) -> void:
 	if node == null:
@@ -1198,27 +1225,36 @@ func _fill_rect_gradient(x: float, y: float, w: float, h: float) -> void:
 	## Banded linear / concentric radial fill approximating CanvasGradient.
 	var g: CanvasGradient = _fill_grad
 	if g.kind == "radial":
-		# Concentric ellipse bands from outer → inner
+		# Vertex-colored rings (HTML interpolates); flat concentric bands were striped.
 		var cx = x + w * 0.5
 		var cy = y + h * 0.5
-		var max_r = maxf(w, h) * 0.5
-		var bands = 24
+		var rx = w * 0.5
+		var ry = h * 0.5
+		var bands = 16
+		var segs = 24
+		var saved_rg = _fill_grad
+		_fill_grad = null
 		for i in range(bands, 0, -1):
-			var t = float(i) / float(bands)
-			var rr = max_r * t
-			var col = _c(g.sample(t))
-			var p = _xform * Vector2(cx, cy)
-			# Approximate circle as rect cascade is coarse; use polygon
-			var pts = PackedVector2Array()
-			var segs = 20
-			for s in range(segs):
+			var t1 = float(i) / float(bands)
+			var t0 = float(i - 1) / float(bands)
+			var c1 = _c(g.sample(t1))
+			var c0 = _c(g.sample(t0))
+			var r1x = rx * t1
+			var r1y = ry * t1
+			var r0x = rx * t0
+			var r0y = ry * t0
+			var prev_o := Vector2.ZERO
+			var prev_i := Vector2.ZERO
+			for s in range(segs + 1):
 				var ang = float(s) / float(segs) * TAU
-				pts.append(_xform * Vector2(cx + cos(ang) * rr, cy + sin(ang) * rr * (h / maxf(w, 0.001))))
-			if pts.size() >= 3:
-				# Fan triangles only — draw_colored_polygon(n>3) can fail after non-uniform xform
-				var c0: Vector2 = pts[0]
-				for si in range(1, pts.size() - 1):
-					_draw_tri(c0, pts[si], pts[si + 1], col)
+				var co := _xform * Vector2(cx + cos(ang) * r1x, cy + sin(ang) * r1y)
+				var ci := _xform * Vector2(cx + cos(ang) * r0x, cy + sin(ang) * r0y)
+				if s > 0:
+					_ci_tri_cols(prev_o, co, ci, c1, c1, c0)
+					_ci_tri_cols(prev_o, ci, prev_i, c1, c0, c0)
+				prev_o = co
+				prev_i = ci
+		_fill_grad = saved_rg
 		return
 	# Linear: vertex-colored strips (HTML interpolates; flat bands read as stripes).
 	var span := maxf(absf(g.x1 - g.x0), absf(g.y1 - g.y0))

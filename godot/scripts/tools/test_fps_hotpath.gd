@@ -72,6 +72,13 @@ func _run() -> void:
 	if sg.find("set_music_volume(0.0)") >= 0:
 		print("[FPS] FAIL mute must not zero musicVol (HTML lofiOn=false keeps volume)")
 		ok = false
+	var ts_ui: String = FileAccess.get_file_as_string("res://scripts/ui/TitleScreen.gd")
+	if ts_ui.find("SocialBar") < 0:
+		print("[FPS] FAIL title must host HTML #social as SocialBar Control")
+		ok = false
+	if title_src.find("skip_canvas_social") < 0:
+		print("[FPS] FAIL title chrome must skip canvas social when DOM bar is on")
+		ok = false
 	var scr = load("res://scripts/html_parity/WorldDraw.gd")
 	if scr == null:
 		print("[FPS] FAIL WorldDraw failed to load")
