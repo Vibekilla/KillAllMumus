@@ -32,7 +32,7 @@ g.ok(exists("godot/scripts/render/BobinaDrawCache.gd"), "BobinaDrawCache.gd");
 g.ok(exists("godot/scripts/render/BobinaBakeHost.gd"), "BobinaBakeHost.gd");
 g.ok(read("godot/scripts/ui/TitleScreen.gd").includes("BobinaDrawCache"), "TitleScreen wires cache");
 g.ok(read("godot/scripts/ui/menu/draw_menus.gd").includes("bobina_cache"), "draw_menus uses bobina_cache");
-g.ok(world.includes("bobina_cache") && world.includes("get_play_texture"), "WorldDraw in-game Bobina cache");
+g.ok(world.includes("ported.drawBobina"), "WorldDraw live in-game drawBobina");
 g.ok(world.includes("% 3") || world.includes("% 3") || world.includes("%3"), "WorldDraw non-combat throttle");
 g.ok(exists("godot/scripts/render/StageBgDrawCache.gd"), "StageBgDrawCache.gd");
 g.ok(exists("godot/scripts/render/StageBgBakeHost.gd"), "StageBgBakeHost.gd");

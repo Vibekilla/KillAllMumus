@@ -372,20 +372,13 @@ func drawTitleLive() -> void:
 		drawMaidDance()
 
 func _blit_title_bobina(cx: float, cy: float, sc: float) -> void:
-	## HTML drawBobina at (ox-26, oy+bh/2) scale 1.15 — bake, don't run the 4k drawer live.
+	## HTML drawBobina at (ox-26, oy+bh/2) scale 1.15 — live drawer (breath, bob, blink).
+	if _bobina == null:
+		return
 	var st := {
 		"x": 0, "y": 0, "iframe": 0, "focus": false, "walk": 0, "bombFx": 0,
 		"face": -PI / 2.0, "vx": 0, "vy": 0, "outfit": selected_outfit, "tick": tick,
 	}
-	if _bob_cache and _bob_cache.has_method("get_texture"):
-		var tex: Texture2D = _bob_cache.get_texture(selected_outfit, null, 0, tick, sc, st)
-		if tex != null and ctx.has_method("draw_image"):
-			var tw := float(tex.get_width())
-			var th := float(tex.get_height())
-			ctx.draw_image(tex, cx - tw * 0.5, cy - th * 0.5, tw, th)
-			return
-	if _bobina == null:
-		return
 	ctx.save()
 	ctx.translate(cx, cy)
 	ctx.scale(sc, sc)

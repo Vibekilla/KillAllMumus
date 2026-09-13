@@ -66,17 +66,7 @@ func _draw_bobina_at(x: float, y: float, scale: float, outfit: String, extras: D
 		st["lean"] = extras["lean"]
 	if extras.has("hold"):
 		st["hold"] = extras["hold"]
-	# Phase 1: large previews use BobinaDrawCache (full drawBobina bake)
-	var pose_i := int(extras.get("pose", model.outfit_pose if model else 0))
-	var expr = extras.get("expr", null)
-	if bobina_cache and scale >= CACHE_SCALE_MIN and bobina_cache.has_method("get_texture"):
-		var tex: Texture2D = bobina_cache.get_texture(outfit, expr, pose_i, tick, scale, st)
-		if tex != null and ctx.has_method("draw_image"):
-			var tw := float(tex.get_width())
-			var th := float(tex.get_height())
-			ctx.draw_image(tex, x - tw * 0.5, y - th * 0.5, tw, th)
-			return
-		# miss: fall through to live draw while bake queues
+	# HTML drawBobina live (breath/blink/pose). Cache blit froze the outfit stage.
 	if bobina == null:
 		return
 	ctx.save()
@@ -112,31 +102,7 @@ func _draw_posed_figure(cx: float, cy: float, scale: float, pose: int, outfit: S
 	}
 	if pose == 5 and combat_fx and combat_fx.has_method("coffeeHold"):
 		extras["hold"] = combat_fx.coffeeHold(t)
-	# Phase 1: bake full drawBobina at outer scale (outfit stage is ×4.7) — pose prop still live
-	if bobina_cache and scale >= CACHE_SCALE_MIN and bobina_cache.has_method("get_texture"):
-		var tex: Texture2D = bobina_cache.get_texture(outfit, expr, pose, tick, scale, extras)
-		if tex != null and ctx.has_method("draw_image"):
-			var tw := float(tex.get_width())
-			var th := float(tex.get_height())
-			ctx.save()
-			ctx.translate(cx + float(P.get("sway", 0)) * ms, cy - float(P.get("bounce", 0)) * ms)
-			var sq := float(P.get("sq", 1.0))
-			if absf(sq - 1.0) > 0.001:
-				ctx.scale(1.0, sq)
-			# Approximate body-centre spin for texture blit
-			var rot := float(P.get("rot", 0))
-			if absf(rot) > 0.001:
-				ctx.translate(0, -16.0 * scale)
-				ctx.rotate(rot)
-				ctx.translate(0, 16.0 * scale)
-			ctx.draw_image(tex, -tw * 0.5, -th * 0.5, tw, th)
-			ctx.scale(scale, scale)
-			if combat_fx and combat_fx.has_method("drawPoseProp"):
-				combat_fx.drawPoseProp(pose, t)
-			if ctx.has_method("clear_shadow"):
-				ctx.clear_shadow()
-			ctx.restore()
-			return
+	# HTML drawPosedFigure — live drawBobina + pose prop (cache blit froze dance/twirl)
 	ctx.save()
 	ctx.translate(cx + float(P.get("sway", 0)) * ms, cy - float(P.get("bounce", 0)) * ms)
 	ctx.scale(scale, scale * float(P.get("sq", 1.0)))

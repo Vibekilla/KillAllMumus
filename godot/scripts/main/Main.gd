@@ -195,9 +195,8 @@ func _prewarm_play_visuals() -> void:
 	var wd = get_node_or_null("WorldCanvas")
 	if wd == null:
 		return
-	var outfit := str(GameState.selected_outfit) if GameState else "og"
-	if "bobina_cache" in wd and wd.bobina_cache != null and wd.bobina_cache.has_method("prewarm_play_outfit"):
-		wd.bobina_cache.prewarm_play_outfit(outfit, true)
+	# Play Bobina is live drawBobina (HTML). Do not prewarm face-bin get_image() — that hitch
+	# froze animation and burned a GPU readback per bin on run start.
 	if "stage_bg_cache" in wd and wd.stage_bg_cache != null and wd.stage_bg_cache.has_method("prewarm_stage"):
 		wd.stage_bg_cache.prewarm_stage(SimClock.sim_frame if SimClock else 0)
 

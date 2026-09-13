@@ -49,7 +49,7 @@ func _apply_html_chrome() -> void:
 		panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		var vbox0 := panel.get_node_or_null("VBox") as VBoxContainer
 		if vbox0:
-			vbox0.add_theme_constant_override("separation", 4)
+			vbox0.add_theme_constant_override("separation", 3)
 	var vbox: Node = _settings_vbox()
 	var title := (vbox.get_node_or_null("Title") if vbox else null) as Label
 	if title:
@@ -132,6 +132,10 @@ func _apply_html_chrome() -> void:
 	OverlayTheme.style_button(help, "help")
 	OverlayTheme.style_button(reset_btn, "reset")
 	OverlayTheme.style_button(close, "done")
+	# HTML .set-card fits Reset+Done at 540p; slightly tighter rows than OverlayTheme 40px
+	for b in [display, keybinds, help, reset_btn, close, speedrun_btn]:
+		if b:
+			b.custom_minimum_size.y = 36
 	var ver := (vbox.get_node_or_null("Ver") if vbox else null) as Label
 	if ver:
 		ver.add_theme_color_override("font_color", Color(0.416, 0.353, 0.447))

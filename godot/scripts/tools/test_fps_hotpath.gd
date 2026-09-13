@@ -13,16 +13,12 @@ func _run() -> void:
 	if wd.find("_draw_stage_bg_solid") < 0:
 		print("[FPS] FAIL WorldDraw needs solid stage-bg cold path")
 		ok = false
-	# Hybrid: face-bin blit for normal play; live only for dash/bomb (or cold miss)
-	if wd.find("get_play_texture") < 0:
-		print("[FPS] FAIL Bobina play must use face-bin get_play_texture blit")
+	# HTML drawBobina every play frame (breath/blink/walk) — no frozen face-bin blit
+	if wd.find("ported.drawBobina") < 0:
+		print("[FPS] FAIL play Bobina must call live drawBobina")
 		ok = false
-	if wd.find("dash > 0.0 or bomb > 0.0") < 0:
-		print("[FPS] FAIL live drawBobina gated on dash/bomb")
-		ok = false
-	# Feet pivot blit (not silhouette center) — platform under feet
-	if wd.find("px - tw * 0.5") < 0 and wd.find("px - tw*0.5") < 0:
-		print("[FPS] FAIL Bobina blit must pin feet at texture center → player pos")
+	if wd.find("No frozen blit") < 0 and wd.find("ported.drawBobina(st)") < 0:
+		print("[FPS] FAIL play must not prefer frozen cache blit over live drawBobina")
 		ok = false
 	# bodyCtr for body wraps
 	if wd.find("_body_ctr_st") < 0 and wd.find("body_ctr") < 0:
@@ -45,12 +41,16 @@ func _run() -> void:
 		print("[FPS] FAIL missing StageBg TICK_BUCKET")
 		ok = false
 	var bc2: String = FileAccess.get_file_as_string("res://scripts/render/BobinaDrawCache.gd")
-	if bc2.find("extra.begins_with(\"f\")") < 0 and bc2.find("tb = 0") < 0:
-		print("[FPS] FAIL play Bobina cache key must be tick-stable")
+	var title_src: String = FileAccess.get_file_as_string("res://scripts/render/drawers/drawTitle.gd")
+	if title_src.find("_bobina.drawBobina") < 0:
+		print("[FPS] FAIL title mini Bobina must live-draw drawBobina")
 		ok = false
-	if bc2.find("% 230") < 0:
-		print("[FPS] FAIL title/play blink must use HTML tick%230 window, not (tick/8)%2")
-		ok = false
+	if title_src.find("get_texture") >= 0 and title_src.find("_blit_title_bobina") >= 0:
+		# blit helper must not short-circuit to cache
+		var blit := title_src.substr(title_src.find("func _blit_title_bobina"))
+		if blit.find("get_texture") >= 0:
+			print("[FPS] FAIL title mini must not cache-blit (frozen idle)")
+			ok = false
 	# Must compile
 	var scr = load("res://scripts/html_parity/WorldDraw.gd")
 	if scr == null:

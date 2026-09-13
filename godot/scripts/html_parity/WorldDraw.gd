@@ -53,8 +53,7 @@ func _ready() -> void:
 		stage_bg_cache = load("res://scripts/render/StageBgDrawCache.gd").new()
 		stage_bg_cache.name = "StageBgDrawCache"
 		add_child(stage_bg_cache)
-	if OS.has_feature("web"):
-		_play_stride = 3  # ~20 Hz visual on WASM; sim stays 60 Hz
+	_play_stride = 1  # HTML draw() ~60 Hz; _process eases off only if FPS tanks
 	call_deferred("_bind_pool")
 
 func _bind_pool() -> void:
@@ -65,7 +64,7 @@ func _bind_pool() -> void:
 
 func _process(_d: float) -> void:
 	## Redraw gated on sim_frame (fixed 60 Hz source), not display rate.
-	## PLAY defaults to 30 Hz visual; adapts to 20 Hz if wall FPS is low (sim stays 60 Hz).
+	## PLAY defaults to HTML ~60 Hz visual; eases to 30/20 only if wall FPS tanks.
 	## CanvasCompat full-field pass is the main bottleneck on software GL / heavy web builds.
 	var nt := int(SimClock.sim_frame) if SimClock else tick + 1
 	if nt == _last_tick:
@@ -75,13 +74,13 @@ func _process(_d: float) -> void:
 		if _fps_adapt_cd <= 0:
 			_fps_adapt_cd = 30
 			var fps := Engine.get_frames_per_second()
-			# Keep visual cadence near HTML; WASM/web stays 20 Hz unless the GPU is actually fast.
-			if OS.has_feature("web"):
-				_play_stride = 2 if fps >= 48.0 else 3
-			elif fps > 0.0 and fps < 18.0:
-				_play_stride = 3  # ~20 Hz
+			# HTML is ~60 Hz. Drop cadence only when the machine cannot hold it.
+			if fps >= 52.0:
+				_play_stride = 1
+			elif fps >= 28.0:
+				_play_stride = 2
 			else:
-				_play_stride = 2  # 30 Hz (default play)
+				_play_stride = 3
 		if (nt % maxi(1, _play_stride)) != 0:
 			return
 	elif GameState.state in [GameState.State.SHOP, GameState.State.STAGE_CLEAR, GameState.State.INTRO]:
@@ -776,44 +775,12 @@ func _body_ctr_st(st: Dictionary) -> Vector2:
 	return Vector2(float(st.get("x", 0)) - sin(r) * 16.0, (float(st.get("y", 0)) - 16.0) + cos(r) * 16.0)
 
 func _draw_bobina_cached_or_live(st: Dictionary) -> void:
-	## HTML drawBobina: feet at (p.x,p.y); body rotates about (p.x, p.y-16); feet shadow
-	## at local (0,20). Bake host puts feet at texture center → blit at feet, not silhouette
-	## bbox center. Face-bin cache is 1:1 art with shared face for bodyCtr bubble (≤7.5°).
-	## Live path only when dash/bomb (trail motion) or cache cold.
-	var px := float(st.get("x", 0))
-	var py := float(st.get("y", 0))
-	var dash := float(st.get("dash", 0))
-	var bomb := float(st.get("bombFx", 0))
-	var iframe := float(st.get("iframe", 0))
-	var flash := iframe > 0.0 and (int(floorf(iframe / 4.0)) % 2) == 1
-	var need_live := dash > 0.0 or bomb > 0.0
-	if not need_live and bobina_cache != null and bobina_cache.has_method("get_play_texture"):
-		var tex: Texture2D = bobina_cache.get_play_texture(st)
-		if tex != null and ctx.has_method("draw_image"):
-			var tw := float(tex.get_width())
-			var th := float(tex.get_height())
-			# Feet pivot = texture center (BobinaBakeHost: translate(dim/2) + drawBobina x=0,y=0)
-			if flash:
-				ctx.global_alpha(0.5)
-			ctx.draw_image(tex, px - tw * 0.5, py - th * 0.5, tw, th)
-			if flash:
-				ctx.global_alpha(1.0)
-			return
-		# Nearest/last face bake while exact bin queues
-		if bobina_cache.has_method("get_last_play_texture"):
-			var last: Texture2D = bobina_cache.get_last_play_texture()
-			if last != null and ctx.has_method("draw_image"):
-				var lw := float(last.get_width())
-				var lh := float(last.get_height())
-				if flash:
-					ctx.global_alpha(0.5)
-				ctx.draw_image(last, px - lw * 0.5, py - lh * 0.5, lw, lh)
-				if flash:
-					ctx.global_alpha(1.0)
-				return
+	## HTML drawBobina every frame — breath, blink, walk, dash, bomb. No frozen blit.
 	if ported and ported.has_method("drawBobina"):
 		ported.drawBobina(st)
 		return
+	var px := float(st.get("x", 0))
+	var py := float(st.get("y", 0))
 	ctx.fill_style("#ffb6d9")
 	ctx.begin_path()
 	ctx.arc(px, py, 14, 0, TAU)
