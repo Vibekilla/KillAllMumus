@@ -33,6 +33,15 @@ func _ready() -> void:
 	add_to_group("world_draw")
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
 	ctx.bind(self)
+	var add_n := Node2D.new()
+	add_n.name = "AddLayer"
+	var add_mat := CanvasItemMaterial.new()
+	add_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	add_n.material = add_mat
+	add_n.z_as_relative = true
+	add_n.z_index = 2
+	add_child(add_n)
+	ctx.add_target = add_n
 	ported = load("res://scripts/render/PortedDraw.gd").new()
 	ported.setup(ctx)
 	hud = load("res://scripts/ui/menu/draw_hud.gd").new()
@@ -94,6 +103,8 @@ func _process(_d: float) -> void:
 	tick = nt
 	if _is_playish():
 		queue_redraw()
+	elif ctx and ctx.add_target != null and is_instance_valid(ctx.add_target):
+		RenderingServer.canvas_item_clear(ctx.add_target.get_canvas_item())
 
 func _player() -> Node:
 	if is_instance_valid(_player_node):

@@ -60,6 +60,18 @@ func _run() -> void:
 	if pool_src.find("var _active") < 0:
 		print("[FPS] FAIL BulletPool must keep an _active list (no 600-slot scan)")
 		ok = false
+	var cc: String = FileAccess.get_file_as_string("res://scripts/render/CanvasCompat.gd")
+	if cc.find("_ci_tri_cols") < 0 or cc.find("add_target") < 0:
+		print("[FPS] FAIL CanvasCompat needs vertex-colored gradients + additive target")
+		ok = false
+	var wd2: String = FileAccess.get_file_as_string("res://scripts/html_parity/WorldDraw.gd")
+	if wd2.find("BLEND_MODE_ADD") < 0:
+		print("[FPS] FAIL WorldDraw needs additive GCO layer")
+		ok = false
+	var sg: String = FileAccess.get_file_as_string("res://scripts/ui/SoundGate.gd")
+	if sg.find("set_music_volume(0.0)") >= 0:
+		print("[FPS] FAIL mute must not zero musicVol (HTML lofiOn=false keeps volume)")
+		ok = false
 	var scr = load("res://scripts/html_parity/WorldDraw.gd")
 	if scr == null:
 		print("[FPS] FAIL WorldDraw failed to load")

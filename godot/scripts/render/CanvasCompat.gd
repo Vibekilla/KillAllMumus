@@ -109,6 +109,8 @@ class CanvasGradient:
 		return sample(0.5)
 
 var node: CanvasItem
+## WorldDraw additive child — HTML GCO lighter via CanvasItemMaterial ADD.
+var add_target: CanvasItem = null
 var _fill: Color = Color.WHITE
 var _stroke: Color = Color.WHITE
 var _fill_src = null  # last fill_style arg (skip reparse)
@@ -150,6 +152,8 @@ func bind(n: CanvasItem) -> void:
 	node = n
 
 func begin_frame() -> void:
+	if add_target != null and is_instance_valid(add_target):
+		RenderingServer.canvas_item_clear(add_target.get_canvas_item())
 	_path = PackedVector2Array()
 	_subpaths.clear()
 	_stack.clear()
@@ -314,6 +318,58 @@ func line_cap(_c) -> void:
 func global_composite_operation(op) -> void:
 	## HTML globalCompositeOperation — stored; applied in _c() color path
 	_gco = str(op if op != null else "source-over").to_lower()
+
+func _should_add() -> bool:
+	return add_target != null and is_instance_valid(add_target) and (
+		_gco == "lighter" or _gco == "screen" or _gco == "plus-lighter"
+	)
+
+func _add_rid() -> RID:
+	return add_target.get_canvas_item()
+
+func _ci_circle(c: Vector2, r: float, col: Color) -> void:
+	if r < 0.05:
+		return
+	if _should_add():
+		RenderingServer.canvas_item_add_circle(_add_rid(), c, r, col)
+		return
+	if node:
+		node.draw_circle(c, r, col)
+
+func _ci_tri_cols(a: Vector2, b: Vector2, c: Vector2, ca: Color, cb: Color, cc: Color) -> void:
+	var pts := PackedVector2Array([a, b, c])
+	var cols := PackedColorArray([ca, cb, cc])
+	if _should_add():
+		RenderingServer.canvas_item_add_polygon(_add_rid(), pts, cols)
+		return
+	if node:
+		node.draw_polygon(pts, cols)
+
+func _ci_polyline(pts: PackedVector2Array, col: Color, width: float) -> void:
+	if pts.size() < 2:
+		return
+	if _should_add():
+		var cols := PackedColorArray()
+		cols.resize(pts.size())
+		for i in pts.size():
+			cols[i] = col
+		RenderingServer.canvas_item_add_polyline(_add_rid(), pts, cols, width, true)
+		return
+	if node:
+		node.draw_polyline(pts, col, width, true)
+
+func _ci_rect(r: Rect2, col: Color, filled: bool = true, width: float = -1.0) -> void:
+	if _should_add():
+		if filled:
+			RenderingServer.canvas_item_add_rect(_add_rid(), r, col)
+		else:
+			RenderingServer.canvas_item_add_rect(_add_rid(), r, col)
+		return
+	if node:
+		if filled:
+			node.draw_rect(r, col, true)
+		else:
+			node.draw_rect(r, col, false, width)
 
 func set_line_dash(_segments = []) -> void:
 	# CanvasItem polyline dash not fully supported — no-op (solid stroke)
@@ -593,7 +649,7 @@ func fill() -> void:
 			var r: float = float(a.get("r", 0.0))
 			if r > 0.05 and _point_in_clip(c):
 				_draw_shadow_circle(c, r, col_c)
-				node.draw_circle(c, r, col_c)
+				_ci_circle(c, r, col_c)
 		return
 	# Multi / single full ellipses (sleeves, shoes, iris, face) — solid or gradient
 	if _full_ellipses.size() >= 1 and _path_is_only_full_ellipses(total_pts):
@@ -653,7 +709,7 @@ func _fill_one_subpath(src: PackedVector2Array) -> void:
 		if r > 0.05 and _point_in_clip(c):
 			var col_c := _c(_fill)
 			_draw_shadow_circle(c, r, col_c)
-			node.draw_circle(c, r, col_c)
+			_ci_circle(c, r, col_c)
 			return
 	# Full ellipse (portal / honey badger body / Bobina eyes) — solid or gradient
 	if not _last_full_ellipse.is_empty() and pts.size() >= 16 and _full_ellipses.size() <= 1:
@@ -783,10 +839,9 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 					_draw_tri(wpts[0], wpts[2], wpts[3], col)
 
 func _fill_triangulated_gradient(poly: PackedVector2Array) -> void:
-	## Fan triangles, each colored by gradient at centroid (local space).
+	## Fan triangles with per-vertex gradient samples (HTML interpolates).
 	if node == null or poly.size() < 3:
 		return
-	var inv := _xform.affine_inverse()
 	var c0: Vector2 = poly[0]
 	for si in range(1, poly.size() - 1):
 		var a: Vector2 = c0
@@ -798,10 +853,7 @@ func _fill_triangulated_gradient(poly: PackedVector2Array) -> void:
 		var area2 := absf((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y))
 		if area2 < 0.5:
 			continue
-		var centroid := (a + b + c) / 3.0
-		var local := inv * centroid
-		var col := _c(_sample_grad_at_local(local))
-		node.draw_colored_polygon(PackedVector2Array([a, b, c]), col)
+		_draw_tri(a, b, c, _fill)
 
 func _is_path_full_circle(pts: PackedVector2Array) -> bool:
 	## True when path is a closed disc (many points near constant radius from center).
@@ -847,7 +899,7 @@ func _draw_shadow_circle(c: Vector2, r: float, col: Color) -> void:
 		var sc := _shadow_col
 		sc.a = base_a * 0.12 * t
 		var o := _shadow_blur * 0.12 * t
-		node.draw_circle(c + Vector2(o * 0.25, o * 0.35), r + o, sc)
+		_ci_circle(c + Vector2(o * 0.25, o * 0.35), r + o, sc)
 
 func _closed_path_pts(src: PackedVector2Array) -> PackedVector2Array:
 	var pts := _dedupe_path(src)
@@ -864,9 +916,6 @@ func _fill_triangulated(poly: PackedVector2Array, col: Color) -> void:
 	_fill_ear_clip(poly, col)
 
 func _draw_tri(a: Vector2, b: Vector2, c: Vector2, col: Color) -> void:
-	var fill_col := col
-	if _fill_grad != null:
-		fill_col = _c(_sample_grad_at_world((a + b + c) / 3.0))
 	# Skip degenerate / collinear (Godot draw_colored_polygon: "Invalid polygon data")
 	if not is_finite(a.x) or not is_finite(a.y) or not is_finite(b.x) or not is_finite(b.y) or not is_finite(c.x) or not is_finite(c.y):
 		return
@@ -880,7 +929,14 @@ func _draw_tri(a: Vector2, b: Vector2, c: Vector2, col: Color) -> void:
 	var max_e2 := maxf(ab2, maxf(bc2, ca2))
 	if absf(cross_z) < 0.5 or (max_e2 > 1e-6 and absf(cross_z) * absf(cross_z) < max_e2 * 1e-6):
 		return
-	node.draw_colored_polygon(PackedVector2Array([a, b, c]), fill_col)
+	if _fill_grad != null:
+		# Per-vertex sample — HTML canvas interpolates; centroid bands were striped.
+		var ca := _c(_sample_grad_at_world(a))
+		var cb := _c(_sample_grad_at_world(b))
+		var cc := _c(_sample_grad_at_world(c))
+		_ci_tri_cols(a, b, c, ca, cb, cc)
+		return
+	_ci_tri_cols(a, b, c, col, col, col)
 
 func _is_convex(poly: PackedVector2Array) -> bool:
 	var n := poly.size()
@@ -1039,8 +1095,8 @@ func stroke() -> void:
 				for p in pts:
 					shifted.append(p + Vector2(off * 0.2, off * 0.35))
 				if shifted.size() >= 2:
-					node.draw_polyline(shifted, sc, maxf(0.5, elw * 0.85), true)
-		node.draw_polyline(pts, col, elw, true)
+					_ci_polyline(shifted, sc, maxf(0.5, elw * 0.85))
+		_ci_polyline(pts, col, elw)
 
 func fill_circle(x, y, r) -> void:
 	## Native disc — particles / bullets skip path tessellation.
@@ -1055,7 +1111,7 @@ func fill_circle(x, y, r) -> void:
 		return
 	var col := _c(_fill)
 	_draw_shadow_circle(c, rr, col)
-	node.draw_circle(c, rr, col)
+	_ci_circle(c, rr, col)
 
 func stroke_circle(x, y, r) -> void:
 	## Native ring — enemy-shell outline without path tessellation.
@@ -1083,12 +1139,13 @@ func _fill_rect_xform(x: float, y: float, w: float, h: float, col: Color) -> voi
 	## Axis-aligned fast path uses draw_rect; rotated uses clipped quads.
 	# HTML fillRect uses current shadowBlur (Red Death / optionShot laser glow).
 	if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
-		var layers := 3
-		var grow_max := clampf(_shadow_blur * 0.42, 1.0, 12.0)
+		# Quadratic falloff ≈ CSS shadowBlur (not 3 flat slabs)
+		var layers := 4
+		var grow_max := clampf(_shadow_blur * 0.48, 1.0, 14.0)
 		for i in range(layers, 0, -1):
 			var t := float(i) / float(layers)
 			var sc := _shadow_col
-			sc.a = _shadow_col.a * _alpha * 0.15 * t
+			sc.a = _shadow_col.a * _alpha * 0.18 * t * t
 			var g := grow_max * t
 			_fill_rect_solid(x - g, y - g, w + 2.0 * g, h + 2.0 * g, sc)
 	_fill_rect_solid(x, y, w, h, col)
@@ -1104,7 +1161,7 @@ func _fill_rect_solid(x: float, y: float, w: float, h: float, col: Color) -> voi
 		r = _clip_rect(r)
 		if r.size.x <= 0.0 or r.size.y <= 0.0:
 			return
-		node.draw_rect(r, col, true)
+		_ci_rect(r, col, true)
 		return
 	var pts := PackedVector2Array([p0, p1, p2, p3])
 	pts = _clip_poly(pts)
@@ -1163,14 +1220,11 @@ func _fill_rect_gradient(x: float, y: float, w: float, h: float) -> void:
 				for si in range(1, pts.size() - 1):
 					_draw_tri(c0, pts[si], pts[si + 1], col)
 		return
-	# Linear: slice the LOCAL rect along the gradient axis, then transform each band.
-	# (Axis-aligned draw_rect after translating only the origin broke rotate() — Kraken beam.)
+	# Linear: vertex-colored strips (HTML interpolates; flat bands read as stripes).
 	var span := maxf(absf(g.x1 - g.x0), absf(g.y1 - g.y0))
-	# Stage/UI gradients are wide (12 bands). Narrow beams (Kraken w=58) need ~1px slices
-	# or the linearGradient reads as a striped slab vs HTML's smooth falloff.
-	var bands2 := 12
+	var bands2 := 8
 	if span < 96.0:
-		bands2 = clampi(int(round(span)), 32, 64)
+		bands2 = clampi(int(round(span * 0.5)), 12, 24)
 	var axis = Vector2(g.x1 - g.x0, g.y1 - g.y0)
 	var vertical = absf(axis.x) < absf(axis.y) * 0.35
 	var saved_g = _fill_grad
@@ -1179,18 +1233,30 @@ func _fill_rect_gradient(x: float, y: float, w: float, h: float) -> void:
 		for i in range(bands2):
 			var t0 = float(i) / float(bands2)
 			var t1 = float(i + 1) / float(bands2)
-			var yy = y + h * t0
-			var hh = h * (t1 - t0) + 0.35
-			var col = _c(g.sample((t0 + t1) * 0.5))
-			_fill_rect_xform(x, yy, w, hh, col)
+			var y0 = y + h * t0
+			var y1 = y + h * t1
+			var c0 = _c(g.sample(t0))
+			var c1 = _c(g.sample(t1))
+			var p0 := _xform * Vector2(x, y0)
+			var p1 := _xform * Vector2(x + w, y0)
+			var p2 := _xform * Vector2(x + w, y1)
+			var p3 := _xform * Vector2(x, y1)
+			_ci_tri_cols(p0, p1, p2, c0, c0, c1)
+			_ci_tri_cols(p0, p2, p3, c0, c1, c1)
 	else:
 		for i in range(bands2):
 			var t0b = float(i) / float(bands2)
 			var t1b = float(i + 1) / float(bands2)
-			var xx = x + w * t0b
-			var ww = w * (t1b - t0b) + 0.35
-			var colb = _c(g.sample((t0b + t1b) * 0.5))
-			_fill_rect_xform(xx, y, ww, h, colb)
+			var x0 = x + w * t0b
+			var x1 = x + w * t1b
+			var c0b = _c(g.sample(t0b))
+			var c1b = _c(g.sample(t1b))
+			var q0 := _xform * Vector2(x0, y)
+			var q1 := _xform * Vector2(x1, y)
+			var q2 := _xform * Vector2(x1, y + h)
+			var q3 := _xform * Vector2(x0, y + h)
+			_ci_tri_cols(q0, q1, q2, c0b, c1b, c1b)
+			_ci_tri_cols(q0, q2, q3, c0b, c1b, c0b)
 	_fill_grad = saved_g
 
 func stroke_rect(x, y, w, h) -> void:

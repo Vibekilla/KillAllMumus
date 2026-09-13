@@ -139,7 +139,10 @@ func rank_letter() -> String:
 func start_run() -> void:
 	## HTML newRun / startRun parity
 	# HTML: if(lofiOn) musicPlay()
-	if MusicBridge and MusicBridge.enabled:
+	var lofi := MusicBridge != null and bool(MusicBridge.enabled)
+	if ProgressStore and bool(ProgressStore.progress.get("lofiOn", false)):
+		lofi = true
+	if lofi and MusicBridge:
 		MusicBridge.play()
 	apply_difficulty()
 	stage_index = 0

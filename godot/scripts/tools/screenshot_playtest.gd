@@ -98,10 +98,16 @@ func _shot_dir() -> String:
 	DirAccess.make_dir_recursive_absolute(d)
 	return d
 
+func _vp_size() -> Vector2:
+	if _sv:
+		return Vector2(_sv.size)
+	return Vector2(VIEW_W, VIEW_H)
+
 func _force_ui_size(main: Node) -> void:
 	var ui = main.get_node_or_null("UI")
 	if ui == null:
 		return
+	var vs := _vp_size()
 	for c in ui.get_children():
 		if c is Control:
 			var ctrl := c as Control
@@ -110,11 +116,11 @@ func _force_ui_size(main: Node) -> void:
 			ctrl.offset_top = 0
 			ctrl.offset_right = 0
 			ctrl.offset_bottom = 0
-			ctrl.size = Vector2(VIEW_W, VIEW_H)
+			ctrl.size = vs
 			ctrl.position = Vector2.ZERO
 			ctrl.queue_redraw()
 
-func _save(name: String) -> void:
+func _save(name: String, keep_native: bool = false) -> void:
 	for _i in range(3):
 		await process_frame
 	RenderingServer.force_draw(true)
@@ -127,7 +133,7 @@ func _save(name: String) -> void:
 	if img == null or img.is_empty():
 		print("[SHOT] FAIL empty image ", name)
 		return
-	if img.get_width() != VIEW_W or img.get_height() != VIEW_H:
+	if not keep_native and (img.get_width() != VIEW_W or img.get_height() != VIEW_H):
 		img.resize(VIEW_W, VIEW_H, Image.INTERPOLATE_NEAREST)
 	var path := _shot_dir().path_join(name + ".png")
 	var err := img.save_png(path)
@@ -748,6 +754,9 @@ func _run() -> void:
 				AudioBus.set_music_volume(1.0)
 			if AudioBus.has_method("set_sfx_volume"):
 				AudioBus.set_sfx_volume(0.9)
+		# HTML dual screenshots the expanded .set-card (taller than 540). Match that.
+		var settings_prev: Vector2i = _sv.size
+		_sv.size = Vector2i(VIEW_W, 880)
 		GameState.set_state(GameState.State.SETTINGS)
 		_force_ui_size(_main)
 		var settings_ui = _main.get_node_or_null("UI/SettingsMenu")
@@ -759,7 +768,9 @@ func _run() -> void:
 			await process_frame
 			if settings_ui and settings_ui.has_method("_sync_ui"):
 				settings_ui._sync_ui()
-		await _save("godot_menu_settings")
+		await _save("godot_menu_settings", true)
+		_sv.size = settings_prev
+		_force_ui_size(_main)
 
 		GameState.set_state(GameState.State.NG_SELECT)
 		_force_ui_size(_main)
@@ -1061,6 +1072,11 @@ func _run() -> void:
 
 	# Pause / shop / ends — core flow dual only
 	if _want("core") and player:
+		# HTML pause sits on the live field; give SCREEN_TEXTURE a play frame to blur.
+		GameState.set_state(GameState.State.PLAY)
+		_force_ui_size(_main)
+		for _pre in range(4):
+			await process_frame
 		GameState.set_state(GameState.State.PAUSED)
 		_force_ui_size(_main)
 		var ps_pause = _A("ProgressStore")

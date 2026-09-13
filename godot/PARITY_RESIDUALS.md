@@ -344,3 +344,4 @@ Aligned with `PHASE_STATUS.md` + fail list (2026-08-12):
 | 2026-09-13 | Aim: canvas-space cursor (`get_global_mouse_position` / `_canvas_pos`); HTML pOK=pointer.down; face `atan2(vy,vx)` |
 | 2026-09-13 | Crowd FPS: BulletPool `_active`/`_free` (no 600-slot scan); drawBullet native `fill_circle` |
 | 2026-09-13 | S4: GCO lighter no alpha boost; S3: BackBufferCopy + 13-tap overlay blur |
+| 2026-09-13 | S8: vertex-colored linearGradient; S4: WorldDraw ADD layer; S10: mute keeps musicVol; S1 dual taller card |

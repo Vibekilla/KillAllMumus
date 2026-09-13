@@ -169,9 +169,7 @@ func _dismiss(with_sound: bool) -> void:
 			MusicBridge.play()
 		_request_fullscreen_like_html()
 	else:
-		# HTML: lofiOn=false; closeGate(true) — still fullscreen on mobile, no music
-		if AudioBus:
-			AudioBus.set_music_volume(0.0)
+		# HTML: lofiOn=false; closeGate(true) — does NOT zero musicVol
 		if MusicBridge:
 			MusicBridge.pause()
 		_request_fullscreen_like_html()

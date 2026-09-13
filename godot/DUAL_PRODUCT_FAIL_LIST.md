@@ -39,16 +39,16 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Notes |
 |----|------|-------|
-| S1 | Settings | Gold % + cyan buttons. 540p How to Play visible; dual still expands .set-card (HTML) + Godot `expand_for_dual`. In-game Reset/Done remain scroll-to (HTML `max-height:92dvh`) |
+| S1 | Settings | Gold % + cyan buttons. Dual still is now a taller viewport (HTML expanded .set-card). In-game Reset/Done still scroll at 540p (`max-height:92dvh`) |
 | S2 | Shop | Random HB quote; LEAVE→stage clear improved |
-| S3 | Pause / menus | Gold % + 60% follow + cyan Display/Controls. BackBufferCopy + 13-tap SCREEN_TEXTURE blur (2026-09-13) — dual SubViewport still weaker than CSS `blur(3px)` |
-| S4 | Aura bomb | Same-state bombFx=30 / power 4 / tick=80. GCO `lighter` no longer boosts alpha (2026-09-13); residual is missing true additive blend |
+| S3 | Pause / menus | BackBufferCopy + 13-tap blur; dual now samples a play frame first. Residual: CSS `blur(3px)` vs box kernel |
+| S4 | Aura bomb | WorldDraw additive child (CanvasItemMaterial ADD) for GCO lighter (2026-09-13). Residual: not every primitive routes through the ADD RID |
 | S5 | Item glyphs | ♥★✸ emoji vs monospace feel |
 | S6 | Stage bg intensity | Motif strength vs HTML psychedelia |
 | S7 | Bobina lids/limbs | Menu vs play scale polish |
-| S8 | Special density | Laser beam HTML gradient + 8px core; mech 7×51px; **fillRect now honors shadowBlur** (Red Death glow, 2026-09-12). Residual: banded linearGradient vs true canvas; glow is rect-layered not gaussian |
+| S8 | Special density | Vertex-colored linearGradient strips + quadratic fillRect glow (2026-09-13). Residual: radial still concentric bands |
 | S9 | Boss live patterns | **Harness PASS** — special 114 bullets + live 216 both sides; residual density/spread SOFT |
-| S10 | Music E2E | Cold load + social tab product verify |
+| S10 | Music E2E | Mute no longer zeros musicVol (HTML). start_run honors lofiOn. Social-tab YT E2E still manual |
 | S11 | Title social strip | Canvas chips vs HTML DOM #social residual |
 
 ---
