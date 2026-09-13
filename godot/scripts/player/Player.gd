@@ -317,12 +317,20 @@ func _step(delta: float) -> void:
 	# Touch FIRE button holds shoot via Main._inject_action.
 	# HTML neutralizeInputs clears pointer.down — ignore LMB until fully released after shop/portal/intro.
 	var lmb := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	var shoot_held := Input.is_action_pressed("shoot")
 	if bool(get_meta("neutralize_lmb", false)):
 		if not lmb:
 			set_meta("neutralize_lmb", false)
 		else:
 			lmb = false
-	var want_fire := Input.is_action_pressed("shoot") or lmb
+	# HTML neutralizeInputs: keys.shoot=false until the next real keydown (not hold-through)
+	if bool(get_meta("neutralize_fire", false)):
+		if not shoot_held and not lmb:
+			set_meta("neutralize_fire", false)
+		else:
+			shoot_held = false
+			lmb = false
+	var want_fire := shoot_held or lmb
 	if want_fire and fire_sys:
 		if fire_sys.try_fire(self, bullet_pool, focus):
 			AudioBus.sfx("shoot")
@@ -345,9 +353,17 @@ func _step(delta: float) -> void:
 	if edge and Input.is_action_just_pressed("item_switch"):
 		if consumables:
 			consumables.cycle()
-	if Input.is_action_pressed("melee"):
+	var melee_held := Input.is_action_pressed("melee")
+	var melee_up := edge and Input.is_action_just_released("melee")
+	if bool(get_meta("neutralize_melee", false)):
+		if not melee_held and not melee_up:
+			set_meta("neutralize_melee", false)
+		else:
+			melee_held = false
+			melee_up = false
+	if melee_held:
 		melee.begin_hold()
-	if edge and Input.is_action_just_released("melee"):
+	if melee_up:
 		melee.release(self, current_melee_key(), aim)
 	if edge and Input.is_action_just_pressed("meleeswap"):
 		cycle_melee()

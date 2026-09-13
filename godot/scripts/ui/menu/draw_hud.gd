@@ -8,6 +8,18 @@ var tick: int = 0
 var W: float = 960.0
 var H: float = 540.0
 var _stage_bg_drawer = null
+var _kb_cache: Dictionary = {}
+var _kb_cache_tick: int = -999
+
+func _kb(action: String) -> String:
+	if tick != _kb_cache_tick:
+		_kb_cache.clear()
+		_kb_cache_tick = tick
+	if _kb_cache.has(action):
+		return str(_kb_cache[action])
+	var s := MenuHelpers.kb(action)
+	_kb_cache[action] = s
+	return s
 
 func setup(c) -> void:
 	ctx = c
@@ -750,7 +762,7 @@ func _draw_panel_landscape() -> void:
 		ctx.fill_style("#6a5a72")
 		ctx.font("9px monospace")
 		ctx.text_align("right")
-		ctx.fill_text("[%s] swap" % MenuHelpers.kb("swap"), x + w - 14, cy + 13)
+		ctx.fill_text("[%s] swap" % _kb("swap"), x + w - 14, cy + 13)
 		ctx.text_align("left")
 	cy += 28
 	# SPECIAL meter + chips
@@ -780,7 +792,7 @@ func _draw_panel_landscape() -> void:
 		ctx.fill_style("#fff" if (int(floorf(float(tick) / 8.0)) % 2) != 0 else sp_col)
 		ctx.font("bold 8px monospace")
 		ctx.text_align("center")
-		ctx.fill_text("READY! [%s]" % MenuHelpers.kb("special"), x + 16 + (w - 32) / 2.0, cy + 7.5)
+		ctx.fill_text("READY! [%s]" % _kb("special"), x + 16 + (w - 32) / 2.0, cy + 7.5)
 		ctx.text_align("left")
 	cy += 18
 	if GameState.specials.size() > 0:
@@ -810,7 +822,7 @@ func _draw_panel_landscape() -> void:
 			ctx.fill_style("#6a5a72")
 			ctx.font("9px monospace")
 			ctx.text_align("right")
-			ctx.fill_text("[%s] cycle" % MenuHelpers.kb("cycle"), x + w - 14, cy + 13)
+			ctx.fill_text("[%s] cycle" % _kb("cycle"), x + w - 14, cy + 13)
 			ctx.text_align("left")
 		cy += 28
 	# MELEE row
@@ -843,7 +855,7 @@ func _draw_panel_landscape() -> void:
 		ctx.fill_style("#6a5a72")
 		ctx.font("8px monospace")
 		ctx.text_align("center")
-		var tip := "MELEE btn: hold · MEL⇄ switch" if (JoyPad and JoyPad.touch_ui_on) else "[%s] swipe · hold · [%s] switch" % [MenuHelpers.kb("melee"), MenuHelpers.kb("meleeswap")]
+		var tip := "MELEE btn: hold · MEL⇄ switch" if (JoyPad and JoyPad.touch_ui_on) else "[%s] swipe · hold · [%s] switch" % [_kb("melee"), _kb("meleeswap")]
 		ctx.fill_text(tip, x + 16 + (w - 32) / 2.0, cy + 4.6)
 		ctx.text_align("left")
 	cy += 13
@@ -875,7 +887,7 @@ func _draw_panel_landscape() -> void:
 			ctx.fill_style("#6a5a72")
 			ctx.font("9px monospace")
 			ctx.text_align("right")
-			ctx.fill_text("[%s] switch" % MenuHelpers.kb("meleeswap"), x + w - 14, cy + 13)
+			ctx.fill_text("[%s] switch" % _kb("meleeswap"), x + w - 14, cy + 13)
 			ctx.text_align("left")
 		cy += 28
 	# ITEMS / consumables row
@@ -946,7 +958,7 @@ func _draw_panel_landscape() -> void:
 	ctx.fill_style("#6a5a72")
 	ctx.font("9px monospace")
 	ctx.text_align("right")
-	ctx.fill_text("[%s] switch · [%s] use" % [MenuHelpers.kb("item_switch"), MenuHelpers.kb("item_use")], x + w - 14, cy + 13)
+	ctx.fill_text("[%s] switch · [%s] use" % [_kb("item_switch"), _kb("item_use")], x + w - 14, cy + 13)
 	ctx.text_align("left")
 	cy += 30
 	# LIVES + life-frag pips (cap at MAX_LIVES — HTML never exceeds 9)
@@ -1031,8 +1043,8 @@ func _draw_panel_landscape() -> void:
 		ctx.fill_text("Stick moves · hold FIRE to shoot", x + 16, footer_y - 30)
 		ctx.fill_text("MELEE · SPEC · BOMB · FOCUS (2× = dash)", x + 16, footer_y - 18)
 	else:
-		ctx.fill_text("Mouse/arrows move · HOLD %s fire" % MenuHelpers.kb("shoot"), x + 16, footer_y - 30)
-		ctx.fill_text("SHIFT focus · %s bomb · %s swap" % [MenuHelpers.kb("bomb"), MenuHelpers.kb("swap")], x + 16, footer_y - 18)
+		ctx.fill_text("Mouse/arrows move · HOLD %s fire" % _kb("shoot"), x + 16, footer_y - 30)
+		ctx.fill_text("SHIFT focus · %s bomb · %s swap" % [_kb("bomb"), _kb("swap")], x + 16, footer_y - 18)
 	if GameState.difficulty > 0 or GameState.ng_plus > 0:
 		ctx.fill_style("#ff2a2a" if GameState.difficulty >= 2 else "#ff5b6e")
 		ctx.font("bold 10px monospace")

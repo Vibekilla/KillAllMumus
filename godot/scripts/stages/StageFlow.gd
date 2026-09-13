@@ -202,9 +202,13 @@ func neutralize_inputs() -> void:
 	# HTML lastShiftTap=-99 — next Focus cannot double-tap-dash off transition
 	if "_shift_tap_t" in pl:
 		pl._shift_tap_t = 999.0
-	# HTML pointer.down=false — ignore held LMB until released (Player want_fire)
+	# HTML keys[k]=false while the physical key may still be down. Godot action_release
+	# re-asserts next frame if Z/Space are held — latch until fully released.
 	pl.set_meta("neutralize_lmb", true)
-	# Clear edge-triggered actions that just opened shop/portal
+	pl.set_meta("neutralize_fire", true)
+	pl.set_meta("neutralize_melee", true)
+	if typeof(JoyPad) != TYPE_NIL and JoyPad.has_method("pup"):
+		JoyPad.pup()
 	for action in ["shoot", "melee", "bomb", "special", "item_use", "interact", "swap", "focus", "cycle_special"]:
 		if InputMap.has_action(action):
 			Input.action_release(action)

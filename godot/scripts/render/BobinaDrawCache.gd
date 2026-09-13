@@ -65,11 +65,12 @@ func cache_key(outfit: String, expr, pose: int, tick: int, scale: float, extra: 
 	if scale >= 2.0:
 		tb = int(floor(float(tick) / float(TICK_BUCKET)))
 	elif extra.begins_with("f"):
-		# Play face-bin: tick in the key made 24×2 new textures every 8 frames and
-		# get_image() thrash. Full drawBobina pixels stay; breath is frozen in the bake.
+		# Play face-bin: never put raw sim tick in the key (that was 24 GPU readbacks / 8 frames).
+		# HTML blink (tick%230)<7 is a 2-state bit on extra, not a running bucket.
 		tb = 0
 	else:
-		tb = int(floor(float(tick) / float(TICK_BUCKET_PLAY))) % BREATH_BINS
+		# Title mini: HTML blink window only — NOT (tick/8)%2 which flickered at 7.5 Hz.
+		tb = 1 if (int(tick) % 230) < 7 else 0
 	var sc := snappedf(scale, 0.1)
 	return "%s|%s|%d|%d|%.1f|%s" % [outfit, e, pose, tb, sc, extra]
 
@@ -100,14 +101,15 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 	# key every TICK_BUCKET_PLAY frames and GPU-readback forever.
 	var expr = st.get("expr", null)
 	var expr_key := str(expr) if expr != null and str(expr) != "" else "null"
-	var extra := "f%.3f|fo%d|e%s" % [face, focus, expr_key]
+	var blink := 1 if (int(st.get("tick", 0)) % 230) < 7 else 0
+	var extra := "f%.3f|fo%d|e%s|b%d" % [face, focus, expr_key, blink]
 	var key := cache_key(outfit, expr if expr_key != "null" else null, 0, 0, 1.0, extra)
 	if _ready_tex.has(key):
 		_touch(key)
 		_last_play_tex = _ready_tex[key]
 		return _ready_tex[key]
 	# Nearest *face* bin already baked for this outfit (not a random frozen pose)
-	var fallback: Texture2D = _nearest_face_tex(outfit, face, focus, expr_key)
+	var fallback: Texture2D = _nearest_face_tex(outfit, face, focus, expr_key, blink)
 	if fallback == null and _last_play_tex != null:
 		fallback = _last_play_tex
 	# Cap the bake queue — spinning the stick used to enqueue all 24 bins at once
@@ -116,7 +118,8 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 		return fallback
 	var bake := st.duplicate(true)
 	bake["face"] = face
-	bake["tick"] = 0
+	# HTML (tick%230)<7 closed. Bake a representative tick so the bin matches extra |bN
+	bake["tick"] = 3 if blink == 1 else 20
 	bake["iframe"] = 0
 	bake["x"] = 0
 	bake["y"] = 0
@@ -132,12 +135,12 @@ func get_play_texture(st: Dictionary) -> Texture2D:
 	return fallback
 
 func _play_face_key(outfit: String, face: float, focus: int, expr_key: String, tick: int = 0) -> String:
-	var extra := "f%.3f|fo%d|e%s" % [face, focus, expr_key]
-	return cache_key(outfit, null if expr_key == "null" else expr_key, 0, tick, 1.0, extra)
+	var extra := "f%.3f|fo%d|e%s|b0" % [face, focus, expr_key]
+	return cache_key(outfit, null if expr_key == "null" else expr_key, 0, 0, 1.0, extra)
 
-func _nearest_face_tex(outfit: String, want_face: float, focus: int, expr_key: String) -> Texture2D:
+func _nearest_face_tex(outfit: String, want_face: float, focus: int, expr_key: String, blink: int = 0) -> Texture2D:
 	## Pick closest prebaked face bin (HTML face is continuous; we sample FACE_BINS).
-	var idx_key := "%s|fo%d|e%s" % [outfit, focus, expr_key]
+	var idx_key := "%s|fo%d|e%s|b%d" % [outfit, focus, expr_key, blink]
 	var bucket: Dictionary = _face_index.get(idx_key, {})
 	if bucket.is_empty():
 		return null
@@ -160,7 +163,8 @@ func _index_play(key: String, tex: Texture2D) -> void:
 		return
 	if not str(parts[5]).begins_with("f"):
 		return
-	var idx_key := "%s|%s|%s" % [parts[0], parts[6], parts[7]]
+	var blink_s := str(parts[8]) if parts.size() > 8 else "b0"
+	var idx_key := "%s|%s|%s|%s" % [parts[0], parts[6], parts[7], blink_s]
 	if not _face_index.has(idx_key):
 		_face_index[idx_key] = {}
 	_face_index[idx_key][parts[5]] = tex
@@ -171,7 +175,8 @@ func _unindex_play(key: String) -> void:
 		return
 	if not str(parts[5]).begins_with("f"):
 		return
-	var idx_key := "%s|%s|%s" % [parts[0], parts[6], parts[7]]
+	var blink_s := str(parts[8]) if parts.size() > 8 else "b0"
+	var idx_key := "%s|%s|%s|%s" % [parts[0], parts[6], parts[7], blink_s]
 	if _face_index.has(idx_key):
 		_face_index[idx_key].erase(parts[5])
 
@@ -224,7 +229,8 @@ func has_play_texture(st: Dictionary) -> bool:
 	var focus := 1 if bool(st.get("focus", false)) else 0
 	var expr = st.get("expr", null)
 	var expr_key := str(expr) if expr != null and str(expr) != "" else "null"
-	var extra := "f%.3f|fo%d|e%s" % [face, focus, expr_key]
+	var blink := 1 if (int(st.get("tick", 0)) % 230) < 7 else 0
+	var extra := "f%.3f|fo%d|e%s|b%d" % [face, focus, expr_key, blink]
 	return _ready_tex.has(cache_key(outfit, expr if expr_key != "null" else null, 0, 0, 1.0, extra))
 
 func clear_cache() -> void:

@@ -189,6 +189,10 @@ func start_run() -> void:
 			if pl.get("armed_melee") != null:
 				pl.armed_melee = 0
 	set_state(State.INTRO)
+	# HTML startRun → intro; the key/click that started must not leak into play
+	if Engine.get_main_loop() and Engine.get_main_loop().root.get_node_or_null("/root/StageFlow"):
+		if StageFlow.has_method("neutralize_inputs"):
+			StageFlow.neutralize_inputs()
 	run_started.emit()
 	score_changed.emit(session_score, total_kills, rank_letter())
 

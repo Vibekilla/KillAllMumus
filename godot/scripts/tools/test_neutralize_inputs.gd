@@ -24,6 +24,22 @@ func _run() -> void:
 		ok = false
 	else:
 		print("[NEUT] Player LMB gate ok")
+	if sf.find("neutralize_fire") < 0 or sf.find("neutralize_melee") < 0:
+		print("[NEUT] FAIL neutralize must latch fire+melee until keyup")
+		ok = false
+	else:
+		print("[NEUT] fire/melee latch ok")
+	if pl.find("neutralize_fire") < 0 or pl.find("neutralize_melee") < 0:
+		print("[NEUT] FAIL Player must ignore held shoot/melee after start")
+		ok = false
+	else:
+		print("[NEUT] Player fire/melee gate ok")
+	var gs := FileAccess.get_file_as_string("res://autoload/GameState.gd")
+	if gs.find("neutralize_inputs") < 0:
+		print("[NEUT] FAIL start_run must neutralize")
+		ok = false
+	else:
+		print("[NEUT] start_run neutralize ok")
 	var ps := FileAccess.get_file_as_string("res://autoload/ProgressStore.gd")
 	if ps.find("emblems[\"start\"]") < 0 and ps.find("emblems['start']") < 0:
 		print("[NEUT] FAIL ProgressStore must force start emblem")

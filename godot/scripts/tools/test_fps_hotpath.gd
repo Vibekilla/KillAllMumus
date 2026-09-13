@@ -48,6 +48,9 @@ func _run() -> void:
 	if bc2.find("extra.begins_with(\"f\")") < 0 and bc2.find("tb = 0") < 0:
 		print("[FPS] FAIL play Bobina cache key must be tick-stable")
 		ok = false
+	if bc2.find("% 230") < 0:
+		print("[FPS] FAIL title/play blink must use HTML tick%230 window, not (tick/8)%2")
+		ok = false
 	# Must compile
 	var scr = load("res://scripts/html_parity/WorldDraw.gd")
 	if scr == null:
