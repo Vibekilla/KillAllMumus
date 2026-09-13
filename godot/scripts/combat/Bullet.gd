@@ -36,6 +36,8 @@ var hit_ids: Dictionary = {}  # pierce tracking
 
 const FRAME := 60.0
 
+signal deactivated
+
 var ctx: RefCounted
 var ported: RefCounted
 
@@ -168,6 +170,7 @@ func deactivate() -> void:
 	if nade and not _boomed and pshot:
 		_boomed = true
 		_nade_boom()
+	var was := active
 	active = false
 	hide()
 	set_physics_process(false)
@@ -175,6 +178,8 @@ func deactivate() -> void:
 	set_deferred("monitorable", false)
 	velocity = Vector2.ZERO
 	_reset_flags()
+	if was:
+		deactivated.emit()
 
 func _nade_boom() -> void:
 	ItemSystem.nade_boom(global_position.x, global_position.y)

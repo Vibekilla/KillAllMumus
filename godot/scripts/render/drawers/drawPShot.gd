@@ -105,17 +105,26 @@ func drawPShot(s) -> void:
 		ctx.shadow_color("#b6e34a")
 		ctx.shadow_blur(8)
 		ctx.fill_style("#586a28")
-		ctx.begin_path()
-		ctx.arc(0, 0, 3.8, 0, 7)
-		ctx.fill()
+		if ctx.has_method("fill_circle"):
+			ctx.fill_circle(0, 0, 3.8)
+		else:
+			ctx.begin_path()
+			ctx.arc(0, 0, 3.8, 0, 7)
+			ctx.fill()
 		ctx.fill_style("#b6e34a")
-		ctx.begin_path()
-		ctx.arc(0, 0, 1.9, 0, 7)
-		ctx.fill()
+		if ctx.has_method("fill_circle"):
+			ctx.fill_circle(0, 0, 1.9)
+		else:
+			ctx.begin_path()
+			ctx.arc(0, 0, 1.9, 0, 7)
+			ctx.fill()
 		ctx.fill_style("#fff" if (tick % 4 < 2) else "#ffd27a")
-		ctx.begin_path()
-		ctx.arc(0, -4.6, 1.2, 0, 7)
-		ctx.fill()
+		if ctx.has_method("fill_circle"):
+			ctx.fill_circle(0, -4.6, 1.2)
+		else:
+			ctx.begin_path()
+			ctx.arc(0, -4.6, 1.2, 0, 7)
+			ctx.fill()
 		if ctx.has_method("clear_shadow"):
 			ctx.clear_shadow()
 		ctx.restore()
@@ -239,13 +248,19 @@ func drawPShot(s) -> void:
 		ctx.shadow_color("#e0a060")
 		ctx.shadow_blur(7)
 		ctx.fill_style("#f2d3a6")
-		ctx.begin_path()
-		ctx.arc(0, 0, 3, 0, 7)
-		ctx.fill()
+		if ctx.has_method("fill_circle"):
+			ctx.fill_circle(0, 0, 3)
+		else:
+			ctx.begin_path()
+			ctx.arc(0, 0, 3, 0, 7)
+			ctx.fill()
 		ctx.fill_style("#c8813e")
-		ctx.begin_path()
-		ctx.arc(0, 0, 1.3, 0, 7)
-		ctx.fill()
+		if ctx.has_method("fill_circle"):
+			ctx.fill_circle(0, 0, 1.3)
+		else:
+			ctx.begin_path()
+			ctx.arc(0, 0, 1.3, 0, 7)
+			ctx.fill()
 		if ctx.has_method("clear_shadow"):
 			ctx.clear_shadow()
 		ctx.restore()

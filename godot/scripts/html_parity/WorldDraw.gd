@@ -663,8 +663,9 @@ func _draw_bullet_node(b: Node) -> void:
 	if team == 0 and pshot:
 		var st := {
 			"x": b.global_position.x, "y": b.global_position.y, "r": r,
-			"vx": b.velocity.x if b.get("velocity") != null else 0.0,
-			"vy": b.velocity.y if b.get("velocity") != null else 0.0,
+			# HTML s.vx/s.vy are px/frame; Godot velocity is px/sec
+			"vx": (b.velocity.x / 60.0) if b.get("velocity") != null else 0.0,
+			"vy": (b.velocity.y / 60.0) if b.get("velocity") != null else 0.0,
 			"gat": bool(b.gat) if b.get("gat") != null else false,
 			"nade": bool(b.nade) if b.get("nade") != null else false,
 			"vrip": bool(b.vrip) if b.get("vrip") != null else false,

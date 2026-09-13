@@ -341,3 +341,6 @@ Aligned with `PHASE_STATUS.md` + fail list (2026-08-12):
 | 2026-09-12 | S1/S3: gold % right-align, cyan Display/Controls, reset/done tints, overlay dim shader, follow 0.6 dual pin |
 | 2026-09-12 | S8: CanvasCompat fillRect honors shadowBlur (mech/Red Death glow); settings 540p shows How to Play |
 | 2026-09-12 | S4: bomb dual pins tick=80 both sides |
+| 2026-09-13 | Aim: canvas-space cursor (`get_global_mouse_position` / `_canvas_pos`); HTML pOK=pointer.down; face `atan2(vy,vx)` |
+| 2026-09-13 | Crowd FPS: BulletPool `_active`/`_free` (no 600-slot scan); drawBullet native `fill_circle` |
+| 2026-09-13 | S4: GCO lighter no alpha boost; S3: BackBufferCopy + 13-tap overlay blur |

@@ -52,6 +52,14 @@ func _run() -> void:
 			print("[FPS] FAIL title mini must not cache-blit (frozen idle)")
 			ok = false
 	# Must compile
+	var bullet_src: String = FileAccess.get_file_as_string("res://scripts/render/drawers/drawBullet.gd")
+	if bullet_src.find("fill_circle") < 0:
+		print("[FPS] FAIL drawBullet must use native fill_circle (crowd path)")
+		ok = false
+	var pool_src: String = FileAccess.get_file_as_string("res://scripts/combat/BulletPool.gd")
+	if pool_src.find("var _active") < 0:
+		print("[FPS] FAIL BulletPool must keep an _active list (no 600-slot scan)")
+		ok = false
 	var scr = load("res://scripts/html_parity/WorldDraw.gd")
 	if scr == null:
 		print("[FPS] FAIL WorldDraw failed to load")

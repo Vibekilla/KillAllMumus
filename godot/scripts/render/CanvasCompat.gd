@@ -172,10 +172,10 @@ func _c(col: Color) -> Color:
 	# Approximate Canvas GCO on Godot CanvasItem (no true blend modes mid-draw)
 	match _gco:
 		"lighter", "screen", "plus-lighter":
-			# HTML source-over + lighter is additive. Boosting RGB/alpha here made
-			# soap-bubble rings and map-bleed read as opaque mud (S4). Keep a tiny
-			# lift only so faint strokes stay visible on dark PF.
-			c.a = minf(1.0, c.a * 1.04)
+			# HTML lighter is additive. CanvasItem cannot switch blend mid-_draw, so
+			# we keep source-over and do NOT boost alpha — extra lift stacked the
+			# soap-bubble rings into opaque mud (S4).
+			pass
 		"multiply", "darken":
 			c.a = minf(1.0, c.a * 0.85)
 			c.r *= 0.92
@@ -1043,7 +1043,7 @@ func stroke() -> void:
 		node.draw_polyline(pts, col, elw, true)
 
 func fill_circle(x, y, r) -> void:
-	## Native disc — particles / title sparkles skip path tessellation.
+	## Native disc — particles / bullets skip path tessellation.
 	if node == null:
 		return
 	var c := _xform * Vector2(float(x), float(y))
@@ -1053,7 +1053,22 @@ func fill_circle(x, y, r) -> void:
 	var rr := float(r) * (absf(sc.x) + absf(sc.y)) * 0.5
 	if rr < 0.05:
 		return
-	node.draw_circle(c, rr, _c(_fill))
+	var col := _c(_fill)
+	_draw_shadow_circle(c, rr, col)
+	node.draw_circle(c, rr, col)
+
+func stroke_circle(x, y, r) -> void:
+	## Native ring — enemy-shell outline without path tessellation.
+	if node == null:
+		return
+	var c := _xform * Vector2(float(x), float(y))
+	if not _point_in_clip(c):
+		return
+	var sc := _xform.get_scale()
+	var rr := float(r) * (absf(sc.x) + absf(sc.y)) * 0.5
+	if rr < 0.05:
+		return
+	node.draw_arc(c, rr, 0.0, TAU, 24, _c(_stroke), _effective_lw(), true)
 
 func fill_rect(x, y, w, h) -> void:
 	if node == null:

@@ -308,10 +308,24 @@ static func set_row_value(lab: Label, left: String, right: String) -> void:
 	if val:
 		val.text = right
 
+static func ensure_backbuffer_copy(host: Node) -> void:
+	## Compatibility SCREEN_TEXTURE is empty unless a BackBufferCopy ran first.
+	if host == null:
+		return
+	var bbc := host.get_node_or_null("BackBufferCopy") as BackBufferCopy
+	if bbc == null:
+		bbc = BackBufferCopy.new()
+		bbc.name = "BackBufferCopy"
+		bbc.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+		host.add_child(bbc)
+	if host.get_child(0) != bbc:
+		host.move_child(bbc, 0)
+
 static func apply_dim(dim: ColorRect, kind: String) -> void:
 	## HTML #settings radial+blur(4) · #pausescreen flat rgba(6,4,10,0.72)+blur(3)
 	if dim == null:
 		return
+	ensure_backbuffer_copy(dim.get_parent())
 	var mat := ShaderMaterial.new()
 	mat.shader = DIM_SHADER
 	if kind == "pause":
@@ -369,7 +383,7 @@ static func wrap_overflow_scroll(panel: PanelContainer, vbox: VBoxContainer, wid
 		scroll = vbox.get_parent() as ScrollContainer
 	if scroll == null:
 		return
-	var pad := 32.0
+	var pad := 18.0
 	var content_h := vbox.get_combined_minimum_size().y
 	if content_h < 80.0:
 		content_h = 80.0

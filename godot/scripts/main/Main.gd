@@ -31,11 +31,18 @@ func _ready() -> void:
 	display_menu.add_to_group("display_menu")
 	_on_state(&"TITLE")
 
+func _canvas_pos(screen: Vector2) -> Vector2:
+	## Stretch-safe canvas coords (web CSS scale ≠ viewport). HTML canvasPos.
+	var vp := get_viewport()
+	if vp == null:
+		return screen
+	return vp.get_canvas_transform().affine_inverse() * screen
+
 func _input(event: InputEvent) -> void:
 	## HTML pdown/pmove/pup + joyStart/joyMove/joyEnd for touch
 	if event is InputEventScreenTouch:
 		var st := event as InputEventScreenTouch
-		var pos := st.position
+		var pos := _canvas_pos(st.position)
 		if st.pressed:
 			JoyPad.pdown(pos)
 			if GameState.state == GameState.State.PLAY:
@@ -57,11 +64,12 @@ func _input(event: InputEvent) -> void:
 			JoyPad.joy_end(st.index)
 	elif event is InputEventScreenDrag:
 		var sd := event as InputEventScreenDrag
-		JoyPad.pmove(sd.position)
-		JoyPad.joy_move(sd.position, sd.index)
+		var dpos := _canvas_pos(sd.position)
+		JoyPad.pmove(dpos)
+		JoyPad.joy_move(dpos, sd.index)
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		# Viewport coords (stretch-safe) — event.position can disagree on web scale
-		var mpos := get_viewport().get_mouse_position()
+		# Node2D canvas coords — viewport mouse is wrong under web CSS stretch
+		var mpos := get_global_mouse_position()
 		if event.pressed:
 			JoyPad.pdown(mpos)
 			if GameState.state == GameState.State.PLAY:
@@ -77,7 +85,7 @@ func _input(event: InputEvent) -> void:
 			_touch_up_finger(-1)
 			JoyPad.pup()
 	elif event is InputEventMouseMotion:
-		JoyPad.pmove(get_viewport().get_mouse_position())
+		JoyPad.pmove(get_global_mouse_position())
 
 func _try_clear_gate_pointer(pos: Vector2) -> bool:
 	## HTML pdown: if play && run.cleared && tap near clearShop (38) / clearPortal (44)

@@ -753,6 +753,8 @@ func _run() -> void:
 		var settings_ui = _main.get_node_or_null("UI/SettingsMenu")
 		if settings_ui and settings_ui.has_method("_sync_ui"):
 			settings_ui._sync_ui()
+		if settings_ui and settings_ui.has_method("expand_for_dual"):
+			settings_ui.expand_for_dual()
 		for _i in range(6 if fast else 10):
 			await process_frame
 			if settings_ui and settings_ui.has_method("_sync_ui"):

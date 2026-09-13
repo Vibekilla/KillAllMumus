@@ -30,25 +30,37 @@ func p_orb(x, y, glow, c1, c2) -> void:
 	ctx.translate(float(x), float(y))
 	ctx.global_alpha(0.55)
 	ctx.fill_style(str(glow))
-	ctx.begin_path()
-	ctx.arc(0, 0, 5.5, 0, TAU)
-	ctx.fill()
+	if ctx.has_method("fill_circle"):
+		ctx.fill_circle(0, 0, 5.5)
+	else:
+		ctx.begin_path()
+		ctx.arc(0, 0, 5.5, 0, TAU)
+		ctx.fill()
 	ctx.global_alpha(1.0)
 	ctx.fill_style(str(c1))
-	ctx.begin_path()
-	ctx.arc(0, 0, 3.2, 0, TAU)
-	ctx.fill()
+	if ctx.has_method("fill_circle"):
+		ctx.fill_circle(0, 0, 3.2)
+	else:
+		ctx.begin_path()
+		ctx.arc(0, 0, 3.2, 0, TAU)
+		ctx.fill()
 	ctx.fill_style(str(c2))
-	ctx.begin_path()
-	ctx.arc(-0.8, -0.8, 1.2, 0, TAU)
-	ctx.fill()
+	if ctx.has_method("fill_circle"):
+		ctx.fill_circle(-0.8, -0.8, 1.2)
+	else:
+		ctx.begin_path()
+		ctx.arc(-0.8, -0.8, 1.2, 0, TAU)
+		ctx.fill()
 	ctx.restore()
 
 func draw_circle_helper(x, y, r, col) -> void:
 	ctx.fill_style(col)
-	ctx.begin_path()
-	ctx.arc(float(x), float(y), float(r), 0, TAU)
-	ctx.fill()
+	if ctx.has_method("fill_circle"):
+		ctx.fill_circle(float(x), float(y), float(r))
+	else:
+		ctx.begin_path()
+		ctx.arc(float(x), float(y), float(r), 0, TAU)
+		ctx.fill()
 
 func _hexA(h, a) -> String:
 	var c: Array = _hexRgb(h)
@@ -81,30 +93,43 @@ func _rgbHue(r, g, b) -> float:
 
 
 func drawBullet(b) -> void:
-	## HTML drawBullet — core disc + soft glow + highlight (no save/translate thrash)
+	## HTML drawBullet — core disc + soft glow + highlight (native circles, no tessellation)
 	var bx := float(b.get("x", 0))
 	var by := float(b.get("y", 0))
 	var br := float(b.get("r", 4))
 	var col := str(b.get("col", "#ff7ad1"))
 	var bhp := float(b.get("hp", 0))
+	var use_circ: bool = ctx.has_method("fill_circle")
 	# Soft glow as translucent outer disc (matches HTML shadowBlur look, cheaper path)
 	ctx.global_alpha(0.35)
 	ctx.fill_style(col)
-	ctx.begin_path()
-	ctx.arc(bx, by, br + 3.5, 0, TAU)
-	ctx.fill()
+	if use_circ:
+		ctx.fill_circle(bx, by, br + 3.5)
+	else:
+		ctx.begin_path()
+		ctx.arc(bx, by, br + 3.5, 0, TAU)
+		ctx.fill()
 	ctx.global_alpha(1.0)
 	ctx.fill_style(col)
-	ctx.begin_path()
-	ctx.arc(bx, by, br, 0, TAU)
-	ctx.fill()
+	if use_circ:
+		ctx.fill_circle(bx, by, br)
+	else:
+		ctx.begin_path()
+		ctx.arc(bx, by, br, 0, TAU)
+		ctx.fill()
 	if bhp > 0.0:
 		ctx.stroke_style("#fff")
 		ctx.line_width(1.5)
-		ctx.begin_path()
-		ctx.arc(bx, by, br - 1.0, 0, TAU)
-		ctx.stroke()
+		if ctx.has_method("stroke_circle"):
+			ctx.stroke_circle(bx, by, br - 1.0)
+		else:
+			ctx.begin_path()
+			ctx.arc(bx, by, br - 1.0, 0, TAU)
+			ctx.stroke()
 	ctx.fill_style("rgba(255,255,255,0.92)")
-	ctx.begin_path()
-	ctx.arc(bx - br * 0.25, by - br * 0.25, br * 0.42, 0, TAU)
-	ctx.fill()
+	if use_circ:
+		ctx.fill_circle(bx - br * 0.25, by - br * 0.25, br * 0.42)
+	else:
+		ctx.begin_path()
+		ctx.arc(bx - br * 0.25, by - br * 0.25, br * 0.42, 0, TAU)
+		ctx.fill()

@@ -39,10 +39,10 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Notes |
 |----|------|-------|
-| S1 | Settings | Gold % + cyan buttons. 540p now shows How to Play; Reset/Done still below fold (HTML element shot is taller than 540) |
+| S1 | Settings | Gold % + cyan buttons. 540p How to Play visible; dual still expands .set-card (HTML) + Godot `expand_for_dual`. In-game Reset/Done remain scroll-to (HTML `max-height:92dvh`) |
 | S2 | Shop | Random HB quote; LEAVE→stage clear improved |
-| S3 | Pause / menus | Gold % + 60% follow + cyan Display/Controls (2026-09-12). Backdrop blur weaker than HTML `blur(3px)` in dual SubViewport |
-| S4 | Aura bomb | Same-state bombFx=30 / power 4 / tick=80 both sides. Godot soap-bubble still reads denser (GCO lighter stroke boost) |
+| S3 | Pause / menus | Gold % + 60% follow + cyan Display/Controls. BackBufferCopy + 13-tap SCREEN_TEXTURE blur (2026-09-13) — dual SubViewport still weaker than CSS `blur(3px)` |
+| S4 | Aura bomb | Same-state bombFx=30 / power 4 / tick=80. GCO `lighter` no longer boosts alpha (2026-09-13); residual is missing true additive blend |
 | S5 | Item glyphs | ♥★✸ emoji vs monospace feel |
 | S6 | Stage bg intensity | Motif strength vs HTML psychedelia |
 | S7 | Bobina lids/limbs | Menu vs play scale polish |
@@ -97,10 +97,10 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 ## Next execution order
 
-1. **S4 residual** Soap-bubble density under bomb wash (GCO lighter).  
-2. **S8 residual** Gaussian vs layered fillRect glow; true linearGradient.  
-3. **S1 residual** Reset/Done below 540p fold.  
-4. **S3 residual** Pause backdrop blur vs HTML.  
+1. **S8 residual** Gaussian vs layered fillRect glow; true linearGradient.  
+2. **S4 residual** True additive GCO (CanvasItem cannot switch mid-draw).  
+3. **S3 residual** Dual SubViewport backdrop vs CSS blur(3px).  
+4. **S1 residual** Reset/Done below 540p fold (HTML also scrolls).  
 5. **S10** Music cold-load + social tab.  
-5. **S11** Title social strip.  
-6. GPU FPS — only then Phase 7 product sign-off discussion.
+6. **S11** Title social strip.  
+7. GPU FPS — only then Phase 7 product sign-off discussion.

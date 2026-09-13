@@ -152,6 +152,15 @@ func _apply_html_chrome() -> void:
 				max_h = minf(500.0, float(Config.H) * 0.92)
 			OverlayTheme.wrap_overflow_scroll(panel, vb, 440.0, max_h)
 
+func expand_for_dual() -> void:
+	## Match HTML dual: expand .set-card past max-height so Reset/Done are in the still.
+	var panel := get_node_or_null("Panel") as PanelContainer
+	if panel == null:
+		panel = get_node_or_null("CenterHost/Panel") as PanelContainer
+	var vb := _settings_vbox()
+	if panel and vb:
+		OverlayTheme.wrap_overflow_scroll(panel, vb, 440.0, 4000.0)
+
 func _settings_vbox() -> VBoxContainer:
 	## Panel/VBox or Panel/Scroll/VBox after HTML-style scroll wrap
 	var panel := get_node_or_null("Panel") as PanelContainer

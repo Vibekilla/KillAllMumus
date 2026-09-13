@@ -5,25 +5,60 @@ const BulletScene := preload("res://scenes/bullets/Bullet.tscn")
 const POOL_SIZE := 600
 
 var _pool: Array = []
+## Live shots only — crowd sim/draw used to scan all 600 slots every tick.
+var _active: Array = []
+var _free: Array = []
+var _dirty: bool = false
 
 func _ready() -> void:
 	for i in POOL_SIZE:
 		var b = BulletScene.instantiate()
-		b.deactivate()
 		add_child(b)
+		b.deactivate()
+		if not bool(b.get_meta("_pool_hooked", false)):
+			b.deactivated.connect(_on_bullet_deactivated.bind(b))
+			b.set_meta("_pool_hooked", true)
 		_pool.append(b)
+		b.set_meta("_pooled_free", true)
+		_free.append(b)
 	# HTML bullets advance on fixed sim frames with the rest of combat (not physics hitch)
 	if SimClock and not SimClock.sim_tick.is_connected(_on_sim_tick):
 		SimClock.sim_tick.connect(_on_sim_tick)
 
+func _on_bullet_deactivated(b) -> void:
+	if b == null or not is_instance_valid(b):
+		return
+	if bool(b.get_meta("_pooled_free", false)):
+		return
+	b.set_meta("_pooled_free", true)
+	_free.append(b)
+	_dirty = true
+
+func _compact_inactive() -> void:
+	if not _dirty:
+		return
+	var w := 0
+	for b in _active:
+		if b != null and is_instance_valid(b) and bool(b.get("active")):
+			_active[w] = b
+			w += 1
+	_active.resize(w)
+	_dirty = false
+
 func _on_sim_tick(dt: float) -> void:
-	for b in _pool:
+	_compact_inactive()
+	var n := _active.size()
+	var i := 0
+	while i < n:
+		var b = _active[i]
 		if b != null and is_instance_valid(b) and bool(b.get("active")):
 			if b.has_method("sim_step"):
 				b.sim_step(dt)
+		i += 1
 	# HTML update() uses distance hit-tests every frame. Area2D signals are unreliable
 	# when bullets/enemies move only on SimClock (not physics), so resolve here too.
 	_resolve_hits_distance()
+	_compact_inactive()
 
 func _resolve_hits_distance() -> void:
 	## Mirror HTML pshot/enemy bullet distance checks after all positions advance.
@@ -34,7 +69,7 @@ func _resolve_hits_distance() -> void:
 		return
 	var player: Node2D = tree.get_first_node_in_group("player") as Node2D
 	var enemies: Array = tree.get_nodes_in_group("enemies")
-	for b in _pool:
+	for b in _active:
 		if b == null or not is_instance_valid(b) or not bool(b.get("active")):
 			continue
 		var team := int(b.team) if "team" in b else 1
@@ -100,27 +135,31 @@ func _resolve_hits_distance() -> void:
 				b.deactivate()
 
 func spawn(pos: Vector2, vel: Vector2, damage: float, color: Color, team: int):
-	for b in _pool:
-		if not b.active:
-			b.activate(pos, vel, damage, color, team)
-			if int(team) == 1:
-				b.add_to_group("enemy_bullet")
-			else:
-				if b.is_in_group("enemy_bullet"):
-					b.remove_from_group("enemy_bullet")
-			return b
-	var b2 = BulletScene.instantiate()
-	add_child(b2)
-	_pool.append(b2)
-	b2.activate(pos, vel, damage, color, team)
+	_compact_inactive()
+	var b = null
+	if _free.size() > 0:
+		b = _free.pop_back()
+	else:
+		b = BulletScene.instantiate()
+		add_child(b)
+		_pool.append(b)
+		if not bool(b.get_meta("_pool_hooked", false)):
+			b.deactivated.connect(_on_bullet_deactivated.bind(b))
+			b.set_meta("_pool_hooked", true)
+	b.set_meta("_pooled_free", false)
+	b.activate(pos, vel, damage, color, team)
+	_active.append(b)
 	if int(team) == 1:
-		b2.add_to_group("enemy_bullet")
-	return b2
+		b.add_to_group("enemy_bullet")
+	else:
+		if b.is_in_group("enemy_bullet"):
+			b.remove_from_group("enemy_bullet")
+	return b
 
 func clear_enemy() -> void:
 	## HTML bulletCancelAll — cancel enemy bullets; first 40 drop point items + floaters
 	var pts: int = 0
-	for b in _pool:
+	for b in _active:
 		if not b.active or int(b.team) != 1:
 			continue
 		var bx: float = b.global_position.x
@@ -140,7 +179,7 @@ func clear_enemy_near(pos: Vector2, radius: float, drop_points: bool = true) -> 
 	## drop_points=false: floaters only (mech shield / special soft cancel — no free score).
 	var pts: int = 0
 	var r2: float = radius * radius
-	for b in _pool:
+	for b in _active:
 		if not b.active or int(b.team) != 1:
 			continue
 		# HTML: if(b.hp>0) return true — durable shells survive cancel
@@ -168,7 +207,7 @@ func clear_enemy_near(pos: Vector2, radius: float, drop_points: bool = true) -> 
 
 func blackhole_pull_bullets(pos: Vector2, pull: float, core: float = 16.0, col: String = "#3ae66a") -> void:
 	## HTML blackhole bullet filter: spiral soft bullets; devour d<core; shells keep
-	for b in _pool:
+	for b in _active:
 		if not b.active or int(b.team) != 1:
 			continue
 		var bhp: float = 0.0
@@ -197,7 +236,7 @@ func blackhole_pull_bullets(pos: Vector2, pull: float, core: float = 16.0, col: 
 
 func cancel_enemy_in_annulus(pos: Vector2, lo: float, hi: float) -> void:
 	## HTML wave special: cancel non-shell bullets where lo < d < hi
-	for b in _pool:
+	for b in _active:
 		if not b.active or int(b.team) != 1:
 			continue
 		var bhp: float = 0.0
@@ -213,7 +252,7 @@ func despawn_enemy_near(pos: Vector2, radius: float, floater_life: float = 0.0, 
 	## HTML pure filter: remove ALL enemy bullets in radius (incl. shells).
 	## No point drops — hitPlayer death, slashDash, nadeBoom, enemyExplode.
 	var r2: float = radius * radius
-	for b in _pool:
+	for b in _active:
 		if not b.active or int(b.team) != 1:
 			continue
 		if b.global_position.distance_squared_to(pos) > r2:
@@ -230,7 +269,7 @@ func despawn_enemy_near(pos: Vector2, radius: float, floater_life: float = 0.0, 
 
 func filter_enemy_in_cone(pos: Vector2, radius: float, dir: float, half: float) -> void:
 	## HTML burn bullet cancel: d < reach*0.9 && angDiff < half (+ floaters, no points)
-	for b in _pool:
+	for b in _active:
 		if not b.active or int(b.team) != 1:
 			continue
 		var dx: float = b.global_position.x - pos.x
@@ -249,22 +288,19 @@ func filter_enemy_in_cone(pos: Vector2, radius: float, dir: float, half: float) 
 			b.deactivate()
 
 func clear_all() -> void:
-	for b in _pool:
+	for b in _active:
 		if b.active:
 			b.deactivate()
 
 func iter_active() -> Array:
 	## Active bullets for WorldDraw single-pass (HTML bullets/pshots arrays)
-	var out: Array = []
-	for b in _pool:
-		if b.active:
-			out.append(b)
-	return out
+	_compact_inactive()
+	return _active
 
 func melee_deflect(origin: Vector2, dir: float, reach: float, half: float, cancel: bool) -> void:
 	## HTML doMeleeSwipe bullet filter — cancel drops points (≤28); else shove outward
 	var cnt: int = 0
-	for b in _pool:
+	for b in _active:
 		if not b.active or int(b.team) != 1:
 			continue
 		var dx: float = b.global_position.x - origin.x

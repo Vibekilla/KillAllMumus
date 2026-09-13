@@ -4,10 +4,12 @@ func _init() -> void:
 func _run() -> void:
 	await process_frame
 	var b: String = FileAccess.get_file_as_string("res://scripts/combat/Bullet.gd")
+	var pool: String = FileAccess.get_file_as_string("res://scripts/combat/BulletPool.gd")
 	var fs: String = FileAccess.get_file_as_string("res://scripts/combat/FireSystem.gd")
 	var isrc: String = FileAccess.get_file_as_string("res://scripts/systems/ItemSystem.gd")
 	var ok := true
-	if b.find("chain_lightning") < 0 or b.find("zap") < 0:
+	# Hits resolve in BulletPool (SimClock distance), not Area2D on Bullet
+	if (pool.find("chain_lightning") < 0 and b.find("chain_lightning") < 0) or (b.find("zap") < 0 and pool.find("zap") < 0):
 		print("[ZAP] FAIL zap hit must chain_lightning")
 		ok = false
 	if isrc.find("screen_shake") < 0 or isrc.find("nade_boom") < 0:

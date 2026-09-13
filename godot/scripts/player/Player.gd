@@ -269,28 +269,34 @@ func _step(delta: float) -> void:
 	elif dir.length() > 0.1:
 		velocity = velocity.lerp(dir.normalized() * spd, 0.5)
 	else:
-		# HTML: mouse follow only after real mousemove (moveT>0), not bare click.
-		# Click-only used to set moveT and pin her in a corner under LMB fire.
+		# HTML: mouse follow after real mousemove (moveT>0), or while LMB is down.
 		# Touch UI: joystick only (no desktop mouse-follow).
+		# Cursor is canvas-space (JoyPad.pmove / get_global_mouse_position) — viewport
+		# pixels under web CSS stretch made her freeze facing last heading so shots
+		# went "sideways" vs the pointer.
 		var is_touch := JoyPad != null and bool(JoyPad.touch_ui_on)
-		var m_ok := JoyPad != null and float(JoyPad.mouse_move_t) > 0.0 and not is_touch
-		# Drag-to-move: pointer down AND recent motion (not click-hold-to-fire alone)
-		var p_ok := JoyPad != null and bool(JoyPad.pointer_down) and m_ok and not is_touch
-		var mx := JoyPad.mouse.x if JoyPad else 0.0
-		var my := JoyPad.mouse.y if JoyPad else 0.0
 		var pf: Rect2 = Config.playfield()
-		var in_field := mx > pf.position.x - 40.0 and mx < pf.end.x + 40.0 \
-			and my > pf.position.y - 40.0 and my < pf.end.y + 40.0
-		if (p_ok or m_ok) and in_field:
+		var mouse := get_global_mouse_position()
+		var pointer := mouse
+		if JoyPad:
+			mouse = JoyPad.mouse
+			pointer = JoyPad.pointer
+		var in_field := mouse.x > pf.position.x - 40.0 and mouse.x < pf.end.x + 40.0 \
+			and mouse.y > pf.position.y - 40.0 and mouse.y < pf.end.y + 40.0
+		var m_ok := JoyPad != null and float(JoyPad.mouse_move_t) > 0.0 and not is_touch and in_field
+		# HTML pOK = pointer.down && !isTouch (does NOT require moveT)
+		var p_ok := JoyPad != null and bool(JoyPad.pointer_down) and not is_touch
+		if p_ok or m_ok:
+			var src := pointer if p_ok else mouse
 			var base_f := Config.mouse_follow if Config else 0.6
 			var f := maxf(0.28, base_f * 0.5) if focus else base_f
 			# One ease per display frame (HTML 1 update/raf) — catch-up must not re-snap
 			if edge:
-				var tx := clampf(mx + offx, pf.position.x + 8.0, pf.end.x - 8.0)
-				var ty := clampf(my + offy, pf.position.y + 8.0, pf.end.y - 8.0)
+				var tx := clampf(src.x + offx, pf.position.x + 8.0, pf.end.x - 8.0)
+				var ty := clampf(src.y + offy, pf.position.y + 8.0, pf.end.y - 8.0)
 				velocity = Vector2(tx - global_position.x, ty - global_position.y) * f * FRAME
 			else:
-				velocity *= 0.85  # damp residual during catch-up steps
+				velocity *= 0.85
 		else:
 			velocity *= 0.8
 
@@ -298,8 +304,10 @@ func _step(delta: float) -> void:
 	var vpf := velocity / FRAME  # px/frame
 	if absf(vpf.x) < 0.03:
 		velocity.x = 0.0
+		vpf.x = 0.0
 	if absf(vpf.y) < 0.03:
 		velocity.y = 0.0
+		vpf.y = 0.0
 
 	# CRITICAL: do NOT use move_and_slide() here — it multiplies by *physics* delta.
 	# Under low FPS physics delta spikes (0.1–0.2s) while velocity is calibrated for
@@ -307,11 +315,11 @@ func _step(delta: float) -> void:
 	global_position += velocity * delta
 	_clamp_to_playfield()
 
-	# HTML facing: hold travel heading when stopped (don't snap to mouse while idle)
-	var sp2 := velocity.length() / FRAME  # px/frame equivalent
+	# HTML: if(sp2>0.35) face = lerpAngle(face, atan2(vy,vx), 0.26); aim = face
+	# Shots follow where she's pointed (travel heading), not a raw mouse angle.
+	var sp2 := vpf.length()
 	if sp2 > 0.35:
-		aim = lerp_angle(aim, velocity.angle(), 0.26)
-	# else hold aim (HTML holds face when stopped)
+		aim = lerp_angle(aim, atan2(vpf.y, vpf.x), 0.26)
 
 	# Unified fire: hold shoot or LMB (same on desktop / touch / Steam — no separate autofire mode).
 	# Touch FIRE button holds shoot via Main._inject_action.
