@@ -51,6 +51,12 @@ func _process(_delta: float) -> void:
 			queue_redraw()
 		return
 	_prev_show = true
+	if has_meta("dual_lock_tick"):
+		tick = int(get_meta("dual_lock_tick"))
+		if tick != _last_tick:
+			_last_tick = tick
+			queue_redraw()
+		return
 	if nt == _last_tick:
 		return
 	_last_tick = nt

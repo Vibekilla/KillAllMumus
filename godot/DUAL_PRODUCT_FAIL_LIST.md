@@ -40,16 +40,16 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | ID | Area | Notes |
 |----|------|-------|
 | S1 | Settings | Gold % + cyan buttons. Dual still is now a taller viewport (HTML expanded .set-card). In-game Reset/Done still scroll at 540p (`max-height:92dvh`) |
-| S2 | Shop | Full HTML HONEY_LINES (26). Dual quote still tick-phase vs HTML still |
+| S2 | Shop | Full HTML HONEY_LINES. Dual pins tick=0 (same first line) |
 | S3 | Pause / menus | 17-tap gaussian-ish SCREEN_TEXTURE blur. Residual: CSS backdrop-filter vs shader |
 | S4 | Aura bomb | ADD layer covers circles/tris/polylines/rects/ellipses/round-rects. Residual: texture/string still source-over |
 | S5 | Item glyphs | Vector heart/star/burst (no Noto color-emoji blob). Dual vs HTML canvas emoji still SOFT |
 | S6 | Stage bg intensity | HTML seed RNG (hue ±30, petals 3/5/7/9) + re-roll per stage |
-| S7 | Bobina lids/limbs | Menu vs play scale polish |
+| S7 | Bobina lids/limbs | Outfit ×4.7 uses full HTML lineWidth scale (play keeps 0.96 AA shave) |
 | S8 | Special density | Vertex-colored linear + radial rings (2026-09-13). Residual: true CanvasGradient vs sampled strips |
 | S9 | Boss live patterns | **Harness PASS** — special 114 bullets + live 216 both sides; residual density/spread SOFT |
 | S10 | Music E2E | Cold-load applyMusicVol + 6s YT retry. Live social-tab still a device check |
-| S11 | Title social strip | SocialBar Control chips (HTML #social DOM). Residual: letter-spacing .3px |
+| S11 | Title social strip | SocialBar Control chips (HTML #social). Residual: CSS letter-spacing .3px |
 
 ---
 

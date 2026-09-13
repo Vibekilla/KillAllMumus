@@ -745,6 +745,10 @@ async function captureHtml() {
         if (typeof draw === "function") draw();
       });
       await page.waitForTimeout(fast ? 400 : 700);
+      await page.evaluate(() => {
+        if (typeof tick !== "undefined") tick = 0; // HONEY_LINES[0] — match Godot dual_lock_tick
+        if (typeof draw === "function") draw();
+      });
       await page.screenshot({ path: path.join(htmlDir, "html_flow_shop.png") });
       console.log("[HTML] flow_shop");
       await page.evaluate(() => {

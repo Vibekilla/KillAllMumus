@@ -240,13 +240,14 @@ func line_width(w: float) -> void:
 
 func _effective_lw() -> float:
 	## HTML Canvas2D: lineWidth is in user space and scales fully with the current CTM.
-	## (Earlier soft-cap at ~2.1× made outfit-menu smile lids too thin → neon gold irises.)
+	## Outfit menu is ×4.7 — a 0.96 haircut left smile lids thin (gold iris “neon”).
+	## Play (×1) keeps a tiny AA shave; large CTM uses HTML 1:1.
 	var sc := _xform.get_scale()
 	var m := (absf(sc.x) + absf(sc.y)) * 0.5
 	if m < 0.001:
 		m = 1.0
-	# Slight under-weight for Godot polyline AA bulk vs HTML canvas strokes
-	return maxf(0.35, _lw * m * 0.96)
+	var hair := 0.96 if m < 2.0 else 1.0
+	return maxf(0.35, _lw * m * hair)
 
 func global_alpha(a: float) -> void:
 	_alpha = a

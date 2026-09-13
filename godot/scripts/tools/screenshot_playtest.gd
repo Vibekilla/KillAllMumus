@@ -1158,11 +1158,21 @@ func _run() -> void:
 		else:
 			GameState.set_state(GameState.State.SHOP)
 		_force_ui_size(_main)
+		# Same quote as HTML dual (tick=0 → HONEY_LINES[0])
+		if flow:
+			flow.set_meta("dual_lock_tick", 0)
+			flow.tick = 0
 		if flow and flow.has_method("queue_redraw"):
 			flow.queue_redraw()
 		for _i in range(6 if fast else 10):
 			await process_frame
+			if flow:
+				flow.tick = 0
+				if flow.has_method("queue_redraw"):
+					flow.queue_redraw()
 		await _save("godot_flow_shop")
+		if flow and flow.has_meta("dual_lock_tick"):
+			flow.remove_meta("dual_lock_tick")
 
 		GameState.session_score = 13300
 		GameState.total_kills = 39
