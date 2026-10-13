@@ -33,6 +33,8 @@ func _ready() -> void:
 
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_process(true)
+	# Above HudCanvas (z=5) so the 0.9 dim covers the side panel the way HTML does.
+	z_index = 8
 	visible = false
 	GameState.state_changed.connect(_on_state)
 	GameState.run_ended.connect(_on_ended)
@@ -80,6 +82,20 @@ func _draw() -> void:
 	if P2Meta.name_entry_open and not ApiClient.authenticated:
 		_draw_name_entry_chrome()
 
+func _cover_image(tex: Texture2D, x: float, y: float, w: float, h: float, radius: float) -> void:
+	## HTML object-fit cover inside a rounded clip.
+	var iw := float(tex.get_width())
+	var ih := float(tex.get_height())
+	var s := maxf(w / maxf(1.0, iw), h / maxf(1.0, ih))
+	var dw := iw * s
+	var dh := ih * s
+	ctx.save()
+	ctx.begin_path()
+	ctx.round_rect(x, y, w, h, radius)
+	ctx.clip()
+	ctx.draw_image(tex, x + (w - dw) / 2.0, y + (h - dh) / 2.0, dw, dh)
+	ctx.restore()
+
 func _draw_game_over() -> void:
 	var W = Config.W
 	var H = Config.H
@@ -89,7 +105,7 @@ func _draw_game_over() -> void:
 	var img = AssetBank.get_tex("maid") if AssetBank else null
 	var S = 200.0
 	if img:
-		ctx.draw_image(img, W / 2.0 - S / 2.0, 40, S, S)
+		_cover_image(img, W / 2.0 - S / 2.0, 40, S, S, 14)
 		ctx.stroke_style("#ff5b6e")
 		ctx.line_width(4)
 		ctx.begin_path()
@@ -125,10 +141,11 @@ func _draw_game_over() -> void:
 func _draw_win() -> void:
 	var W = Config.W
 	var H = Config.H
-	ctx.fill_style("#2a1030")
-	ctx.fill_rect(0, 0, W, H * 0.55)
-	ctx.fill_style("#4a1828")
-	ctx.fill_rect(0, H * 0.45, W, H * 0.55)
+	var win_bg = ctx.create_linear_gradient(0, 0, 0, H)
+	win_bg.add_color_stop(0, "#2a1030")
+	win_bg.add_color_stop(1, "#4a1828")
+	ctx.fill_style(win_bg)
+	ctx.fill_rect(0, 0, W, H)
 	# floating hearts
 	for i in range(24):
 		var hx = fposmod(float(i) * 97.0 + float(tick) * 1.5, W)
@@ -152,7 +169,11 @@ func _draw_win() -> void:
 	if cimg == null and AssetBank:
 		cimg = AssetBank.get_tex("win")  # fallback key
 	if cimg:
-		ctx.draw_image(cimg, ix, iy, iw2, ih2)
+		ctx.save()
+		ctx.shadow_color("rgba(255,180,80,0.5)")
+		ctx.shadow_blur(22)
+		_cover_image(cimg, ix, iy, iw2, ih2, 14)
+		ctx.restore()
 		ctx.stroke_style("rgba(255,210,120,0.8)")
 		ctx.line_width(3)
 		ctx.begin_path()

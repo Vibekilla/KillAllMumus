@@ -52,7 +52,8 @@ func _process(_d: float) -> void:
 		GameState.State.PLAY, GameState.State.INTRO,
 		GameState.State.STAGE_CLEAR, GameState.State.SHOP
 	]
-	if playish or toasting:
+	var ended := GameState.state in [GameState.State.WIN, GameState.State.GAMEOVER]
+	if playish or ended or toasting:
 		queue_redraw()
 
 func _draw() -> void:
@@ -67,9 +68,12 @@ func _draw() -> void:
 		GameState.State.PLAY, GameState.State.INTRO,
 		GameState.State.STAGE_CLEAR, GameState.State.SHOP
 	]
-	# Panel + overlays only — never full-field stage bg (that covered entities)
-	if playish:
+	var ended := GameState.state in [GameState.State.WIN, GameState.State.GAMEOVER]
+	# Panel + overlays only — never full-field stage bg (that covered entities).
+	# HTML draw() paints the side panel, then the win / game-over dim on top of it.
+	if playish or ended:
 		hud.drawPanel()
+	if playish:
 		hud.drawEmblemToasts()
 	# Pause chrome is PauseMenu Control (HTML #pausescreen) — not canvas drawPause
 	if touch_draw and GameState.state in [GameState.State.PLAY, GameState.State.SHOP]:
