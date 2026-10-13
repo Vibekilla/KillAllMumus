@@ -33,7 +33,7 @@
 | **hold** | Phase 7 product gate not signed | Sign-off log = CUTOVER HOLD |
 | **blocked** | Phase 8 waiting on Phase 7 | USE_GODOT off |
 
-As of 2026-08-12: **structure** largely green for Phases 0–7; **product** remains **product_partial** / Phase 7 **hold**. See `PHASE_STATUS.md`.
+As of 2026-10-13: **structure** largely green for Phases 0–7; **product** remains **product_partial**. The living queue is `DUAL_PRODUCT_FAIL_LIST.md`. Phase 7 stays **CUTOVER HOLD**. See `PHASE_STATUS.md`.
 
 ---
 

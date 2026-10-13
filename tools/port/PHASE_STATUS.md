@@ -1,6 +1,6 @@
 # Phase status — HTML → Godot (canonical rollup)
 
-**Updated:** 2026-08-12  
+**Updated:** 2026-10-13  
 **Canonical plan / bans / cutover:** [`godot/PARITY.md`](../../godot/PARITY.md)  
 **Checkboxes:** [`godot/MIGRATION_CHECKLIST.md`](../../godot/MIGRATION_CHECKLIST.md)  
 **Product gaps:** [`godot/PARITY_RESIDUALS.md`](../../godot/PARITY_RESIDUALS.md)  
@@ -102,7 +102,8 @@ Primary queue → [`DUAL_PRODUCT_FAIL_LIST.md`](../../godot/DUAL_PRODUCT_FAIL_LI
 | S11 | Title social strip | structure | product_partial |
 | — | GPU + web FPS targets | structure (probe exists) | product_partial / open |
 
-Open FAIL duals: **none** (F1–F8 closed). Phase 7 product sign-off: **hold**.
+Open FAIL duals: **none** (F1–F8 closed). Phase 7 product sign-off: **hold**.  
+Living product queue is [`godot/DUAL_PRODUCT_FAIL_LIST.md`](../../godot/DUAL_PRODUCT_FAIL_LIST.md) (SOFT S1–S17). When this 2026-08-12 snapshot and that list disagree, the fail list wins. Phase 7 log row stays **CUTOVER HOLD**.
 
 ---
 
