@@ -563,12 +563,9 @@ func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 	ctx.fill_style("#fff" if (int(floorf(float(tick) / 26.0)) % 2) != 0 else "#9a7c96")
 	ctx.font("bold 12px monospace")
 	ctx.text_align("center")
-	# HTML: LEAVE → stage clear when shop_return is stageclear
-	var leave_hint := "LEAVE"
-	if StageFlow and str(StageFlow.get("shop_return")) == "stageclear":
-		leave_hint = "LEAVE → stage clear"
-	ctx.fill_text("◀▶ browse  ·  [%s] switch tab  ·  [%s] buy  ·  [%s] %s" % [
-		MenuHelpers.kb("swap"), MenuHelpers.kb("shoot"), MenuHelpers.kb("interact"), leave_hint,
+	# HTML drawShop always prints this label (leaveShop itself returns to the field).
+	ctx.fill_text("◀▶ browse  ·  [%s] switch tab  ·  [%s] buy  ·  [%s] LEAVE → stage clear" % [
+		MenuHelpers.kb("swap"), MenuHelpers.kb("shoot"), MenuHelpers.kb("interact"),
 	], W * 0.63, H - 32)
 	ctx.text_align("left")
 

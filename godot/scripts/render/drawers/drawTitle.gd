@@ -44,6 +44,8 @@ var _live_start_y: float = 400.0
 var _live_bh: float = 28.0
 ## TitleScreen SocialBar Control owns HTML #social (DOM chips). Skip canvas paint.
 var skip_canvas_social: bool = true
+## TitleScreen draws #bobinaAuth as a Control above #social (HTML z-index 18 > 15).
+var skip_auth_chrome: bool = false
 
 func setup(c) -> void:
 	ctx = c
@@ -308,8 +310,9 @@ func drawTitleChrome() -> void:
 		ctx.font("10px monospace")
 		ctx.fill_text("A Bobina Council LLC & Grr Finance production · tap ⛶ for fullscreen", W / 2.0, ny)
 	ctx.text_align("left")
-	# HTML #bobinaAuth — centered pill above social (drawn on canvas for 1:1)
-	_draw_auth_chrome(W, H)
+	# HTML #bobinaAuth — Control pill when the title host owns it (z above #social).
+	if not skip_auth_chrome:
+		_draw_auth_chrome(W, H)
 	# HTML #social — desktop bottom strip (touch: hidden, lives in SHOUTOUTS).
 	# Default: TitleScreen SocialBar Control (DOM chips). Canvas path is fallback.
 	if not is_touch and not skip_canvas_social:
@@ -528,9 +531,9 @@ func drawMaidDance() -> void:
 	var ncols := ["#ff9ecb", "#ffd27a", "#8fd0ff", "#b8f08a"]
 	for i in range(10):
 		var base := t * 0.7 + float(i) * 70.0
-		var ny := 110.0 + fposmod(H - 160.0 - fposmod(base, H - 160.0), H - 160.0)
-		# simpler bobbing notes
-		ny = 110.0 + fposmod(base, H - 160.0)
+		# HTML: 110 + ((H-160) - (base % (H-160))) — notes rise.
+		var span := H - 160.0
+		var ny := 110.0 + fposmod(span - fposmod(base, span), span)
 		var nx := W / 2.0 + sin(t * 0.03 + float(i) * 1.3) * (90.0 + float(i) * 13.0)
 		ctx.global_alpha(0.5 + 0.3 * sin(t * 0.1 + float(i)))
 		ctx.fill_style(ncols[i % 4])

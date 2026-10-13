@@ -57,12 +57,13 @@ func _ready() -> void:
 	add_child(_auth_label)
 	_login_btn = Button.new()
 	_login_btn.name = "CanvasLoginBtn"
-	_login_btn.clip_text = true
-	_login_btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_login_btn.clip_text = false
+	_login_btn.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
 	_login_btn.pressed.connect(_on_login_pressed)
 	add_child(_login_btn)
 	_layout_auth_chrome()
 	_social_bar = preload("res://scripts/ui/SocialBar.gd").new()
+	_social_bar.z_index = 5
 	add_child(_social_bar)
 
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
@@ -82,6 +83,8 @@ func _ready() -> void:
 		add_child(bob_cache)
 	if title_drawer.has_method("set_bob_cache"):
 		title_drawer.set_bob_cache(bob_cache)
+	title_drawer.skip_auth_chrome = true
+	_style_login_btn()
 	_ensure_title_chrome()
 	menus = load("res://scripts/ui/menu/draw_menus.gd").new()
 	menus.setup(ctx, model, bobina, bob_cache)
@@ -181,9 +184,10 @@ func _on_state(s: StringName) -> void:
 
 func _sync_visible(st: GameState.State) -> void:
 	visible = st in MENU_STATES
-	# Auth is drawn on canvas (HTML #bobinaAuth) — hide Control stubs
+	# HTML #bobinaAuth is a DOM pill above #social (z-index 18). The canvas
+	# pill was covered by SocialBar chips. The Control is the visible pill.
 	if _login_btn:
-		_login_btn.visible = false
+		_login_btn.visible = visible and st == GameState.State.TITLE
 	if _auth_label:
 		_auth_label.visible = false
 	# HTML #social only on desktop title (touch uses SHOUTOUTS modal)
@@ -198,27 +202,72 @@ func _is_touch_ui() -> bool:
 		return false
 	return DisplayServer.is_touchscreen_available()
 
+func _style_login_btn() -> void:
+	## HTML #bobinaAuth a / .who — pill above the social chips.
+	if _login_btn == null:
+		return
+	_login_btn.focus_mode = Control.FOCUS_NONE
+	_login_btn.z_index = 30
+	# flat=true skips the stylebox, so the pink pill never paints.
+	_login_btn.flat = false
+	var logged := ApiClient != null and ApiClient.authenticated
+	var sb := StyleBoxFlat.new()
+	sb.set_corner_radius_all(999)
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
+	sb.shadow_color = Color(0, 0, 0, 0.4)
+	sb.shadow_size = 6
+	sb.shadow_offset = Vector2(0, 2)
+	if logged:
+		sb.bg_color = Color(20.0 / 255.0, 8.0 / 255.0, 16.0 / 255.0, 0.88)
+		sb.border_color = Color(1.0, 122.0 / 255.0, 181.0 / 255.0)
+		sb.set_border_width_all(1)
+		_login_btn.add_theme_color_override("font_color", Color(1.0, 208.0 / 255.0, 228.0 / 255.0))
+	else:
+		# linear-gradient(180deg,#ff5b8d,#c42a5c). StyleBoxFlat is one fill;
+		# use the bright top stop so the pill reads like the HTML button.
+		sb.bg_color = Color(1.0, 91.0 / 255.0, 141.0 / 255.0)
+		sb.set_border_width_all(0)
+		_login_btn.add_theme_color_override("font_color", Color.WHITE)
+	for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
+		_login_btn.add_theme_stylebox_override(state_name, sb)
+	if FontBank and FontBank.ui_bold:
+		_login_btn.add_theme_font_override("font", FontBank.ui_bold)
+	_login_btn.add_theme_font_size_override("font_size", 13)
+
 func _layout_auth_chrome() -> void:
-	## Match HTML #bobinaAuth: centered, above #social strip (~28px chips)
+	## HTML #bobinaAuth { bottom: 52px } on desktop, 10px on touch.
 	if _login_btn == null or _auth_label == null:
 		return
+	_style_login_btn()
 	var touch := _is_touch_ui()
-	var btn_w := 220.0
-	var btn_h := 26.0
-	var bottom := 10.0 if touch else 54.0  # desktop leaves room for social bar
-	_login_btn.size = Vector2(btn_w, btn_h)
-	_login_btn.position = Vector2((Config.W - btn_w) * 0.5, Config.H - bottom - btn_h)
-	_auth_label.size = Vector2(420, 16)
-	_auth_label.position = Vector2((Config.W - 420.0) * 0.5, _login_btn.position.y - 18.0)
+	var btn_h := 36.0
+	var font: Font = FontBank.ui_bold if FontBank and FontBank.ui_bold else ThemeDB.fallback_font
+	var tw := font.get_string_size(_login_btn.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+	# HTML padding 10px 16px. Width follows the label so it is not ellipsized.
+	var btn_w := maxf(148.0, tw + 36.0)
+	var bottom := 10.0 if touch else 52.0
+	var x := (Config.W - btn_w) * 0.5
+	var y := Config.H - bottom - btn_h
+	# Top-left anchors so size is not thrown away after _ready.
+	_login_btn.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_login_btn.offset_left = x
+	_login_btn.offset_top = y
+	_login_btn.offset_right = x + btn_w
+	_login_btn.offset_bottom = y + btn_h
+	_auth_label.visible = false
 
 func _refresh_auth() -> void:
 	if _auth_label == null:
 		return
 	if ApiClient.authenticated:
 		_auth_label.text = "Signed in as @%s" % str(ApiClient.me.get("username", "Bobina"))
-		_login_btn.text = "Cloud sync ready"
+		_login_btn.text = _auth_label.text
 	else:
-		_auth_label.text = "Play as guest — or link Bobina for cloud saves"
+		# HTML guest paint is only the pink pill — no caption line.
+		_auth_label.text = ""
 		_login_btn.text = "Sign in with Bobina"
 	_layout_auth_chrome()
 

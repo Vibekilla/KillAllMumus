@@ -94,7 +94,7 @@ func _apply_html_chrome() -> void:
 			_insert_hint(vbox, speedrun_btn, "HintSpeedrun", "“Bobina hates monologues too.” Cuts straight to the fights.")
 		var reset_n := vbox.get_node_or_null("ResetInvBtn")
 		if reset_n:
-			_insert_hint(vbox, reset_n, "HintReset", "Clears bought gear & skulls. Keeps emblems, outfits & NG+.")
+			_insert_hint(vbox, reset_n, "HintReset", "Clears bought weapons, specials, melee, items & skulls back to the starter kit. Keeps emblems, outfits & NG+ progress.")
 	# HTML section labels: Display / Controls / Data (not single “MORE”)
 	var sec_more := vbox.get_node_or_null("SecMore") as Label if vbox else null
 	if sec_more:
@@ -135,11 +135,13 @@ func _apply_html_chrome() -> void:
 	# HTML .set-card fits Reset+Done at 540p; slightly tighter rows than OverlayTheme 40px
 	for b in [display, keybinds, help, reset_btn, close, speedrun_btn]:
 		if b:
-			b.custom_minimum_size.y = 36
+			b.custom_minimum_size.y = 32
 	var ver := (vbox.get_node_or_null("Ver") if vbox else null) as Label
 	if ver:
 		ver.add_theme_color_override("font_color", Color(0.416, 0.353, 0.447))
 		ver.add_theme_font_size_override("font_size", 10)
+		if FontBank and FontBank.ui:
+			ver.add_theme_font_override("font", FontBank.ui)
 		ver.text = "🐻 Bobina: KILL ALL MUMUS!!  ·  v1.9.0  ·  A Bobina Council production"
 	if reset_confirm is PanelContainer:
 		(reset_confirm as PanelContainer).add_theme_stylebox_override("panel", OverlayTheme.card_style(OverlayTheme.PINK, 16))
@@ -151,15 +153,61 @@ func _apply_html_chrome() -> void:
 			if Config:
 				max_h = minf(500.0, float(Config.H) * 0.92)
 			OverlayTheme.wrap_overflow_scroll(panel, vb, 440.0, max_h)
+			_pin_reset_done_footer(panel, vb, max_h)
+
+func _pin_reset_done_footer(panel: PanelContainer, vb: VBoxContainer, max_h: float) -> void:
+	## Keep Reset/Done/ver on-screen at 540p (HTML overlay uses 92dvh of the *browser*).
+	var scroll := vb.get_parent() as ScrollContainer
+	if scroll == null or panel == null:
+		return
+	var outer := panel.get_node_or_null("Outer") as VBoxContainer
+	if outer == null:
+		outer = VBoxContainer.new()
+		outer.name = "Outer"
+		outer.add_theme_constant_override("separation", 6)
+		outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		panel.add_child(outer)
+		scroll.reparent(outer)
+	var footer := outer.get_node_or_null("Footer") as VBoxContainer
+	if footer == null:
+		footer = VBoxContainer.new()
+		footer.name = "Footer"
+		footer.add_theme_constant_override("separation", 3)
+		outer.add_child(footer)
+	# HTML order: DATA, Reset Inventory, hint, Done, version.
+	for n in ["SecData", "ResetInvBtn", "HintReset", "CloseBtn", "Ver"]:
+		var node := vb.get_node_or_null(n)
+		if node and node.get_parent() != footer:
+			node.reparent(footer)
+	var foot_h := footer.get_combined_minimum_size().y
+	if foot_h < 8.0:
+		foot_h = 90.0
+	var inner := maxf(120.0, max_h - 18.0 - foot_h)
+	scroll.custom_minimum_size.y = mini(int(scroll.custom_minimum_size.y), int(inner))
+	panel.reset_size()
 
 func expand_for_dual() -> void:
-	## Match HTML dual: expand .set-card past max-height so Reset/Done are in the still.
+	## Match HTML dual: the .set-card shot is the full card, including Reset/Done.
+	## Do not pin a footer here — a 4000px scroll shoves that footer below the capture.
 	var panel := get_node_or_null("Panel") as PanelContainer
 	if panel == null:
 		panel = get_node_or_null("CenterHost/Panel") as PanelContainer
 	var vb := _settings_vbox()
-	if panel and vb:
-		OverlayTheme.wrap_overflow_scroll(panel, vb, 440.0, 4000.0)
+	if panel == null or vb == null:
+		return
+	var outer := panel.get_node_or_null("Outer") as VBoxContainer
+	if outer:
+		var footer := outer.get_node_or_null("Footer") as VBoxContainer
+		if footer:
+			for n in ["SecData", "ResetInvBtn", "HintReset", "CloseBtn", "Ver"]:
+				var node := footer.get_node_or_null(n)
+				if node:
+					node.reparent(vb)
+		var scroll := outer.get_node_or_null("Scroll") as ScrollContainer
+		if scroll:
+			scroll.reparent(panel)
+		outer.queue_free()
+	OverlayTheme.wrap_overflow_scroll(panel, vb, 440.0, 4000.0)
 
 func _settings_vbox() -> VBoxContainer:
 	## Panel/VBox or Panel/Scroll/VBox after HTML-style scroll wrap
@@ -171,6 +219,13 @@ func _settings_vbox() -> VBoxContainer:
 	var v := panel.get_node_or_null("VBox") as VBoxContainer
 	if v:
 		return v
+	var outer := panel.get_node_or_null("Outer") as VBoxContainer
+	if outer:
+		var sc2 := outer.get_node_or_null("Scroll") as ScrollContainer
+		if sc2:
+			var vv := sc2.get_node_or_null("VBox") as VBoxContainer
+			if vv:
+				return vv
 	var sc := panel.get_node_or_null("Scroll") as ScrollContainer
 	if sc:
 		return sc.get_node_or_null("VBox") as VBoxContainer
@@ -183,7 +238,7 @@ func _insert_hint(vbox: VBoxContainer, after: Node, name: String, text: String) 
 	h.name = name
 	h.text = text
 	h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	h.add_theme_color_override("font_color", Color(0.55, 0.48, 0.60))
+	h.add_theme_color_override("font_color", Color(154.0 / 255.0, 139.0 / 255.0, 168.0 / 255.0))
 	h.add_theme_font_size_override("font_size", 11)
 	vbox.add_child(h)
 	vbox.move_child(h, after.get_index() + 1)

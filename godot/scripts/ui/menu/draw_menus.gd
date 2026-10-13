@@ -200,7 +200,9 @@ func drawOutfits() -> void:
 	var ncols = ["#ff9ecb", "#ffd27a", "#8fd0ff", "#b8f08a"]
 	for i in range(8):
 		var base = t * 0.7 + float(i) * 80.0
-		var ny = pvY + 20.0 + fposmod(base, pvH - 70.0)
+		# HTML: span - (base % span) so notes rise.
+		var span = pvH - 70.0
+		var ny = pvY + 20.0 + fposmod(span - fposmod(base, span), span)
 		var nx = pcx + sin(t * 0.03 + float(i) * 1.3) * (60.0 + float(i) * 9.0)
 		ctx.global_alpha(0.45 + 0.3 * sin(t * 0.1 + float(i)))
 		ctx.fill_style(ncols[i % 4])

@@ -26,10 +26,11 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	# HTML #social { bottom:6px; padding:0 10px; gap:7px; flex-wrap }
+	# Height follows the chips so they sit on the bottom and do not cover the hint line.
 	offset_left = 10.0
 	offset_right = -10.0
 	offset_bottom = -6.0
-	offset_top = -78.0
+	offset_top = -56.0
 	_flow = HFlowContainer.new()
 	_flow.name = "Flow"
 	_flow.alignment = FlowContainer.ALIGNMENT_CENTER
@@ -40,6 +41,18 @@ func _ready() -> void:
 	add_child(_flow)
 	for s in LINKS:
 		_flow.add_child(_make_chip(str(s["label"]), str(s["url"])))
+	call_deferred("_fit_to_chips")
+
+func _fit_to_chips() -> void:
+	## Content-sized strip anchored to the bottom (HTML flex height, bottom: 6px).
+	var w := size.x
+	if w < 200.0:
+		w = 940.0
+	_flow.custom_minimum_size.x = w
+	var h := _flow.get_combined_minimum_size().y
+	if h < 24.0:
+		h = 48.0
+	offset_top = -6.0 - h
 
 func _make_chip(label: String, url: String) -> Button:
 	var b := Button.new()
