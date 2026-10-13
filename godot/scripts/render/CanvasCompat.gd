@@ -114,6 +114,9 @@ var node: CanvasItem
 var add_target: CanvasItem = null
 var add_front: CanvasItem = null
 var add_back: CanvasItem = null
+## Source-over draws that must cover a lighter stroke (melee weapon over its crescent).
+var cover_item: CanvasItem = null
+var _use_cover: bool = false
 var _fill: Color = Color.WHITE
 var _stroke: Color = Color.WHITE
 var _fill_src = null  # last fill_style arg (skip reparse)
@@ -156,12 +159,24 @@ func bind(n: CanvasItem) -> void:
 
 func begin_frame() -> void:
 	var seen: Array = []
-	for t in [add_front, add_back, add_target]:
+	for t in [add_front, add_back, add_target, cover_item]:
 		if t != null and is_instance_valid(t) and not seen.has(t):
 			seen.append(t)
 			RenderingServer.canvas_item_clear(t.get_canvas_item())
 	if add_front != null and is_instance_valid(add_front):
 		add_target = add_front
+	_use_cover = false
+
+func set_draw_cover(on: bool) -> void:
+	## Route source-over draws onto cover_item (above AddLayer) until turned off.
+	_use_cover = on and cover_item != null and is_instance_valid(cover_item)
+
+func _rs_rid() -> RID:
+	if _use_cover and cover_item != null and is_instance_valid(cover_item):
+		return cover_item.get_canvas_item()
+	if _should_add():
+		return _add_rid()
+	return RID()
 
 func set_add_behind(behind: bool) -> void:
 	## Pre-Bobina lighter (radiance, dash comet, power aura) must composite under her.
@@ -346,8 +361,9 @@ func _add_rid() -> RID:
 func _ci_circle(c: Vector2, r: float, col: Color) -> void:
 	if r < 0.05:
 		return
-	if _should_add():
-		RenderingServer.canvas_item_add_circle(_add_rid(), c, r, col)
+	var rid := _rs_rid()
+	if rid.is_valid():
+		RenderingServer.canvas_item_add_circle(rid, c, r, col)
 		return
 	if node:
 		node.draw_circle(c, r, col)
@@ -355,8 +371,9 @@ func _ci_circle(c: Vector2, r: float, col: Color) -> void:
 func _ci_tri_cols(a: Vector2, b: Vector2, c: Vector2, ca: Color, cb: Color, cc: Color) -> void:
 	var pts := PackedVector2Array([a, b, c])
 	var cols := PackedColorArray([ca, cb, cc])
-	if _should_add():
-		RenderingServer.canvas_item_add_polygon(_add_rid(), pts, cols)
+	var rid := _rs_rid()
+	if rid.is_valid():
+		RenderingServer.canvas_item_add_polygon(rid, pts, cols)
 		return
 	if node:
 		node.draw_polygon(pts, cols)
@@ -364,8 +381,9 @@ func _ci_tri_cols(a: Vector2, b: Vector2, c: Vector2, ca: Color, cb: Color, cc: 
 func _ci_string(f: Font, p: Vector2, text: String, sz: int, col: Color) -> void:
 	if f == null:
 		return
-	if _should_add():
-		f.draw_string(_add_rid(), p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
+	var rid := _rs_rid()
+	if rid.is_valid():
+		f.draw_string(rid, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
 		return
 	if node:
 		node.draw_string(f, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
@@ -373,8 +391,9 @@ func _ci_string(f: Font, p: Vector2, text: String, sz: int, col: Color) -> void:
 func _ci_tex_rect(tex: Texture2D, dest: Rect2, col: Color = Color.WHITE) -> void:
 	if tex == null:
 		return
-	if _should_add():
-		RenderingServer.canvas_item_add_texture_rect(_add_rid(), dest, tex.get_rid(), false, col)
+	var rid := _rs_rid()
+	if rid.is_valid():
+		RenderingServer.canvas_item_add_texture_rect(rid, dest, tex.get_rid(), false, col)
 		return
 	if node:
 		node.draw_texture_rect(tex, dest, false, col)
@@ -382,8 +401,9 @@ func _ci_tex_rect(tex: Texture2D, dest: Rect2, col: Color = Color.WHITE) -> void
 func _ci_tex_rect_region(tex: Texture2D, dest: Rect2, src: Rect2, col: Color = Color.WHITE) -> void:
 	if tex == null:
 		return
-	if _should_add():
-		RenderingServer.canvas_item_add_texture_rect_region(_add_rid(), dest, tex.get_rid(), src, col)
+	var rid := _rs_rid()
+	if rid.is_valid():
+		RenderingServer.canvas_item_add_texture_rect_region(rid, dest, tex.get_rid(), src, col)
 		return
 	if node:
 		node.draw_texture_rect_region(tex, dest, src)
@@ -391,8 +411,9 @@ func _ci_tex_rect_region(tex: Texture2D, dest: Rect2, src: Rect2, col: Color = C
 func _ci_tex_poly(pts: PackedVector2Array, cols: PackedColorArray, uvs: PackedVector2Array, tex: Texture2D) -> void:
 	if tex == null or pts.size() < 3:
 		return
-	if _should_add():
-		RenderingServer.canvas_item_add_polygon(_add_rid(), pts, cols, uvs, tex.get_rid())
+	var rid := _rs_rid()
+	if rid.is_valid():
+		RenderingServer.canvas_item_add_polygon(rid, pts, cols, uvs, tex.get_rid())
 		return
 	if node:
 		node.draw_polygon(pts, cols, uvs, tex)
@@ -400,22 +421,24 @@ func _ci_tex_poly(pts: PackedVector2Array, cols: PackedColorArray, uvs: PackedVe
 func _ci_polyline(pts: PackedVector2Array, col: Color, width: float) -> void:
 	if pts.size() < 2:
 		return
-	if _should_add():
+	var rid := _rs_rid()
+	if rid.is_valid():
 		var cols := PackedColorArray()
 		cols.resize(pts.size())
 		for i in pts.size():
 			cols[i] = col
-		RenderingServer.canvas_item_add_polyline(_add_rid(), pts, cols, width, true)
+		RenderingServer.canvas_item_add_polyline(rid, pts, cols, width, true)
 		return
 	if node:
 		node.draw_polyline(pts, col, width, true)
 
 func _ci_rect(r: Rect2, col: Color, filled: bool = true, width: float = -1.0) -> void:
-	if _should_add():
+	var rid := _rs_rid()
+	if rid.is_valid():
 		if filled:
-			RenderingServer.canvas_item_add_rect(_add_rid(), r, col)
+			RenderingServer.canvas_item_add_rect(rid, r, col)
 		else:
-			RenderingServer.canvas_item_add_rect(_add_rid(), r, col)
+			RenderingServer.canvas_item_add_rect(rid, r, col)
 		return
 	if node:
 		if filled:
@@ -424,18 +447,20 @@ func _ci_rect(r: Rect2, col: Color, filled: bool = true, width: float = -1.0) ->
 			node.draw_rect(r, col, false, width)
 
 func _ci_xform(origin: Vector2, rot: float, scl: Vector2) -> void:
-	if _should_add():
+	var rid := _rs_rid()
+	if rid.is_valid():
 		var xf := Transform2D(rot, origin)
 		xf.x *= scl.x
 		xf.y *= scl.y
-		RenderingServer.canvas_item_add_set_transform(_add_rid(), xf)
+		RenderingServer.canvas_item_add_set_transform(rid, xf)
 		return
 	if node:
 		node.draw_set_transform(origin, rot, scl)
 
 func _ci_xform_reset() -> void:
-	if _should_add():
-		RenderingServer.canvas_item_add_set_transform(_add_rid(), Transform2D.IDENTITY)
+	var rid := _rs_rid()
+	if rid.is_valid():
+		RenderingServer.canvas_item_add_set_transform(rid, Transform2D.IDENTITY)
 		return
 	if node:
 		node.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -626,13 +651,13 @@ func round_rect(x, y, w, h, r) -> void:
 	if rf <= 0.05 or wf <= 0.05 or hf <= 0.05:
 		rect(xf, yf, maxf(wf, 0.05), maxf(hf, 0.05))
 		return
-	# Pill / fully-rounded: edge length → 0 when w≈2r or h≈2r (Red Death 4×18 r=2).
-	# Zero-length edges make ear-clip triangulation fail (Invalid polygon spam).
-	# Fall back to plain rect path (looks fine at bolt scale; fill_rect used for cores).
+	# Pill (Red Death 4×18 r=2, gatling 3.2×16 r=2): a zero-length edge breaks ear-clip.
+	# Native 3-rect + corner discs still draws a capsule when one axis is 2r.
 	var flat_w := wf - 2.0 * rf
 	var flat_h := hf - 2.0 * rf
 	if flat_w < 0.05 or flat_h < 0.05:
-		rect(xf, yf, wf, hf)
+		begin_path()
+		_rr = {"x": xf, "y": yf, "w": wf, "h": hf, "r": rf}
 		return
 	begin_path()
 	_rr = {"x": xf, "y": yf, "w": wf, "h": hf, "r": rf}
@@ -651,12 +676,27 @@ func _fill_rr_native(info: Dictionary) -> void:
 	## Axis-aligned round-rect: 3 rects + 4 corner discs. HUD chips call this every frame.
 	if node == null:
 		return
-	var xf := float(info.get("x", 0))
-	var yf := float(info.get("y", 0))
-	var wf := float(info.get("w", 0))
-	var hf := float(info.get("h", 0))
-	var rf := float(info.get("r", 0))
 	var col := _c(_fill)
+	if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
+		var saved_blur := _shadow_blur
+		var saved_col := _shadow_col
+		_shadow_blur = 0.0
+		var grow_max := clampf(saved_blur * 0.45, 1.0, 12.0)
+		for i in range(3, 0, -1):
+			var t := float(i) / 3.0
+			var sc := saved_col
+			sc.a = saved_col.a * _alpha * 0.16 * t * t
+			_paint_rr(info, sc, grow_max * t)
+		_shadow_blur = saved_blur
+		_shadow_col = saved_col
+	_paint_rr(info, col, 0.0)
+
+func _paint_rr(info: Dictionary, col: Color, grow: float) -> void:
+	var xf := float(info.get("x", 0)) - grow
+	var yf := float(info.get("y", 0)) - grow
+	var wf := float(info.get("w", 0)) + grow * 2.0
+	var hf := float(info.get("h", 0)) + grow * 2.0
+	var rf := float(info.get("r", 0)) + grow
 	var p0 := _xform * Vector2(xf, yf)
 	var p1 := _xform * Vector2(xf + wf, yf)
 	var axis := absf(p0.y - p1.y) < 0.35 and absf((_xform * Vector2(xf, yf + hf)).x - p0.x) < 0.35
@@ -679,8 +719,12 @@ func _fill_rr_native(info: Dictionary) -> void:
 	r = _clip_rect(r) if has_method("_clip_rect") else r
 	if r.size.x <= 0.0 or r.size.y <= 0.0:
 		return
-	_ci_rect(Rect2(r.position.x + rr, r.position.y, r.size.x - 2.0 * rr, r.size.y), col, true)
-	_ci_rect(Rect2(r.position.x, r.position.y + rr, r.size.x, r.size.y - 2.0 * rr), col, true)
+	var shaft_w := r.size.x - 2.0 * rr
+	var shaft_h := r.size.y - 2.0 * rr
+	if shaft_w > 0.05:
+		_ci_rect(Rect2(r.position.x + rr, r.position.y, shaft_w, r.size.y), col, true)
+	if shaft_h > 0.05:
+		_ci_rect(Rect2(r.position.x, r.position.y + rr, r.size.x, shaft_h), col, true)
 	_ci_circle(Vector2(r.position.x + rr, r.position.y + rr), rr, col)
 	_ci_circle(Vector2(r.position.x + r.size.x - rr, r.position.y + rr), rr, col)
 	_ci_circle(Vector2(r.position.x + rr, r.position.y + r.size.y - rr), rr, col)
@@ -1195,15 +1239,11 @@ func stroke_circle(x, y, r) -> void:
 		return
 	var col := _c(_stroke)
 	var lw := _effective_lw()
-	if _should_add():
-		var pts := PackedVector2Array()
-		for i in range(25):
-			var ang := float(i) / 24.0 * TAU
-			pts.append(c + Vector2(cos(ang), sin(ang)) * rr)
-		_ci_polyline(pts, col, lw)
-		return
-	if node:
-		node.draw_arc(c, rr, 0.0, TAU, 24, col, lw, true)
+	var pts := PackedVector2Array()
+	for i in range(25):
+		var ang := float(i) / 24.0 * TAU
+		pts.append(c + Vector2(cos(ang), sin(ang)) * rr)
+	_ci_polyline(pts, col, lw)
 
 func fill_rect(x, y, w, h) -> void:
 	if node == null:

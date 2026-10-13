@@ -23,6 +23,7 @@ var _player_node: Node = null
 var _last_tick: int = -1
 var _add_front: Node2D = null
 var _add_back: Node2D = null
+var _cover: Node2D = null
 var _bob_host: Node2D = null
 var _bob_pending: bool = false
 var _bob_st: Dictionary = {}
@@ -44,8 +45,9 @@ func _ready() -> void:
 	add_to_group("world_draw")
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
 	ctx.bind(self)
-	# z: parent world (0) < AddBack aura (1) < BobinaPass (2) < AddLayer post FX (3).
-	# HTML draws the soap bubble, then source-over Bobina covers the strokes on her body.
+	# z: world (0) < AddBack (1) < BobinaPass (2) < AddLayer (3) < CoverPass (4).
+	# HTML draws the soap bubble, then source-over Bobina. Melee weapon is source-over
+	# after its lighter crescent, so it needs a layer above AddLayer.
 	_add_back = _make_add_layer("AddBack", 1)
 	_bob_host = Node2D.new()
 	_bob_host.name = "BobinaPass"
@@ -54,9 +56,15 @@ func _ready() -> void:
 	_bob_host.set_script(load("res://scripts/html_parity/BobinaPass.gd"))
 	add_child(_bob_host)
 	_add_front = _make_add_layer("AddLayer", 3)
+	_cover = Node2D.new()
+	_cover.name = "CoverPass"
+	_cover.z_as_relative = true
+	_cover.z_index = 4
+	add_child(_cover)
 	ctx.add_back = _add_back
 	ctx.add_front = _add_front
 	ctx.add_target = _add_front
+	ctx.cover_item = _cover
 	ported = load("res://scripts/render/PortedDraw.gd").new()
 	ported.setup(ctx)
 	hud = load("res://scripts/ui/menu/draw_hud.gd").new()
@@ -119,7 +127,7 @@ func _process(_d: float) -> void:
 	if _is_playish():
 		queue_redraw()
 	elif ctx:
-		for t in [ctx.add_front, ctx.add_back, ctx.add_target]:
+		for t in [ctx.add_front, ctx.add_back, ctx.add_target, ctx.cover_item]:
 			if t != null and is_instance_valid(t):
 				RenderingServer.canvas_item_clear(t.get_canvas_item())
 		if _bob_host:
@@ -699,6 +707,8 @@ func _draw_boss_node(b: Node) -> void:
 		"hellScale": float(b.hell_scale) if "hell_scale" in b else 1.0,
 		"hellShake": float(b.hell_shake) if "hell_shake" in b else 0.0,
 		"hy": float(b.hy) if "hy" in b else b.global_position.y,
+		# HTML drawBoss grows the white death disc from deadT. Wynn uses hell instead.
+		"deadT": float(b.dead_t) if "dead_t" in b else 0.0,
 	}
 	ported.drawBoss(st)
 

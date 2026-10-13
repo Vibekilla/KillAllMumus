@@ -100,16 +100,9 @@ func drawBullet(b) -> void:
 	var col := str(b.get("col", "#ff7ad1"))
 	var bhp := float(b.get("hp", 0))
 	var use_circ: bool = ctx.has_method("fill_circle")
-	# Soft glow as translucent outer disc (matches HTML shadowBlur look, cheaper path)
-	ctx.global_alpha(0.35)
-	ctx.fill_style(col)
-	if use_circ:
-		ctx.fill_circle(bx, by, br + 3.5)
-	else:
-		ctx.begin_path()
-		ctx.arc(bx, by, br + 3.5, 0, TAU)
-		ctx.fill()
-	ctx.global_alpha(1.0)
+	# HTML shadowBlur 7 on the core disc. A hard r+3.5 plate reads as a second bullet.
+	ctx.shadow_color(col)
+	ctx.shadow_blur(7)
 	ctx.fill_style(col)
 	if use_circ:
 		ctx.fill_circle(bx, by, br)
@@ -126,6 +119,10 @@ func drawBullet(b) -> void:
 			ctx.begin_path()
 			ctx.arc(bx, by, br - 1.0, 0, TAU)
 			ctx.stroke()
+	if ctx.has_method("clear_shadow"):
+		ctx.clear_shadow()
+	else:
+		ctx.shadow_blur(0)
 	ctx.fill_style("rgba(255,255,255,0.92)")
 	if use_circ:
 		ctx.fill_circle(bx - br * 0.25, by - br * 0.25, br * 0.42)

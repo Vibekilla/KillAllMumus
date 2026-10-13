@@ -335,7 +335,7 @@ func drawPowerRadiance(p: Dictionary) -> void:
 				first = false
 			else:
 				ctx.line_to(x, y)
-			a += 0.12
+			a += 0.32
 		ctx.close_path()
 		ctx.stroke()
 	ctx.restore()
