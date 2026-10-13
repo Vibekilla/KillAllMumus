@@ -80,18 +80,28 @@ func _rgbHue(r, g, b) -> float:
 	return hh * 60.0
 
 
+func _live_twin_igor() -> bool:
+	## HTML boss&&boss.twin&&boss.active, else Igor.
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return true
+	for n in tree.get_nodes_in_group("bosses"):
+		if bool(n.get("twin")) and "active_twin" in n:
+			return str(n.active_twin) == "igor"
+	return true
+
+
 func drawBogdanoff(b, flash) -> void:
 	var R = float(b.get("r", 36))
 	# which twin is on the strings? (fake bust passes no active → reflect the live boss, else default Igor)
-	var igor: bool = true
-	if b.get("active", null) != null:
-		igor = str(b.get("active")) == "igor"
+	# HTML: missing active uses the live twin. A dialogue bust has no .t, so the aura stays at 0.34.
+	var igor: bool = (str(b.get("active")) == "igor") if b.has("active") else _live_twin_igor()
 	var skin = ("#fff" if (flash ) else "#c99a6a")
 	var skinSh = "#a2764c"
 	var hair = ("#fff" if (flash ) else "#e8dcc4")
 	var tux = "#20202a"
 	var accent = ("#b48ce0" if (igor ) else "#e0b84a")
-	var bust = b.get("t", 0) == null
+	var bust: bool = not bool(b.has("t"))
 	# astral aura behind him (pulses on the field, static in the dialogue picture)
 	ctx.save()
 	ctx.global_composite_operation("lighter")
