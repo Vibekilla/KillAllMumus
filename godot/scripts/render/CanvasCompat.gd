@@ -132,6 +132,8 @@ var _font_bank = null
 var _cached_font: Font = null
 var _cached_font_key: String = ""
 var _align: String = "left"
+## HTML textBaseline. Godot draw_string is the baseline. Default stays alphabetic.
+var _baseline: String = "alphabetic"
 var _path: PackedVector2Array = PackedVector2Array()
 ## Completed subpaths (HTML moveTo starts a new subpath — no connecting stroke)
 var _subpaths: Array = []
@@ -309,10 +311,12 @@ func font(f) -> void:
 	_cached_font_key = ""
 	if _font_regex == null:
 		_font_regex = RegEx.new()
-		_font_regex.compile("(\\d+)px")
+		# Include the fraction. "(\\d+)px" matched the "5px" inside "8.5px".
+		_font_regex.compile("(\\d+(?:\\.\\d+)?)px")
 	var r := _font_regex.search(s)
 	if r:
-		_font_size = int(r.get_string(1))
+		# Godot draw sizes are ints. 8.5 → 9, nearer than truncating to 8.
+		_font_size = maxi(1, int(round(float(r.get_string(1)))))
 
 func _active_font() -> Font:
 	## Cached FontBank pick — avoid get_node every fill_text
@@ -337,8 +341,19 @@ func _active_font() -> Font:
 func text_align(a) -> void:
 	_align = str(a).replace("'","").replace('"','')
 
-func text_baseline(_b) -> void:
-	pass
+func text_baseline(b) -> void:
+	_baseline = str(b).to_lower().replace("'", "").replace('"', "")
+
+func _apply_baseline(f: Font, p: Vector2, sz: int) -> Vector2:
+	## middle: em-box center on the requested y (drawItem glyphs).
+	## alphabetic keeps the existing 0.15em lift used by the rest of the UI.
+	if _baseline == "middle" or _baseline == "central":
+		var asc := float(f.get_ascent(sz))
+		var desc := float(f.get_descent(sz))
+		p.y += (asc - desc) * 0.5
+		return p
+	p.y -= float(sz) * 0.15
+	return p
 
 func line_join(_j) -> void:
 	pass
@@ -475,6 +490,7 @@ func save() -> void:
 	_stack.append({
 		"fill": _fill, "stroke": _stroke, "lw": _lw, "alpha": _alpha,
 		"xform": _xform, "font": _font_size, "font_css": _font_css, "align": _align,
+		"baseline": _baseline,
 		"fill_grad": _fill_grad, "gco": _gco, "clip": _clip.duplicate(true),
 		"sh_r": _shadow_col.r, "sh_g": _shadow_col.g, "sh_b": _shadow_col.b, "sh_a": _shadow_col.a,
 		"shadow_blur": _shadow_blur,
@@ -494,6 +510,7 @@ func restore() -> void:
 		_font_css = str(s.font_css)
 		_cached_font_key = ""
 	_align = s.align
+	_baseline = str(s.get("baseline", "alphabetic"))
 	_fill_grad = s.get("fill_grad", null)
 	_gco = str(s.get("gco", "source-over"))
 	_clip = s.get("clip", {})
@@ -1293,6 +1310,78 @@ func _fill_rect_solid(x: float, y: float, w: float, h: float, col: Color) -> voi
 		_draw_tri(c0, pts[i], pts[i + 1], col)
 	_fill_grad = saved
 
+func fill_radial_trapezoid(lx0: float, y_top: float, rx0: float, lx1: float, y_bot: float, rx1: float, cols: int = 8, rows: int = 14) -> void:
+	## HTML createRadialGradient filled into a trapezoid (maid / wardrobe lamps).
+	## A 4-vertex fan interpolates only the corners and misses the hot center.
+	if node == null or _fill_grad == null:
+		return
+	var c := maxi(1, cols)
+	var rws := maxi(1, rows)
+	for ry in range(rws):
+		var u0 := float(ry) / float(rws)
+		var u1 := float(ry + 1) / float(rws)
+		var yt := lerpf(y_top, y_bot, u0)
+		var yb := lerpf(y_top, y_bot, u1)
+		var lt := lerpf(lx0, lx1, u0)
+		var rt := lerpf(rx0, rx1, u0)
+		var lb := lerpf(lx0, lx1, u1)
+		var rb := lerpf(rx0, rx1, u1)
+		for cx in range(c):
+			var v0 := float(cx) / float(c)
+			var v1 := float(cx + 1) / float(c)
+			var a := Vector2(lerpf(lt, rt, v0), yt)
+			var b := Vector2(lerpf(lt, rt, v1), yt)
+			var d := Vector2(lerpf(lb, rb, v1), yb)
+			var e := Vector2(lerpf(lb, rb, v0), yb)
+			_fill_css_radial_tri(a, b, d)
+			_fill_css_radial_tri(a, d, e)
+
+func _fill_css_radial_tri(a: Vector2, b: Vector2, c: Vector2) -> void:
+	var ca := _c(_sample_css_radial(a))
+	var cb := _c(_sample_css_radial(b))
+	var cc := _c(_sample_css_radial(c))
+	_ci_tri_cols(_xform * a, _xform * b, _xform * c, ca, cb, cc)
+
+func _sample_css_radial(local: Vector2) -> Color:
+	## Canvas createRadialGradient between two circles (offset centers included).
+	if _fill_grad == null:
+		return _fill
+	var g: CanvasGradient = _fill_grad
+	if g.kind != "radial":
+		return _sample_grad_at_local(local)
+	var c0 := Vector2(g.x0, g.y0)
+	var dc := Vector2(g.x1 - g.x0, g.y1 - g.y0)
+	var dr := g.r1 - g.r0
+	if dc.length_squared() < 0.25:
+		return _sample_grad_at_local(local)
+	var f := local - c0
+	var a := dc.dot(dc) - dr * dr
+	var b := -2.0 * (f.dot(dc) + g.r0 * dr)
+	var c := f.dot(f) - g.r0 * g.r0
+	var t := 1.0
+	if absf(a) < 0.0001:
+		if absf(b) > 0.000001:
+			t = -c / b
+	else:
+		var disc := b * b - 4.0 * a * c
+		if disc >= 0.0:
+			var s := sqrt(disc)
+			var ta := (-b - s) / (2.0 * a)
+			var tb := (-b + s) / (2.0 * a)
+			t = _pick_radial_t(ta, tb)
+	return g.sample(clampf(t, 0.0, 1.0))
+
+func _pick_radial_t(ta: float, tb: float) -> float:
+	var best := 1.0
+	var found := false
+	if ta >= -0.001:
+		best = ta
+		found = true
+	if tb >= -0.001 and (not found or tb < best):
+		best = tb
+		found = true
+	return best if found else 1.0
+
 func _sample_grad_at_local(local: Vector2) -> Color:
 	## Sample gradient using local (pre-xform) coords matching HTML canvas space.
 	if _fill_grad == null:
@@ -1411,8 +1500,7 @@ func fill_text(text, x, y) -> void:
 		p.x -= w * 0.5
 	elif _align == "right":
 		p.x -= w
-	# Canvas text baseline ~alphabetic: Godot draws from top-left of glyphs
-	p.y -= sz * 0.15
+	p = _apply_baseline(f, p, sz)
 	if _shadow_blur > 0.05 and _shadow_col.a > 0.001:
 		# Soft glow under titles (OUTFITS / EMBLEMS) — not a hard neon stamp
 		var base_a := _shadow_col.a * _alpha
@@ -1437,7 +1525,7 @@ func stroke_text(text, x, y) -> void:
 		p.x -= w * 0.5
 	elif _align == "right":
 		p.x -= w
-	p.y -= sz * 0.15
+	p = _apply_baseline(f, p, sz)
 	var col := _c(_stroke)
 	# HTML strokeText — outline via offset fills (4-cardinal + diagonals only when thick)
 	var o := maxf(1.0, _lw * 0.35)
@@ -1468,8 +1556,33 @@ func clip_circle(cx: float, cy: float, r: float) -> void:
 	else:
 		_clip = _intersect_clip(_clip, next)
 
+func _path_has_long_chord(pts: PackedVector2Array) -> bool:
+	## A real arc polyline has even steps. roundRect keeps four long flat sides,
+	## and those corners all sit on one circumradius, so the variance test
+	## below would clip the stage banner and the leek as discs.
+	var n := pts.size()
+	var count := n
+	if n >= 2 and pts[0].distance_to(pts[n - 1]) <= 0.05:
+		count = n - 1
+	if count < 3:
+		return false
+	var longest := 0.0
+	var acc := 0.0
+	for i in range(count):
+		var d := pts[i].distance_to(pts[(i + 1) % count])
+		acc += d
+		if d > longest:
+			longest = d
+	var mean := acc / float(count)
+	return mean > 0.01 and longest > mean * 2.5
+
 func _path_to_clip(src: PackedVector2Array) -> Dictionary:
 	var pts := _dedupe_path(src)
+	# roundRect stored _rr and a corner-arc polyline. Keep that polygon.
+	if not _rr.is_empty() and pts.size() >= 3:
+		if pts[0].distance_to(pts[pts.size() - 1]) > 0.05:
+			pts.append(pts[0])
+		return {"kind": "poly", "poly": pts}
 	if pts.size() < 3 and _last_full_arc.is_empty():
 		return {}
 	# Prefer tracked full circle (arc 0..2π)
@@ -1514,7 +1627,7 @@ func _path_to_clip(src: PackedVector2Array) -> Dictionary:
 		var var_sum := 0.0
 		for d in rs:
 			var_sum += absf(float(d) - r_avg)
-		if r_avg > 2.0 and var_sum / float(pts.size()) < r_avg * 0.08:
+		if r_avg > 2.0 and var_sum / float(pts.size()) < r_avg * 0.08 and not _path_has_long_chord(pts):
 			return {"kind": "circle", "c": c, "r": r_avg}
 	# Free polygon clip
 	if pts.size() >= 3:
