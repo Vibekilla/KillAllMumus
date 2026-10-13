@@ -101,30 +101,26 @@ func drawStageClear(info: Dictionary) -> void:
 		ctx.fill_text("STAGE CLEAR", W / 2.0, 110)
 		ctx.restore()
 	var yb := byy + bh + 16.0
-	# HTML leek-spin celebration GIF (native #leek overlay → canvas frames)
-	# Soft pink plate under leek so it reads like HTML's rounded celebration tile
+	# HTML #leek gif overlay. Canvas draws the same box: radius 10, pink border, glow.
 	var leek = AssetBank.get_tex("leek") if AssetBank else null
 	if leek:
 		var lh := 100.0
 		var lw := roundf(lh * float(leek.get_width()) / maxf(1.0, float(leek.get_height())))
 		var lx := W / 2.0 - lw / 2.0
-		# Subtle pink plate (HTML gif sits on a soft rounded surface in practice)
-		ctx.fill_style("rgba(255,180,210,0.18)")
-		ctx.begin_path()
-		ctx.arc(W / 2.0, yb + lh * 0.5, maxf(lw, lh) * 0.62, 0, TAU)
-		ctx.fill()
+		# HTML #leek: object box, radius 10, 2px #ff9ecb, glow. No pale disc behind it.
 		ctx.save()
 		ctx.shadow_color("rgba(255,150,200,0.55)")
 		ctx.shadow_blur(18)
 		ctx.begin_path()
-		# Clip via rect (round_rect clip can fail triangulation)
-		ctx.rect(lx, yb, lw, lh)
+		ctx.round_rect(lx, yb, lw, lh, 10)
 		ctx.clip()
 		ctx.draw_image(leek, lx, yb, lw, lh)
 		ctx.restore()
 		ctx.stroke_style("#ff9ecb")
 		ctx.line_width(2)
-		ctx.stroke_rect(lx, yb, lw, lh)
+		ctx.begin_path()
+		ctx.round_rect(lx, yb, lw, lh, 10)
+		ctx.stroke()
 		yb += lh + 36.0
 	else:
 		yb += 8.0
@@ -228,14 +224,21 @@ func drawClearGate(portal, shop, msg_t: float) -> void:
 	var near_p := false
 	if player and is_instance_valid(player):
 		near_p = player.global_position.distance_to(Vector2(px, py)) < 44.0
+	var pulse := 0.5 + 0.5 * sin(t * 0.09)
 	ctx.save()
 	ctx.translate(px, py)
-	# aura
-	ctx.fill_style(_hex_a(bc, 0.45))
+	# HTML radial pool. Painter's order (not AddLayer) so the void core covers the spiral.
+	if ctx.has_method("create_radial_gradient"):
+		var og = ctx.create_radial_gradient(0, 0, 6, 0, 0, 66)
+		og.add_color_stop(0, _hex_a(bc, 0.55))
+		og.add_color_stop(0.45, _hex_a(bc, 0.18))
+		og.add_color_stop(1, _hex_a(bc, 0))
+		ctx.fill_style(og)
+	else:
+		ctx.fill_style(_hex_a(bc, 0.45))
 	ctx.begin_path()
 	ctx.ellipse(0, 2, 66, 58, 0, 0, TAU)
 	ctx.fill()
-	# tendrils
 	ctx.stroke_style(_hex_a("#05030a", 0.65))
 	ctx.line_width(3)
 	ctx.line_cap("round")
@@ -245,8 +248,6 @@ func drawClearGate(portal, shop, msg_t: float) -> void:
 		ctx.move_to(cos(an) * 20, sin(an) * 17)
 		ctx.quadratic_curve_to(cos(an + 0.2) * 40, sin(an + 0.2) * 34, cos(an + 0.4) * 56, sin(an + 0.4) * 48)
 		ctx.stroke()
-	# vortex rings
-	ctx.global_composite_operation("lighter")
 	for a2 in range(5):
 		ctx.stroke_style(_hex_a(bc, 0.55))
 		ctx.line_width(2.6)
@@ -255,7 +256,7 @@ func drawClearGate(portal, shop, msg_t: float) -> void:
 		var s := 0.0
 		while s <= 1.0:
 			var rr := s * 38.0
-			var an2 := t * 0.055 + float(a2) * 1.25 + s * 4.0
+			var an2 := t * 0.055 + float(a2) * 1.257 + s * 8.5
 			var x := cos(an2) * rr
 			var y := sin(an2) * rr * 0.85
 			if first:
@@ -265,15 +266,61 @@ func drawClearGate(portal, shop, msg_t: float) -> void:
 				ctx.line_to(x, y)
 			s += 0.045
 		ctx.stroke()
-	ctx.global_composite_operation("source-over")
-	# core
-	ctx.fill_style(_hex_a("#0a0612", 0.9))
-	ctx.begin_path()
-	ctx.ellipse(0, 0, 18, 15, 0, 0, TAU)
-	ctx.fill()
+	ctx.stroke_style(_hex_a(bc, 0.5 + 0.4 * pulse))
+	ctx.line_width(1.6)
+	for a3 in range(4):
+		var ang3 := t * 0.02 + float(a3) * 1.57
+		var rad3 := 2.0
+		ctx.begin_path()
+		ctx.move_to(0, 0)
+		for k in range(5):
+			rad3 += 7.0
+			ang3 += sin(t * 0.11 + float(a3) * 2.0 + float(k)) * 1.0
+			ctx.line_to(cos(ang3) * rad3, sin(ang3) * rad3 * 0.85)
+		ctx.stroke()
 	ctx.stroke_style(_hex_a(bc, 0.9))
-	ctx.line_width(2)
+	ctx.line_width(2.4 + pulse * 2.0)
+	ctx.begin_path()
+	ctx.ellipse(0, 0, 26, 22, 0, 0, TAU)
 	ctx.stroke()
+	if ctx.has_method("create_radial_gradient"):
+		var vg = ctx.create_radial_gradient(0, 0, 1, 0, 0, 24)
+		vg.add_color_stop(0, "#000")
+		vg.add_color_stop(0.62, "#080512")
+		vg.add_color_stop(1, _hex_a(bc, 0.6))
+		ctx.fill_style(vg)
+	else:
+		ctx.fill_style("#080512")
+	ctx.begin_path()
+	ctx.ellipse(0, 0, 24, 20, 0, 0, TAU)
+	ctx.fill()
+	ctx.stroke_style(_hex_a(bc, 0.5))
+	ctx.line_width(1.4)
+	ctx.begin_path()
+	var first_in := true
+	var s2 := 0.0
+	while s2 <= 1.0:
+		var rr2 := s2 * 20.0
+		var an_in := -t * 0.09 + s2 * 10.0
+		var xi := cos(an_in) * rr2
+		var yi := sin(an_in) * rr2 * 0.85
+		if first_in:
+			ctx.move_to(xi, yi)
+			first_in = false
+		else:
+			ctx.line_to(xi, yi)
+		s2 += 0.05
+	ctx.stroke()
+	ctx.fill_style(_hex_a(bc, 0.85))
+	for i in range(6):
+		var ph := fmod(t * 0.9 + float(i) * 40.0, 120.0)
+		var yy := 20.0 - ph * 0.5
+		var xx := sin(t * 0.03 + float(i) * 1.7) * 18.0 * (1.0 - ph / 120.0)
+		ctx.global_alpha(maxf(0.0, 1.0 - ph / 120.0) * 0.9)
+		ctx.begin_path()
+		ctx.arc(xx, yy, 1.6, 0, TAU)
+		ctx.fill()
+	ctx.global_alpha(1.0)
 	ctx.restore()
 	# labels — HTML: ▼ BEYOND: STAGE + boss title quote
 	ctx.text_align("center")
@@ -438,7 +485,8 @@ func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 		ctx.begin_path()
 		ctx.round_rect(cx, cy, tW, tH, 9)
 		ctx.fill()
-		ctx.stroke_style("#ffd27a" if is_sel else "rgba(255,255,255,0.14)")
+		var item_col := str(it.get("col", ""))
+		ctx.stroke_style("#ffd27a" if is_sel else (_hex_a(item_col, 0.4) if item_col != "" else "rgba(255,255,255,0.14)"))
 		ctx.line_width(2.2 if is_sel else 1.1)
 		ctx.stroke()
 		ctx.fill_style("#fff")
