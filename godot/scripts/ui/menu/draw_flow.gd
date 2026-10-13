@@ -80,8 +80,15 @@ func drawStageClear(info: Dictionary) -> void:
 	var byy := 18.0
 	if img:
 		ctx.save()
+		# HTML shadowBlur paints with the clipped drawImage. draw_image ignores
+		# shadow, so fill the same round rect first (transparent body, glow only).
 		ctx.shadow_color("rgba(255,120,190,0.5)")
 		ctx.shadow_blur(24)
+		ctx.fill_style("rgba(0,0,0,0)")
+		ctx.begin_path()
+		ctx.round_rect(bx, byy, bw, bh, 14)
+		ctx.fill()
+		ctx.shadow_blur(0)
 		ctx.begin_path()
 		ctx.round_rect(bx, byy, bw, bh, 14)
 		ctx.clip()
@@ -108,18 +115,26 @@ func drawStageClear(info: Dictionary) -> void:
 		var lw := roundf(lh * float(leek.get_width()) / maxf(1.0, float(leek.get_height())))
 		var lx := W / 2.0 - lw / 2.0
 		# HTML #leek: object box, radius 10, 2px #ff9ecb, glow. No pale disc behind it.
+		# Global CSS is border-box: the 2px #ff9ecb border is the outer edge of
+		# the lw×lh box, and object-fit:cover fills the content box inside it.
+		var inset := 2.0
 		ctx.save()
 		ctx.shadow_color("rgba(255,150,200,0.55)")
 		ctx.shadow_blur(18)
+		ctx.fill_style("rgba(0,0,0,0)")
 		ctx.begin_path()
 		ctx.round_rect(lx, yb, lw, lh, 10)
+		ctx.fill()
+		ctx.shadow_blur(0)
+		ctx.begin_path()
+		ctx.round_rect(lx + inset, yb + inset, lw - inset * 2.0, lh - inset * 2.0, 8)
 		ctx.clip()
-		ctx.draw_image(leek, lx, yb, lw, lh)
+		ctx.draw_image(leek, lx + inset, yb + inset, lw - inset * 2.0, lh - inset * 2.0)
 		ctx.restore()
 		ctx.stroke_style("#ff9ecb")
 		ctx.line_width(2)
 		ctx.begin_path()
-		ctx.round_rect(lx, yb, lw, lh, 10)
+		ctx.round_rect(lx + 1.0, yb + 1.0, lw - 2.0, lh - 2.0, 9)
 		ctx.stroke()
 		yb += lh + 36.0
 	else:
@@ -213,14 +228,37 @@ func _draw_sc_menu_btn(cx: float, y: float) -> Dictionary:
 
 func drawClearGate(portal, shop, msg_t: float) -> void:
 	## HTML drawClearGate — portal vortex + shop hut + near interact prompts
-	if portal == null:
-		return
 	var t := float(tick)
+	var player := _player_node()
+	if portal != null:
+		_paint_clear_portal(portal, player, t)
+	_paint_clear_hut(shop, player, t)
+	if msg_t > 0.0:
+		var pf: Rect2 = Config.playfield()
+		var mcx := pf.position.x + pf.size.x * 0.5
+		ctx.save()
+		ctx.global_alpha(minf(1.0, msg_t / 40.0))
+		ctx.text_align("center")
+		ctx.fill_style("#ffe08a")
+		ctx.font("900 18px Trebuchet MS")
+		ctx.fill_text("★ STAGE CLEAR ★", mcx, pf.position.y + 22)
+		ctx.fill_style("#ffd27a")
+		ctx.font("bold 11px Trebuchet MS")
+		ctx.fill_text(
+			"Shop [%s] to gear up  ·  Portal [%s] when ready" % [
+				MenuHelpers.kb("interact"), MenuHelpers.kb("interact")
+			],
+			mcx, pf.position.y + 40
+		)
+		ctx.restore()
+	ctx.global_alpha(1.0)
+	ctx.text_align("left")
+
+func _paint_clear_portal(portal, player, t: float) -> void:
 	var px := float(portal.get("x", 0))
 	var py := float(portal.get("y", 0))
 	var stage: Dictionary = DataRegistry.get_stage(GameState.stage_index)
 	var bc := str(stage.get("accent", "#9a6cff"))
-	var player := _player_node()
 	var near_p := false
 	if player and is_instance_valid(player):
 		near_p = player.global_position.distance_to(Vector2(px, py)) < 44.0
@@ -339,66 +377,63 @@ func drawClearGate(portal, shop, msg_t: float) -> void:
 		ctx.fill_style("#fff" if (int(floor(t / 16.0)) % 2) != 0 else bc)
 		ctx.font("bold 12px monospace")
 		ctx.fill_text("[%s] ENTER PORTAL" % MenuHelpers.kb("interact"), px, py + 48)
-	# shop hut (HTML: hut + 🍯 + SHOP)
-	if shop != null:
-		var sx := float(shop.get("x", 0))
-		var sy := float(shop.get("y", 0))
-		var near_s := false
-		if player and is_instance_valid(player):
-			near_s = player.global_position.distance_to(Vector2(sx, sy)) < 40.0
-		ctx.save()
-		ctx.translate(sx, sy)
+	ctx.text_align("left")
+
+func _paint_clear_hut(shop, player, t: float) -> void:
+	if shop == null:
+		return
+	var sx := float(shop.get("x", 0))
+	var sy := float(shop.get("y", 0))
+	var near_s := false
+	if player and is_instance_valid(player):
+		near_s = player.global_position.distance_to(Vector2(sx, sy)) < 40.0
+	ctx.save()
+	ctx.translate(sx, sy)
+	if ctx.has_method("create_radial_gradient"):
+		var hg = ctx.create_radial_gradient(0, -4, 2, 0, -4, 40)
+		hg.add_color_stop(0, "rgba(255,180,90,0.42)")
+		hg.add_color_stop(1, "rgba(255,180,90,0)")
+		ctx.fill_style(hg)
+	else:
 		ctx.fill_style("rgba(255,180,90,0.42)")
+	ctx.begin_path()
+	ctx.arc(0, -4, 40, 0, TAU)
+	ctx.fill()
+	ctx.fill_style("#3a2416")
+	ctx.begin_path()
+	ctx.round_rect(-21, -27, 42, 37, 4)
+	ctx.fill()
+	ctx.fill_style("#2a1810")
+	ctx.begin_path()
+	ctx.round_rect(-21, -27, 42, 8, 3)
+	ctx.fill()
+	ctx.fill_style("#1c0f06")
+	ctx.begin_path()
+	ctx.round_rect(-10, -12, 20, 22, 3)
+	ctx.fill()
+	ctx.fill_style("#c0392b")
+	var i := -21.0
+	while i < 20.0:
 		ctx.begin_path()
-		ctx.arc(0, -4, 40, 0, TAU)
+		ctx.move_to(i, -27)
+		ctx.line_to(i + 3.5, -33)
+		ctx.line_to(i + 7, -27)
+		ctx.close_path()
 		ctx.fill()
-		ctx.fill_style("#3a2416")
-		ctx.fill_rect(-21, -27, 42, 37)
-		ctx.fill_style("#2a1810")
-		ctx.fill_rect(-21, -27, 42, 8)
-		ctx.fill_style("#1c0f06")
-		ctx.fill_rect(-10, -12, 20, 22)
-		# red roof scallops
-		ctx.fill_style("#c0392b")
-		var i := -21.0
-		while i < 20.0:
-			ctx.begin_path()
-			ctx.move_to(i, -27)
-			ctx.line_to(i + 3.5, -33)
-			ctx.line_to(i + 7, -27)
-			ctx.close_path()
-			ctx.fill()
-			i += 7.0
-		ctx.fill_style("#ffd27a")
-		ctx.font("14px serif")
-		ctx.fill_text("🍯", 0, -29)
-		ctx.restore()
-		ctx.fill_style("#ffd27a")
-		ctx.font("bold 10px monospace")
-		ctx.fill_text("SHOP", sx, sy - 38)
-		if near_s:
-			ctx.fill_style("#fff" if (int(floor(t / 16.0)) % 2) != 0 else "#ffd27a")
-			ctx.font("bold 11px monospace")
-			ctx.fill_text("[%s] ENTER" % MenuHelpers.kb("interact"), sx, sy + 30)
-	# top banner while clearMsgT>0 (HTML)
-	if msg_t > 0.0:
-		var pf: Rect2 = Config.playfield()
-		var mcx := pf.position.x + pf.size.x * 0.5
-		ctx.save()
-		ctx.global_alpha(minf(1.0, msg_t / 40.0))
-		ctx.fill_style("#ffe08a")
-		ctx.font("900 18px Trebuchet MS")
-		ctx.fill_text("★ STAGE CLEAR ★", mcx, pf.position.y + 22)
-		ctx.fill_style("#ffd27a")
-		ctx.font("bold 11px Trebuchet MS")
-		ctx.fill_text(
-			"Shop [%s] to gear up  ·  Portal [%s] when ready" % [
-				MenuHelpers.kb("interact"), MenuHelpers.kb("interact")
-			],
-			mcx, pf.position.y + 40
-		)
-		ctx.restore()
-	ctx.global_alpha(1.0)
+		i += 7.0
+	ctx.fill_style("#ffd27a")
+	ctx.font("14px serif")
+	ctx.text_align("center")
+	ctx.fill_text("🍯", 0, -29)
+	ctx.restore()
+	ctx.fill_style("#ffd27a")
+	ctx.font("bold 10px monospace")
+	ctx.text_align("center")
+	ctx.fill_text("SHOP", sx, sy - 38)
+	if near_s:
+		ctx.fill_style("#fff" if (int(floor(t / 16.0)) % 2) != 0 else "#ffd27a")
+		ctx.font("bold 11px monospace")
+		ctx.fill_text("[%s] ENTER" % MenuHelpers.kb("interact"), sx, sy + 30)
 	ctx.text_align("left")
 
 func _player_node() -> Node2D:
@@ -410,10 +445,11 @@ func _player_node() -> Node2D:
 func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 	## HTML drawShop (grid + tabs + heads + badger)
 	shop_btns = []
-	ctx.fill_style("#2a1c12")
-	ctx.fill_rect(0, 0, W, H * 0.55)
-	ctx.fill_style("#150d07")
-	ctx.fill_rect(0, H * 0.45, W, H * 0.55)
+	var shop_bg = ctx.create_linear_gradient(0, 0, 0, H)
+	shop_bg.add_color_stop(0, "#2a1c12")
+	shop_bg.add_color_stop(1, "#150d07")
+	ctx.fill_style(shop_bg)
+	ctx.fill_rect(0, 0, W, H)
 	ctx.text_align("center")
 	ctx.save()
 	ctx.shadow_color("#ffd27a")
@@ -468,7 +504,10 @@ func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 	var tW := (W - 2.0 * gx - float(cols - 1) * gap) / float(cols)
 	var gy := 80.0
 	var rg := 9.0
-	var tH := 78.0 if tab != "i" else 104.0
+	var rows := maxi(1, int(ceil(float(list.size()) / float(cols))))
+	var grid_bot := H - 206.0
+	var t_want := 104.0 if tab == "i" else 78.0
+	var tH := minf(t_want, floor((grid_bot - gy - float(rows - 1) * rg) / float(rows)))
 	var heads := int(ProgressStore.progress.get("heads", 0))
 	for i in range(list.size()):
 		var it: Dictionary = list[i]
@@ -494,11 +533,11 @@ func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 		ctx.text_align("left")
 		ctx.fill_text(str(it.get("icon", "•")), cx + 9, cy + 24)
 		ctx.fill_style("#ffe08a" if is_sel else "#e6d8f0")
-		ctx.font("bold 11px Trebuchet MS")
+		ctx.font("bold 11.5px Trebuchet MS")
 		ctx.fill_text(str(it.get("name", "")).substr(0, 18), cx + 36, cy + 17)
 		ctx.fill_style("#b8a8c8")
 		ctx.font("8.5px monospace")
-		MenuHelpers.wrap_text(ctx, str(it.get("desc", "")), cx + 10, cy + 33, tW - 16, 9, 3)
+		MenuHelpers.wrap_text(ctx, str(it.get("desc", "")), cx + 10, cy + 33, tW - 16, 9, 24)
 		ctx.text_align("right")
 		if str(it.get("kind")) == "consumable":
 			ctx.fill_style("#9fe0a4")
@@ -515,6 +554,10 @@ func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 			ctx.fill_style("#bff0a0" if afford else "#ff9a9a")
 			ctx.font("bold 11px monospace")
 			ctx.fill_text("💀 %d" % cost, cx + tW - 9, cy + tH - 7)
+		else:
+			ctx.fill_style("#9a8ba2")
+			ctx.font("bold 8.5px monospace")
+			ctx.fill_text("🏅 EMBLEM", cx + tW - 9, cy + tH - 7)
 		ctx.global_alpha(1.0)
 		shop_btns.append({"x": cx, "y": cy, "w": tW, "h": tH, "i": i})
 	# HTML bottom: Honey Badger portrait + boss-style dialogue bar
@@ -714,13 +757,17 @@ func drawDialog(d: Dictionary) -> void:
 	var y := pf.position.y + pf.size.y - 8.0 - h
 	# Presentation-only panel (godot-master: UI never owns dialog state — StageFlow does)
 	ctx.fill_style(cfg.bg)
-	ctx.fill_rect(x, y, w, h)  # solid rect (round_rect fill flaky under some clips)
+	ctx.begin_path()
+	ctx.round_rect(x, y, w, h, 8)
+	ctx.fill()
 	ctx.stroke_style(cfg.stroke)
 	ctx.line_width(2)
 	if cfg.glow != null:
 		ctx.shadow_color(str(cfg.glow))
 		ctx.shadow_blur(14)
-	ctx.stroke_rect(x, y, w, h)
+	ctx.begin_path()
+	ctx.round_rect(x, y, w, h, 8)
+	ctx.stroke()
 	# CRITICAL: clear shadow so subsequent HUD strokes aren't neon-tinted (CanvasCompat leak fix)
 	ctx.shadow_blur(0)
 	if ctx.has_method("shadow_color"):
@@ -728,13 +775,16 @@ func drawDialog(d: Dictionary) -> void:
 	# HTML drawPortraitBust + manageGifOverlays talk gif for Bobina lines
 	if ported:
 		ported.drawPortraitBust(x + 40.0, y + h / 2.0, 58.0, str(cfg.portrait), str(cfg.pcol))
+	# HTML #talk stays in the short slot (PF.y+PF.h-52) even when the box grows.
 	if who == 1 and AssetBank and AssetBank.ok("talk"):
 		var talk_tex = AssetBank.get_tex("talk")
+		var talk_cx := x + 40.0
+		var talk_cy := pf.position.y + pf.size.y - 52.0
 		ctx.save()
 		ctx.begin_path()
-		ctx.arc(x + 40.0, y + h / 2.0, 29.0, 0, TAU)
+		ctx.arc(talk_cx, talk_cy, 28.0, 0, TAU)
 		ctx.clip()
-		ctx.draw_image(talk_tex, x + 40.0 - 28.0, y + h / 2.0 - 28.0, 56.0, 56.0)
+		ctx.draw_image(talk_tex, talk_cx - 28.0, talk_cy - 28.0, 56.0, 56.0)
 		ctx.restore()
 	ctx.text_align("left")
 	ctx.fill_style(cfg.ncol)

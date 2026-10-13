@@ -139,19 +139,21 @@ static func open_url(url: String, same_tab: bool = false) -> void:
 	OS.shell_open(url)
 
 static func wrap_text(ctx, text: String, x: float, y: float, max_w: float, line_h: float, max_lines: int = 4) -> void:
-	## HTML wrapText
+	## HTML wrapText — measure `line + word + " "` so the trailing space counts.
 	var words := text.split(" ")
 	var line := ""
 	var ly := y
 	var lines := 0
 	for w in words:
-		var trial := (line + " " + w).strip_edges()
+		if str(w) == "":
+			continue
+		var trial := line + str(w) + " "
 		var tw: float = float(ctx.measure_text(trial).get("width", 0))
 		if tw > max_w and line != "":
 			ctx.fill_text(line, x, ly)
 			ly += line_h
 			lines += 1
-			line = w
+			line = str(w) + " "
 			if lines >= max_lines:
 				return
 		else:
