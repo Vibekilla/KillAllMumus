@@ -348,3 +348,5 @@ Aligned with `PHASE_STATUS.md` + fail list (2026-08-12):
 | 2026-09-13 | S11: SocialBar Control = HTML #social; S8 radial vertex rings; S4 ellipses/round-rects on ADD RID |
 | 2026-09-13 | S2: full HONEY_LINES; S5: vector pickup glyphs; S6: HTML bgSeed RNG; S3: denser pause blur; S10: cold volume |
 | 2026-09-13 | S7: CTM≥2 lids use HTML 1:1 stroke scale; S2 dual tick=0 |
+| 2026-09-13 | S1: settings Reset/Done footer at 540p; S9: SimClock.step_n 48/100 for boss dual |
+| 2026-09-13 | S9: live dual skips phase-shift (HTML forceBossPattern); S4: fillText/drawImage on ADD RID |

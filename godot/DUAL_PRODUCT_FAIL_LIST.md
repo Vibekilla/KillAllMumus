@@ -39,17 +39,23 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Notes |
 |----|------|-------|
-| S1 | Settings | Gold % + cyan buttons. Dual still is now a taller viewport (HTML expanded .set-card). In-game Reset/Done still scroll at 540p (`max-height:92dvh`) |
-| S2 | Shop | Full HTML HONEY_LINES. Dual pins tick=0 (same first line) |
-| S3 | Pause / menus | 17-tap gaussian-ish SCREEN_TEXTURE blur. Residual: CSS backdrop-filter vs shader |
-| S4 | Aura bomb | ADD layer covers circles/tris/polylines/rects/ellipses/round-rects. Residual: texture/string still source-over |
-| S5 | Item glyphs | Vector heart/star/burst (no Noto color-emoji blob). Dual vs HTML canvas emoji still SOFT |
+| S1 | Settings | Expanded dual shows Reset, the HTML hint, Done, and the version line. 540p still pins that footer. Bear emoji on the version line is a missing-glyph box |
+| S2 | Shop | Hint reads "LEAVE → stage clear" and leave returns to PLAY (HTML leaveShop). Cards stroke white, not each item's color. Left/right do not move the selection |
+| S3 | Pause | At 540p HTML clips Display / Controls / Return below Resume. Godot fits them in the card with a visible scrollbar. Blur is sampled, not backdrop-filter |
+| S4 | ~~Aura bomb scribble~~ | **CLOSED 2026-10-13** — soap bubble is on AddBack, BobinaPass covers it. Eye: bomb + power 3 show a readable Bobina inside the rings |
+| S5 | Item glyphs | HTML pickups are bold-monospace P ★ ♥ ✸ ◈ ». Godot draws vector stand-ins |
 | S6 | Stage bg intensity | HTML seed RNG (hue ±30, petals 3/5/7/9) + re-roll per stage |
 | S7 | Bobina lids/limbs | Outfit ×4.7 uses full HTML lineWidth scale (play keeps 0.96 AA shave) |
 | S8 | Special density | Vertex-colored linear + radial rings (2026-09-13). Residual: true CanvasGradient vs sampled strips |
-| S9 | Boss live patterns | **Harness PASS** — special 114 bullets + live 216 both sides; residual density/spread SOFT |
+| S9 | Boss live patterns | step_n 48/100; live pins phases=1 so hp 55% does not trip phase-1 spiral. Do not copy phases=1 into BossController |
 | S10 | Music E2E | Cold-load applyMusicVol + 6s YT retry. Live social-tab still a device check |
-| S11 | Title social strip | SocialBar Control chips (HTML #social). Residual: CSS letter-spacing .3px |
+| S11 | Title sign-in | Pink "Sign in with Bobina" pill sits on the hint, above the chips (2026-10-13 core dual). Residual: no CSS gradient, letter-spacing .3px |
+| S12 | Melee slash | Front ADD layer still paints the crescent over the weapon. Drop the extra inner stroke |
+| S13 | Shop keys / Escape | HTML browses the shop with left/right. Escape is not a binding; Godot treats it as return-to-title from pause and shop |
+| S14 | Clear gate + leek | Portal is a flat oval. Stage-clear leek has an extra pale disc and a square stroke |
+| S15 | Boss death ring | Non-Wynn deaths stay at r×1. HTML grows the ring from dead_t for ~150 frames |
+| S16 | Shots and bullets | Player bolts are square rects, not radius-2 capsules. Enemy bullets add a hard outer disc instead of shadowBlur 7 |
+| S17 | Ends HUD | Game over and win hide the side HUD. HTML draws it under the dim. Win photo is stretched |
 
 ---
 
@@ -78,6 +84,9 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-08-12 | F6 closed | HTML mechanics + pickups vacuum stills pair with Godot |
 | 2026-08-12 | F7 partial | special duals clear score/toasts; dual_mode guest auth on title |
 | 2026-08-12 | F8 closed | settings dual music 100% / sfx 90% both sides |
+| 2026-10-13 | S4 closed | Aura bomb and power 3: Bobina readable inside the rings (AddBack + BobinaPass) |
+| 2026-10-13 | S11 partial | Guest pill text, color, and y=452 match the HTML title still |
+| 2026-10-13 | notes | Wardrobe and maid-dance notes rise (HTML `span - (base % span)`) |
 | 2026-08-12 | S1 scroll | SettingsMenu ScrollContainer + HTML .set-card element screenshot |
 | 2026-08-12 | Boss dual PASS | typed-array loadout fix verified (7 bosses) |
 | 2026-08-12 | F3 boss | clear toasts + starter Red Death; HTML pin clears unlock chrome |
