@@ -65,12 +65,15 @@ func _apply_html_chrome() -> void:
 	OverlayTheme.style_button(display, "cyan")
 	if display:
 		display.text = "🖥 Display"
+		display.custom_minimum_size.y = 44
 	OverlayTheme.style_button(keybinds, "cyan")
 	if keybinds:
 		keybinds.text = "🎮 Controls"
+		keybinds.custom_minimum_size.y = 44
 	OverlayTheme.style_button(menu, "ghost")
 	if menu:
 		menu.text = "⌂ RETURN TO MENU"
+		menu.custom_minimum_size.y = 46
 	# Section headers + hint (HTML .set-sec uppercase via CSS text-transform)
 	if vbox and vbox.get_node_or_null("SecAudio") == null:
 		var sa := Label.new()
@@ -159,11 +162,14 @@ func _center_panel(pc: PanelContainer, w: float) -> void:
 	pc.anchor_bottom = 0.0
 	pc.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	pc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	# HTML .ps-card max-height ~92vh; overflow-y:auto — compact then scroll, never clip buttons
+	# HTML .ps-card max-height 92dvh and .set-row margins. Content taller than the card scrolls.
 	var max_h := vs.y * 0.92
 	var vbox := _pause_vbox(pc)
 	if vbox:
-		vbox.add_theme_constant_override("separation", 5)
+		vbox.add_theme_constant_override("separation", 12)
+		for sl in [music_slider, sfx_slider, follow_slider, speed_slider]:
+			if sl:
+				sl.custom_minimum_size.y = 26
 		OverlayTheme.wrap_overflow_scroll(pc, vbox, w, max_h)
 	pc.reset_size()
 	var ph := maxf(pc.get_combined_minimum_size().y, pc.size.y)
