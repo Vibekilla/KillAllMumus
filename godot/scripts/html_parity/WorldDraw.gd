@@ -21,6 +21,17 @@ var tick: int = 0
 var _bullet_pool: Node = null
 var _player_node: Node = null
 var _last_tick: int = -1
+var _add_front: Node2D = null
+var _add_back: Node2D = null
+var _bob_host: Node2D = null
+var _bob_pending: bool = false
+var _bob_st: Dictionary = {}
+var _bob_mode: String = ""
+var _bob_pose: int = 0
+var _bob_expr = null
+var _bob_face: float = 0.0
+var _bob_xform: Transform2D = Transform2D.IDENTITY
+var _bob_clip: Dictionary = {}
 ## Adaptive visual cadence: 1 = every sim tick, 2 = 30 Hz, 3 = 20 Hz (sim stays 60 Hz)
 var _play_stride: int = 2
 var _fps_adapt_cd: int = 0
@@ -33,15 +44,19 @@ func _ready() -> void:
 	add_to_group("world_draw")
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
 	ctx.bind(self)
-	var add_n := Node2D.new()
-	add_n.name = "AddLayer"
-	var add_mat := CanvasItemMaterial.new()
-	add_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	add_n.material = add_mat
-	add_n.z_as_relative = true
-	add_n.z_index = 2
-	add_child(add_n)
-	ctx.add_target = add_n
+	# z: parent world (0) < AddBack aura (1) < BobinaPass (2) < AddLayer post FX (3).
+	# HTML draws the soap bubble, then source-over Bobina covers the strokes on her body.
+	_add_back = _make_add_layer("AddBack", 1)
+	_bob_host = Node2D.new()
+	_bob_host.name = "BobinaPass"
+	_bob_host.z_as_relative = true
+	_bob_host.z_index = 2
+	_bob_host.set_script(load("res://scripts/html_parity/BobinaPass.gd"))
+	add_child(_bob_host)
+	_add_front = _make_add_layer("AddLayer", 3)
+	ctx.add_back = _add_back
+	ctx.add_front = _add_front
+	ctx.add_target = _add_front
 	ported = load("res://scripts/render/PortedDraw.gd").new()
 	ported.setup(ctx)
 	hud = load("res://scripts/ui/menu/draw_hud.gd").new()
@@ -103,8 +118,23 @@ func _process(_d: float) -> void:
 	tick = nt
 	if _is_playish():
 		queue_redraw()
-	elif ctx and ctx.add_target != null and is_instance_valid(ctx.add_target):
-		RenderingServer.canvas_item_clear(ctx.add_target.get_canvas_item())
+	elif ctx:
+		for t in [ctx.add_front, ctx.add_back, ctx.add_target]:
+			if t != null and is_instance_valid(t):
+				RenderingServer.canvas_item_clear(t.get_canvas_item())
+		if _bob_host:
+			RenderingServer.canvas_item_clear(_bob_host.get_canvas_item())
+
+func _make_add_layer(layer_name: String, z: int) -> Node2D:
+	var n := Node2D.new()
+	n.name = layer_name
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	n.material = mat
+	n.z_as_relative = true
+	n.z_index = z
+	add_child(n)
+	return n
 
 func _player() -> Node:
 	if is_instance_valid(_player_node):
@@ -183,6 +213,9 @@ func _draw() -> void:
 		return
 	var _t0 := Time.get_ticks_usec()
 	ctx.begin_frame()
+	_bob_pending = false
+	if _bob_host:
+		_bob_host.queue_redraw()
 	var plock := _player()
 	if plock and plock.has_meta("dual_lock_tick"):
 		tick = int(plock.get_meta("dual_lock_tick"))
@@ -231,7 +264,11 @@ func _draw() -> void:
 				var Pr: Dictionary = combat_fx.poseParams(pose_r, float(tick))
 				pst["x"] = float(pst.get("x", 0)) + float(Pr.get("sway", 0)) * 0.4
 				pst["y"] = float(pst.get("y", 0)) - float(Pr.get("bounce", 0)) * 0.4
+			if ctx.has_method("set_add_behind"):
+				ctx.set_add_behind(true)
 			combat_fx.drawPowerRadiance(pst)
+			if ctx.has_method("set_add_behind"):
+				ctx.set_add_behind(false)
 
 	# --- floaters (confused.gif) ---
 	if ItemSystem:
@@ -786,6 +823,34 @@ func _body_ctr_st(st: Dictionary) -> Vector2:
 	var r := face + PI / 2.0
 	return Vector2(float(st.get("x", 0)) - sin(r) * 16.0, (float(st.get("y", 0)) - 16.0) + cos(r) * 16.0)
 
+func _defer_body(st: Dictionary, mode: String, pose: int = 0, expr = null, face: float = 0.0) -> void:
+	## BobinaPass._draw runs after this parent pass, between AddBack and AddLayer.
+	_bob_st = st.duplicate(true)
+	_bob_mode = mode
+	_bob_pose = pose
+	_bob_expr = expr
+	_bob_face = face
+	_bob_xform = ctx._xform
+	_bob_clip = ctx._clip.duplicate(true) if ctx._clip is Dictionary else {}
+	_bob_pending = true
+
+func draw_bobina_pass() -> void:
+	if not _bob_pending or ctx == null or _bob_host == null:
+		return
+	_bob_pending = false
+	ctx.bind(_bob_host)
+	ctx._xform = _bob_xform
+	ctx._clip = _bob_clip
+	ctx._gco = "source-over"
+	ctx._path = PackedVector2Array()
+	ctx._subpaths.clear()
+	if _bob_mode == "pose":
+		_draw_posed_field(_bob_st, _bob_pose, _bob_expr, _bob_face)
+	else:
+		_draw_bobina_cached_or_live(_bob_st)
+	_draw_player_rings(_bob_st, _body_ctr_st(_bob_st))
+	ctx.bind(self)
+
 func _draw_bobina_cached_or_live(st: Dictionary) -> void:
 	## HTML drawBobina every frame — breath, blink, walk, dash, bomb. No frozen blit.
 	if ported and ported.has_method("drawBobina"):
@@ -880,13 +945,13 @@ func _draw_player(player: Node) -> void:
 			if fd is Dictionary and fd.get("expr") != null:
 				expr = fd.get("expr")
 		if combat_fx:
+			if ctx.has_method("set_add_behind"):
+				ctx.set_add_behind(true)
 			combat_fx.drawPowerAura(st)
-		_draw_posed_field(st, pose, expr, face_v)
-		if combat_fx:
-			combat_fx.drawOptions(st)
-		# still draw consumable rings on bodyCtr of bobbed position
-		var bc_c := _body_ctr_st(st)
-		_draw_player_rings(st, bc_c)
+			if ctx.has_method("set_add_behind"):
+				ctx.set_add_behind(false)
+		# Source-over body is a later canvas item so it covers the aura interior.
+		_defer_body(st, "pose", pose, expr, face_v)
 		return
 	# Continuous face for live/dash; face-bin for cache so soap bubble shares sprite orientation.
 	# HTML face is continuous; 24 bins → ≤7.5° (bodyCtr error ≤ ~2px).
@@ -899,13 +964,14 @@ func _draw_player(player: Node) -> void:
 	else:
 		st["face"] = _face_bucket(face_cont)
 	if combat_fx:
+		if ctx.has_method("set_add_behind"):
+			ctx.set_add_behind(true)
 		combat_fx.drawDashComet(st)
 		combat_fx.drawPowerAura(st)
-	_draw_bobina_cached_or_live(st)
-	if combat_fx:
-		# HTML drawOptions(player) — world optionPos via face+body pivot
-		combat_fx.drawOptions(st)
-	_draw_player_rings(st, _body_ctr_st(st))
+		if ctx.has_method("set_add_behind"):
+			ctx.set_add_behind(false)
+	# HTML defines drawOptions but never calls it from draw().
+	_defer_body(st, "live")
 
 func _draw_player_rings(st: Dictionary, bc: Vector2) -> void:
 	## HTML overlays: bodyCtr for shield/rapid/vial/phase; feet for focus hitbox

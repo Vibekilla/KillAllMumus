@@ -109,8 +109,11 @@ class CanvasGradient:
 		return sample(0.5)
 
 var node: CanvasItem
-## WorldDraw additive child — HTML GCO lighter via CanvasItemMaterial ADD.
+## WorldDraw additive children — HTML GCO lighter via CanvasItemMaterial ADD.
+## add_back sits under BobinaPass. add_front (add_target by default) sits over her.
 var add_target: CanvasItem = null
+var add_front: CanvasItem = null
+var add_back: CanvasItem = null
 var _fill: Color = Color.WHITE
 var _stroke: Color = Color.WHITE
 var _fill_src = null  # last fill_style arg (skip reparse)
@@ -152,8 +155,20 @@ func bind(n: CanvasItem) -> void:
 	node = n
 
 func begin_frame() -> void:
-	if add_target != null and is_instance_valid(add_target):
-		RenderingServer.canvas_item_clear(add_target.get_canvas_item())
+	var seen: Array = []
+	for t in [add_front, add_back, add_target]:
+		if t != null and is_instance_valid(t) and not seen.has(t):
+			seen.append(t)
+			RenderingServer.canvas_item_clear(t.get_canvas_item())
+	if add_front != null and is_instance_valid(add_front):
+		add_target = add_front
+
+func set_add_behind(behind: bool) -> void:
+	## Pre-Bobina lighter (radiance, dash comet, power aura) must composite under her.
+	if behind and add_back != null and is_instance_valid(add_back):
+		add_target = add_back
+	elif add_front != null and is_instance_valid(add_front):
+		add_target = add_front
 	_path = PackedVector2Array()
 	_subpaths.clear()
 	_stack.clear()
@@ -345,6 +360,42 @@ func _ci_tri_cols(a: Vector2, b: Vector2, c: Vector2, ca: Color, cb: Color, cc: 
 		return
 	if node:
 		node.draw_polygon(pts, cols)
+
+func _ci_string(f: Font, p: Vector2, text: String, sz: int, col: Color) -> void:
+	if f == null:
+		return
+	if _should_add():
+		f.draw_string(_add_rid(), p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
+		return
+	if node:
+		node.draw_string(f, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
+
+func _ci_tex_rect(tex: Texture2D, dest: Rect2, col: Color = Color.WHITE) -> void:
+	if tex == null:
+		return
+	if _should_add():
+		RenderingServer.canvas_item_add_texture_rect(_add_rid(), dest, tex.get_rid(), false, col)
+		return
+	if node:
+		node.draw_texture_rect(tex, dest, false, col)
+
+func _ci_tex_rect_region(tex: Texture2D, dest: Rect2, src: Rect2, col: Color = Color.WHITE) -> void:
+	if tex == null:
+		return
+	if _should_add():
+		RenderingServer.canvas_item_add_texture_rect_region(_add_rid(), dest, tex.get_rid(), src, col)
+		return
+	if node:
+		node.draw_texture_rect_region(tex, dest, src)
+
+func _ci_tex_poly(pts: PackedVector2Array, cols: PackedColorArray, uvs: PackedVector2Array, tex: Texture2D) -> void:
+	if tex == null or pts.size() < 3:
+		return
+	if _should_add():
+		RenderingServer.canvas_item_add_polygon(_add_rid(), pts, cols, uvs, tex.get_rid())
+		return
+	if node:
+		node.draw_polygon(pts, cols, uvs, tex)
 
 func _ci_polyline(pts: PackedVector2Array, col: Color, width: float) -> void:
 	if pts.size() < 2:
@@ -1330,8 +1381,8 @@ func fill_text(text, x, y) -> void:
 			var sc := _shadow_col
 			sc.a = base_a * 0.22 * t
 			var o := _shadow_blur * 0.08 * t
-			node.draw_string(f, p + Vector2(0, o * 0.4), str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, sc)
-	node.draw_string(f, p, str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, _c(_fill))
+			_ci_string(f, p + Vector2(0, o * 0.4), str(text), sz, sc)
+	_ci_string(f, p, str(text), sz, _c(_fill))
 
 func stroke_text(text, x, y) -> void:
 	if node == null:
@@ -1354,7 +1405,7 @@ func stroke_text(text, x, y) -> void:
 	if _lw >= 3.0:
 		offs.append_array([Vector2(-o, -o), Vector2(o, -o), Vector2(-o, o), Vector2(o, o)])
 	for d in offs:
-		node.draw_string(f, p + d, str(text), HORIZONTAL_ALIGNMENT_LEFT, -1, sz, col)
+		_ci_string(f, p + d, str(text), sz, col)
 
 func clip() -> void:
 	## HTML ctx.clip() — intersect current path with active clip region.
@@ -1586,7 +1637,7 @@ func draw_image(img, dx, dy, dw=null, dh=null) -> void:
 	var size := Vector2(dw if dw != null else tex.get_width(), dh if dh != null else tex.get_height())
 	var dest := Rect2(p, size)
 	if _clip.is_empty():
-		node.draw_texture_rect(tex, dest, false)
+		_ci_tex_rect(tex, dest)
 		return
 	if str(_clip.get("kind", "")) == "circle":
 		# HTML clip+drawImage: textured triangle fan (one tri per segment — never n>3 poly)
@@ -1611,7 +1662,7 @@ func draw_image(img, dx, dy, dw=null, dh=null) -> void:
 				(w1.x - dest.position.x) / maxf(dest.size.x, 0.001),
 				(w1.y - dest.position.y) / maxf(dest.size.y, 0.001)
 			)
-			node.draw_polygon(
+			_ci_tex_poly(
 				PackedVector2Array([c, w0, w1]),
 				PackedColorArray([colw, colw, colw]),
 				PackedVector2Array([uvc, uv0, uv1]),
@@ -1631,7 +1682,7 @@ func draw_image(img, dx, dy, dw=null, dh=null) -> void:
 			u0 * tex.get_width(), v0 * tex.get_height(),
 			(u1 - u0) * tex.get_width(), (v1 - v0) * tex.get_height()
 		)
-		node.draw_texture_rect_region(tex, inter, src)
+		_ci_tex_rect_region(tex, inter, src)
 		return
 	if str(_clip.get("kind", "")) == "poly":
 		var poly: PackedVector2Array = _clip.poly
@@ -1654,14 +1705,14 @@ func draw_image(img, dx, dy, dw=null, dh=null) -> void:
 				(p2.x - dest.position.x) / maxf(dest.size.x, 0.001),
 				(p2.y - dest.position.y) / maxf(dest.size.y, 0.001)
 			)
-			node.draw_polygon(
+			_ci_tex_poly(
 				PackedVector2Array([p0, p1, p2]),
 				PackedColorArray([colw2, colw2, colw2]),
 				PackedVector2Array([uv0b, uv1b, uv2b]),
 				tex
 			)
 		return
-	node.draw_texture_rect(tex, dest, false)
+	_ci_tex_rect(tex, dest)
 
 func create_radial_gradient(x0, y0, r0, x1, y1, r1) -> CanvasGradient:
 	var g = CanvasGradient.new()
