@@ -771,6 +771,20 @@ func _run() -> void:
 		await _save("godot_menu_settings", true)
 		_sv.size = settings_prev
 		_force_ui_size(_main)
+		# S1 product: Reset/Done must sit on-screen at 540p after dual expand is undone
+		if settings_ui:
+			var panel_540 := settings_ui.get_node_or_null("CenterHost/Panel") as PanelContainer
+			if panel_540 == null:
+				panel_540 = settings_ui.get_node_or_null("Panel") as PanelContainer
+			var vb_540 = settings_ui._settings_vbox() if settings_ui.has_method("_settings_vbox") else null
+			var max_540: float = minf(500.0, float(VIEW_H) * 0.92)
+			if panel_540 and vb_540 and settings_ui.has_method("_pin_reset_done_footer"):
+				settings_ui._pin_reset_done_footer(panel_540, vb_540, max_540)
+			await process_frame
+			var close_540 := settings_ui.find_child("CloseBtn", true, false) as Control
+			if close_540:
+				var br: Rect2 = close_540.get_global_rect()
+				print("[SHOT] settings_540 done_bottom=", snapped(br.end.y, 0.1), " view=", VIEW_H)
 
 		GameState.set_state(GameState.State.NG_SELECT)
 		_force_ui_size(_main)
@@ -2160,11 +2174,15 @@ func _run() -> void:
 						if "special_t" in boss:
 							boss.special_t = 0.0
 						boss._trigger_boss_special()
-						# Mid-window: keep special_t high; let pattern fire (no clear_all)
+						# HTML forceBossSpecial: t=0 then 48 bossSpecial ticks (not wall FPS)
+						if "t" in boss:
+							boss.t = 0
+						if "spin" in boss:
+							boss.spin = 0
 						if "special_t" in boss:
 							boss.special_t = 160.0
-						for _j in range(36):
-							await process_frame
+						var sc_sp = _A("SimClock")
+						for _j in range(48):
 							player.global_position = Vector2(px_b, py_b)
 							player.aim = -PI / 2.0
 							GameState.power = 6.0
@@ -2173,7 +2191,7 @@ func _run() -> void:
 							GameState.graze = 0
 							if is_instance_valid(boss):
 								boss.global_position = boss_pos
-								if "special_t" in boss and float(boss.special_t) < 100.0:
+								if "special_t" in boss:
 									boss.special_t = 160.0
 								if "mtx" in boss:
 									boss.mtx = boss_pos.x
@@ -2183,6 +2201,10 @@ func _run() -> void:
 									boss.face = PI / 2.0
 								if "stun" in boss:
 									boss.stun = 0.0
+							if sc_sp and sc_sp.has_method("step_n"):
+								sc_sp.step_n(1)
+							else:
+								await process_frame
 						# Freeze danmaku for capture; keep flash banner (HTML product)
 						_dual_freeze_all_bullets(pool)
 						boss.set_meta("dual_freeze", true)
@@ -2265,9 +2287,19 @@ func _run() -> void:
 							boss.phase = 0
 						if "intro" in boss:
 							boss.intro = 0.0
-						# Advance ~100 sim frames so fan (t%40) + ring (t%90) seed the field
+						if "t" in boss:
+							boss.t = 0
+						if "spin" in boss:
+							boss.spin = 0
+						# HTML forceBossPattern never runs updateBoss phase-shift
+						# (hp 55% would trip phase 1 and fire the t%3 spiral).
+						var phases_saved := 3
+						if "phases" in boss:
+							phases_saved = int(boss.phases)
+							boss.phases = 1
+						# HTML forceBossPattern: exactly 100 pattern ticks + bullet advance
+						var sc_lv = _A("SimClock")
 						for _j in range(100):
-							await process_frame
 							player.global_position = Vector2(px_b, py_b)
 							player.aim = -PI / 2.0
 							GameState.power = 6.0
@@ -2284,10 +2316,18 @@ func _run() -> void:
 									boss.mty = boss_pos.y
 								if "stun" in boss:
 									boss.stun = 0.0
+								if "phase" in boss:
+									boss.phase = 0
 								if "special_t" in boss:
 									boss.special_t = 0.0
 								if "dash" in boss:
 									boss.dash = false
+							if sc_lv and sc_lv.has_method("step_n"):
+								sc_lv.step_n(1)
+							else:
+								await process_frame
+						if is_instance_valid(boss) and "phases" in boss:
+							boss.phases = phases_saved
 						_dual_freeze_all_bullets(pool)
 						boss.set_meta("dual_freeze", true)
 						if "stun" in boss:

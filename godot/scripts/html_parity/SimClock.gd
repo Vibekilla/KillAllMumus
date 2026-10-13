@@ -80,6 +80,11 @@ func _step() -> void:
 	sim_tick.emit(SIM_DT)
 	frame_advanced.emit(_sim_frame)
 
+func step_n(n: int) -> void:
+	## Dual/QA: run exactly n HTML frames (not wall-clock catch-up).
+	for _i in range(maxi(0, n)):
+		_step()
+
 func reset() -> void:
 	_sim_frame = 0
 	sim_time = 0.0

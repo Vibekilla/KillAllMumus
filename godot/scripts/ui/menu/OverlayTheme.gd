@@ -333,7 +333,7 @@ static func apply_dim(dim: ColorRect, kind: String) -> void:
 		mat.set_shader_parameter("inner", veil)
 		mat.set_shader_parameter("outer", Color(6.0 / 255.0, 4.0 / 255.0, 10.0 / 255.0, 0.82))
 		mat.set_shader_parameter("radial", 0.0)
-		mat.set_shader_parameter("blur_px", 3.0)
+		mat.set_shader_parameter("blur_px", 4.0)
 		dim.color = veil
 	else:
 		mat.set_shader_parameter("inner", Color(30.0 / 255.0, 24.0 / 255.0, 54.0 / 255.0, 0.94))
