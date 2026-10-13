@@ -268,7 +268,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if help and help.has_method("open_help"):
 				help.open_help()
 			get_viewport().set_input_as_handled()
-		elif event.is_action_pressed("pause") or event.keycode == KEY_ESCAPE or event.keycode == KEY_P:
+		elif event.is_action_pressed("pause") or event.keycode == KEY_P:
 			_on_resume()
 			get_viewport().set_input_as_handled()
 	# HTML: tap outside card resumes

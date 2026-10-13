@@ -34,10 +34,15 @@ func _map_key(e: InputEventKey) -> String:
 	for action in ROUTABLE:
 		if InputMap.has_action(action) and e.is_action_pressed(action):
 			return _html_name(action)
-	# bare keys
+	if _arrow_pages():
+		if InputMap.has_action("move_left") and e.is_action_pressed("move_left"):
+			return "left"
+		if InputMap.has_action("move_right") and e.is_action_pressed("move_right"):
+			return "right"
+	# HTML FIXED_KMAP. Escape is not a binding (it is only bindable while rebinding).
 	match e.physical_keycode:
 		KEY_ENTER, KEY_KP_ENTER: return "start"
-		KEY_ESCAPE: return "menu"
+		KEY_M: return "menu"
 		KEY_T: return "tweet"
 		_: return ""
 
@@ -54,6 +59,11 @@ func _map_joy(e: InputEventJoypadButton) -> String:
 	if e.button_index == JOY_BUTTON_START:
 		return "start"
 	return ""
+
+func _arrow_pages() -> bool:
+	return GameState.state in [
+		GameState.State.SHOP, GameState.State.LEADERBOARD, GameState.State.EMBLEMS,
+	]
 
 func _html_name(action: String) -> String:
 	match action:
@@ -83,7 +93,8 @@ func key_press(k: String) -> void:
 	# HTML anyModalOpen() — block game keys while help/display/keybinds/settings/name entry open
 	# (pause toggle still allowed so P can close pause path; Esc/menu for modal close handled by overlays)
 	var MenuHelpers = load("res://scripts/ui/menu/MenuHelpers.gd")
-	if MenuHelpers and MenuHelpers.any_modal_open() and k not in ["pause", "menu"]:
+	# HTML anyModalOpen() swallows every key, including pause and menu.
+	if MenuHelpers and MenuHelpers.any_modal_open():
 		return
 	var state = GameState.state
 	# Arsenal exit
@@ -145,11 +156,34 @@ func key_press(k: String) -> void:
 		GameState.return_to_title()
 		if AudioBus:
 			AudioBus.sfx("item")
-	# Paging
+	# HTML keyPress: left/right page the leaderboard and the emblem grid.
+	if k == "left" or k == "right":
+		_page_key(k, state)
+
+func _page_key(k: String, state) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	var ts = tree.root.find_child("TitleScreen", true, false)
+	if ts == null or ts.get("model") == null:
+		return
+	var model = ts.model
+	var dir := -1 if k == "left" else 1
 	if state == GameState.State.LEADERBOARD:
-		pass  # TitleScreen model handles lb pages via click; keys optional
-	if state == GameState.State.EMBLEMS:
-		pass
+		var page := int(model.lb_page)
+		var nxt := page + dir
+		if nxt >= 0 and nxt < int(model.lb_page_count()):
+			model.set_lb_page(nxt)
+			if AudioBus:
+				AudioBus.sfx("item")
+	elif state == GameState.State.EMBLEMS:
+		var MenuHelpers = load("res://scripts/ui/menu/MenuHelpers.gd")
+		var page2 := int(model.em_page)
+		var nxt2 := page2 + dir
+		if MenuHelpers and nxt2 >= 0 and nxt2 < int(MenuHelpers.em_page_count()):
+			model.em_page = nxt2
+			if AudioBus:
+				AudioBus.sfx("item")
 
 func _shop_key(k: String) -> void:
 	if k in ["interact", "menu"]:

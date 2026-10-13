@@ -360,7 +360,7 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	# Shoot / Enter returns from submenus
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.is_action_pressed("shoot") or event.keycode == KEY_ENTER or event.keycode == KEY_ESCAPE:
+		if event.is_action_pressed("shoot") or event.keycode == KEY_ENTER:
 			if GameState.state == GameState.State.TITLE:
 				if title_idle_t > 1800.0:
 					_start()

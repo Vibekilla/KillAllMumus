@@ -382,17 +382,3 @@ func _on_close() -> void:
 	if reset_confirm:
 		reset_confirm.visible = false
 	GameState.return_to_title()
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
-		return
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
-		_on_reset_inventory()
-		get_viewport().set_input_as_handled()
-		return
-	if event.is_action_pressed("shoot") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
-		if reset_confirm and reset_confirm.visible:
-			_on_reset_cancel()
-		else:
-			_on_close()
-		get_viewport().set_input_as_handled()

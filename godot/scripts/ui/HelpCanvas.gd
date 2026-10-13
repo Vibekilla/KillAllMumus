@@ -216,6 +216,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not open:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode in [KEY_ESCAPE, KEY_ENTER, KEY_SPACE]:
+		# HTML #help closes from its button or a click on the dim, not from Escape.
+		if event.keycode in [KEY_ENTER, KEY_SPACE]:
 			close_help()
 			get_viewport().set_input_as_handled()
