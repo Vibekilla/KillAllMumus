@@ -895,8 +895,31 @@ function ytKick(){
 function ytShuffle(){
   if(ytShuffled) return;
   ytShuffled=true;
-  try{ if(ytPlayer){ ytPlayer.setLoop(true); ytPlayer.setShuffle(true); } }catch(e){}
+  // Only after PLAYING — getPlaylist/playVideoAt at CUED wedges the widget.
+  // setShuffle leaves the current index, so jump into the shuffled list.
+  var ytShuffleJump=-1, listed=false;
+  try{
+    if(ytPlayer){
+      ytPlayer.setLoop(true);
+      ytPlayer.setShuffle(true);
+      var list=(ytPlayer.getPlaylist&&ytPlayer.getPlaylist())||[];
+      listed=!!(list&&list.length);
+      if(list&&list.length>1){
+        var cur=0; try{ cur=ytPlayer.getPlaylistIndex()||0; }catch(e1){}
+        if(cur<0||cur>=list.length) cur=0;
+        ytShuffleJump=Math.floor(Math.random()*(list.length-1));
+        if(ytShuffleJump>=cur) ytShuffleJump++;
+      }
+    }
+  }catch(e){}
   ytPost('setLoop',[true]); ytPost('setShuffle',[true]);
+  if(ytShuffleJump>=0){
+    try{ if(ytPlayer) ytPlayer.playVideoAt(ytShuffleJump); }catch(e2){}
+    ytPost('playVideoAt',[ytShuffleJump]);
+  }else if(!listed){
+    try{ if(ytPlayer) ytPlayer.nextVideo(); }catch(e3){}
+    ytPost('nextVideo');
+  }
 }
 window.onYouTubeIframeAPIReady=function(){
   try{
@@ -1054,7 +1077,17 @@ let arsenalW=['laser'], arsenalS=['mech','bearzooka'], arsenalM=['katana'], arse
 const ARS_CAP={w:5,s:5,m:2,i:3};
 try{ const a=JSON.parse(localStorage.getItem('bobina_arsenal')||'null'); if(a){ if(Array.isArray(a.w)&&a.w.length) arsenalW=a.w.filter(k=>WEAPONS[k]); if(Array.isArray(a.s)) arsenalS=a.s.filter(k=>SPECIALS.some(s=>s.key===k)); } }catch(e){}
 if(!arsenalW.length) arsenalW=['laser'];   // (melee loadout is loaded just after the MELEE array is defined, below)
-function saveArsenal(){ try{ localStorage.setItem('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){} }
+let arsenalRev=0, arsenalCloudRev=0;   // local bar edits win over an in-flight cloud echo until that save lands
+function _dedupeLoadout(arr, pred, cap){ const seen=new Set(), out=[]; for(const k of (Array.isArray(arr)?arr:[])){ if(k==null||seen.has(k)||(pred&&!pred(k))) continue; seen.add(k); out.push(k); if(out.length>=cap) break; } return out; }
+function saveArsenal(){
+  const cap=ARS_CAP||{w:5,s:5,m:2,i:3};
+  if(typeof WEAPONS!=='undefined'){ arsenalW=_dedupeLoadout(arsenalW,k=>!!WEAPONS[k],cap.w); if(!arsenalW.length) arsenalW=['laser']; }
+  if(typeof SPECIALS!=='undefined') arsenalS=_dedupeLoadout(arsenalS,k=>SPECIALS.some(s=>s.key===k),cap.s);
+  if(typeof MELEE!=='undefined'){ arsenalM=_dedupeLoadout(arsenalM,k=>MELEE.some(m=>m.key===k),cap.m); if(!arsenalM.length) arsenalM=['katana']; }
+  if(typeof CONSUMABLES!=='undefined') arsenalI=_dedupeLoadout(arsenalI,k=>CONSUMABLES.some(c=>c.key===k),cap.i);
+  try{ localStorage.setItem('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){}
+  arsenalRev++;
+}
 function arsenalCount(){ return arsenalW.length+arsenalS.length; }
 function meleeIdxList(){ return arsenalM.map(k=>MELEE.findIndex(m=>m.key===k)).filter(i=>i>=0); }   // selected melee → MELEE indices, in cycle order
 function armedSpec(){ if(!run||!run.specials||!run.specials.length) return null; return SPECIALS.find(s=>s.key===run.specials[run.armed%run.specials.length])||null; }
@@ -1424,12 +1457,14 @@ function applyProgressSnapshot(p){
     estats = e0;
     try{ localStorage.setItem('bobina_estats', JSON.stringify(estats)); }catch(e){}
   }
-  if(p.arsenal && typeof p.arsenal==='object'){
-    if(Array.isArray(p.arsenal.w) && p.arsenal.w.length) arsenalW = p.arsenal.w.filter(k=>WEAPONS[k]);
-    if(Array.isArray(p.arsenal.s)) arsenalS = p.arsenal.s.filter(k=>SPECIALS.some(s=>s.key===k));
-    if(Array.isArray(p.arsenal.m) && typeof MELEE!=='undefined') arsenalM = p.arsenal.m.filter(k=>MELEE.some(m=>m.key===k));
-    if(Array.isArray(p.arsenal.i) && typeof CONSUMABLES!=='undefined') arsenalI = p.arsenal.i.filter(k=>CONSUMABLES.some(c=>c.key===k));
+  if(p.arsenal && typeof p.arsenal==='object' && arsenalRev===arsenalCloudRev){
+    const A=p.arsenal, cap=ARS_CAP||{w:5,s:5,m:2,i:3};
+    if(Array.isArray(A.w)){ const w=_dedupeLoadout(A.w,k=>!!WEAPONS[k],cap.w); if(w.length) arsenalW=w; }
+    if(Array.isArray(A.s)) arsenalS=_dedupeLoadout(A.s,k=>SPECIALS.some(s=>s.key===k),cap.s);
+    if(Array.isArray(A.m) && typeof MELEE!=='undefined'){ const mm=_dedupeLoadout(A.m,k=>MELEE.some(m=>m.key===k),cap.m); if(mm.length) arsenalM=mm; }
+    if(Array.isArray(A.i) && typeof CONSUMABLES!=='undefined') arsenalI=_dedupeLoadout(A.i,k=>CONSUMABLES.some(c=>c.key===k),cap.i);
     if(!arsenalW.length) arsenalW=['laser'];
+    if(!arsenalM.length) arsenalM=['katana'];
     try{ localStorage.setItem('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){}
   }
   if(p.heads!=null){ mumuHeads = Math.max(mumuHeads|0, Number(p.heads)||0); try{ localStorage.setItem('bobina_heads', String(mumuHeads)); }catch(e){} }
@@ -1485,6 +1520,7 @@ function scheduleCloudSave(immediate){
   const run=function(){
     if(!cloudLinked() || _cloudBusy) return;
     _cloudBusy=true;
+    const sentRev=arsenalRev;
     const snap=buildProgressSnapshot();
     fetch('/api/progress',{
       method:'PUT', credentials:'same-origin',
@@ -1492,7 +1528,9 @@ function scheduleCloudSave(immediate){
       body: JSON.stringify({ progress: snap })
     }).then(function(r){ return r.json(); }).then(function(d){
       if(d && d.ok && d.progress){
-        // keep server-merged truth locally (union of all devices)
+        // Bar order is the client's loadout. Only accept the echo when nothing
+        // newer was equipped while this request was in flight.
+        if(arsenalRev===sentRev) arsenalCloudRev=arsenalRev;
         applyProgressSnapshot(d.progress);
       }
     }).catch(function(e){ console.warn('cloud save failed', e); })
@@ -1502,14 +1540,14 @@ function scheduleCloudSave(immediate){
 }
 function cloudPullAndMerge(){
   if(!cloudLinked()) return Promise.resolve(null);
+  const sentRev=arsenalRev;
   return fetch('/api/progress',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
     .then(function(d){
       if(!d || !d.ok) return null;
-      const local = buildProgressSnapshot();
-      // Server already merges on PUT; first apply remote, then push local merge
+      // Apply remote unlocks/stats. A bar edit this session (arsenalRev ahead)
+      // is kept; otherwise the saved loadout order replaces this device.
       if(d.progress && d.progress.emblems){
-        // merge local onto remote by applying remote first then local-over-max via apply+put
         applyProgressSnapshot(d.progress);
       }
       // Push combined (local had been in memory; apply remote already unioned via server on next put)
@@ -1519,7 +1557,10 @@ function cloudPullAndMerge(){
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ progress: buildProgressSnapshot() })
       }).then(function(r){ return r.json(); }).then(function(d2){
-        if(d2 && d2.ok && d2.progress) applyProgressSnapshot(d2.progress);
+        if(d2 && d2.ok && d2.progress){
+          if(arsenalRev===sentRev) arsenalCloudRev=arsenalRev;
+          applyProgressSnapshot(d2.progress);
+        }
         _cloudPullDone=true;
         return d2;
       });
