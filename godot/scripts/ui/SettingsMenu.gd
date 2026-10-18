@@ -179,11 +179,40 @@ func _pin_reset_done_footer(panel: PanelContainer, vb: VBoxContainer, max_h: flo
 		var node := vb.get_node_or_null(n)
 		if node and node.get_parent() != footer:
 			node.reparent(footer)
-	var foot_h := footer.get_combined_minimum_size().y
+	# Autowrap hints report a one-line minimum until they have a column width.
+	var col_w := maxf(280.0, panel.custom_minimum_size.x - 36.0)
+	footer.custom_minimum_size.x = col_w
+	var foot_h := 0.0
+	var fcount := 0
+	var fsep := float(footer.get_theme_constant("separation"))
+	for c in footer.get_children():
+		var ctrl := c as Control
+		if ctrl == null or not ctrl.visible:
+			continue
+		if fcount > 0:
+			foot_h += fsep
+		var row_h := ctrl.get_combined_minimum_size().y
+		var lab := c as Label
+		if lab and lab.autowrap_mode != TextServer.AUTOWRAP_OFF:
+			var font := lab.get_theme_font("font")
+			var fs := lab.get_theme_font_size("font_size")
+			if font:
+				row_h = maxf(row_h, font.get_multiline_string_size(lab.text, HORIZONTAL_ALIGNMENT_LEFT, col_w, fs).y)
+		foot_h += row_h
+		fcount += 1
 	if foot_h < 8.0:
 		foot_h = 90.0
-	var inner := maxf(120.0, max_h - 18.0 - foot_h)
-	scroll.custom_minimum_size.y = mini(int(scroll.custom_minimum_size.y), int(inner))
+	var chrome := 30.0
+	var sb := panel.get_theme_stylebox("panel")
+	if sb:
+		chrome = sb.get_margin(SIDE_TOP) + sb.get_margin(SIDE_BOTTOM)
+	var outer_sep := float(outer.get_theme_constant("separation"))
+	var inner := maxf(120.0, max_h - chrome - outer_sep - foot_h)
+	scroll.custom_minimum_size.y = minf(float(scroll.custom_minimum_size.y), inner)
+	# HTML .set-card scrollbar is 11px. The default Godot bar ate the version line.
+	var bar := scroll.get_v_scroll_bar()
+	if bar:
+		bar.custom_minimum_size.x = 11.0
 	panel.reset_size()
 
 func expand_for_dual() -> void:

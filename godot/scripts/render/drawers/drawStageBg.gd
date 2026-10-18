@@ -3,25 +3,45 @@ extends RefCounted
 
 var ctx
 var tick: int = 0
-var bg_seed: float = 1.7
+## HTML initials until the first loadStage roll (StageFlow.bg_roll).
+var bg_seed: float = 0.0
 var bg_hue_seed: float = 0.0
 var bg_petals: int = 5
+var _applied_roll: int = -1
 
 func setup(c) -> void:
 	ctx = c
-	reroll_seeds()
+	sync_seeds()
+
+func sync_seeds() -> void:
+	## Read the shared loadStage roll. Do not start a second RNG stream.
+	if StageFlow == null:
+		return
+	var roll := int(StageFlow.bg_roll)
+	if roll == _applied_roll:
+		return
+	_applied_roll = roll
+	if roll <= 0:
+		bg_seed = 0.0
+		bg_hue_seed = 0.0
+		bg_petals = 5
+		return
+	bg_seed = float(StageFlow.bg_seed)
+	bg_hue_seed = float(StageFlow.bg_hue_seed)
+	bg_petals = int(StageFlow.bg_petals)
 
 func reroll_seeds() -> void:
-	## HTML newRun/loadStage: bgSeed=random*2π; bgHueSeed=random*60-30; bgPetals=3+(random*4|0)*2
-	bg_seed = randf() * TAU
-	bg_hue_seed = randf() * 60.0 - 30.0
-	bg_petals = 3 + (randi() % 4) * 2
+	## HTML loadStage owns the roll. Calling this still shares that one stream.
+	if StageFlow and StageFlow.has_method("roll_stage_bg"):
+		StageFlow.roll_stage_bg()
+	sync_seeds()
 
 func set_tick(t: int) -> void:
 	tick = t
 
 func drawStageBg() -> void:
 	## HTML drawStageBg — sc = stageTime||tick for motif scroll speed
+	sync_seeds()
 	var s = GameState.stage_index if GameState else 0
 	var sc = float(tick)
 	# Prefer EnemySpawner.stage_time (HTML stageTime) when in play

@@ -737,6 +737,34 @@ async function captureHtml() {
       console.log("[HTML] pause skip", e.message || e);
     }
 
+    // S14: HTML clear-gate still (hut + leek). Godot already writes godot_flow_cleargate.
+    try {
+      await page.evaluate(() => {
+        if (typeof newRun === "function") newRun();
+        if (window.__kamDual && window.__kamDual.setState) window.__kamDual.setState("play");
+        if (typeof run !== "undefined" && run) run.stageIdx = 0;
+        if (typeof spawnClearGate === "function") spawnClearGate();
+        if (typeof player !== "undefined" && player && clearPortal) {
+          player.x = clearPortal.x;
+          player.y = clearPortal.y + 36;
+          player.aim = -Math.PI / 2;
+          player.face = -Math.PI / 2;
+          player.dead = false;
+          player.iframe = 9999;
+        }
+        if (typeof clearMsgT !== "undefined") clearMsgT = 120;
+        if (typeof enemies !== "undefined" && enemies) enemies.length = 0;
+        if (typeof bullets !== "undefined" && bullets) bullets.length = 0;
+        if (typeof boss !== "undefined") boss = null;
+        if (typeof draw === "function") draw();
+      });
+      await page.waitForTimeout(fast ? 250 : 450);
+      await page.screenshot({ path: path.join(htmlDir, "html_flow_cleargate.png") });
+      console.log("[HTML] flow_cleargate");
+    } catch (e) {
+      console.log("[HTML] cleargate skip", e.message || e);
+    }
+
     // Force shop / stageclear / ends via __kamDual (closes over let state)
     try {
       await page.evaluate(() => {
@@ -1312,6 +1340,7 @@ function writeIndex() {
       ["html_play.png", "godot_play.png", "Play"],
       ["html_flow_touch.png", "godot_flow_touch.png", "Touch chrome"],
       ["html_flow_pause.png", "godot_flow_pause.png", "Pause"],
+      ["html_flow_cleargate.png", "godot_flow_cleargate.png", "Clear gate"],
       ["html_flow_shop.png", "godot_flow_shop.png", "Shop"],
       ["html_flow_stageclear.png", "godot_flow_stageclear.png", "Stage clear"],
       ["html_end_gameover.png", "godot_end_gameover.png", "Game over"],

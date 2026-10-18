@@ -32,23 +32,16 @@ func _ready() -> void:
 		mono = ui
 		push_error("[FontBank] FATAL: Trebuchet MS missing — using Noto (export missing fonts?)")
 	else:
-		print("[FontBank] Trebuchet MS ready (emoji fallbacks=", ui.fallbacks.size() if ui else 0, ")")
+		ThemeDB.fallback_font = ui
+		print("[FontBank] Trebuchet MS ready (fallbacks=", ui.fallbacks.size() if ui else 0, ")")
 
-func _build_font(path: String, with_emoji: bool) -> Font:
+func _build_font(path: String, _with_emoji: bool) -> Font:
 	var f := _load_font_file(path)
 	if f == null:
 		return null
-	if with_emoji:
-		var em := _load_font_file("res://assets/fonts/NotoColorEmoji.ttf")
-		if em != null:
-			var fb: Array[Font] = []
-			fb.append(em)
-			# Also chain Noto for rare glyphs if this is Trebuchet
-			if "Trebuchet" in path or "trebuc" in path.to_lower():
-				var ns := _load_font_file("res://assets/fonts/NotoSans-Regular.ttf")
-				if ns != null:
-					fb.append(ns)
-			f.fallbacks = fb
+	# System and Noto fallbacks do not draw the color emoji (the version-line bear stays tofu)
+	# and their line height pushed Resume off the 540p pause card. Trebuchet metrics only.
+	f.allow_system_fallback = false
 	return f
 
 func _load_font_file(path: String) -> FontFile:

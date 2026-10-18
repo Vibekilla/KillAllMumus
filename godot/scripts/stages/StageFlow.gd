@@ -20,8 +20,20 @@ var stage_no_death: bool = true
 var stage_no_bomb: bool = true
 var kills_this_stage: int = 0
 var stage_emblem_mark: int = 0
+## HTML bgSeed / bgHueSeed / bgPetals. One roll per loadStage, shared by every drawer.
+var bg_seed: float = 0.0
+var bg_hue_seed: float = 0.0
+var bg_petals: int = 5
+var bg_roll: int = 0
 
 const FRAME := 60.0
+
+func roll_stage_bg() -> void:
+	## HTML loadStage: bgSeed=random*2π; bgHueSeed=random*60-30; bgPetals=3+((random*4)|0)*2
+	bg_seed = randf() * TAU
+	bg_hue_seed = randf() * 60.0 - 30.0
+	bg_petals = 3 + (randi() % 4) * 2
+	bg_roll += 1
 
 func reset_run() -> void:
 	clear_portal = null
@@ -51,6 +63,8 @@ func on_stage_start(intro_frames: float = -1.0) -> void:
 	clear_shop = null
 	clear_msg_t = 0.0
 	dialog = null
+	# HTML loadStage rolls the backdrop even when the stage index stays 0 (new run).
+	roll_stage_bg()
 	if GameState.speedrun:
 		intro_timer = 20.0
 	elif intro_frames >= 0.0:

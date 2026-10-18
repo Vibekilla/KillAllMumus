@@ -21,6 +21,7 @@ var _last_blit_tex: Texture2D = null
 var _has_frame: bool = false
 var bake_count: int = 0
 var _seeded_stage: int = -1
+var _seen_roll: int = -1
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -45,12 +46,13 @@ func _ensure_viewport() -> void:
 	_ctx.bind(_host)
 	_drawer = load("res://scripts/render/drawers/drawStageBg.gd").new()
 	_drawer.setup(_ctx)
-	# HTML re-rolls seeds per stage construct; cache follows stage_index
-	if _drawer.has_method("reroll_seeds"):
-		_drawer.reroll_seeds()
+	# Seeds come from StageFlow.roll_stage_bg (one roll per loadStage). Do not roll here.
+	if _drawer.has_method("sync_seeds"):
+		_drawer.sync_seeds()
 	if _host.has_method("configure"):
 		_host.configure(_ctx, _drawer)
 	_seeded_stage = int(GameState.stage_index) if GameState else 0
+	_seen_roll = int(StageFlow.bg_roll) if StageFlow else 0
 
 func _bi_bucket() -> int:
 	## Match drawStageBgFx boss intensity — quantize so we re-bake on fight intensity shifts.
@@ -84,18 +86,23 @@ func _bi_bucket() -> int:
 
 func cache_key(stage: int, tick: int, bi_b: int) -> String:
 	var tb := int(floor(float(tick) / float(TICK_BUCKET)))
-	return "s%d|t%d|bi%d" % [stage, tb, bi_b]
+	var roll := int(StageFlow.bg_roll) if StageFlow else 0
+	return "s%d|r%d|t%d|bi%d" % [stage, roll, tb, bi_b]
 
 func get_texture(tick: int) -> Texture2D:
 	_ensure_viewport()
 	var stage := int(GameState.stage_index) if GameState else 0
-	if stage != _seeded_stage:
+	var roll := int(StageFlow.bg_roll) if StageFlow else 0
+	if stage != _seeded_stage or roll != _seen_roll:
 		_seeded_stage = stage
-		if _drawer and _drawer.has_method("reroll_seeds"):
-			_drawer.reroll_seeds()
+		_seen_roll = roll
+		if _drawer and _drawer.has_method("sync_seeds"):
+			_drawer.sync_seeds()
 		_ready_tex.clear()
 		_order.clear()
 		_last_blit_key = ""
+		_has_frame = false
+		_last_blit_tex = null
 	var bi_b := _bi_bucket()
 	var key := cache_key(stage, tick, bi_b)
 	if key != _last_blit_key:

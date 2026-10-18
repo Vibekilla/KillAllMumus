@@ -39,12 +39,12 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Notes |
 |----|------|-------|
-| S1 | Settings | Expanded dual shows Reset, the HTML hint, Done, and the version line. 540p still pins that footer. Bear emoji on the version line is a missing-glyph box |
+| S1 | Settings | Expanded dual shows Reset, the HTML hint, Done, and the version line. 540p still pins that footer. Headless check: Done ends at y=417 and the version line at y=445 inside the 540 view (2026-10-18). Bear emoji stays tofu. Not export-played |
 | S2 | Shop | Hint reads "LEAVE → stage clear" and leave returns to PLAY. Card strokes follow each item color. Descriptions wrap (8.5px was parsing as 5). 2026-10-13 shop still. Left/right browse is S13. Not export-played |
-| S3 | Pause | At 540p Resume is the last full control on both. Godot still shows a scrollbar and a sliver of Display. Blur is sampled, not backdrop-filter. Not export-played |
+| S3 | Pause | Headless 540p: the card ends on Resume (bottom y=484) and Display starts below the clip. Scroll bar hidden; wheel still scrolls. Blur is sampled, not backdrop-filter. Not export-played |
 | S4 | ~~Aura bomb scribble~~ | **CLOSED 2026-10-13** — soap bubble is on AddBack, BobinaPass covers it. Eye: bomb + power 3 show a readable Bobina inside the rings |
 | S5 | Item glyphs | Pickups are bold-monospace P ★ ♥ ✸ ◈ » with textBaseline middle (2026-10-13 items still, aligned for fall). DejaVu raster differs from Chromium. Not export-played |
-| S6 | Stage bg intensity | HTML seed RNG (hue ±30, petals 3/5/7/9) + re-roll per stage |
+| S6 | Stage bg intensity | One shared loadStage roll (hue ±30, petals 3/5/7/9), including a new run that stays on stage 0. Headless test passes. Not export-played |
 | S7 | Bobina lids/limbs | Outfit ×4.7 uses full HTML lineWidth scale (play keeps 0.96 AA shave) |
 | S8 | Special density | Vertex-colored linear + radial rings (2026-09-13). Residual: true CanvasGradient vs sampled strips |
 | S9 | Boss live patterns | step_n 48/100; live pins phases=1 so hp 55% does not trip phase-1 spiral. Do not copy phases=1 into BossController |
@@ -52,7 +52,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | S11 | Title sign-in | Pink "Sign in with Bobina" pill sits on the hint, above the chips (2026-10-13 core dual). Residual: no CSS gradient, letter-spacing .3px |
 | S12 | ~~Melee slash~~ | **CLOSED 2026-10-13** — katana still shows the blade over the crescent. Extra inner stroke removed. CoverPass is above AddLayer |
 | S13 | Shop keys / Escape | Arrows route only in the shop, leaderboard, and emblems. M is menu. Escape is not a binding. Not yet played on a fresh export |
-| S14 | Clear gate | Leek is a border-box radius-10 tile. Banner clip is a rounded rect. Mid-edge pink pixels match the 2026-10-13 stage-clear still. Glow is the sampled shadow, not CSS box-shadow. Hut draws when the portal is null; no HTML clear-gate still. Not export-played |
+| S14 | Clear gate | Leek is a border-box radius-10 tile. Banner clip is a rounded rect. Glow is the sampled shadow, not CSS box-shadow. Hut draws when the portal is null. Portal lighter stays omitted on purpose. HTML still captured (`html_flow_cleargate`, hut + portal + leek). Godot pair not re-shot. Not export-played |
 | S15 | Boss death ring | WorldDraw now passes deadT into drawBoss. Not on a boss-death still yet |
 | S16 | Shots and bullets | Laser bolts use roundRect capsules (rounded ends on the Godot still). HTML bolts had left the frame, so the pair is not same-position. Enemy outer disc replaced with shadowBlur 7; not on a bullet still |
 | S17 | Ends HUD | Game-over dim shows the side HUD on both (2026-10-13 right-edge crop). Win photo is a rounded cover crop. Full end screen not export-played. Color emoji still tofu |
@@ -94,6 +94,10 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-10-13 | S5 glyphs | Monospace P ★ ♥ ✸ ◈ » with middle baseline. Not export-played |
 | 2026-10-13 | S2 wrap | Shop blurbs wrap. 8.5px no longer parses as 5 |
 | 2026-10-13 | S17 partial | Game-over dim shows the HUD. Win photo is a cover crop. Not export-played |
+| 2026-10-18 | S6 code | Stage bg seeds roll once per loadStage on StageFlow; drawers and the bake cache share that roll |
+| 2026-10-18 | S3 code | Pause fold ends on Resume at 540p; scrollbar hidden. Not export-played |
+| 2026-10-18 | S1 code | Settings footer pin budgets card chrome and the wrapped hint. Bear emoji stays tofu |
+| 2026-10-18 | S14 harness | Core HTML shots now write `html_flow_cleargate`. Portal lighter stays off in Godot |
 | 2026-10-13 | spotlights | Wardrobe cone matches the outfits still. Maid dance was not in that dual |
 | 2026-08-12 | S1 scroll | SettingsMenu ScrollContainer + HTML .set-card element screenshot |
 | 2026-08-12 | Boss dual PASS | typed-array loadout fix verified (7 bosses) |

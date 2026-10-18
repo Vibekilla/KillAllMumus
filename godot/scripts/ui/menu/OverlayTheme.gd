@@ -190,9 +190,17 @@ static func style_slider(s: HSlider) -> void:
 	s.add_theme_icon_override("grabber_disabled", gt)
 	s.custom_minimum_size.y = 18
 
+static func ui_font() -> Font:
+	if FontBank and FontBank.ui:
+		return FontBank.ui
+	return null
+
 static func style_button(b: Button, kind: String = "ghost") -> void:
 	if b == null:
 		return
+	var uf := ui_font()
+	if uf:
+		b.add_theme_font_override("font", uf)
 	var normal: StyleBoxFlat
 	match kind:
 		"primary":
@@ -246,12 +254,18 @@ static func style_button(b: Button, kind: String = "ghost") -> void:
 static func style_sec(lab: Label) -> void:
 	if lab == null:
 		return
+	var uf := ui_font()
+	if uf:
+		lab.add_theme_font_override("font", uf)
 	lab.add_theme_color_override("font_color", SEC)
 	lab.add_theme_font_size_override("font_size", 10)
 
 static func style_label(lab: Label) -> void:
 	if lab == null:
 		return
+	var uf := ui_font()
+	if uf:
+		lab.add_theme_font_override("font", uf)
 	lab.add_theme_color_override("font_color", LABEL)
 	lab.add_theme_font_size_override("font_size", 13)
 
@@ -295,6 +309,9 @@ static func split_value_row(lab: Label) -> Label:
 	val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	val.add_theme_color_override("font_color", GOLD)
 	val.add_theme_font_size_override("font_size", 13)
+	var vf := ui_font()
+	if vf:
+		val.add_theme_font_override("font", vf)
 	row.add_child(val)
 	row.visible = lab.visible
 	lab.set_meta("value_lab", val)

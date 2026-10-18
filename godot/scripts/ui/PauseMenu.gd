@@ -37,8 +37,13 @@ func _apply_html_chrome() -> void:
 		title.text = "⏸ PAUSED"
 		title.add_theme_color_override("font_color", Color.WHITE)
 		title.add_theme_font_size_override("font_size", 32)
+		if FontBank and FontBank.ui_bold:
+			title.add_theme_font_override("font", FontBank.ui_bold)
+		elif FontBank and FontBank.ui:
+			title.add_theme_font_override("font", FontBank.ui)
 		title.add_theme_color_override("font_shadow_color", Color(1.0, 0.353, 0.549, 0.55))
-		title.add_theme_constant_override("shadow_outline_size", 10)
+		# HTML text-shadow does not grow the line box. A thick outline pushed Resume off 540p.
+		title.add_theme_constant_override("shadow_outline_size", 2)
 		title.add_theme_constant_override("shadow_offset_x", 0)
 		title.add_theme_constant_override("shadow_offset_y", 0)
 	OverlayTheme.style_label(music_label)
@@ -97,6 +102,8 @@ func _apply_html_chrome() -> void:
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		hint.add_theme_color_override("font_color", OverlayTheme.HINT)
 		hint.add_theme_font_size_override("font_size", 12)
+		if FontBank and FontBank.ui:
+			hint.add_theme_font_override("font", FontBank.ui)
 		vbox.add_child(hint)
 	_center_panel(pc, 380.0)
 
@@ -166,11 +173,15 @@ func _center_panel(pc: PanelContainer, w: float) -> void:
 	var max_h := vs.y * 0.92
 	var vbox := _pause_vbox(pc)
 	if vbox:
-		vbox.add_theme_constant_override("separation", 12)
+		# Flat rows (label, then slider) need a tighter gap than HTML's per-row margin
+		# or Resume falls off the 540p card. 6px keeps Resume the last full control.
+		vbox.add_theme_constant_override("separation", 6)
 		for sl in [music_slider, sfx_slider, follow_slider, speed_slider]:
 			if sl:
 				sl.custom_minimum_size.y = 26
 		OverlayTheme.wrap_overflow_scroll(pc, vbox, w, max_h)
+		# 540p: Resume is the last full control. A bar plus a sliver of Display is not HTML.
+		_fit_resume_fold(pc, vbox, max_h)
 	pc.reset_size()
 	var ph := maxf(pc.get_combined_minimum_size().y, pc.size.y)
 	if ph < 120.0:
@@ -180,6 +191,47 @@ func _center_panel(pc: PanelContainer, w: float) -> void:
 	pc.size = Vector2(w, ph)
 	pc.position = Vector2(roundf((vs.x - w) * 0.5), roundf((vs.y - ph) * 0.5))
 	move_child(pc, get_child_count() - 1)
+
+func _panel_chrome(pc: PanelContainer) -> float:
+	var sb := pc.get_theme_stylebox("panel") if pc else null
+	if sb == null:
+		return 30.0
+	return sb.get_margin(SIDE_TOP) + sb.get_margin(SIDE_BOTTOM)
+
+func _fit_resume_fold(pc: PanelContainer, vbox: VBoxContainer, max_h: float) -> void:
+	_fit_pause_card(pc, vbox, max_h, 0)
+
+func _fit_pause_card(pc: PanelContainer, vbox: VBoxContainer, max_h: float, attempt: int) -> void:
+	## After layout, end the card on Resume. Display stays one scroll away, with no bar.
+	if not is_instance_valid(pc) or not is_instance_valid(vbox):
+		return
+	var scroll := pc.get_node_or_null("Scroll") as ScrollContainer
+	if scroll == null:
+		return
+	var resume := vbox.get_node_or_null("ResumeBtn") as Control
+	if resume == null or resume.position.y < 1.0:
+		if attempt < 4:
+			_fit_pause_card.bind(pc, vbox, max_h, attempt + 1).call_deferred()
+		return
+	var cap := maxf(120.0, max_h - _panel_chrome(pc))
+	var content_h := vbox.get_combined_minimum_size().y
+	var through := resume.position.y + resume.size.y
+	if content_h <= cap + 1.0:
+		scroll.custom_minimum_size.y = content_h
+		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		return
+	var fold := minf(through, cap)
+	scroll.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	scroll.custom_minimum_size.y = fold
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	var chrome := _panel_chrome(pc)
+	var ph := minf(max_h, chrome + fold)
+	var w := pc.custom_minimum_size.x if pc.custom_minimum_size.x > 8.0 else pc.size.x
+	pc.custom_minimum_size = Vector2(w, 0)
+	pc.size = Vector2(w, ph)
+	var vs := _viewport_size()
+	pc.position = Vector2(roundf((vs.x - w) * 0.5), roundf((vs.y - ph) * 0.5))
 
 func _on_state(_s: StringName) -> void:
 	var paused := GameState.state == GameState.State.PAUSED
