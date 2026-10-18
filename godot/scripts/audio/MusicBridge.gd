@@ -1,10 +1,11 @@
 extends Node
-## HTML lofi YouTube stream bridge (video rPjez8z61rI).
+## HTML lofi YouTube playlist bridge, shuffled.
+## Playlist PLC6gDrhD6E1X_mZ8arMGO48Ta-cpsnuzR (the radio stream rPjez8z61rI ended).
 ## Web: JavaScriptBridge → window.kamMusicPlay (export HTML head + runtime inject fallback).
 ## Desktop: preference only (no YT embed unless a local stream is added later).
 ## Does NOT iframe the HTML game — music only.
 
-const YT_ID := "rPjez8z61rI"
+const YT_LIST := "PLC6gDrhD6E1X_mZ8arMGO48Ta-cpsnuzR"
 
 ## HTML lofiOn — user opted into music at soundgate
 var enabled: bool = false
@@ -110,8 +111,8 @@ func _ensure_js_bridge() -> void:
 	## Inject bridge if export head patch missing (hot reload / alternate shell)
 	if not OS.has_feature("web") or not ClassDB.class_exists("JavaScriptBridge"):
 		return
-	var has_bridge = JavaScriptBridge.eval("!!(window.kamMusicPlay)", true)
-	if str(has_bridge) == "true" or has_bridge == true:
+	var has_list = JavaScriptBridge.eval("window.__kamMusicList==='%s'" % YT_LIST, true)
+	if str(has_list) == "true" or has_list == true:
 		# Ensure soft-pause API exists even on older patched shells
 		var has_soft = JavaScriptBridge.eval("!!(window.kamMusicSoftPause)", true)
 		if str(has_soft) != "true" and has_soft != true:
@@ -126,41 +127,70 @@ func _ensure_js_bridge() -> void:
 })();
 """.replace("\n", " "))
 		return
-	# Minimal inject (same API as godot/export/web_music_head.html)
+	# Same playlist player as godot/export/web_music_head.html.
+	# Replaces a page that still points at the ended radio stream.
 	var inject := """
 (function(){
-  if(window.kamMusicPlay) return;
-  var YT_ID='%s';
-  var ytPlayer=null, ytReady=false, ytWant=false, ytVol=100;
+  var YT_LIST='%s';
+  if(window.__kamMusicList===YT_LIST && window.kamMusicPlay) return;
+  window.__kamMusicList=YT_LIST;
+  var ytPlayer=null, ytReady=false, ytWant=false, ytVol=100, ytShuffled=false, ytErrSkips=0, ytKickUntil=0, booted=false;
+  function ytPost(func, args){
+    try{
+      var iframe=document.getElementById('ytmusic');
+      if(!iframe||!iframe.contentWindow) return;
+      iframe.contentWindow.postMessage(JSON.stringify({event:'command',func:func,args:args||[],id:'ytmusic',channel:'widget'}),'*');
+    }catch(e){}
+  }
+  function ytKick(){
+    if(!ytWant) return;
+    try{ if(ytPlayer){ ytPlayer.setVolume(ytVol); ytPlayer.unMute(); ytPlayer.playVideo(); } }catch(e){}
+    ytPost('setVolume',[ytVol]); ytPost('unMute'); ytPost('playVideo');
+  }
+  function ytShuffle(){
+    if(ytShuffled) return;
+    ytShuffled=true;
+    try{ if(ytPlayer){ ytPlayer.setLoop(true); ytPlayer.setShuffle(true); } }catch(e){}
+    ytPost('setLoop',[true]); ytPost('setShuffle',[true]);
+  }
   function ensureDiv(){
     var el=document.getElementById('ytmusic');
+    if(el && el.tagName==='IFRAME'){
+      var d=document.createElement('div'); d.id='ytmusic';
+      d.style.cssText='position:fixed;width:2px;height:2px;left:0;bottom:0;opacity:0;pointer-events:none;overflow:hidden';
+      el.parentNode.replaceChild(d, el); el=d;
+    }
     if(!el){ el=document.createElement('div'); el.id='ytmusic';
       el.style.cssText='position:fixed;width:2px;height:2px;left:0;bottom:0;opacity:0;pointer-events:none;overflow:hidden';
-      document.body.appendChild(el); }
+      (document.body||document.documentElement).appendChild(el); }
     return el;
   }
   function boot(){
+    if(booted) return;
     ensureDiv();
     if(typeof YT==='undefined'||!YT.Player){ setTimeout(boot,200); return; }
+    booted=true;
     try{
-      ytPlayer=new YT.Player('ytmusic',{videoId:YT_ID,playerVars:{autoplay:0,controls:0,disablekb:1,loop:1,playlist:YT_ID,modestbranding:1,playsinline:1,rel:0,fs:0},
-        events:{onReady:function(){ytReady=true;try{ytPlayer.setVolume(ytVol);ytPlayer.unMute();}catch(e){} if(ytWant){try{ytPlayer.playVideo();}catch(e2){}}},
-          onStateChange:function(e){if(e.data===YT.PlayerState.ENDED){try{ytPlayer.playVideo();}catch(e3){}}}}});
+      if(ytPlayer&&ytPlayer.destroy){ try{ ytPlayer.destroy(); }catch(e){} }
+      ytPlayer=new YT.Player('ytmusic',{width:2,height:2,playerVars:{autoplay:0,controls:0,disablekb:1,loop:1,listType:'playlist',list:YT_LIST,modestbranding:1,playsinline:1,rel:0,fs:0,origin:location.origin},
+        events:{onReady:function(){ ytReady=true; ytKick(); },
+          onStateChange:function(e){ if(e.data===YT.PlayerState.PLAYING){ ytErrSkips=0; ytKickUntil=0; ytShuffle(); } if(e.data===YT.PlayerState.CUED&&ytWant) ytKick(); if(e.data===YT.PlayerState.ENDED&&ytWant){ try{ ytPlayer.nextVideo(); }catch(e2){} ytPost('nextVideo'); } },
+          onError:function(){ if(!ytWant) return; ytErrSkips++; if(ytErrSkips>12) return; try{ ytPlayer.nextVideo(); }catch(e){} ytPost('nextVideo'); }}});
       window.__kamYtPlayer=ytPlayer;
-    }catch(e){console.warn('[kamMusic] inject',e);}
+    }catch(e){ booted=false; console.warn('[kamMusic] inject', e); }
   }
-  window.kamMusicPlay=function(vol01){ytWant=true;if(typeof vol01==='number')ytVol=Math.round(Math.max(0,Math.min(1,vol01))*100);
-    if(ytReady&&ytPlayer){try{ytPlayer.setVolume(ytVol);ytPlayer.unMute();ytPlayer.playVideo();}catch(e){}}};
-  window.kamMusicPause=function(){ytWant=false;if(ytReady&&ytPlayer){try{ytPlayer.pauseVideo();}catch(e){}}};
-  window.kamMusicSoftPause=function(){if(ytReady&&ytPlayer){try{ytPlayer.pauseVideo();}catch(e){}}};
-  window.kamMusicVol=function(vol01){ytVol=Math.round(Math.max(0,Math.min(1,Number(vol01)||0))*100);
-    if(ytReady&&ytPlayer){try{ytPlayer.setVolume(ytVol);}catch(e){}}};
+  window.kamMusicPlay=function(vol01){ ytWant=true; if(typeof vol01==='number') ytVol=Math.round(Math.max(0,Math.min(1,vol01))*100);
+    ytKickUntil=Date.now()+12000; ytKick(); };
+  window.kamMusicPause=function(){ ytWant=false; ytKickUntil=0; if(ytPlayer){ try{ ytPlayer.pauseVideo(); }catch(e){} } ytPost('pauseVideo'); };
+  window.kamMusicSoftPause=function(){ ytKickUntil=0; if(ytPlayer){ try{ ytPlayer.pauseVideo(); }catch(e){} } ytPost('pauseVideo'); };
+  setInterval(function(){ if(ytWant && Date.now()<ytKickUntil) ytKick(); }, 1000);
+  window.kamMusicVol=function(vol01){ ytVol=Math.round(Math.max(0,Math.min(1,Number(vol01)||0))*100);
+    if(ytReady&&ytPlayer){ try{ ytPlayer.setVolume(ytVol); }catch(e){} } };
   if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){
     var s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; document.head.appendChild(s);
   }
-  var prev=window.onYouTubeIframeAPIReady;
-  window.onYouTubeIframeAPIReady=function(){ if(prev)try{prev();}catch(e){} boot(); };
+  window.onYouTubeIframeAPIReady=function(){ boot(); };
   if(typeof YT!=='undefined'&&YT.Player) boot(); else setTimeout(boot,300);
 })();
-""" % YT_ID
+""" % YT_LIST
 	_js_eval(inject.replace("\n", " "))

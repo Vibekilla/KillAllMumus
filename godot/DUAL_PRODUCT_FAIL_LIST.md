@@ -48,7 +48,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | S7 | Bobina lids/limbs | Outfit ×4.7 uses full HTML lineWidth scale (play keeps 0.96 AA shave) |
 | S8 | Special density | Vertex-colored linear + radial rings (2026-09-13). Residual: true CanvasGradient vs sampled strips |
 | S9 | Boss live patterns | step_n 48/100; live pins phases=1 so hp 55% does not trip phase-1 spiral. Do not copy phases=1 into BossController |
-| S10 | Music E2E | Cold-load applyMusicVol + 6s YT retry. Live social-tab still a device check |
+| S10 | Music E2E | Cold-load applyMusicVol + 6s YT retry. Source is shuffled playlist `PLC6gDrhD6E1X_mZ8arMGO48Ta-cpsnuzR` (the radio stream ended and cleared the tab audio icon). Live social-tab still a device check |
 | S11 | Title sign-in | Pink "Sign in with Bobina" pill sits on the hint, above the chips (2026-10-13 core dual). Residual: no CSS gradient, letter-spacing .3px |
 | S12 | ~~Melee slash~~ | **CLOSED 2026-10-13** — katana still shows the blade over the crescent. Extra inner stroke removed. CoverPass is above AddLayer |
 | S13 | Shop keys / Escape | Arrows route only in the shop, leaderboard, and emblems. M is menu. Escape is not a binding. Not yet played on a fresh export |

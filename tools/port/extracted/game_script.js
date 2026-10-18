@@ -284,21 +284,48 @@ function sfx(type, vmul){
   else if(type==='claw'){ [1900,2300,1650].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='sawtooth';oo.frequency.setValueAtTime(f,t+i*0.045);oo.frequency.exponentialRampToValueAtTime(f*0.5,t+i*0.045+0.06);gg.gain.setValueAtTime(0.055,t+i*0.045);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.045+0.08);oo.start(t+i*0.045);oo.stop(t+i*0.045+0.1);}); }  // Badger Claws — triple scratch
   else if(type==='warp'){ o.type='sine'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(1400,t+0.18); o.frequency.exponentialRampToValueAtTime(90,t+0.5); g.gain.setValueAtTime(0.13*vm,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.5); o.start(t); o.stop(t+0.52); }  // Wormhole — interdimensional whoosh
 }
-// Music = "lofi hip hop radio" YouTube stream via hidden IFrame player. Autoplays at MAX volume once the user taps the sound-gate.
-let lofiOn=false, ytPlayer=null, ytReady=false, ytWant=false;
-const YT_ID='rPjez8z61rI';
+// Music = shuffled YouTube playlist. The old lofi radio stream ended, playVideo() on
+// that ENDED state was a no-op, and the tab dropped its audio icon. Hidden IFrame.
+// Autoplays at the saved volume once the user taps the sound-gate.
+let lofiOn=false, ytPlayer=null, ytReady=false, ytWant=false, ytShuffled=false, ytErrSkips=0, ytKickUntil=0;
+const YT_LIST='PLC6gDrhD6E1X_mZ8arMGO48Ta-cpsnuzR';
+function ytPost(func, args){
+  try{
+    var iframe=document.getElementById('ytmusic');
+    if(!iframe||!iframe.contentWindow) return;
+    iframe.contentWindow.postMessage(JSON.stringify({event:'command',func:func,args:args||[],id:'ytmusic',channel:'widget'}),'*');
+  }catch(e){}
+}
+function ytKick(){
+  if(!ytWant) return;
+  var vol=Math.round(musicVol*100);
+  try{ if(ytPlayer){ ytPlayer.setVolume(vol); ytPlayer.unMute(); ytPlayer.playVideo(); } }catch(e){}
+  ytPost('setVolume',[vol]); ytPost('unMute'); ytPost('playVideo');
+}
+function ytShuffle(){
+  if(ytShuffled) return;
+  ytShuffled=true;
+  try{ if(ytPlayer){ ytPlayer.setLoop(true); ytPlayer.setShuffle(true); } }catch(e){}
+  ytPost('setLoop',[true]); ytPost('setShuffle',[true]);
+}
 window.onYouTubeIframeAPIReady=function(){
   try{
-    ytPlayer=new YT.Player('ytmusic',{ videoId:YT_ID,
-      playerVars:{ autoplay:0, controls:0, disablekb:1, loop:1, playlist:YT_ID, modestbranding:1, playsinline:1, rel:0, fs:0 },
+    ytPlayer=new YT.Player('ytmusic',{
+      playerVars:{ autoplay:0, controls:0, disablekb:1, loop:1, listType:'playlist', list:YT_LIST, modestbranding:1, playsinline:1, rel:0, fs:0, origin:location.origin },
       events:{
-        onReady:()=>{ ytReady=true; try{ ytPlayer.setVolume(Math.round(musicVol*100)); ytPlayer.unMute(); }catch(e){} if(ytWant){ try{ ytPlayer.playVideo(); }catch(e){} } },
-        onStateChange:(e)=>{ if(e.data===YT.PlayerState.ENDED){ try{ ytPlayer.playVideo(); }catch(e2){} } }
+        onReady:()=>{ ytReady=true; ytKick(); },
+        onStateChange:(e)=>{
+          if(e.data===YT.PlayerState.PLAYING){ ytErrSkips=0; ytKickUntil=0; ytShuffle(); }
+          if(e.data===YT.PlayerState.CUED && ytWant) ytKick();
+          if(e.data===YT.PlayerState.ENDED && ytWant){ try{ ytPlayer.nextVideo(); }catch(e2){} ytPost('nextVideo'); }
+        },
+        onError:()=>{ if(!ytWant) return; ytErrSkips++; if(ytErrSkips>12) return; try{ ytPlayer.nextVideo(); }catch(e){} ytPost('nextVideo'); }
       } });
   }catch(e){}
 };
-function musicPlay(){ ytWant=true; if(ytReady&&ytPlayer){ try{ ytPlayer.setVolume(Math.round(musicVol*100)); ytPlayer.unMute(); ytPlayer.playVideo(); }catch(e){} } }
-function musicPause(){ ytWant=false; if(ytReady&&ytPlayer){ try{ ytPlayer.pauseVideo(); }catch(e){} } }
+function musicPlay(){ ytWant=true; ytKickUntil=Date.now()+12000; ytKick(); }
+function musicPause(){ ytWant=false; ytKickUntil=0; try{ if(ytPlayer) ytPlayer.pauseVideo(); }catch(e){} ytPost('pauseVideo'); }
+setInterval(function(){ if(ytWant && Date.now()<ytKickUntil) ytKick(); }, 1000);
 // Sound-enable verification gate — the tap is the user gesture browsers require to autoplay audio
 const soundGate=document.getElementById('soundgate');
 // go fullscreen on touch devices for an immersive experience (best effort — no-op on iOS Safari, which has no Fullscreen API)

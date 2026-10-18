@@ -1,16 +1,53 @@
-<!-- HTML lofi stream (same YT ID as public/index.html) — music only, not the game.
+<!-- HTML lofi stream (same playlist as public/index.html) — music only, not the game.
      NOTE: page must NOT send COEP require-corp (blocks youtube.com iframes).
      server.js only sets COEP when the export has threads enabled. -->
 <div id="ytmusic" style="position:fixed;width:2px;height:2px;left:0;bottom:0;opacity:0;pointer-events:none;overflow:hidden;z-index:0"></div>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
 (function () {
-  var YT_ID = "rPjez8z61rI";
+  var YT_LIST = "PLC6gDrhD6E1X_mZ8arMGO48Ta-cpsnuzR";
+  window.__kamMusicList = YT_LIST;
   var ytPlayer = null, ytReady = false, ytWant = false, ytVol = 100;
+  var ytShuffled = false, ytErrSkips = 0, ytKickUntil = 0;
   var booted = false;
+
+  function ytPost(func, args) {
+    try {
+      var iframe = document.getElementById("ytmusic");
+      if (!iframe || !iframe.contentWindow) return;
+      iframe.contentWindow.postMessage(JSON.stringify({
+        event: "command", func: func, args: args || [], id: "ytmusic", channel: "widget"
+      }), "*");
+    } catch (e) {}
+  }
+
+  function ytKick() {
+    if (!ytWant) return;
+    try {
+      if (ytPlayer) { ytPlayer.setVolume(ytVol); ytPlayer.unMute(); ytPlayer.playVideo(); }
+    } catch (e) {}
+    ytPost("setVolume", [ytVol]);
+    ytPost("unMute");
+    ytPost("playVideo");
+  }
+
+  function ytShuffle() {
+    if (ytShuffled) return;
+    ytShuffled = true;
+    try { if (ytPlayer) { ytPlayer.setLoop(true); ytPlayer.setShuffle(true); } } catch (e) {}
+    ytPost("setLoop", [true]);
+    ytPost("setShuffle", [true]);
+  }
 
   function ensureDiv() {
     var el = document.getElementById("ytmusic");
+    if (el && el.tagName === "IFRAME") {
+      var fresh = document.createElement("div");
+      fresh.id = "ytmusic";
+      fresh.style.cssText = "position:fixed;width:2px;height:2px;left:0;bottom:0;opacity:0;pointer-events:none;overflow:hidden;z-index:0";
+      el.parentNode.replaceChild(fresh, el);
+      el = fresh;
+    }
     if (!el) {
       el = document.createElement("div");
       el.id = "ytmusic";
@@ -27,31 +64,37 @@
     booted = true;
     try {
       ytPlayer = new YT.Player("ytmusic", {
-        videoId: YT_ID,
         width: 2,
         height: 2,
         playerVars: {
-          autoplay: 0, controls: 0, disablekb: 1, loop: 1, playlist: YT_ID,
+          autoplay: 0, controls: 0, disablekb: 1, loop: 1,
+          listType: "playlist", list: YT_LIST,
           modestbranding: 1, playsinline: 1, rel: 0, fs: 0, origin: location.origin
         },
         events: {
           onReady: function () {
             ytReady = true;
-            try { ytPlayer.setVolume(ytVol); ytPlayer.unMute(); } catch (e) {}
-            if (ytWant) {
-              try { ytPlayer.playVideo(); } catch (e2) {}
-            }
+            ytKick();
           },
           onStateChange: function (e) {
-            if (e.data === YT.PlayerState.ENDED) {
-              try { ytPlayer.playVideo(); } catch (e3) {}
+            if (e.data === YT.PlayerState.PLAYING) { ytErrSkips = 0; ytKickUntil = 0; ytShuffle(); }
+            if (e.data === YT.PlayerState.CUED && ytWant) ytKick();
+            if (e.data === YT.PlayerState.ENDED && ytWant) {
+              try { ytPlayer.nextVideo(); } catch (e2) {}
+              ytPost("nextVideo");
             }
           },
           onError: function (e) {
             console.warn("[kamMusic] YT error", e && e.data);
+            if (!ytWant) return;
+            ytErrSkips++;
+            if (ytErrSkips > 12) return;
+            try { ytPlayer.nextVideo(); } catch (err) {}
+            ytPost("nextVideo");
           }
         }
       });
+      window.__kamYtPlayer = ytPlayer;
     } catch (e) {
       booted = false;
       console.warn("[kamMusic]", e);
@@ -67,33 +110,34 @@
     if (typeof vol01 === "number" && isFinite(vol01)) {
       ytVol = Math.round(Math.max(0, Math.min(1, vol01)) * 100);
     }
+    ytKickUntil = Date.now() + 12000;
     if (!booted) bootPlayer();
-    if (ytReady && ytPlayer) {
-      try {
-        ytPlayer.setVolume(ytVol);
-        ytPlayer.unMute();
-        ytPlayer.playVideo();
-      } catch (e) {
-        console.warn("[kamMusic] play", e);
-      }
-    }
+    ytKick();
   };
 
   window.kamMusicPause = function () {
     ytWant = false;
+    ytKickUntil = 0;
     if (ytReady && ytPlayer) {
       try { ytPlayer.pauseVideo(); } catch (e) {}
     }
+    ytPost("pauseVideo");
   };
 
   // Soft pause: pause video but keep ytWant (do NOT clear preference).
   // Prefer NOT calling this on visibilitychange — HTML never pauses lofi on tab hide;
   // browser autoplay often blocks resume without a fresh user gesture.
   window.kamMusicSoftPause = function () {
+    ytKickUntil = 0;
     if (ytReady && ytPlayer) {
       try { ytPlayer.pauseVideo(); } catch (e) {}
     }
+    ytPost("pauseVideo");
   };
+
+  setInterval(function () {
+    if (ytWant && Date.now() < ytKickUntil) ytKick();
+  }, 1000);
 
   window.kamMusicVol = function (vol01) {
     ytVol = Math.round(Math.max(0, Math.min(1, Number(vol01) || 0)) * 100);
@@ -103,7 +147,13 @@
   };
 
   window.kamMusicStatus = function () {
-    return { ready: ytReady, want: ytWant, vol: ytVol, booted: booted, coep: document.featurePolicy ? true : false };
+    var src = "";
+    try {
+      var iframe = document.querySelector("#ytmusic");
+      if (!iframe || iframe.tagName !== "IFRAME") iframe = document.querySelector("iframe#ytmusic, #ytmusic iframe");
+      if (iframe && iframe.src) src = iframe.src;
+    } catch (e) {}
+    return { ready: ytReady, want: ytWant, vol: ytVol, booted: booted, list: YT_LIST, shuffled: ytShuffled, src: src };
   };
 
   // API may already be present if script cached

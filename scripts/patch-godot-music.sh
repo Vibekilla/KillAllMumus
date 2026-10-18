@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Inject YouTube lofi bridge into Godot web export HTML (after godot --export).
-# Re-patches when SoftPause API is missing so residual music fixes land on re-export.
+# Re-patches when the shuffled playlist marker or SoftPause API is missing.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 HTML="${1:-$ROOT/public_godot/index.html}"
@@ -16,44 +16,48 @@ fi
 
 python3 - <<PY
 from pathlib import Path
-import re
 html_path = Path("$HTML")
 snip_path = Path("$SNIP")
 html = html_path.read_text()
 snip = snip_path.read_text()
 
-# Already has current soft-pause API → done
-if "kamMusicSoftPause" in html and "kamMusicPlay" in html:
+# Current bridge: shuffled playlist marker plus the soft-pause API.
+MARKER = "PLC6gDrhD6E1X_mZ8arMGO48Ta-cpsnuzR"
+if (
+    MARKER in html
+    and "ytKickUntil" in html
+    and "kamMusicSoftPause" in html
+    and "kamMusicPlay" in html
+    and "playVideoAt" not in html
+):
     print("music bridge up to date in", html_path)
     raise SystemExit(0)
 
-# Strip any older music bridge block (ytmusic div + iframe_api + kamMusic IIFE)
-# Matches our head snippet between optional comment and script end.
-patterns = [
-    r'<!-- HTML lofi stream[\s\S]*?</script>\s*',
-    r'<div id="ytmusic"[\s\S]*?</script>\s*',
-]
+# Strip from the lofi comment (or ytmusic div) through the kamMusic IIFE.
+# The iframe_api tag closes before kamMusicPlay, so a first-</script> match
+# would leave the player script in place.
 cleaned = html
-for pat in patterns:
-    cleaned2 = re.sub(pat, "", cleaned, count=1)
-    if cleaned2 != cleaned:
-        cleaned = cleaned2
-        break
+start = cleaned.find("<!-- HTML lofi stream")
+if start < 0:
+    start = cleaned.find('<div id="ytmusic"')
+if start < 0:
+    raise SystemExit("no music bridge to replace in %s" % html_path)
+anchor = cleaned.find("kamMusicPlay", start)
+if anchor < 0:
+    raise SystemExit("music bridge has no kamMusicPlay in %s" % html_path)
+end = cleaned.find("</script>", anchor)
+if end < 0:
+    raise SystemExit("music bridge script is not closed in %s" % html_path)
+end += len("</script>")
+while end < len(cleaned) and cleaned[end] in " \t\r\n":
+    end += 1
+cleaned = cleaned[:start] + cleaned[end:]
 
 if "</head>" not in cleaned:
     raise SystemExit("no </head> in export html")
 
-if "kamMusicPlay" in cleaned and "kamMusicSoftPause" not in cleaned:
-    # Fallback: inject SoftPause next to kamMusicPause if partial bridge remains
-    if "window.kamMusicPause" in cleaned:
-        cleaned = cleaned.replace(
-            "window.kamMusicPause",
-            "window.kamMusicSoftPause=function(){try{if(window.__kamYtPlayer&&window.__kamYtPlayer.pauseVideo)window.__kamYtPlayer.pauseVideo();}catch(e){}};window.kamMusicPause",
-            1,
-        )
-        html_path.write_text(cleaned)
-        print("patched SoftPause into existing bridge", html_path)
-        raise SystemExit(0)
+if "kamMusicPlay" in cleaned:
+    raise SystemExit("could not strip old music bridge from %s" % html_path)
 
 html_out = cleaned.replace("</head>", snip + "\n</head>", 1)
 html_path.write_text(html_out)

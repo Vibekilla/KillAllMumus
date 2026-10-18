@@ -130,7 +130,7 @@ for (const [k, re] of [
   ['MAX_BOMBS', /const MAX_BOMBS\s*=\s*(\d+)/],
   ['KILL_EXTEND', /const KILL_EXTEND\s*=\s*(\d+)/],
   ['MAX_NG', /const MAX_NG\s*=\s*(\d+)/],
-  ['YT_ID', /const YT_ID\s*=\s*'([^']+)'/],
+  ['YT_LIST', /const YT_LIST\s*=\s*'([^']+)'/],
 ]) {
   const m = HTML.match(re);
   if (m) balance[k] = isNaN(m[1]) ? m[1] : Number(m[1]);

@@ -88,7 +88,7 @@ func _apply_html_chrome() -> void:
 		speedrun_btn.text = "Skip villain monologues"
 	# HTML .set-hint copy under rows
 	if vbox and vbox.get_node_or_null("HintMusic") == null:
-		_insert_hint(vbox, music_slider, "HintMusic", "Bobina's lofi radio stream.")
+		_insert_hint(vbox, music_slider, "HintMusic", "Bobina's lofi playlist.")
 		_insert_hint(vbox, sfx_slider, "HintSfx", "Shots, hits, pickups and jingles.")
 		if speedrun_btn:
 			_insert_hint(vbox, speedrun_btn, "HintSpeedrun", "“Bobina hates monologues too.” Cuts straight to the fights.")
