@@ -8,13 +8,20 @@ function update(){
   const p=player;
   if(p.dead){ p.respawn--; if(p.respawn<=0 && run.lives>=0) initPlayer(); updateItems(); return; }
   if(run.cleared){ if(clearMsgT>0)clearMsgT--; }   // free-roam prep: press [E] at the portal to leave, [E] at the shop to buy — no auto-enter
-  // consumables: [Switch Item] cycles the selection (keyPress); HOLD [Use Item] 0.8s to consume, then a 3s cooldown before the next use (no spamming)
-  if(!paused){ if(p._eCd>0) p._eCd--;
-    if(keys.item_use){ if(!p._eHeld){ p._eHeld=true; p._eT=0; p._eUsed=false; } p._eT++;
-      if(p._eT>=48 && !p._eUsed){ p._eUsed=true;   // 0.8s hold reached — fire once per hold
-        if(p._eCd>0){ sfx('hit'); flashMsg={t:60,txt:'⌛ Item cooling down — '+Math.ceil(p._eCd/60)+'s'}; }
-        else if(consumeSelected()){ p._eCd=180; } } }   // a successful use starts the 3s cooldown
-    else if(p._eHeld){ p._eHeld=false; } }   // consumables work during the cleared prep too, so you can stock up and heal before the portal
+  // consumables: [Switch Item] cycles (keyPress); TAP [Use Item] to consume, then a 3s cooldown (no spamming)
+  // Outer try — public HTML must never freeze if item apply/audio/fx throws
+  try{
+    if(!paused && p){
+      if(p._eCd>0) p._eCd--;
+      if(keys.item_use){
+        if(!p._eHeld){
+          p._eHeld=true;
+          if(p._eCd>0){ sfx('hit'); flashMsg={t:60,txt:'⌛ Item cooling down — '+Math.ceil(p._eCd/60)+'s'}; }
+          else if(consumeSelected()){ p._eCd=180; }
+        }
+      } else if(p._eHeld){ p._eHeld=false; }
+    }
+  }catch(err){ console.error('[item_use]', err); try{ if(p) p._eHeld=false; }catch(_e){} }
   if(p.iframe>0)p.iframe--; if(p.bombFx>0)p.bombFx--; if(hurtPortrait>0)hurtPortrait--; if(p.shieldT>0)p.shieldT--; if(p.rapidT>0)p.rapidT--; if(p.dashCd>0)p.dashCd--;
   if(p.vialT>0){ p.vialT--; if(p.vialT<=0) p.vialHits=0; } if(p.phaseT>0)p.phaseT--;   // Unholy Vial window / Wormhole phase
   p.offx=(p.offx||0)*0.95; p.offy=(p.offy||0)*0.95;   // a dash's displacement decays away → she eases back under the cursor over ~1s

@@ -45,3 +45,5 @@ function drawClearGate(){ const t=tick;
     ctx.fillStyle='#ffd27a'; ctx.font='bold 11px "Trebuchet MS"'; ctx.fillText('Shop ['+kb('interact')+'] to gear up  ·  Portal ['+kb('interact')+'] when ready', mcx, PF.y+40);
     ctx.textAlign='left'; ctx.restore(); }
 }
+// ---- Honey Badger (shopkeeper) — detailed & reference-accurate: wide dark furry head with drooping jowls,
+//      a WILD spiky white fur crest of individual windswept strands, big glossy eyes w/ reddish rims + sparkles ----

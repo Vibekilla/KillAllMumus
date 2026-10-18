@@ -27,3 +27,9 @@ function keyPress(k){ bumpIdle();
   if(state==='leaderboard'){ if(k==='left' && lbPage>0){ lbSetPage(lbPage-1); sfx('item'); } if(k==='right' && lbPage<lbPageCount()-1){ lbSetPage(lbPage+1); sfx('item'); } }
   if(state==='emblems'){ if(k==='left' && emPage>0){ emPage--; sfx('item'); } if(k==='right' && emPage<emPageCount()-1){ emPage++; sfx('item'); } }
 }
+
+/* ---------- Audio ---------- */
+let AC=null, masterGain=null;
+// audio + speedrun prefs (tunable in Settings)
+let sfxVol=0.9, musicVol=1.0, speedrun=false, autoFire=false;   // default OFF — hold Z / click (desktop) or toggle FIRE on touch
+try{ let a=parseFloat(localStorage.getItem('bobina_sfxvol')); if(!isNaN(a)) sfxVol=a; let m=parseFloat(localStorage.getItem('bobina_musicvol')); if(!isNaN(m)) musicVol=m; speedrun=localStorage.getItem('bobina_speedrun')==='1'; if(localStorage.getItem('bobina_autofire')==='1') autoFire=true; }catch(e){}

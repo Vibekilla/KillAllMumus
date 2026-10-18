@@ -12,3 +12,7 @@ function applyLayout(p, vw, vh){
   portrait=!!p; W=cv.width; H=cv.height; COLLECT_LINE=PF.y+96;
   ctx.lineJoin='round'; ctx.lineCap='round';
 }
+applyLayout(false);
+
+/* ---------- Assets ---------- */
+const IMG={};

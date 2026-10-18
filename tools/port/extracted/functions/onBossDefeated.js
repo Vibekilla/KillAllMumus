@@ -5,3 +5,5 @@ function onBossDefeated(){
   if(run.stageIdx>=STAGES.length-1){ onGameCleared(); computeEmblems(); state='win'; winTimer=0; return; }
   clearInfo={ stage:run.stageIdx, killsThisStage, total:totalKills, emblems:newEmblems.slice(stageEmblemMark).map(id=>emblemDef(id)).filter(Boolean) }; state='stageclear';
 }
+
+/* ---------- Bomb / cancel ---------- */

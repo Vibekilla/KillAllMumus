@@ -28,3 +28,9 @@ function drawEmblems(){
   } else { emPrevBtn=emNextBtn=null; }
   ctx.textAlign='center'; ctx.fillStyle=(Math.floor(tick/30)%2)?'#fff':'#9a7c96'; ctx.font='bold 13px monospace'; ctx.fillText('PRESS '+kb('shoot')+' / TAP EMPTY AREA TO RETURN', W/2, H-8); ctx.textAlign='left';
 }
+// ---- OUTFITS gallery: pick a skin + watch her do cute animations in a preview stage ----
+let outfitPreview='og', outfitPose=(()=>{ try{ return parseInt(localStorage.getItem('bobina_pose'))||0; }catch(e){ return 0; } })(), victoryFace=(()=>{ try{ return parseInt(localStorage.getItem('bobina_face'))||0; }catch(e){ return 0; } })(), outfitAnimT=0, outfitTiles=[], outfitPoseBtn=null, outfitBackBtn=null, faceBtn=null;   // selected pose + face persist — her stage-clear victory pose
+const OUTFIT_POSES=[{name:'· Idle'},{name:'♪ Dance'},{name:'✦ Twirl'},{name:'♥ Bounce'},{name:'>v< Cheer'},{name:'🔥 This Is Fine'}];   // the SELECTED pose becomes her stage-clear victory pose (extensible — add more here + a poseParams case)
+const VICTORY_FACES=[{name:'Auto', expr:null},{name:':3', expr:'uwu'},{name:'Smile', expr:'smile'},{name:'>v<', expr:'squee'},{name:'Giggle', expr:'giggle'},{name:'Annoyed', expr:'annoyed'}];   // face the player can pick for the victory pose (Auto = the pose's own face)
+// Motion + expression for each pose. Add a case here (and an entry to OUTFIT_POSES) and it works EVERYWHERE —
+// the outfit preview AND her on-field stage-clear victory pose (which is whichever pose the player selected).

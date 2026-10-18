@@ -13,3 +13,4 @@ function drawPhaseVeil(){ const t=tick, pt=player.phaseT, cx=PF.x+PF.w/2, cy=PF.
   if(edge>0){ for(let i=0;i<8;i++){ const by=PF.y+((i*43+t*13)%PF.h), off=Math.sin(t*0.3+i*1.3)*edge*40; ctx.fillStyle='rgba(120,220,255,'+(0.28*edge)+')'; ctx.fillRect(PF.x+off,by,PF.w,6); } }
   ctx.restore(); window.__veilRan=(window.__veilRan||0)+1;
 }
+// Sixth Sense time-warp overlay — cyan wash + ticking clock rings + vignette (fades in/out)

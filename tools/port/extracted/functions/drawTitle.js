@@ -41,7 +41,7 @@ function drawTitle(){
     ctx.fillStyle='#6a5a72'; ctx.fillText(STAGES.length+' stages · '+STAGES.length+' meme bosses · power fades, grab P · save your score globally', W/2, ny); ny+=16;
     ctx.fillStyle='#8a6a92'; ctx.fillText('A Bobina Council LLC & Grr Finance production', W/2, ny);
   } else {
-    ctx.fillStyle='#a894b2'; ctx.font='bold 11px monospace'; ctx.fillText('◀ JOYSTICK (bottom-left) moves — she auto-fires', W/2, ny); ny+=15;
+    ctx.fillStyle='#a894b2'; ctx.font='bold 11px monospace'; ctx.fillText('◀ JOYSTICK moves · tap FIRE to toggle auto-fire (off by default)', W/2, ny); ny+=15;
     ctx.fillStyle='#9a8aa2'; ctx.font='11px monospace'; ctx.fillText('Buttons ▶  FOCUS · BOMB · SPEC (tap USE! when charged) · SWAP', W/2, ny); ny+=15;
     ctx.fillStyle='#8a6a92'; ctx.font='10px monospace'; ctx.fillText('A Bobina Council LLC & Grr Finance production · tap ⛶ for fullscreen', W/2, ny);
   }

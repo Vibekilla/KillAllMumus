@@ -62,3 +62,4 @@ function drawPowerAura(p){ if(!run) return;
   // rising psychedelic sparkle particles — the trail she likes, hue-shifting
   if(pf>0.12 && !paused && t%Math.max(2,5-Math.floor(pf*3))===0){ const hue=(hue0+Math.random()*80)%360; particles.push({x:cx+(Math.random()-.5)*R*1.5, y:cy+R*0.4, vx:(Math.random()-.5)*1.3, vy:-1.6-Math.random()*2.2*pf, life:18+((Math.random()*14)|0), c:`hsl(${hue|0},100%,72%)`}); }
 }
+// the bubble's radiance bleeds into the map — a faint hue halo + wavy ripple rings that make reality wobble around her

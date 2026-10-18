@@ -4,3 +4,5 @@ function computeEmblems(){ emblems=[];
   if(shotLevel()>=4) emblems.push({n:'Full Power Bobina', d:'Reached max power'});
   if(state!=='gameover' && run && run.stageIdx>=STAGES.length-1) emblems.push({n:'Bobo Savior + Mumu Slayer', d:'True ending clear'});
 }
+
+/* ---------- Update ---------- */

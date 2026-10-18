@@ -69,17 +69,21 @@ func ars_set(type: String, arr: Array) -> void:
 		ar = {}
 	ar[type] = arr
 	ProgressStore.progress["arsenal"] = ar
-	# sync run weapons/specials
+	# sync run weapons/specials — keep the armed key if it is still on the bar
 	if type == "w":
 		GameState.weapons.clear()
 		for w in arr:
 			GameState.weapons.append(str(w))
-		if GameState.weapons.size():
-			GameState.current_weapon = GameState.weapons[0]
+		if GameState.weapons.is_empty():
+			GameState.weapons.append("laser")
+		if GameState.weapons.find(GameState.current_weapon) < 0:
+			GameState.current_weapon = str(GameState.weapons[0])
 	elif type == "s":
 		GameState.specials.clear()
 		for s in arr:
 			GameState.specials.append(str(s))
+	if ProgressStore and ProgressStore.has_method("note_arsenal_edit"):
+		ProgressStore.note_arsenal_edit()
 	ProgressStore.queue_save()
 
 func ars_item_by_key(type: String, k: String) -> Dictionary:

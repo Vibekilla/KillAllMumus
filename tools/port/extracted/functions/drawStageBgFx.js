@@ -57,3 +57,5 @@ function drawStageBgFx(s){
   }
   ctx.restore();
 }
+
+/* ---- Bobina: Touhou maid ---- */

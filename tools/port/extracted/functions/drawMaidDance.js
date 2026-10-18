@@ -25,3 +25,4 @@ function drawMaidDance(){
   ctx.fillStyle='#c8b0d0'; ctx.font='13px monospace'; ctx.fillText('— tap / press any key to start —', W/2, 96);
   ctx.textAlign='left'; ctx.restore();
 }
+let titleBtns=[], shareBtn=null, menuBtn=null, scArsenalBtn=null;

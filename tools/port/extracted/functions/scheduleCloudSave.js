@@ -4,6 +4,7 @@ function scheduleCloudSave(immediate){
   const run=function(){
     if(!cloudLinked() || _cloudBusy) return;
     _cloudBusy=true;
+    const sentRev=arsenalRev;
     const snap=buildProgressSnapshot();
     fetch('/api/progress',{
       method:'PUT', credentials:'same-origin',
@@ -11,7 +12,9 @@ function scheduleCloudSave(immediate){
       body: JSON.stringify({ progress: snap })
     }).then(function(r){ return r.json(); }).then(function(d){
       if(d && d.ok && d.progress){
-        // keep server-merged truth locally (union of all devices)
+        // Bar order is the client's loadout. Only accept the echo when nothing
+        // newer was equipped while this request was in flight.
+        if(arsenalRev===sentRev) arsenalCloudRev=arsenalRev;
         applyProgressSnapshot(d.progress);
       }
     }).catch(function(e){ console.warn('cloud save failed', e); })

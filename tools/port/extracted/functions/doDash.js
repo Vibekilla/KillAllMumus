@@ -9,3 +9,4 @@ function doDash(){ const p=player; if(!p||p.dead||p.dash>0||p.dashCd>0) return;
     doMeleeSwipe(1.0, ang); screenShake=Math.max(screenShake,6); sfx('card'); sfx(MELEE[p.melee||0].snd||'slash'); }
   else { sfx('graze'); sfx('power'); }
   for(let i=0;i<(slash?24:14);i++) particles.push({x:p.x,y:p.y,vx:-Math.cos(ang)*4+(Math.random()-.5)*(slash?3.6:2.5),vy:-Math.sin(ang)*4+(Math.random()-.5)*(slash?3.6:2.5),life:18,c:i%2?oc[0]:oc[1]}); }
+// small rainbow explosion where the dash touches down

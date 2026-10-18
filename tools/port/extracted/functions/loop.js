@@ -18,3 +18,4 @@ function loop(now){
   if((state==='win'||state==='gameover') && !endHandled){ endHandled=true; endWon=(state==='win'); showNameEntry(); }
   requestAnimationFrame(loop);
 }
+loop();

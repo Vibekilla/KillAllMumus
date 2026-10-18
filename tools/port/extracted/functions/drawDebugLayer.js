@@ -17,3 +17,17 @@ function drawDebugLayer(){
     ctx.restore();
   }catch(e){}
 }
+(function(){
+  const scale=document.getElementById('disp-scale');
+  if(scale) scale.addEventListener('input',()=>setDisplayScale(scale.value));
+  document.querySelectorAll('.disp-preset').forEach(b=>b.addEventListener('click',()=>setDisplayScale(b.dataset.scale)));
+  document.querySelectorAll('.disp-hz').forEach(b=>b.addEventListener('click',()=>setRefreshRate(b.dataset.hz)));
+  const dbg=document.getElementById('disp-debug'); if(dbg) dbg.addEventListener('click',()=>setDebugLayer(!debugLayer));
+  const fs=document.getElementById('disp-fs'); if(fs) fs.addEventListener('click',()=>{ if(typeof toggleFullscreen==='function') toggleFullscreen(); setTimeout(syncDisplayUI,80); });
+  const cl=document.getElementById('disp-close'); if(cl) cl.addEventListener('click', closeDisplay);
+  const d=document.getElementById('display'); if(d) d.addEventListener('click',e=>{ if(e.target===d) closeDisplay(); });
+  const sd=document.getElementById('set-display'); if(sd) sd.addEventListener('click', openDisplay);
+  const pd=document.getElementById('ps-display'); if(pd) pd.addEventListener('click', openDisplay);
+})();
+
+// ---- Fullscreen ----

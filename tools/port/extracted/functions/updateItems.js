@@ -13,3 +13,5 @@ function updateItems(){
   }
   items=items.filter(i=>!i._got);
 }
+
+/* ============ RENDER ============ */

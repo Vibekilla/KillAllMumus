@@ -68,3 +68,4 @@ function drawMeleeWeapon(key, len, col, charge){ ctx.lineCap='round'; ctx.lineJo
     ctx.restore();
   } else { ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=10; ctx.beginPath(); ctx.roundRect(8,-2.5,len-8,5,2); ctx.fill(); ctx.shadowBlur=0; }
 }
+// melee swipe arcs + swinging weapon model + shockwave ring + the charge-up ring around Bobina

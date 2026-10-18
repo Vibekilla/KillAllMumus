@@ -29,3 +29,4 @@ function doMeleeSwipe(charge, dirOverride){ const p=player; if(!p||p.dead) retur
   screenShake=Math.max(screenShake, 2.5 + charge*5 + (m.kb/9)*2.5);   // heavier weapons / bigger charge shake more
   p.meleeCd=m.cd||18; sfx(m.snd||'kill'); sfx('graze');
 }
+// per-weapon full-charge signature effects

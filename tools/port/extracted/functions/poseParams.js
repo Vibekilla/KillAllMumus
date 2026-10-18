@@ -14,3 +14,4 @@ function poseParams(p, t){
     bounce=(1-Math.cos(t*0.045))*1.6; sway=Math.sin(t*0.035)*2; expr='smile'; }
   return {vx,vy,lean,expr,rot,bounce,sway,sq};
 }
+// Where her raised orb hand goes for the coffee pose (rest at her side → up to her lips), smooth.

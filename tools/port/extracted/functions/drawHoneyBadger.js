@@ -66,3 +66,32 @@ function drawHoneyBadger(cx, cy, s){ ctx.save(); ctx.translate(cx,cy); ctx.scale
   ctx.strokeStyle='#1c1418'; ctx.lineWidth=1.4; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(0,-3); ctx.moveTo(-3,-2.4); ctx.quadraticCurveTo(0,-1,3,-2.4); ctx.stroke();
   ctx.restore();
 }
+// Honey Badger's shop patter — varied, in-character (don't-care merchant of reality-bending wares).
+const HONEY_LINES=[
+  'Buy something. Don’t care.',
+  'Wares may bend reality. Not my problem.',
+  'Heads for gear. No refunds, no whining.',
+  'Honey Badger don’t haggle.',
+  'That galaxy in a jar? Yours, for enough heads.',
+  'Touch the merchandise, lose a finger. Kidding. Maybe.',
+  'You bag the Mumus, I bank the heads. Fair’s fair.',
+  'Reality’s on sale today. So am I. Sort of.',
+  'Pick something or leave. Either way — whatever.',
+  'Best prices in the multiverse. Also the only ones.',
+  'No warranties. Just vibes and consequences.',
+  'More heads, more toys. Even a bear can do that math.',
+  'Careful with the black hole. Last kid’s still falling.',
+  'It’s not stealing if you pay. So pay.',
+  'I’ve seen every timeline. You still lose in most.',
+  'That’ll be some heads. Or your soul. Heads is easier.',
+  'Restocking’s a pain across dimensions. Buy in bulk.',
+  'You break it, you bought it. You bought it, you break it. Same thing here.',
+  'Bobo says hi. Or he will. Time’s weird in here.',
+  'Everything’s ethically sourced. From a version of me that cared.',
+  'Loitering costs extra. Buying costs heads. Choose.',
+  'A honey badger fears nothing. Except a slow day. Buy.',
+  'Warranty void where reality is.',
+  'Discounts? For you? …No.',
+  'I don’t upsell. I just stand here menacingly near the good stuff.',
+  'Come back richer. Or don’t come back.',
+];

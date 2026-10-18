@@ -9,3 +9,4 @@ function submitScore(handle){
     .then(r=>r.json()).then(d=>{ lbCache=(d&&d.scores)||[]; lbState='ok'; })
     .catch(()=>{ lbState='error'; });
 }
+const NE=document.getElementById('nameEntry'), NEinput=document.getElementById('ne-input');

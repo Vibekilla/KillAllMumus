@@ -1,1 +1,1 @@
-function diffScoreMul(){ return [1, 1.5, 2.2][difficulty] || 1; }
+function diffScoreMul(){ return [1, 1.5, 2.2][difficulty] || 1; }   // NORMAL = baseline, HARD ×1.5, HELL ×2.2

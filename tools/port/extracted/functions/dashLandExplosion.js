@@ -4,3 +4,5 @@ function dashLandExplosion(p){ const slash=p.slashDash, base=(tick*4)%360, n=sla
   meleeFx.push({ring:true,rainbow:true,x:p.x,y:p.y,r0:5,r1:slash?62:42,col:'#fff',life:18,t:0});   // expanding rainbow ring
   screenShake=Math.max(screenShake, slash?4.5:2.2); sfx('item'); if(slash) sfx('graze');
 }
+// SPACE melee swipe — a wide arc in front of Bobina that damages + knocks back enemies and shoves/cancels nearby bullets.
+// Charge (hold SPACE) scales reach, knockback, damage; a strong charge deletes the bullets it catches for real breathing room.

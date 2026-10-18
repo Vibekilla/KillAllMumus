@@ -54,3 +54,15 @@ function drawOutfits(){
     ctx.fillStyle='rgba(30,16,40,0.85)'; ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,8); ctx.fill(); ctx.strokeStyle='#8fd0ff'; ctx.lineWidth=1.5; ctx.stroke();
     ctx.fillStyle='#8fd0ff'; ctx.font='bold 13px "Trebuchet MS"'; ctx.textAlign='center'; ctx.fillText('⌂ BACK  ['+kb('shoot')+']', bx+bw/2, by+20); ctx.textAlign='left'; }
 }
+// ---- fixed-timestep loop: sim always runs at 60 steps/sec regardless of display refresh ----
+// (rAF fires once per refresh; on a 120/144/165Hz monitor that's >60/sec, which used to make the
+//  whole game run proportionally faster. We now accumulate real elapsed time and step the sim to match.)
+let displayScale=1, refreshRate=60, debugLayer=false, simStepMs=1000/60;
+try{
+  let ds=parseFloat(localStorage.getItem('bobina_disp_scale')); if(!isNaN(ds)) displayScale=Math.max(0.5,Math.min(1,ds));
+  let hz=parseInt(localStorage.getItem('bobina_disp_hz'),10); if(hz===30||hz===60||hz===120) refreshRate=hz;
+  debugLayer=localStorage.getItem('bobina_disp_debug')==='1';
+  simStepMs=1000/refreshRate;
+}catch(e){}
+const SIM_STEP=1000/60; // legacy name — loop uses simStepMs
+let _lastFrame=null, _simAcc=0;

@@ -34,9 +34,32 @@
   function ytShuffle() {
     if (ytShuffled) return;
     ytShuffled = true;
-    try { if (ytPlayer) { ytPlayer.setLoop(true); ytPlayer.setShuffle(true); } } catch (e) {}
+    // Only after PLAYING. setShuffle leaves the current index, so jump.
+    var ytShuffleJump = -1, listed = false;
+    try {
+      if (ytPlayer) {
+        ytPlayer.setLoop(true);
+        ytPlayer.setShuffle(true);
+        var list = (ytPlayer.getPlaylist && ytPlayer.getPlaylist()) || [];
+        listed = !!(list && list.length);
+        if (list && list.length > 1) {
+          var cur = 0;
+          try { cur = ytPlayer.getPlaylistIndex() || 0; } catch (e1) {}
+          if (cur < 0 || cur >= list.length) cur = 0;
+          ytShuffleJump = Math.floor(Math.random() * (list.length - 1));
+          if (ytShuffleJump >= cur) ytShuffleJump++;
+        }
+      }
+    } catch (e) {}
     ytPost("setLoop", [true]);
     ytPost("setShuffle", [true]);
+    if (ytShuffleJump >= 0) {
+      try { if (ytPlayer) ytPlayer.playVideoAt(ytShuffleJump); } catch (e2) {}
+      ytPost("playVideoAt", [ytShuffleJump]);
+    } else if (!listed) {
+      try { if (ytPlayer) ytPlayer.nextVideo(); } catch (e3) {}
+      ytPost("nextVideo");
+    }
   }
 
   function ensureDiv() {

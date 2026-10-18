@@ -1,5 +1,5 @@
 {
-  "functionCount": 290,
+  "functionCount": 294,
   "functions": [
     {
       "name": "drawBobina",
@@ -8,18 +8,18 @@
     },
     {
       "name": "update",
-      "bytes": 15325,
-      "lines": 172
+      "bytes": 15239,
+      "lines": 179
     },
     {
       "name": "outfitColors",
-      "bytes": 14184,
-      "lines": 116
+      "bytes": 14297,
+      "lines": 117
     },
     {
       "name": "drawPanel",
-      "bytes": 13454,
-      "lines": 109
+      "bytes": 13367,
+      "lines": 110
     },
     {
       "name": "updateBoss",
@@ -28,7 +28,7 @@
     },
     {
       "name": "updateFx",
-      "bytes": 10812,
+      "bytes": 10859,
       "lines": 100
     },
     {
@@ -58,8 +58,8 @@
     },
     {
       "name": "applyProgressSnapshot",
-      "bytes": 5567,
-      "lines": 69
+      "bytes": 5824,
+      "lines": 71
     },
     {
       "name": "drawOutfits",
@@ -72,14 +72,14 @@
       "lines": 66
     },
     {
+      "name": "cloudPullAndMerge",
+      "bytes": 2934,
+      "lines": 65
+    },
+    {
       "name": "draw",
       "bytes": 6587,
       "lines": 64
-    },
-    {
-      "name": "cloudPullAndMerge",
-      "bytes": 2888,
-      "lines": 62
     },
     {
       "name": "drawStageBgFx",
@@ -88,7 +88,7 @@
     },
     {
       "name": "drawArsenal",
-      "bytes": 7449,
+      "bytes": 7448,
       "lines": 61
     },
     {
@@ -103,7 +103,7 @@
     },
     {
       "name": "drawTitle",
-      "bytes": 5213,
+      "bytes": 5230,
       "lines": 51
     },
     {
@@ -127,18 +127,28 @@
       "lines": 47
     },
     {
+      "name": "ytShuffle",
+      "bytes": 1848,
+      "lines": 45
+    },
+    {
       "name": "drawBogdanoff",
       "bytes": 4006,
       "lines": 45
     },
     {
-      "name": "buildHelp",
-      "bytes": 5586,
+      "name": "lockCost",
+      "bytes": 6067,
+      "lines": 42
+    },
+    {
+      "name": "sfx",
+      "bytes": 4320,
       "lines": 41
     },
     {
-      "name": "lockCost",
-      "bytes": 5792,
+      "name": "buildHelp",
+      "bytes": 5586,
       "lines": 41
     },
     {
@@ -148,13 +158,8 @@
     },
     {
       "name": "buildProgressSnapshot",
-      "bytes": 2181,
+      "bytes": 2182,
       "lines": 40
-    },
-    {
-      "name": "sfx",
-      "bytes": 4411,
-      "lines": 37
     },
     {
       "name": "drawEmblems",
@@ -163,7 +168,7 @@
     },
     {
       "name": "keyPress",
-      "bytes": 3430,
+      "bytes": 3498,
       "lines": 36
     },
     {
@@ -237,6 +242,16 @@
       "lines": 26
     },
     {
+      "name": "scheduleCloudSave",
+      "bytes": 985,
+      "lines": 25
+    },
+    {
+      "name": "consumeSelected",
+      "bytes": 1798,
+      "lines": 25
+    },
+    {
       "name": "pup",
       "bytes": 1735,
       "lines": 24
@@ -269,11 +284,6 @@
     {
       "name": "onGameCleared",
       "bytes": 1487,
-      "lines": 22
-    },
-    {
-      "name": "scheduleCloudSave",
-      "bytes": 817,
       "lines": 22
     },
     {
@@ -468,7 +478,7 @@
     },
     {
       "name": "imgOK",
-      "bytes": 1187,
+      "bytes": 1186,
       "lines": 12
     },
     {
@@ -517,8 +527,18 @@
       "lines": 10
     },
     {
+      "name": "saveArsenal",
+      "bytes": 709,
+      "lines": 10
+    },
+    {
       "name": "emblemTick",
       "bytes": 577,
+      "lines": 10
+    },
+    {
+      "name": "resetInventory",
+      "bytes": 684,
       "lines": 10
     },
     {
@@ -559,11 +579,6 @@
     {
       "name": "kb",
       "bytes": 833,
-      "lines": 9
-    },
-    {
-      "name": "resetInventory",
-      "bytes": 598,
       "lines": 9
     },
     {
@@ -612,6 +627,11 @@
       "lines": 8
     },
     {
+      "name": "ytPost",
+      "bytes": 281,
+      "lines": 8
+    },
+    {
       "name": "syncSettingsUI",
       "bytes": 883,
       "lines": 8
@@ -622,8 +642,8 @@
       "lines": 8
     },
     {
-      "name": "consumeSelected",
-      "bytes": 1014,
+      "name": "cycleConsumable",
+      "bytes": 393,
       "lines": 8
     },
     {
@@ -667,6 +687,11 @@
       "lines": 8
     },
     {
+      "name": "ytKick",
+      "bytes": 248,
+      "lines": 7
+    },
+    {
       "name": "goFullscreenMobile",
       "bytes": 542,
       "lines": 7
@@ -679,6 +704,11 @@
     {
       "name": "saveShopUnlocks",
       "bytes": 621,
+      "lines": 7
+    },
+    {
+      "name": "selConsumObj",
+      "bytes": 208,
       "lines": 7
     },
     {
@@ -707,13 +737,18 @@
       "lines": 7
     },
     {
+      "name": "musicPause",
+      "bytes": 490,
+      "lines": 6
+    },
+    {
       "name": "closeGate",
       "bytes": 399,
       "lines": 6
     },
     {
       "name": "saveConsum",
-      "bytes": 322,
+      "bytes": 406,
       "lines": 6
     },
     {
@@ -760,11 +795,6 @@
       "name": "moveArsenal",
       "bytes": 321,
       "lines": 6
-    },
-    {
-      "name": "musicPause",
-      "bytes": 384,
-      "lines": 5
     },
     {
       "name": "cloudLinked",
@@ -1028,7 +1058,7 @@
     },
     {
       "name": "musicPlay",
-      "bytes": 166,
+      "bytes": 77,
       "lines": 2
     },
     {
@@ -1047,8 +1077,8 @@
       "lines": 2
     },
     {
-      "name": "saveArsenal",
-      "bytes": 146,
+      "name": "_dedupeLoadout",
+      "bytes": 238,
       "lines": 2
     },
     {
@@ -1172,23 +1202,13 @@
       "lines": 2
     },
     {
-      "name": "consumQty",
-      "bytes": 49,
-      "lines": 2
-    },
-    {
       "name": "consumById",
-      "bytes": 65,
+      "bytes": 71,
       "lines": 2
     },
     {
-      "name": "selConsumObj",
-      "bytes": 177,
-      "lines": 2
-    },
-    {
-      "name": "cycleConsumable",
-      "bytes": 290,
+      "name": "consumQty",
+      "bytes": 154,
       "lines": 2
     },
     {
@@ -1496,11 +1516,11 @@
       "bytes": 114
     },
     "BIND_LIST": {
-      "bytes": 307
+      "bytes": 306
     },
     "MOUSE": {
       "bytes": 26
     }
   },
-  "scriptBytes": 492735
+  "scriptBytes": 497855
 }

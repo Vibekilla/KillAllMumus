@@ -3,3 +3,4 @@ function enemyExplode(e){ if(e._exploded) return; e._exploded=true; e.hp=0;
   for(const o of enemies){ if(o!==e && o.hp>0 && Math.hypot(o.x-e.x,o.y-e.y)<46){ o.hp-=6; o.flash=5; if(o.hp<=0) killEnemy(o); } }
   bullets=bullets.filter(b=>{ if(Math.hypot(b.x-e.x,b.y-e.y)<42){ floaters.push({x:b.x,y:b.y,life:12,vy:-0.5,scale:0.3}); return false; } return true; });
   killEnemy(e); screenShake=Math.max(screenShake,3.5); sfx('hit'); }
+// plasma-flame fields (Kuma Katana charged): burn Mumus + incoming bullets in the swipe wedge over time

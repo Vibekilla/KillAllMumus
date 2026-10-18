@@ -1,5 +1,6 @@
 function resetInventory(){   // wipe bought gear + carried items + skulls back to the starter kit; KEEP emblems, outfits & NG+
   for(const k in shopUnlocks) delete shopUnlocks[k]; saveShopUnlocks();
+  if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={};
   for(const k in consumInv) delete consumInv[k]; saveConsum();
   mumuHeads=0; saveHeads();
   arsenalW=['laser']; arsenalS=['mech','bearzooka']; arsenalM=['katana']; arsenalI=['honeycomb','bulltears','bullsouls']; selConsum=0; saveArsenal();

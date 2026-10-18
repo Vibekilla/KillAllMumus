@@ -13,3 +13,6 @@ function drawEmblemToasts(){ if(!emblemToasts.length) return;
   ctx.restore();
   if(T>=dur) emblemToasts.shift();
 }
+// ---- Emblems gallery screen ----
+// ---- ARSENAL loadout screen ----
+let arsenalTiles=[], arsenalReturn='title', arsDrag=null, arsTab='w', arsMsg=null;   // arsDrag: {type,key,from,slot,sx,sy,x,y,moved} for hotbar drag-n-drop; arsMsg: transient locked-gear notice

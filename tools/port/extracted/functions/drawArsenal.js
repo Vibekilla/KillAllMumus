@@ -4,7 +4,7 @@ function drawArsenal(){
   ctx.save(); ctx.shadowColor='#7fdfff'; ctx.shadowBlur=14; ctx.fillStyle='#bff0ff'; ctx.font='900 24px "Trebuchet MS"'; ctx.fillText('🎒 ARSENAL', W/2, 30); ctx.restore();
   arsenalTiles=[];
   // ---- tabs ----
-  const tabs=[['w','WEAPONS','#ff8ac0','['+kb('swap')+'] cycles these in a run'],['s','SPECIALS','#b98cff','['+kb('special')+'] use · ['+kb('cycle')+'] cycles these'],['m','MELEE','#ff8a6a','['+kb('melee')+'] swipe · ['+kb('meleeswap')+'] cycles these'],['i','ITEMS','#ffd27a','['+kb('item_switch')+'] switch · hold ['+kb('item_use')+'] to use']];
+  const tabs=[['w','WEAPONS','#ff8ac0','['+kb('swap')+'] cycles these in a run'],['s','SPECIALS','#b98cff','['+kb('special')+'] use · ['+kb('cycle')+'] cycles these'],['m','MELEE','#ff8a6a','['+kb('melee')+'] swipe · ['+kb('meleeswap')+'] cycles these'],['i','ITEMS','#ffd27a','['+kb('item_switch')+'] switch · tap ['+kb('item_use')+'] to use']];
   const tabW=142, tabGap=10, tabsW=tabs.length*tabW+(tabs.length-1)*tabGap, tabX0=W/2-tabsW/2, tabY=42, tabH=30;
   for(let i=0;i<tabs.length;i++){ const [tk,tlabel,tcol]=tabs[i], tx=tabX0+i*(tabW+tabGap), on=arsTab===tk;
     ctx.fillStyle=on?tcol:'rgba(255,255,255,0.05)'; ctx.beginPath(); ctx.roundRect(tx,tabY,tabW,tabH,9); ctx.fill();
@@ -57,3 +57,4 @@ function drawArsenal(){
   if(arsMsg){ arsMsg.t--; ctx.save(); ctx.globalAlpha=Math.min(1,arsMsg.t/24); ctx.textAlign='center'; ctx.fillStyle='#ff9aa8'; ctx.font='bold 14px "Trebuchet MS"'; ctx.fillText(arsMsg.txt, W/2, H-26); ctx.restore(); if(arsMsg.t<=0) arsMsg=null; }
   ctx.textAlign='center'; ctx.fillStyle=(Math.floor(tick/30)%2)?'#fff':'#9a7c96'; ctx.font='bold 13px monospace'; ctx.fillText('PRESS '+kb('shoot')+' / TAP EMPTY AREA TO '+(arsenalReturn==='stageclear'?'RESUME':'RETURN'), W/2, H-8); ctx.textAlign='left';
 }
+let emPage=0, emPrevBtn=null, emNextBtn=null; const EM_PER_PAGE=12;

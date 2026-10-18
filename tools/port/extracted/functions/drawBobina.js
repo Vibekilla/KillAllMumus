@@ -870,3 +870,6 @@ function drawBobina(p){
   ctx.globalAlpha=1; ctx.restore();
   if(p.focus){ ctx.save(); ctx.translate(p.x,p.y); ctx.strokeStyle='#fff'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(0,0,4,0,7); ctx.stroke(); ctx.fillStyle='#ff3b8e'; ctx.beginPath(); ctx.arc(0,0,2,0,7); ctx.fill(); ctx.strokeStyle='rgba(255,120,190,0.7)'; for(let i=0;i<4;i++){ const a=tick*0.06+i*1.57; ctx.beginPath(); ctx.arc(0,0,9,a,a+0.7); ctx.stroke(); } ctx.restore(); }
 }
+
+/* ---- Mumu ---- */
+// themed elite mob sprites — one per stage, matched to that stage's boss

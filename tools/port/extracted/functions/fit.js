@@ -5,3 +5,8 @@ function fit(){ const vv=window.visualViewport; const vw=vv?vv.width:window.inne
   cv.style.width=cwv+'px'; cv.style.height=chv+'px';
   const r=document.documentElement.style; r.setProperty('--mx', Math.max(0,(vw-cwv)/2)+'px'); r.setProperty('--my', Math.max(0,(vh-chv)/2)+'px');
   document.body.classList.toggle('portrait', portrait); }
+addEventListener('resize',fit); addEventListener('orientationchange',()=>setTimeout(fit,120));
+if(window.visualViewport){ window.visualViewport.addEventListener('resize',fit); window.visualViewport.addEventListener('scroll',fit); }
+fit();
+
+// ---- Display settings (resolution scale, sim Hz, debug, fullscreen) ----

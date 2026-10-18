@@ -1,1 +1,7 @@
-function cycleConsumable(){ if(!arsenalI.length){ sfx('hit'); flashMsg={t:75,txt:'No items equipped — set them in the Arsenal'}; return; } selConsum=(selConsum+1)%arsenalI.length; const c=selConsumObj(); if(c){ sfx('item'); flashMsg={t:75,txt:c.icon+' '+c.name+'  ×'+consumQty(c.key)}; } }
+function cycleConsumable(){
+  try{
+    if(!Array.isArray(arsenalI)||!arsenalI.length){ sfx('hit'); flashMsg={t:75,txt:'No items equipped — set them in the Arsenal'}; return; }
+    selConsum=(selConsum+1)%arsenalI.length; const c=selConsumObj();
+    if(c){ sfx('item'); flashMsg={t:75,txt:c.icon+' '+c.name+'  ×'+consumQty(c.key)}; }
+  }catch(err){ console.error('[cycleConsumable]', err); }
+}

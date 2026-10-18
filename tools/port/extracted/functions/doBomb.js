@@ -7,3 +7,4 @@ function doBomb(){
   if(boss && !boss.dead && boss.intro<=0){ boss.hp-=Math.floor(boss.maxhp*0.09); boss.flash=6; if(boss.hp<=0){boss.dead=true;boss.hp=0;bullets=[];sfx('win');} }
   for(let i=0;i<60;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*14,vy:(Math.random()-.5)*14,life:40,c:['#ff6ec7','#ffd27a','#fff'][i%3]});
 }
+// double-tap Shift → a quick i-framed dash toward the mouse pointer that kills any Mumu it passes through

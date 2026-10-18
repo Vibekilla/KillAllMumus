@@ -1,1 +1,1 @@
-function consumById(k){ return CONSUMABLES.find(c=>c.key===k); }
+function consumById(k){ return CONSUMABLES.find(c=>c.key===k)||null; }

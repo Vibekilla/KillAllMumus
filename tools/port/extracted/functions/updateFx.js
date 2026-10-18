@@ -76,7 +76,7 @@ function updateFx(){
       else { f.life--; f.x+=f.vx; f.y+=f.vy; f.vy+=0.015; f.vx*=0.99; f.vy*=0.985; f.r=Math.min(f.rmax, f.r+0.35);
         if(f.x<PF.x+f.r){ f.x=PF.x+f.r; f.vx=Math.abs(f.vx)*0.6; } if(f.x>PF.x+PF.w-f.r){ f.x=PF.x+PF.w-f.r; f.vx=-Math.abs(f.vx)*0.6; }
         if(f.y<PF.y+f.r){ f.y=PF.y+f.r; f.vy=Math.abs(f.vy)*0.6; } if(f.y>PF.y+PF.h-f.r){ f.y=PF.y+PF.h-f.r; f.vy=-Math.abs(f.vy)*0.6; }
-        let caught=0; for(const e of enemies){ const dx=f.x-e.x, dy=f.y-e.y, d=Math.hypot(dx,dy)||1; if(d<f.r+e.r+10){ const gp=(1-Math.min(1,d/(f.r+34)))*1.7; e.x+=dx/d*gp; e.y+=dy/d*gp; e.flash=Math.max(e.flash,2); caught++; } }   // trap: pull Mumus in, grouping them
+        let caught=0; for(const e of enemies||[]){ if(!e)continue; const dx=f.x-e.x, dy=f.y-e.y, d=Math.hypot(dx,dy)||1; const er=(e.r||15); if(d<f.r+er+10){ const gp=(1-Math.min(1,d/(f.r+34)))*1.7; e.x+=dx/d*gp; e.y+=dy/d*gp; e.flash=Math.max(+e.flash||0,2); caught++; } }   // trap: pull Mumus in, grouping them
         f.caught=caught;
         if(f.life<=0 || f.caught>=5){ f.pop=16; f.popR=f.r; sfx('bomb');   // POP → AoE burst
           const R=f.r+46; for(const e of enemies){ if(Math.hypot(e.x-f.x,e.y-f.y)<R){ e.hp-=18; e.flash=6; if(e.hp<=0) killEnemy(e); } }
@@ -90,7 +90,7 @@ function updateFx(){
       if(f.life>0 && f.life%5===0){ const a=Math.random()*6.283, r=18+Math.random()*58; f.stars.push({x:f.x+Math.cos(a)*r, y:f.y+Math.sin(a)*r, life:28, t:0, sz:1.3+Math.random()*1.5, rot:Math.random()*6.28, hue:(tick*4+Math.random()*100)%360|0, sapping:false}); }
       // each star saps HP from the nearest Mumu it's near
       for(const st of f.stars){ st.t++; let tgt=null,bd=1e9; for(const e of enemies){ const d=(e.x-st.x)**2+(e.y-st.y)**2; if(d<bd){ bd=d; tgt=e; } }
-        if(tgt && bd<34*34){ tgt.hp-=0.5; tgt.flash=Math.max(tgt.flash,2); st.sapX=tgt.x; st.sapY=tgt.y; st.sapping=true; if(tgt.hp<=0) killEnemy(tgt); } else st.sapping=false; }
+        if(tgt && bd<34*34){ tgt.hp-=0.5; tgt.flash=Math.max(+tgt.flash||0,2); st.sapX=tgt.x; st.sapY=tgt.y; st.sapping=true; if(tgt.hp<=0) killEnemy(tgt); } else st.sapping=false; }
       f.stars=f.stars.filter(s=>s.t<s.life);
     }
   }

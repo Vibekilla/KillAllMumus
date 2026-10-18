@@ -18,3 +18,5 @@ function drawStageBg(){
     else { ctx.fillStyle='#ff5b6e'; ctx.fillRect(px+30,py+20,20,44); } }   // LAIR — Wynn's red candlesticks
   ctx.globalAlpha=1;
 }
+// Each stage/boss gets its own DARK psychedelic geometric/fractal backdrop woven into the environment.
+// It's subtle while roaming and "rests" (intensifies) at the boss — deep, low-lightness hues so it deepens the field (contrast for bright projectiles) rather than washing it out.

@@ -1,1 +1,1 @@
-function meleeIdxList(){ return arsenalM.map(k=>MELEE.findIndex(m=>m.key===k)).filter(i=>i>=0); }
+function meleeIdxList(){ return arsenalM.map(k=>MELEE.findIndex(m=>m.key===k)).filter(i=>i>=0); }   // selected melee → MELEE indices, in cycle order

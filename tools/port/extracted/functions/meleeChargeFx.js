@@ -14,3 +14,4 @@ function meleeChargeFx(p, m, dir, reach, half, dmg, kb){
     p.flurry=30; p.flurryDir=dir; p.flurryDmg=Math.max(1,Math.round(dmg*0.5)); sfx('claw');
   }
 }
+// chain lightning: leaps from the player through the nearest Mumus, damaging each

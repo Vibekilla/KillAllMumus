@@ -137,6 +137,8 @@ func _set_ars(type: String, arr: Array) -> void:
 		ar = {}
 	ar[type] = arr
 	ProgressStore.progress["arsenal"] = ar
+	if ProgressStore.has_method("note_arsenal_edit"):
+		ProgressStore.note_arsenal_edit()
 	save_arsenal()
 
 func _apply_arsenal_to_run() -> void:

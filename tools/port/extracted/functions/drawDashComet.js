@@ -27,3 +27,4 @@ function drawDashComet(p){ const active = p.dash>0 || (p.trail && p.trail.length
   if(p.dash>0 && !paused){ const hue=(hue0+Math.random()*60)%360, n=slash?2:1;
     for(let k=0;k<n;k++) particles.push({x:p.x+(Math.random()-.5)*12, y:p.y+(Math.random()-.5)*12, vx:-Math.cos(p.dashAng)*(1+Math.random()*2)+(Math.random()-.5)*2, vy:-Math.sin(p.dashAng)*(1+Math.random()*2)+(Math.random()-.5)*2, life:16+((Math.random()*12)|0), c:`hsl(${hue|0},100%,70%)`}); }
 }
+// a drawn weapon model, along +x from Bobina's hand (origin), length `len`

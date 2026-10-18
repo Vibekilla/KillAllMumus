@@ -1,1 +1,5 @@
 function _rgbHue(r,g,b){ r/=255;g/=255;b/=255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn; let h=0; if(d){ if(mx===r)h=((g-b)/d)%6; else if(mx===g)h=(b-r)/d+2; else h=(r-g)/d+4; h*=60; if(h<0)h+=360; } return h; }
+// Touhou spell-card psychedelia — a themed, hue-shifting backdrop keyed to the boss's colour that ramps up on spellcards / low HP
+// The boss makes the STAGE BACKGROUND itself turn psychedelic (Touhou-style) — but DARK and boss-themed, so the
+// bright projectiles read clearly against it. No more bright additive wash; instead we DEEPEN the field (vignette +
+// dim) and layer a low-lightness boss-hued spell-mandala + expanding spell-rings behind everything.

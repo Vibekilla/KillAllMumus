@@ -16,3 +16,5 @@ function drawDevil(b,flash){ const R=b.r;
   // goatee
   ctx.fillStyle='#2a0a10'; ctx.beginPath(); ctx.moveTo(-R*0.1,R*0.42); ctx.lineTo(R*0.1,R*0.42); ctx.lineTo(0,R*0.64); ctx.closePath(); ctx.fill();
 }
+/* ---- native GIF overlays (mapped from canvas coords → screen) ---- */
+let leekRect=null;

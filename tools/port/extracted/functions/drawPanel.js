@@ -68,10 +68,11 @@ function drawPanel(){ if(portrait){ drawPanelPortrait(); return; } if(isTouch){ 
       if(c.draw){ ctx.save(); ctx.translate(ix+15, cy+9); c.draw(13); ctx.restore(); } else { ctx.fillStyle=sel?'#1a0e14':'#d8c8e0'; ctx.font='bold 11px monospace'; ctx.textAlign='center'; ctx.fillText(c.icon, ix+15, cy+13); }
       ctx.fillStyle=sel?'#1a0e14':'#9fe0a4'; ctx.font='bold 8px monospace'; ctx.textAlign='right'; ctx.fillText(q, ix+28, cy+7); ctx.textAlign='left'; ctx.globalAlpha=1; ix+=34; }
     if(!arsenalI.length){ ctx.fillStyle='#6a5a72'; ctx.font='9px monospace'; ctx.fillText('— none equipped —', x+16, cy+12); }
-    const hp=(cur&&player&&player._eHeld&&!player._eUsed)?Math.min(1,(player._eT||0)/48):0;   // 0.8s hold
-    if(hp>0){ ctx.fillStyle=cur.col; ctx.fillRect(x+16, cy+19, (arsenalI.length*34-4)*hp, 2.5); }
-    else if(player&&player._eCd>0){ ctx.fillStyle='#6a5a72'; ctx.fillRect(x+16, cy+19, (arsenalI.length*34-4)*(player._eCd/180), 2.5); }   // 3s cooldown drains (grey)
-    ctx.fillStyle='#6a5a72'; ctx.font='9px monospace'; ctx.textAlign='right'; ctx.fillText('['+keyName(binds.item_switch)+'] switch · hold ['+keyName(binds.item_use)+']', x+w-14, cy+13); ctx.textAlign='left'; cy+=30;
+    try{
+      const cdBar=(player&&player._eCd>0);   // tap-to-use — cooldown bar only
+      if(cdBar){ const n=(Array.isArray(arsenalI)?arsenalI.length:0); ctx.fillStyle='#6a5a72'; ctx.fillRect(x+16, cy+19, Math.max(0,n*34-4)*Math.min(1,(player._eCd||0)/180), 2.5); }
+    }catch(_e){}
+    ctx.fillStyle='#6a5a72'; ctx.font='9px monospace'; ctx.textAlign='right'; ctx.fillText('['+keyName(binds.item_switch)+'] switch · ['+keyName(binds.item_use)+'] use', x+w-14, cy+13); ctx.textAlign='left'; cy+=30;
   }
   // lives
   // LIVES (hearts) + life-frag pips inline on the right

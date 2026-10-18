@@ -1,1 +1,1 @@
-function powerCap(){ return [6, 5.5, 4.5][difficulty] || 6; }
+function powerCap(){ return [6, 5.5, 4.5][difficulty] || 6; }        // HARD/HELL cap Bobina's power lower so she can't out-scale the fight — NORMAL tops Lv5 (+buffer), HARD Lv5 (small buffer), HELL Lv4 max

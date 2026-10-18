@@ -8,3 +8,8 @@ function advanceScreen(){
   else if(state==='outfits'){ state='title'; }
   else if(state==='ngselect'){ state='title'; }
 }
+
+/* ---------- Loop ---------- */
+const socialEl=document.getElementById('social'); let socialShown=null;
+const GAME_VERSION='v1.9.0';
+// ---- in-game "EMBLEM UNLOCKED" toast (one at a time, slides in/out) ----

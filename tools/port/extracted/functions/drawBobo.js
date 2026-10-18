@@ -25,3 +25,5 @@ function drawBobo(cx,cy,sc,happy){
   ctx.fillStyle='rgba(220,120,120,0.4)'; ctx.beginPath(); ctx.arc(-18,-6+bob,4,0,7); ctx.arc(18,-6+bob,4,0,7); ctx.fill();
   ctx.restore();
 }
+
+/* ---- Bosses ---- */

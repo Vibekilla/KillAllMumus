@@ -11,3 +11,4 @@ function drawPowerRadiance(p){ if(!run||p.dead) return;
     ctx.beginPath(); for(let a=0;a<=6.3;a+=0.32){ const wob=1+Math.sin(a*5+t*0.14+k)*0.06*pf; const x=cx+Math.cos(a)*rr*wob, y=cy+Math.sin(a)*rr*wob; if(a===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);} ctx.closePath(); ctx.stroke(); }
   ctx.restore();
 }
+// Touhou-style psychedelic boss backdrop, themed to the boss's colour — rotating spell-card rays + a hue vortex

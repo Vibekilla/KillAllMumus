@@ -22,3 +22,4 @@ function drawBossAmbience(){ if(!boss || boss.dead || boss.intro>0) return;
     ctx.strokeStyle=`hsla(${(bh+k*16)%360|0},70%,${20-ph*8}%,${(1-ph)*0.3*(0.6+rage*0.4)})`; ctx.lineWidth=2.4*(1-ph)+0.7; ctx.beginPath(); ctx.arc(0,0,rr,0,7); ctx.stroke(); }
   ctx.restore(); ctx.restore();
 }
+// psychedelic dash comet: a hue-shifting rainbow TAIL + a mini bubble HEAD that follow her movement; bigger for a SLASH DASH

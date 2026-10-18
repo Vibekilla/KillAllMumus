@@ -18,3 +18,6 @@ function tweetResult(won){
   const u='https://twitter.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(sp);
   try{ window.open(u,'_blank','noopener'); }catch(e){}
 }
+/* ---------- Global leaderboard (server-backed) ---------- */
+let endHandled=false, endWon=false, lastSubmit=null, lbCache=[], lbState='idle', lbRows=[], justSavedScore=false;
+let lbPage=0, lbPrevBtn=null, lbNextBtn=null; const LB_PER_PAGE=10;

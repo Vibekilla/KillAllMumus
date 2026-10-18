@@ -1,1 +1,2 @@
-function coffeeHold(t){ const sip=(1-Math.cos(t*0.025))/2; return { x:0, y:3-sip*7, sip }; }
+function coffeeHold(t){ const sip=(1-Math.cos(t*0.025))/2; return { x:0, y:3-sip*7, sip }; }   // mug cradled centre-chest → lifted to her lips
+// Pose props (the coffee cup, fire, etc.) drawn in body-local space, AFTER drawBobina so they sit in front of her.

@@ -17,3 +17,5 @@ function spawnWaves(){
   // a themed elite mob for this stage drops in periodically
   if(roll>1 && roll%4===2) spawnElite(PF.x+80+Math.random()*(PF.w-160));
 }
+
+/* ---------- Items ---------- */

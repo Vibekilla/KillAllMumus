@@ -29,7 +29,7 @@ function buildProgressSnapshot(){
       follow: (typeof MOUSE!=='undefined') ? MOUSE.follow : null,
       mspeed: (typeof MOUSE!=='undefined') ? MOUSE.speed : null,
       speedrun: !!(typeof speedrun!=='undefined' && speedrun),
-      autofire: (typeof autoFire==='undefined') ? true : !!autoFire,
+      autofire: (typeof autoFire==='undefined') ? false : !!autoFire,
       ui: (function(){ try{ return localStorage.getItem('bobina_ui'); }catch(e){ return null; } })(),
       displayScale: (typeof displayScale!=='undefined')?displayScale:1,
       refreshRate: (typeof refreshRate!=='undefined')?refreshRate:60,

@@ -4,3 +4,6 @@ function manageTouchUI(){ const show=isTouch && state==='play';
     if(show){ joyShowHome(); } else { joy.active=false; joy.vx=0; joy.vy=0; if(joybase) joybase.style.display='none'; } }
   if(paused && joy.active) joyReset();
   if(show) updateTouchButtons(); }
+// Bobina talking/hurt portrait (animated GIF overlaid on the canvas)
+const talkEl=document.getElementById('talk'), leekEl=document.getElementById('leek');
+let hurtPortrait=0;

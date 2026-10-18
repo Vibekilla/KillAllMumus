@@ -3,3 +3,4 @@ function goFullscreenMobile(){ try{
   const el=document.documentElement; const rf=el.requestFullscreen||el.webkitRequestFullscreen;
   if(rf && !document.fullscreenElement && !document.webkitFullscreenElement){ const r=rf.call(el); if(r&&r.catch)r.catch(()=>{}); setTimeout(()=>{ if(typeof fit==='function') fit(); },250); }
 }catch(e){} }
+// dismissing the verification gate is the user gesture that opts into fullscreen (removes the browser chrome on supported devices)

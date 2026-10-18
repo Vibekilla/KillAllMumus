@@ -11,12 +11,14 @@ function applyProgressSnapshot(p){
     estats = e0;
     try{ localStorage.setItem('bobina_estats', JSON.stringify(estats)); }catch(e){}
   }
-  if(p.arsenal && typeof p.arsenal==='object'){
-    if(Array.isArray(p.arsenal.w) && p.arsenal.w.length) arsenalW = p.arsenal.w.filter(k=>WEAPONS[k]);
-    if(Array.isArray(p.arsenal.s)) arsenalS = p.arsenal.s.filter(k=>SPECIALS.some(s=>s.key===k));
-    if(Array.isArray(p.arsenal.m) && typeof MELEE!=='undefined') arsenalM = p.arsenal.m.filter(k=>MELEE.some(m=>m.key===k));
-    if(Array.isArray(p.arsenal.i) && typeof CONSUMABLES!=='undefined') arsenalI = p.arsenal.i.filter(k=>CONSUMABLES.some(c=>c.key===k));
+  if(p.arsenal && typeof p.arsenal==='object' && arsenalRev===arsenalCloudRev){
+    const A=p.arsenal, cap=ARS_CAP||{w:5,s:5,m:2,i:3};
+    if(Array.isArray(A.w)){ const w=_dedupeLoadout(A.w,k=>!!WEAPONS[k],cap.w); if(w.length) arsenalW=w; }
+    if(Array.isArray(A.s)) arsenalS=_dedupeLoadout(A.s,k=>SPECIALS.some(s=>s.key===k),cap.s);
+    if(Array.isArray(A.m) && typeof MELEE!=='undefined'){ const mm=_dedupeLoadout(A.m,k=>MELEE.some(m=>m.key===k),cap.m); if(mm.length) arsenalM=mm; }
+    if(Array.isArray(A.i) && typeof CONSUMABLES!=='undefined') arsenalI=_dedupeLoadout(A.i,k=>CONSUMABLES.some(c=>c.key===k),cap.i);
     if(!arsenalW.length) arsenalW=['laser'];
+    if(!arsenalM.length) arsenalM=['katana'];
     try{ localStorage.setItem('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){}
   }
   if(p.heads!=null){ mumuHeads = Math.max(mumuHeads|0, Number(p.heads)||0); try{ localStorage.setItem('bobina_heads', String(mumuHeads)); }catch(e){} }
@@ -24,8 +26,8 @@ function applyProgressSnapshot(p){
     shopUnlocks = Object.assign({}, shopUnlocks||{}, p.shopUnlocks);
     try{ localStorage.setItem('bobina_shopunlocks', JSON.stringify(shopUnlocks)); }catch(e){}
   }
-  if(p.consum && typeof p.consum==='object'){
-    const c0 = consumInv||{};
+  if(p.consum && typeof p.consum==='object' && !Array.isArray(p.consum)){
+    const c0 = (consumInv && typeof consumInv==='object' && !Array.isArray(consumInv)) ? consumInv : {};
     for(const k of Object.keys(p.consum)){ c0[k] = Math.max(Number(c0[k])||0, Number(p.consum[k])||0); }
     consumInv = c0;
     try{ localStorage.setItem('bobina_consum', JSON.stringify(consumInv)); }catch(e){}

@@ -14,3 +14,4 @@ function drawPoseProp(p, t){
     if(sip<0.5){ ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=0.5; for(let i=-1;i<=1;i++){ ctx.beginPath(); for(let s=0;s<=1;s+=0.25){ const yy=-2.6-s*4, xx=i*1.1+Math.sin(s*6+t*0.1+i)*0.8; s?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy); } ctx.stroke(); } }
     ctx.restore(); }
 }
+// Draws Bobina performing a pose. Used by the outfit preview (motionScale 1) AND her on-field victory (motionScale <1 for the small field sprite).

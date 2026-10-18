@@ -43,7 +43,7 @@ const keys={};
 // keyboard movement/WASD. Everything else is rebindable in Settings → Controls.
 const FIXED_KMAP={ ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', KeyM:'menu', KeyT:'tweet', Enter:'start' };
 const DEFAULT_BINDS={ shoot:'KeyZ', focus:'ShiftLeft', melee:'Space', meleeswap:'KeyD', bomb:'KeyX', swap:'KeyC', special:'KeyV', cycle:'KeyB', pause:'KeyP', interact:'KeyE', item_switch:'KeyA', item_use:'KeyQ' };
-const BIND_LIST=[ ['shoot','Fire'],['focus','Focus / Dash'],['melee','Melee (hold=charge)'],['meleeswap','Switch Melee'],['bomb','Bomb'],['swap','Swap Weapon'],['special','Use Special'],['cycle','Cycle Special'],['item_switch','Switch Item'],['item_use','Use Item (hold)'],['interact','Interact / Shop'],['pause','Pause'] ];
+const BIND_LIST=[ ['shoot','Fire'],['focus','Focus / Dash'],['melee','Melee (hold=charge)'],['meleeswap','Switch Melee'],['bomb','Bomb'],['swap','Swap Weapon'],['special','Use Special'],['cycle','Cycle Special'],['item_switch','Switch Item'],['item_use','Use Item (tap)'],['interact','Interact / Shop'],['pause','Pause'] ];
 let binds=(()=>{ try{ return Object.assign({}, DEFAULT_BINDS, JSON.parse(localStorage.getItem('bobina_binds'))||{}); }catch(e){ return Object.assign({},DEFAULT_BINDS); } })();
 let rebindAction=null, KMAP={};
 function rebuildKMAP(){ KMAP=Object.assign({}, FIXED_KMAP); for(const a in binds){ if(binds[a]) KMAP[binds[a]]=a; } }
@@ -255,34 +255,46 @@ function keyPress(k){ bumpIdle();
 /* ---------- Audio ---------- */
 let AC=null, masterGain=null;
 // audio + speedrun prefs (tunable in Settings)
-let sfxVol=0.9, musicVol=1.0, speedrun=false, autoFire=true;
-try{ let a=parseFloat(localStorage.getItem('bobina_sfxvol')); if(!isNaN(a)) sfxVol=a; let m=parseFloat(localStorage.getItem('bobina_musicvol')); if(!isNaN(m)) musicVol=m; speedrun=localStorage.getItem('bobina_speedrun')==='1'; if(localStorage.getItem('bobina_autofire')==='0') autoFire=false; }catch(e){}
+let sfxVol=0.9, musicVol=1.0, speedrun=false, autoFire=false;   // default OFF — hold Z / click (desktop) or toggle FIRE on touch
+try{ let a=parseFloat(localStorage.getItem('bobina_sfxvol')); if(!isNaN(a)) sfxVol=a; let m=parseFloat(localStorage.getItem('bobina_musicvol')); if(!isNaN(m)) musicVol=m; speedrun=localStorage.getItem('bobina_speedrun')==='1'; if(localStorage.getItem('bobina_autofire')==='1') autoFire=true; }catch(e){}
 function applySfxVol(){ if(masterGain){ try{ masterGain.gain.value=sfxVol; }catch(e){} } }
 function applyMusicVol(){ if(ytReady&&ytPlayer){ try{ ytPlayer.setVolume(Math.round(musicVol*100)); }catch(e){} } }
 function actx(){ if(!AC){ try{ AC=new(window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return AC; }
 function initMaster(){ const ac=actx(); if(ac&&!masterGain){ masterGain=ac.createGain(); masterGain.gain.value=sfxVol; masterGain.connect(ac.destination); } }
 function sfx(type, vmul){
-  const ac=actx(); if(!ac)return; const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain(); o.connect(g); g.connect(masterGain||ac.destination);
-  const vm=(vmul||1);
-  const S=(f0,f1,d,ty,vol)=>{ o.type=ty; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+d); g.gain.setValueAtTime(vol*vm,t); g.gain.exponentialRampToValueAtTime(0.001,t+d); o.start(t); o.stop(t+d+0.02); };
-  if(type==='shoot') S(1100,620,0.07,'triangle',0.035);
-  else if(type==='hit') S(300,140,0.06,'square',0.05);
-  else if(type==='kill') S(180,70,0.13,'sawtooth',0.07);
-  else if(type==='graze') S(1500,2300,0.05,'sine',0.03);
-  else if(type==='item') S(900,1500,0.06,'triangle',0.05);
-  else if(type==='power') S(700,1400,0.12,'square',0.06);
-  else if(type==='extend'){ [660,880,1320].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='triangle';oo.frequency.value=f;gg.gain.setValueAtTime(0.001,t+i*0.09);gg.gain.linearRampToValueAtTime(0.1,t+i*0.09+0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.09+0.3);oo.start(t+i*0.09);oo.stop(t+i*0.09+0.32);}); }
-  else if(type==='bomb') S(120,900,0.5,'sawtooth',0.14);
-  else if(type==='hurt') S(240,70,0.35,'square',0.16);
-  else if(type==='card'){ [180,300,240].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='sawtooth';oo.frequency.setValueAtTime(f,t+i*0.08);gg.gain.setValueAtTime(0.1,t+i*0.08);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.08+0.25);oo.start(t+i*0.08);oo.stop(t+i*0.08+0.27);}); }
-  else if(type==='win'){ [523,659,784,1046,1318].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='triangle';oo.frequency.value=f;gg.gain.setValueAtTime(0.001,t+i*0.1);gg.gain.linearRampToValueAtTime(0.1,t+i*0.1+0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.3);oo.start(t+i*0.1);oo.stop(t+i*0.1+0.32);}); }
-  // ---- melee weapon sounds ----
-  else if(type==='slash') S(2600,760,0.14,'sawtooth',0.055);                       // Kuma Katana — plasma shing
-  else if(type==='whip')  S(1500,150,0.18,'sine',0.075);                           // Kraken Lash — whoosh
-  else if(type==='thud')  S(170,46,0.18,'square',0.15);                            // Monke Bonk — club thud
-  else if(type==='boom'){ [110,72].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='sawtooth';oo.frequency.setValueAtTime(f*3,t);oo.frequency.exponentialRampToValueAtTime(f,t+0.42);gg.gain.setValueAtTime(0.16,t+i*0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+0.46);oo.start(t);oo.stop(t+0.48);}); }  // Vault Hammer — boom
-  else if(type==='claw'){ [1900,2300,1650].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(masterGain||ac.destination);oo.type='sawtooth';oo.frequency.setValueAtTime(f,t+i*0.045);oo.frequency.exponentialRampToValueAtTime(f*0.5,t+i*0.045+0.06);gg.gain.setValueAtTime(0.055,t+i*0.045);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.045+0.08);oo.start(t+i*0.045);oo.stop(t+i*0.045+0.1);}); }  // Badger Claws — triple scratch
-  else if(type==='warp'){ o.type='sine'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(1400,t+0.18); o.frequency.exponentialRampToValueAtTime(90,t+0.5); g.gain.setValueAtTime(0.13*vm,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.5); o.start(t); o.stop(t+0.52); }  // Wormhole — interdimensional whoosh
+  // Never throw into the game loop (AudioContext / ramp edge cases were killing item-use frames)
+  try{
+    const ac=actx(); if(!ac)return;
+    const t=ac.currentTime, dest=masterGain||ac.destination, vm=(vmul||1)||1;
+    const S=(f0,f1,d,ty,vol)=>{
+      const o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(dest);
+      const v0=Math.max(0.0008, (vol||0.05)*vm);
+      o.type=ty||'sine';
+      o.frequency.setValueAtTime(Math.max(1,f0),t);
+      o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t+d);
+      g.gain.setValueAtTime(v0,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+d);
+      o.start(t); o.stop(t+d+0.02);
+    };
+    if(type==='shoot') S(1100,620,0.07,'triangle',0.035);
+    else if(type==='hit') S(300,140,0.06,'square',0.05);
+    else if(type==='kill') S(180,70,0.13,'sawtooth',0.07);
+    else if(type==='graze') S(1500,2300,0.05,'sine',0.03);
+    else if(type==='item') S(900,1500,0.06,'triangle',0.05);
+    else if(type==='power') S(700,1400,0.12,'square',0.06);
+    else if(type==='extend'){ [660,880,1320].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='triangle';oo.frequency.value=f;gg.gain.setValueAtTime(0.001,t+i*0.09);gg.gain.linearRampToValueAtTime(0.1,t+i*0.09+0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.09+0.3);oo.start(t+i*0.09);oo.stop(t+i*0.09+0.32);}); }
+    else if(type==='bomb') S(120,900,0.5,'sawtooth',0.14);
+    else if(type==='hurt') S(240,70,0.35,'square',0.16);
+    else if(type==='card'){ [180,300,240].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='sawtooth';oo.frequency.setValueAtTime(f,t+i*0.08);gg.gain.setValueAtTime(0.1,t+i*0.08);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.08+0.25);oo.start(t+i*0.08);oo.stop(t+i*0.08+0.27);}); }
+    else if(type==='win'){ [523,659,784,1046,1318].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='triangle';oo.frequency.value=f;gg.gain.setValueAtTime(0.001,t+i*0.1);gg.gain.linearRampToValueAtTime(0.1,t+i*0.1+0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.3);oo.start(t+i*0.1);oo.stop(t+i*0.1+0.32);}); }
+    // ---- melee weapon sounds ----
+    else if(type==='slash') S(2600,760,0.14,'sawtooth',0.055);                       // Kuma Katana — plasma shing
+    else if(type==='whip')  S(1500,150,0.18,'sine',0.075);                           // Kraken Lash — whoosh
+    else if(type==='thud')  S(170,46,0.18,'square',0.15);                            // Monke Bonk — club thud
+    else if(type==='boom'){ [110,72].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='sawtooth';oo.frequency.setValueAtTime(f*3,t);oo.frequency.exponentialRampToValueAtTime(f,t+0.42);gg.gain.setValueAtTime(0.16,t+i*0.02);gg.gain.exponentialRampToValueAtTime(0.001,t+0.46);oo.start(t);oo.stop(t+0.48);}); }  // Vault Hammer — boom
+    else if(type==='claw'){ [1900,2300,1650].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(dest);oo.type='sawtooth';oo.frequency.setValueAtTime(f,t+i*0.045);oo.frequency.exponentialRampToValueAtTime(f*0.5,t+i*0.045+0.06);gg.gain.setValueAtTime(0.055,t+i*0.045);gg.gain.exponentialRampToValueAtTime(0.001,t+i*0.045+0.08);oo.start(t+i*0.045);oo.stop(t+i*0.045+0.1);}); }  // Badger Claws — triple scratch
+    else if(type==='warp'){ const o=ac.createOscillator(),g=ac.createGain(); o.connect(g); g.connect(dest); o.type='sine'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(1400,t+0.18); o.frequency.exponentialRampToValueAtTime(90,t+0.5); g.gain.setValueAtTime(0.13*vm,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.5); o.start(t); o.stop(t+0.52); }  // Wormhole
+  }catch(e){ /* audio optional — never break gameplay */ }
 }
 // Music = shuffled YouTube playlist. The old lofi radio stream ended, playVideo() on
 // that ENDED state was a no-op, and the tab dropped its audio icon. Hidden IFrame.
@@ -305,8 +317,31 @@ function ytKick(){
 function ytShuffle(){
   if(ytShuffled) return;
   ytShuffled=true;
-  try{ if(ytPlayer){ ytPlayer.setLoop(true); ytPlayer.setShuffle(true); } }catch(e){}
+  // Only after PLAYING — getPlaylist/playVideoAt at CUED wedges the widget.
+  // setShuffle leaves the current index, so jump into the shuffled list.
+  var ytShuffleJump=-1, listed=false;
+  try{
+    if(ytPlayer){
+      ytPlayer.setLoop(true);
+      ytPlayer.setShuffle(true);
+      var list=(ytPlayer.getPlaylist&&ytPlayer.getPlaylist())||[];
+      listed=!!(list&&list.length);
+      if(list&&list.length>1){
+        var cur=0; try{ cur=ytPlayer.getPlaylistIndex()||0; }catch(e1){}
+        if(cur<0||cur>=list.length) cur=0;
+        ytShuffleJump=Math.floor(Math.random()*(list.length-1));
+        if(ytShuffleJump>=cur) ytShuffleJump++;
+      }
+    }
+  }catch(e){}
   ytPost('setLoop',[true]); ytPost('setShuffle',[true]);
+  if(ytShuffleJump>=0){
+    try{ if(ytPlayer) ytPlayer.playVideoAt(ytShuffleJump); }catch(e2){}
+    ytPost('playVideoAt',[ytShuffleJump]);
+  }else if(!listed){
+    try{ if(ytPlayer) ytPlayer.nextVideo(); }catch(e3){}
+    ytPost('nextVideo');
+  }
 }
 window.onYouTubeIframeAPIReady=function(){
   try{
@@ -464,7 +499,17 @@ let arsenalW=['laser'], arsenalS=['mech','bearzooka'], arsenalM=['katana'], arse
 const ARS_CAP={w:5,s:5,m:2,i:3};
 try{ const a=JSON.parse(localStorage.getItem('bobina_arsenal')||'null'); if(a){ if(Array.isArray(a.w)&&a.w.length) arsenalW=a.w.filter(k=>WEAPONS[k]); if(Array.isArray(a.s)) arsenalS=a.s.filter(k=>SPECIALS.some(s=>s.key===k)); } }catch(e){}
 if(!arsenalW.length) arsenalW=['laser'];   // (melee loadout is loaded just after the MELEE array is defined, below)
-function saveArsenal(){ try{ localStorage.setItem('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){} }
+let arsenalRev=0, arsenalCloudRev=0;   // local bar edits win over an in-flight cloud echo until that save lands
+function _dedupeLoadout(arr, pred, cap){ const seen=new Set(), out=[]; for(const k of (Array.isArray(arr)?arr:[])){ if(k==null||seen.has(k)||(pred&&!pred(k))) continue; seen.add(k); out.push(k); if(out.length>=cap) break; } return out; }
+function saveArsenal(){
+  const cap=ARS_CAP||{w:5,s:5,m:2,i:3};
+  if(typeof WEAPONS!=='undefined'){ arsenalW=_dedupeLoadout(arsenalW,k=>!!WEAPONS[k],cap.w); if(!arsenalW.length) arsenalW=['laser']; }
+  if(typeof SPECIALS!=='undefined') arsenalS=_dedupeLoadout(arsenalS,k=>SPECIALS.some(s=>s.key===k),cap.s);
+  if(typeof MELEE!=='undefined'){ arsenalM=_dedupeLoadout(arsenalM,k=>MELEE.some(m=>m.key===k),cap.m); if(!arsenalM.length) arsenalM=['katana']; }
+  if(typeof CONSUMABLES!=='undefined') arsenalI=_dedupeLoadout(arsenalI,k=>CONSUMABLES.some(c=>c.key===k),cap.i);
+  try{ localStorage.setItem('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){}
+  arsenalRev++;
+}
 function arsenalCount(){ return arsenalW.length+arsenalS.length; }
 function meleeIdxList(){ return arsenalM.map(k=>MELEE.findIndex(m=>m.key===k)).filter(i=>i>=0); }   // selected melee → MELEE indices, in cycle order
 function armedSpec(){ if(!run||!run.specials||!run.specials.length) return null; return SPECIALS.find(s=>s.key===run.specials[run.armed%run.specials.length])||null; }
@@ -744,12 +789,12 @@ function lockCost(type, key){ if(FREE_CONTENT[type+':'+key]) return 0; return SH
     saveShopUnlocks(); }
   localStorage.setItem('bobina_invmigrated','1');
 }catch(e){} })();
-// ---- CONSUMABLES: stored items you buy, carry, cycle with [E] and USE by holding [E] 1.5s ----
+// ---- CONSUMABLES: stored items you buy, carry, cycle with [A] and USE by tapping [Q] ----
 const CONSUMABLES=[
-  { key:'honeycomb', name:'Honeycomb',  icon:'🍯', col:'#ffcf5a', cost:16, desc:'Restore 1 heart.',   full:()=>run.lives>=MAX_LIVES, apply:()=>{ if(run) run.lives=Math.min(MAX_LIVES, run.lives+1); } },
-  { key:'bulltears', name:'Bull Tears',  icon:'💧', col:'#8fd0ff', cost:12, desc:'Fill 10% power.',    full:()=>run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), run.power+0.5); } },   // power range is 1→6 (five tiers, span 5); cap lowers on HARD/HELL
-  { key:'bullsouls', name:'Bull Souls',  icon:'🔮', col:'#b98cff', cost:28, desc:'Fill 30% power.',    full:()=>run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), run.power+1.5); } },
-  { key:'galaxygas', name:'Galaxy Gas',  icon:'🌌', col:'#9d6bff', cost:56, desc:'Fill 75% power.',    full:()=>run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), run.power+3.75); },
+  { key:'honeycomb', name:'Honeycomb',  icon:'🍯', col:'#ffcf5a', cost:16, desc:'Restore 1 heart.',   full:()=>!!run && run.lives>=MAX_LIVES, apply:()=>{ if(run) run.lives=Math.min(MAX_LIVES, (run.lives|0)+1); } },
+  { key:'bulltears', name:'Bull Tears',  icon:'💧', col:'#8fd0ff', cost:12, desc:'Fill 10% power.',    full:()=>!!run && run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), (+run.power||1)+0.5); } },   // power range is 1→6 (five tiers, span 5); cap lowers on HARD/HELL
+  { key:'bullsouls', name:'Bull Souls',  icon:'🔮', col:'#b98cff', cost:28, desc:'Fill 30% power.',    full:()=>!!run && run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), (+run.power||1)+1.5); } },
+  { key:'galaxygas', name:'Galaxy Gas',  icon:'🌌', col:'#9d6bff', cost:56, desc:'Fill 75% power.',    full:()=>!!run && run.power>=powerCap(), apply:()=>{ if(run) run.power=Math.min(powerCap(), (+run.power||1)+3.75); },
     draw:(s)=>{ const u=s/24; ctx.save(); ctx.scale(u,u);   // literal galaxy-in-a-jar (matches Honey Badger's shop ware)
       ctx.save(); ctx.beginPath(); ctx.roundRect(-7,-6,14,15,4); ctx.clip();   // swirling galaxy, clipped inside the glass
       const g=ctx.createRadialGradient(-1,3,0.4,-1,3,10); g.addColorStop(0,'#efe4ff'); g.addColorStop(0.32,'#9d6bff'); g.addColorStop(0.7,'#3a1a6a'); g.addColorStop(1,'#0a0618'); ctx.fillStyle=g; ctx.fillRect(-8,-7,16,17);
@@ -760,19 +805,20 @@ const CONSUMABLES=[
       ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=0.9; ctx.beginPath(); ctx.moveTo(-4.5,-3); ctx.lineTo(-4.5,5); ctx.stroke();   // highlight
       ctx.fillStyle='#cdb083'; ctx.beginPath(); ctx.roundRect(-8,-9.5,16,4,1.6); ctx.fill(); ctx.fillStyle='#e6cfa2'; ctx.beginPath(); ctx.roundRect(-5,-11,10,2.4,1); ctx.fill();   // lid
       ctx.restore(); } },
-  { key:'clover',    name:'Clover',      icon:'🍀', col:'#7ed957', cost:25, desc:'Charge 25% special.', full:()=>run.special>=100, apply:()=>{ if(run) run.special=Math.min(100, run.special+25); } },
+  { key:'clover',    name:'Clover',      icon:'🍀', col:'#7ed957', cost:25, desc:'Charge 25% special.', full:()=>!!run && (+run.special||0)>=100, apply:()=>{ if(run) run.special=Math.min(100, (+run.special||0)+25); } },
   { key:'bubbles',   name:'Bubbles',     icon:'🫧', col:'#8fd0ff', cost:30, desc:'I blow bubbles that trap Mumus, then pop them for AoE.', apply:()=>{ if(run&&player) spawnBubbles(); } },
-  { key:'wagyu',     name:'Wagyu',       icon:'🥩', col:'#ff8aa0', cost:38, desc:'Restore 3 hearts.',   full:()=>run.lives>=MAX_LIVES, apply:()=>{ if(run) run.lives=Math.min(MAX_LIVES, run.lives+3); } },
+  { key:'wagyu',     name:'Wagyu',       icon:'🥩', col:'#ff8aa0', cost:38, desc:'Restore 3 hearts.',   full:()=>!!run && run.lives>=MAX_LIVES, apply:()=>{ if(run) run.lives=Math.min(MAX_LIVES, (run.lives|0)+3); } },
   { key:'stardust',  name:'Stardust',    icon:'✨', col:'#ffe08a', cost:35, desc:'Questionable dust — stars spawn around me and sap power from nearby Mumus.', apply:()=>{ if(run&&player) spawnStardust(); } },
   { key:'vial',      name:'Unholy Vial',  icon:'🧪', col:'#9d6bff', cost:32, desc:'Void energy shields me from the next 3 bullets for 5s.', apply:()=>{ if(player){ player.vialHits=3; player.vialT=300; sfx('power'); flashMsg={t:80,txt:'🧪 UNHOLY VIAL — VOID WARD!'}; } } },
-  { key:'banana',    name:'Banana',       icon:'🍌', col:'#ffd23a', cost:22, desc:'A quick snack — induces Monke’s Frenzy rapid fire.', apply:()=>{ if(player){ player.rapidT=Math.max(player.rapidT,330); sfx('power'); flashMsg={t:80,txt:'🍌 MONKE’S FRENZY!'}; } } },
-  { key:'wormhole',  name:'Wormhole',     icon:'🌀', col:'#7fdfff', cost:46, desc:'Phase into an alt reality for 3s — untouchable & no collision, but I still hurt Mumus.', apply:()=>{ if(player){ player.phaseT=180; sfx('warp'); screenShake=Math.max(screenShake,5); flashMsg={t:80,txt:'🌀 WORMHOLE — PHASED!'}; for(let i=0;i<24;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10,life:26,c:i%2?'#7fdfff':'#b98cff'}); } } },
+  { key:'banana',    name:'Banana',       icon:'🍌', col:'#ffd23a', cost:22, desc:'A quick snack — induces Monke’s Frenzy rapid fire.', apply:()=>{ if(player){ player.rapidT=Math.max(+player.rapidT||0,330); sfx('power'); flashMsg={t:80,txt:'🍌 MONKE’S FRENZY!'}; } } },
+  { key:'wormhole',  name:'Wormhole',     icon:'🌀', col:'#7fdfff', cost:46, desc:'Phase into an alt reality for 3s — untouchable & no collision, but I still hurt Mumus.', apply:()=>{ if(player){ player.phaseT=180; sfx('warp'); screenShake=Math.max(screenShake||0,5); flashMsg={t:80,txt:'🌀 WORMHOLE — PHASED!'}; if(!Array.isArray(particles)) particles=[]; for(let i=0;i<24;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10,life:26,c:i%2?'#7fdfff':'#b98cff'}); } } },
 ];
-let consumInv=(()=>{ try{ return JSON.parse(localStorage.getItem('bobina_consum'))||{}; }catch(e){ return {}; } })();
+let consumInv=(()=>{ try{ const v=JSON.parse(localStorage.getItem('bobina_consum')||'{}'); return (v&&typeof v==='object'&&!Array.isArray(v))?v:{}; }catch(e){ return {}; } })();
 try{ const a=JSON.parse(localStorage.getItem('bobina_arsenal')||'null'); if(a&&Array.isArray(a.i)) arsenalI=a.i.filter(k=>CONSUMABLES.some(c=>c.key===k)); }catch(e){}   // load persisted item loadout
+if(!Array.isArray(arsenalI)) arsenalI=['honeycomb','bulltears','bullsouls'];
 if(arsenalI.length>ARS_CAP.i) arsenalI=arsenalI.slice(0,ARS_CAP.i);
 let selConsum=0, shopTab='w';
-function saveConsum(){ try{ localStorage.setItem('bobina_consum', JSON.stringify(consumInv)); }catch(e){} }
+function saveConsum(){ try{ if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={}; localStorage.setItem('bobina_consum', JSON.stringify(consumInv)); }catch(e){} }
 
 // ======== CLOUD PROGRESS (Bobina-linked accounts) ========
 // Mirrors all game mechanics into Postgres for signed-in bc_id users.
@@ -812,7 +858,7 @@ function buildProgressSnapshot(){
       follow: (typeof MOUSE!=='undefined') ? MOUSE.follow : null,
       mspeed: (typeof MOUSE!=='undefined') ? MOUSE.speed : null,
       speedrun: !!(typeof speedrun!=='undefined' && speedrun),
-      autofire: (typeof autoFire==='undefined') ? true : !!autoFire,
+      autofire: (typeof autoFire==='undefined') ? false : !!autoFire,
       ui: (function(){ try{ return localStorage.getItem('bobina_ui'); }catch(e){ return null; } })(),
       displayScale: (typeof displayScale!=='undefined')?displayScale:1,
       refreshRate: (typeof refreshRate!=='undefined')?refreshRate:60,
@@ -833,12 +879,14 @@ function applyProgressSnapshot(p){
     estats = e0;
     try{ localStorage.setItem('bobina_estats', JSON.stringify(estats)); }catch(e){}
   }
-  if(p.arsenal && typeof p.arsenal==='object'){
-    if(Array.isArray(p.arsenal.w) && p.arsenal.w.length) arsenalW = p.arsenal.w.filter(k=>WEAPONS[k]);
-    if(Array.isArray(p.arsenal.s)) arsenalS = p.arsenal.s.filter(k=>SPECIALS.some(s=>s.key===k));
-    if(Array.isArray(p.arsenal.m) && typeof MELEE!=='undefined') arsenalM = p.arsenal.m.filter(k=>MELEE.some(m=>m.key===k));
-    if(Array.isArray(p.arsenal.i) && typeof CONSUMABLES!=='undefined') arsenalI = p.arsenal.i.filter(k=>CONSUMABLES.some(c=>c.key===k));
+  if(p.arsenal && typeof p.arsenal==='object' && arsenalRev===arsenalCloudRev){
+    const A=p.arsenal, cap=ARS_CAP||{w:5,s:5,m:2,i:3};
+    if(Array.isArray(A.w)){ const w=_dedupeLoadout(A.w,k=>!!WEAPONS[k],cap.w); if(w.length) arsenalW=w; }
+    if(Array.isArray(A.s)) arsenalS=_dedupeLoadout(A.s,k=>SPECIALS.some(s=>s.key===k),cap.s);
+    if(Array.isArray(A.m) && typeof MELEE!=='undefined'){ const mm=_dedupeLoadout(A.m,k=>MELEE.some(m=>m.key===k),cap.m); if(mm.length) arsenalM=mm; }
+    if(Array.isArray(A.i) && typeof CONSUMABLES!=='undefined') arsenalI=_dedupeLoadout(A.i,k=>CONSUMABLES.some(c=>c.key===k),cap.i);
     if(!arsenalW.length) arsenalW=['laser'];
+    if(!arsenalM.length) arsenalM=['katana'];
     try{ localStorage.setItem('bobina_arsenal', JSON.stringify({w:arsenalW,s:arsenalS,m:arsenalM,i:arsenalI})); }catch(e){}
   }
   if(p.heads!=null){ mumuHeads = Math.max(mumuHeads|0, Number(p.heads)||0); try{ localStorage.setItem('bobina_heads', String(mumuHeads)); }catch(e){} }
@@ -846,8 +894,8 @@ function applyProgressSnapshot(p){
     shopUnlocks = Object.assign({}, shopUnlocks||{}, p.shopUnlocks);
     try{ localStorage.setItem('bobina_shopunlocks', JSON.stringify(shopUnlocks)); }catch(e){}
   }
-  if(p.consum && typeof p.consum==='object'){
-    const c0 = consumInv||{};
+  if(p.consum && typeof p.consum==='object' && !Array.isArray(p.consum)){
+    const c0 = (consumInv && typeof consumInv==='object' && !Array.isArray(consumInv)) ? consumInv : {};
     for(const k of Object.keys(p.consum)){ c0[k] = Math.max(Number(c0[k])||0, Number(p.consum[k])||0); }
     consumInv = c0;
     try{ localStorage.setItem('bobina_consum', JSON.stringify(consumInv)); }catch(e){}
@@ -894,6 +942,7 @@ function scheduleCloudSave(immediate){
   const run=function(){
     if(!cloudLinked() || _cloudBusy) return;
     _cloudBusy=true;
+    const sentRev=arsenalRev;
     const snap=buildProgressSnapshot();
     fetch('/api/progress',{
       method:'PUT', credentials:'same-origin',
@@ -901,7 +950,9 @@ function scheduleCloudSave(immediate){
       body: JSON.stringify({ progress: snap })
     }).then(function(r){ return r.json(); }).then(function(d){
       if(d && d.ok && d.progress){
-        // keep server-merged truth locally (union of all devices)
+        // Bar order is the client's loadout. Only accept the echo when nothing
+        // newer was equipped while this request was in flight.
+        if(arsenalRev===sentRev) arsenalCloudRev=arsenalRev;
         applyProgressSnapshot(d.progress);
       }
     }).catch(function(e){ console.warn('cloud save failed', e); })
@@ -911,14 +962,14 @@ function scheduleCloudSave(immediate){
 }
 function cloudPullAndMerge(){
   if(!cloudLinked()) return Promise.resolve(null);
+  const sentRev=arsenalRev;
   return fetch('/api/progress',{credentials:'same-origin'})
     .then(function(r){ return r.json(); })
     .then(function(d){
       if(!d || !d.ok) return null;
-      const local = buildProgressSnapshot();
-      // Server already merges on PUT; first apply remote, then push local merge
+      // Apply remote unlocks/stats. A bar edit this session (arsenalRev ahead)
+      // is kept; otherwise the saved loadout order replaces this device.
       if(d.progress && d.progress.emblems){
-        // merge local onto remote by applying remote first then local-over-max via apply+put
         applyProgressSnapshot(d.progress);
       }
       // Push combined (local had been in memory; apply remote already unioned via server on next put)
@@ -928,7 +979,10 @@ function cloudPullAndMerge(){
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ progress: buildProgressSnapshot() })
       }).then(function(r){ return r.json(); }).then(function(d2){
-        if(d2 && d2.ok && d2.progress) applyProgressSnapshot(d2.progress);
+        if(d2 && d2.ok && d2.progress){
+          if(arsenalRev===sentRev) arsenalCloudRev=arsenalRev;
+          applyProgressSnapshot(d2.progress);
+        }
         _cloudPullDone=true;
         return d2;
       });
@@ -971,24 +1025,53 @@ window.cloudPullAndMerge = cloudPullAndMerge;
 window.scheduleCloudSave = scheduleCloudSave;
 window.buildProgressSnapshot = buildProgressSnapshot;
 
-function consumQty(k){ return consumInv[k]||0; }
 function resetInventory(){   // wipe bought gear + carried items + skulls back to the starter kit; KEEP emblems, outfits & NG+
   for(const k in shopUnlocks) delete shopUnlocks[k]; saveShopUnlocks();
+  if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={};
   for(const k in consumInv) delete consumInv[k]; saveConsum();
   mumuHeads=0; saveHeads();
   arsenalW=['laser']; arsenalS=['mech','bearzooka']; arsenalM=['katana']; arsenalI=['honeycomb','bulltears','bullsouls']; selConsum=0; saveArsenal();
   try{ localStorage.setItem('bobina_invmigrated','1'); }catch(e){}   // stay "migrated" so the wipe sticks (no auto-regrant)
   if(run) applyArsenalToRun();
 }
-function consumById(k){ return CONSUMABLES.find(c=>c.key===k); }
-function selConsumObj(){ if(selConsum>=arsenalI.length) selConsum=0; return consumById(arsenalI[selConsum]); }   // the selected item is now whatever sits in that equipped slot
-function cycleConsumable(){ if(!arsenalI.length){ sfx('hit'); flashMsg={t:75,txt:'No items equipped — set them in the Arsenal'}; return; } selConsum=(selConsum+1)%arsenalI.length; const c=selConsumObj(); if(c){ sfx('item'); flashMsg={t:75,txt:c.icon+' '+c.name+'  ×'+consumQty(c.key)}; } }
-function consumeSelected(){ const c=selConsumObj(); if(!c||!run||!player) return false;
-  if(consumQty(c.key)>0){
-    if(c.full && c.full()){ sfx('hit'); flashMsg={t:80,txt:'Already maxed — '+c.name+' saved'}; pop(player.x,player.y-30,'FULL','#9fe0a4'); return false; }   // no waste (no cooldown): skip if hearts/power/special are already full
-    consumInv[c.key]--; saveConsum(); c.apply(); sfx('extend'); flashMsg={t:90,txt:c.icon+' '+c.name+' used!'}; pop(player.x,player.y-30,c.icon,c.col); for(let i=0;i<14;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:26,c:c.col});
-    if(c.key==='honeycomb'){ estats.honeycombs=(estats.honeycombs||0)+1; saveEstats(); if(estats.honeycombs>=100) unlockEmblem('honeycomb_100'); } return true; }
-  else { sfx('hit'); flashMsg={t:70,txt:'No '+c.name+' left — buy some at the shop'}; return false; } }
+function consumById(k){ return CONSUMABLES.find(c=>c.key===k)||null; }
+function consumQty(k){ if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={}; return Math.max(0, Number(consumInv[k])||0); }
+function selConsumObj(){
+  if(!Array.isArray(arsenalI)) arsenalI=[];
+  if(!arsenalI.length) return null;
+  if(selConsum<0||selConsum>=arsenalI.length) selConsum=0;
+  return consumById(arsenalI[selConsum]);
+}
+function cycleConsumable(){
+  try{
+    if(!Array.isArray(arsenalI)||!arsenalI.length){ sfx('hit'); flashMsg={t:75,txt:'No items equipped — set them in the Arsenal'}; return; }
+    selConsum=(selConsum+1)%arsenalI.length; const c=selConsumObj();
+    if(c){ sfx('item'); flashMsg={t:75,txt:c.icon+' '+c.name+'  ×'+consumQty(c.key)}; }
+  }catch(err){ console.error('[cycleConsumable]', err); }
+}
+function consumeSelected(){
+  // Hardened for public HTML — never let item use kill the session
+  try{
+    if(!run||!player) return false;
+    if(!Array.isArray(arsenalI)) arsenalI=[];
+    if(typeof consumInv!=='object'||!consumInv||Array.isArray(consumInv)) consumInv={};
+    if(!Array.isArray(particles)) particles=[];
+    if(!Array.isArray(scoreTexts)) scoreTexts=[];
+    if(!Array.isArray(fx)) fx=[];
+    const c=selConsumObj(); if(!c){ sfx('hit'); flashMsg={t:70,txt:'No items equipped — set them in the Arsenal'}; return false; }
+    const q=consumQty(c.key);
+    if(q>0){
+      if(typeof c.full==='function' && c.full()){ sfx('hit'); flashMsg={t:80,txt:'Already maxed — '+c.name+' saved'}; pop(player.x,player.y-30,'FULL','#9fe0a4'); return false; }
+      consumInv[c.key]=Math.max(0,q-1); if(consumInv[c.key]<=0) delete consumInv[c.key]; saveConsum();
+      if(typeof c.apply==='function') c.apply();
+      sfx('extend'); flashMsg={t:90,txt:(c.icon||'•')+' '+(c.name||c.key)+' used!'}; pop(player.x,player.y-30,c.icon||'•',c.col||'#ffcf5a');
+      for(let i=0;i<14;i++) particles.push({x:player.x,y:player.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:26,c:c.col||'#ffcf5a'});
+      if(c.key==='honeycomb'){ if(!estats||typeof estats!=='object') estats={}; estats.honeycombs=(estats.honeycombs||0)+1; saveEstats(); if(estats.honeycombs>=100) unlockEmblem('honeycomb_100'); }
+      return true;
+    }
+    sfx('hit'); flashMsg={t:70,txt:'No '+(c.name||'item')+' left — buy some at the shop'}; return false;
+  }catch(err){ console.error('[consumeSelected]', err); try{ sfx('hit'); flashMsg={t:90,txt:'Item fizzled — try again'}; }catch(_e){} return false; }
+}
 // ---- Shop catalogue (tabbed like the arsenal): buy weapons / specials / melee to unlock, or stock up on consumables ----
 function shopList(tab){
   if(tab==='i') return CONSUMABLES.map(c=>({ kind:'consumable', key:c.key, icon:c.icon, name:c.name, desc:c.desc, col:c.col, cost:c.cost, qty:consumQty(c.key), draw:c.draw }));
@@ -1306,7 +1389,7 @@ function updateFx(){
       else { f.life--; f.x+=f.vx; f.y+=f.vy; f.vy+=0.015; f.vx*=0.99; f.vy*=0.985; f.r=Math.min(f.rmax, f.r+0.35);
         if(f.x<PF.x+f.r){ f.x=PF.x+f.r; f.vx=Math.abs(f.vx)*0.6; } if(f.x>PF.x+PF.w-f.r){ f.x=PF.x+PF.w-f.r; f.vx=-Math.abs(f.vx)*0.6; }
         if(f.y<PF.y+f.r){ f.y=PF.y+f.r; f.vy=Math.abs(f.vy)*0.6; } if(f.y>PF.y+PF.h-f.r){ f.y=PF.y+PF.h-f.r; f.vy=-Math.abs(f.vy)*0.6; }
-        let caught=0; for(const e of enemies){ const dx=f.x-e.x, dy=f.y-e.y, d=Math.hypot(dx,dy)||1; if(d<f.r+e.r+10){ const gp=(1-Math.min(1,d/(f.r+34)))*1.7; e.x+=dx/d*gp; e.y+=dy/d*gp; e.flash=Math.max(e.flash,2); caught++; } }   // trap: pull Mumus in, grouping them
+        let caught=0; for(const e of enemies||[]){ if(!e)continue; const dx=f.x-e.x, dy=f.y-e.y, d=Math.hypot(dx,dy)||1; const er=(e.r||15); if(d<f.r+er+10){ const gp=(1-Math.min(1,d/(f.r+34)))*1.7; e.x+=dx/d*gp; e.y+=dy/d*gp; e.flash=Math.max(+e.flash||0,2); caught++; } }   // trap: pull Mumus in, grouping them
         f.caught=caught;
         if(f.life<=0 || f.caught>=5){ f.pop=16; f.popR=f.r; sfx('bomb');   // POP → AoE burst
           const R=f.r+46; for(const e of enemies){ if(Math.hypot(e.x-f.x,e.y-f.y)<R){ e.hp-=18; e.flash=6; if(e.hp<=0) killEnemy(e); } }
@@ -1320,7 +1403,7 @@ function updateFx(){
       if(f.life>0 && f.life%5===0){ const a=Math.random()*6.283, r=18+Math.random()*58; f.stars.push({x:f.x+Math.cos(a)*r, y:f.y+Math.sin(a)*r, life:28, t:0, sz:1.3+Math.random()*1.5, rot:Math.random()*6.28, hue:(tick*4+Math.random()*100)%360|0, sapping:false}); }
       // each star saps HP from the nearest Mumu it's near
       for(const st of f.stars){ st.t++; let tgt=null,bd=1e9; for(const e of enemies){ const d=(e.x-st.x)**2+(e.y-st.y)**2; if(d<bd){ bd=d; tgt=e; } }
-        if(tgt && bd<34*34){ tgt.hp-=0.5; tgt.flash=Math.max(tgt.flash,2); st.sapX=tgt.x; st.sapY=tgt.y; st.sapping=true; if(tgt.hp<=0) killEnemy(tgt); } else st.sapping=false; }
+        if(tgt && bd<34*34){ tgt.hp-=0.5; tgt.flash=Math.max(+tgt.flash||0,2); st.sapX=tgt.x; st.sapY=tgt.y; st.sapping=true; if(tgt.hp<=0) killEnemy(tgt); } else st.sapping=false; }
       f.stars=f.stars.filter(s=>s.t<s.life);
     }
   }
@@ -1819,13 +1902,20 @@ function update(){
   const p=player;
   if(p.dead){ p.respawn--; if(p.respawn<=0 && run.lives>=0) initPlayer(); updateItems(); return; }
   if(run.cleared){ if(clearMsgT>0)clearMsgT--; }   // free-roam prep: press [E] at the portal to leave, [E] at the shop to buy — no auto-enter
-  // consumables: [Switch Item] cycles the selection (keyPress); HOLD [Use Item] 0.8s to consume, then a 3s cooldown before the next use (no spamming)
-  if(!paused){ if(p._eCd>0) p._eCd--;
-    if(keys.item_use){ if(!p._eHeld){ p._eHeld=true; p._eT=0; p._eUsed=false; } p._eT++;
-      if(p._eT>=48 && !p._eUsed){ p._eUsed=true;   // 0.8s hold reached — fire once per hold
-        if(p._eCd>0){ sfx('hit'); flashMsg={t:60,txt:'⌛ Item cooling down — '+Math.ceil(p._eCd/60)+'s'}; }
-        else if(consumeSelected()){ p._eCd=180; } } }   // a successful use starts the 3s cooldown
-    else if(p._eHeld){ p._eHeld=false; } }   // consumables work during the cleared prep too, so you can stock up and heal before the portal
+  // consumables: [Switch Item] cycles (keyPress); TAP [Use Item] to consume, then a 3s cooldown (no spamming)
+  // Outer try — public HTML must never freeze if item apply/audio/fx throws
+  try{
+    if(!paused && p){
+      if(p._eCd>0) p._eCd--;
+      if(keys.item_use){
+        if(!p._eHeld){
+          p._eHeld=true;
+          if(p._eCd>0){ sfx('hit'); flashMsg={t:60,txt:'⌛ Item cooling down — '+Math.ceil(p._eCd/60)+'s'}; }
+          else if(consumeSelected()){ p._eCd=180; }
+        }
+      } else if(p._eHeld){ p._eHeld=false; }
+    }
+  }catch(err){ console.error('[item_use]', err); try{ if(p) p._eHeld=false; }catch(_e){} }
   if(p.iframe>0)p.iframe--; if(p.bombFx>0)p.bombFx--; if(hurtPortrait>0)hurtPortrait--; if(p.shieldT>0)p.shieldT--; if(p.rapidT>0)p.rapidT--; if(p.dashCd>0)p.dashCd--;
   if(p.vialT>0){ p.vialT--; if(p.vialT<=0) p.vialHits=0; } if(p.phaseT>0)p.phaseT--;   // Unholy Vial window / Wormhole phase
   p.offx=(p.offx||0)*0.95; p.offy=(p.offy||0)*0.95;   // a dash's displacement decays away → she eases back under the cursor over ~1s
@@ -3873,10 +3963,11 @@ function drawPanel(){ if(portrait){ drawPanelPortrait(); return; } if(isTouch){ 
       if(c.draw){ ctx.save(); ctx.translate(ix+15, cy+9); c.draw(13); ctx.restore(); } else { ctx.fillStyle=sel?'#1a0e14':'#d8c8e0'; ctx.font='bold 11px monospace'; ctx.textAlign='center'; ctx.fillText(c.icon, ix+15, cy+13); }
       ctx.fillStyle=sel?'#1a0e14':'#9fe0a4'; ctx.font='bold 8px monospace'; ctx.textAlign='right'; ctx.fillText(q, ix+28, cy+7); ctx.textAlign='left'; ctx.globalAlpha=1; ix+=34; }
     if(!arsenalI.length){ ctx.fillStyle='#6a5a72'; ctx.font='9px monospace'; ctx.fillText('— none equipped —', x+16, cy+12); }
-    const hp=(cur&&player&&player._eHeld&&!player._eUsed)?Math.min(1,(player._eT||0)/48):0;   // 0.8s hold
-    if(hp>0){ ctx.fillStyle=cur.col; ctx.fillRect(x+16, cy+19, (arsenalI.length*34-4)*hp, 2.5); }
-    else if(player&&player._eCd>0){ ctx.fillStyle='#6a5a72'; ctx.fillRect(x+16, cy+19, (arsenalI.length*34-4)*(player._eCd/180), 2.5); }   // 3s cooldown drains (grey)
-    ctx.fillStyle='#6a5a72'; ctx.font='9px monospace'; ctx.textAlign='right'; ctx.fillText('['+keyName(binds.item_switch)+'] switch · hold ['+keyName(binds.item_use)+']', x+w-14, cy+13); ctx.textAlign='left'; cy+=30;
+    try{
+      const cdBar=(player&&player._eCd>0);   // tap-to-use — cooldown bar only
+      if(cdBar){ const n=(Array.isArray(arsenalI)?arsenalI.length:0); ctx.fillStyle='#6a5a72'; ctx.fillRect(x+16, cy+19, Math.max(0,n*34-4)*Math.min(1,(player._eCd||0)/180), 2.5); }
+    }catch(_e){}
+    ctx.fillStyle='#6a5a72'; ctx.font='9px monospace'; ctx.textAlign='right'; ctx.fillText('['+keyName(binds.item_switch)+'] switch · ['+keyName(binds.item_use)+'] use', x+w-14, cy+13); ctx.textAlign='left'; cy+=30;
   }
   // lives
   // LIVES (hearts) + life-frag pips inline on the right
@@ -3957,7 +4048,7 @@ function drawTitle(){
     ctx.fillStyle='#6a5a72'; ctx.fillText(STAGES.length+' stages · '+STAGES.length+' meme bosses · power fades, grab P · save your score globally', W/2, ny); ny+=16;
     ctx.fillStyle='#8a6a92'; ctx.fillText('A Bobina Council LLC & Grr Finance production', W/2, ny);
   } else {
-    ctx.fillStyle='#a894b2'; ctx.font='bold 11px monospace'; ctx.fillText('◀ JOYSTICK (bottom-left) moves — she auto-fires', W/2, ny); ny+=15;
+    ctx.fillStyle='#a894b2'; ctx.font='bold 11px monospace'; ctx.fillText('◀ JOYSTICK moves · tap FIRE to toggle auto-fire (off by default)', W/2, ny); ny+=15;
     ctx.fillStyle='#9a8aa2'; ctx.font='11px monospace'; ctx.fillText('Buttons ▶  FOCUS · BOMB · SPEC (tap USE! when charged) · SWAP', W/2, ny); ny+=15;
     ctx.fillStyle='#8a6a92'; ctx.font='10px monospace'; ctx.fillText('A Bobina Council LLC & Grr Finance production · tap ⛶ for fullscreen', W/2, ny);
   }
@@ -4447,7 +4538,7 @@ function drawArsenal(){
   ctx.save(); ctx.shadowColor='#7fdfff'; ctx.shadowBlur=14; ctx.fillStyle='#bff0ff'; ctx.font='900 24px "Trebuchet MS"'; ctx.fillText('🎒 ARSENAL', W/2, 30); ctx.restore();
   arsenalTiles=[];
   // ---- tabs ----
-  const tabs=[['w','WEAPONS','#ff8ac0','['+kb('swap')+'] cycles these in a run'],['s','SPECIALS','#b98cff','['+kb('special')+'] use · ['+kb('cycle')+'] cycles these'],['m','MELEE','#ff8a6a','['+kb('melee')+'] swipe · ['+kb('meleeswap')+'] cycles these'],['i','ITEMS','#ffd27a','['+kb('item_switch')+'] switch · hold ['+kb('item_use')+'] to use']];
+  const tabs=[['w','WEAPONS','#ff8ac0','['+kb('swap')+'] cycles these in a run'],['s','SPECIALS','#b98cff','['+kb('special')+'] use · ['+kb('cycle')+'] cycles these'],['m','MELEE','#ff8a6a','['+kb('melee')+'] swipe · ['+kb('meleeswap')+'] cycles these'],['i','ITEMS','#ffd27a','['+kb('item_switch')+'] switch · tap ['+kb('item_use')+'] to use']];
   const tabW=142, tabGap=10, tabsW=tabs.length*tabW+(tabs.length-1)*tabGap, tabX0=W/2-tabsW/2, tabY=42, tabH=30;
   for(let i=0;i<tabs.length;i++){ const [tk,tlabel,tcol]=tabs[i], tx=tabX0+i*(tabW+tabGap), on=arsTab===tk;
     ctx.fillStyle=on?tcol:'rgba(255,255,255,0.05)'; ctx.beginPath(); ctx.roundRect(tx,tabY,tabW,tabH,9); ctx.fill();

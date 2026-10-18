@@ -5,3 +5,5 @@ function chainLightning(sx,sy,dmg,jumps,col){ let x=sx,y=sy; const hit=new Set()
   for(const e of enemies){ if(e.hp<=0 && hit.has(e)) killEnemy(e); } enemies=enemies.filter(e=>e.hp>0);
   if(pts.length>1) meleeFx.push({bolt:true,pts,col,life:12,t:0});
 }
+// a flung Mumu smacks a wall and detonates — damages nearby Mumus + clears nearby bullets
+// Grrnade Launcher blast — AoE damage + bullet clear where a grenade dies

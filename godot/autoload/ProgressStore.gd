@@ -6,6 +6,9 @@ signal progress_loaded
 signal progress_saved
 
 var progress: Dictionary = {}
+## Local bar edits stay ahead of a cloud echo until the next fresh load.
+var arsenal_rev: int = 0
+var arsenal_cloud_rev: int = 0
 var emblems: Dictionary = {}
 var estats: Dictionary = {}
 var ng_unlocked: int = 0
@@ -215,6 +218,38 @@ func save_arsenal() -> void:
 	## HTML saveArsenal
 	queue_save()
 
+func note_arsenal_edit() -> void:
+	## HTML arsenalRev++ inside saveArsenal — this device's bar wins over an in-flight pull
+	arsenal_rev += 1
+
+func _cap_loadout(src, cap: int) -> Array:
+	var out: Array = []
+	var seen := {}
+	if src is Array:
+		for x in src:
+			var sk := str(x)
+			if sk == "" or bool(seen.get(sk, false)):
+				continue
+			seen[sk] = true
+			out.append(sk)
+			if out.size() >= cap:
+				break
+	return out
+
+func _normalize_arsenal(ar: Dictionary) -> Dictionary:
+	## Keep equipped order. Do not copy GameState.weapons — run pickups are not the saved bar.
+	if typeof(ar) != TYPE_DICTIONARY:
+		ar = STARTER_ARSENAL.duplicate(true)
+	ar["w"] = _cap_loadout(ar.get("w", []), 5)
+	ar["s"] = _cap_loadout(ar.get("s", []), 5)
+	ar["m"] = _cap_loadout(ar.get("m", []), 2)
+	ar["i"] = _cap_loadout(ar.get("i", []), 3)
+	if (ar["w"] as Array).is_empty():
+		ar["w"] = ["laser"]
+	if (ar["m"] as Array).is_empty():
+		ar["m"] = ["katana"]
+	return ar
+
 func arsenal_arr(type: String) -> Array:
 	var ar: Dictionary = progress.get("arsenal", {})
 	var a = ar.get(type, [])
@@ -225,7 +260,8 @@ func set_arsenal_arr(type: String, arr: Array) -> void:
 	if typeof(ar) != TYPE_DICTIONARY:
 		ar = STARTER_ARSENAL.duplicate(true)
 	ar[type] = arr
-	progress["arsenal"] = ar
+	progress["arsenal"] = _normalize_arsenal(ar)
+	note_arsenal_edit()
 	save_arsenal()
 	_apply_to_fields()
 
@@ -271,6 +307,7 @@ func reset_inventory() -> void:
 	progress["consum"] = {}
 	progress["heads"] = 0
 	progress["arsenal"] = STARTER_ARSENAL.duplicate(true)
+	note_arsenal_edit()
 	progress["invMigrated"] = true
 	_apply_to_fields()
 	if GameState.state == GameState.State.PLAY or GameState.state == GameState.State.SHOP:
@@ -368,17 +405,7 @@ func _flush_save() -> void:
 	progress["difficulty"] = GameState.difficulty
 	progress["ngPlus"] = GameState.ng_plus
 	progress["outfit"] = GameState.selected_outfit
-	# Keep arsenal w/s from GameState live loadout; preserve m/i from progress
-	var ar: Dictionary = progress.get("arsenal", STARTER_ARSENAL.duplicate(true))
-	if typeof(ar) != TYPE_DICTIONARY:
-		ar = STARTER_ARSENAL.duplicate(true)
-	ar["w"] = GameState.weapons.duplicate()
-	ar["s"] = GameState.specials.duplicate()
-	if not ar.has("m") or not (ar["m"] is Array) or (ar["m"] as Array).is_empty():
-		ar["m"] = ["katana"]
-	if not ar.has("i") or not (ar["i"] is Array):
-		ar["i"] = STARTER_ARSENAL["i"].duplicate()
-	progress["arsenal"] = ar
+	progress["arsenal"] = _normalize_arsenal(progress.get("arsenal", STARTER_ARSENAL.duplicate(true)))
 	_save_local()
 	if ApiClient.is_authenticated():
 		ApiClient.put_progress(progress)
@@ -479,12 +506,7 @@ func _flush_fields_to_progress() -> void:
 	progress["difficulty"] = GameState.difficulty
 	progress["ngPlus"] = GameState.ng_plus
 	progress["outfit"] = GameState.selected_outfit
-	var ar: Dictionary = progress.get("arsenal", STARTER_ARSENAL.duplicate(true))
-	if typeof(ar) != TYPE_DICTIONARY:
-		ar = STARTER_ARSENAL.duplicate(true)
-	ar["w"] = GameState.weapons.duplicate()
-	ar["s"] = GameState.specials.duplicate()
-	progress["arsenal"] = ar
+	progress["arsenal"] = _normalize_arsenal(progress.get("arsenal", STARTER_ARSENAL.duplicate(true)))
 
 func merge_from_cloud(remote: Dictionary) -> void:
 	## HTML applyProgressSnapshot — max/union into local; never replace progress wholesale
@@ -524,20 +546,22 @@ func merge_from_cloud(remote: Dictionary) -> void:
 	var ar_remote: Dictionary = remote.get("arsenal", {})
 	if typeof(ar_remote) != TYPE_DICTIONARY:
 		ar_remote = {}
+	# HTML applyProgressSnapshot: saved bar order replaces this device unless
+	# the player reordered locally and that edit has not been echoed yet.
 	var merged_ar := {}
+	var use_remote := arsenal_rev == arsenal_cloud_rev
+	var caps := {"w": 5, "s": 5, "m": 2, "i": 3}
 	for slot in ["w", "s", "m", "i"]:
-		var seen := {}
-		var out: Array = []
-		for src in [ar_local.get(slot, []), ar_remote.get(slot, [])]:
-			if src is Array:
-				for x in src:
-					var sk := str(x)
-					if not seen.get(sk, false):
-						seen[sk] = true
-						out.append(sk)
-		merged_ar[slot] = out if out.size() else STARTER_ARSENAL.get(slot, []).duplicate()
+		var src = ar_local.get(slot, [])
+		if use_remote and ar_remote.has(slot):
+			src = ar_remote.get(slot, [])
+		merged_ar[slot] = _cap_loadout(src, int(caps[slot]))
 	if (merged_ar.get("w", []) as Array).is_empty():
 		merged_ar["w"] = ["laser"]
+	if (merged_ar.get("m", []) as Array).is_empty():
+		merged_ar["m"] = ["katana"]
+	if use_remote:
+		arsenal_cloud_rev = arsenal_rev
 	# Consum: take max qty per key
 	var c_local: Dictionary = progress.get("consum", {})
 	var c_remote: Dictionary = remote.get("consum", {})
