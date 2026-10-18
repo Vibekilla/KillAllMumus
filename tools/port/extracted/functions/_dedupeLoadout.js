@@ -1,0 +1,1 @@
+function _dedupeLoadout(arr, pred, cap){ const seen=new Set(), out=[]; for(const k of (Array.isArray(arr)?arr:[])){ if(k==null||seen.has(k)||(pred&&!pred(k))) continue; seen.add(k); out.push(k); if(out.length>=cap) break; } return out; }
