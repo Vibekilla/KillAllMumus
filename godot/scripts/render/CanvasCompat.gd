@@ -585,9 +585,15 @@ func arc(x: float, y: float, r: float, a0: float, a1: float, ccw: bool = false) 
 		da += TAU
 	# Track full circles for clip() + multi-disc fill (Bobina ears / blush / hands)
 	if absf(da) >= TAU * 0.92:
-		var c_world := _xform * Vector2(x, y)
-		var edge := _xform * (Vector2(x, y) + Vector2(r, 0))
-		var info := {"c": c_world, "r": c_world.distance_to(edge)}
+		var c_local := Vector2(x, y)
+		var c_world := _xform * c_local
+		var edge := _xform * (c_local + Vector2(r, 0))
+		var info := {
+			"c": c_world,
+			"r": c_world.distance_to(edge),
+			"c_local": c_local,
+			"r_local": float(r),
+		}
 		_last_full_arc = info
 		_full_arcs.append(info)
 	for i in range(steps + 1):
@@ -781,6 +787,17 @@ func fill() -> void:
 				_draw_shadow_circle(c, r, col_c)
 				_ci_circle(c, r, col_c)
 		return
+	# One gradient disc (clear-gate hut glow). Rim fans sample only the outer stop.
+	if _fill_grad != null and _full_ellipses.is_empty() and _full_arcs.size() == 1 and _path_is_only_full_arcs(total_pts):
+		var only = _full_arcs[0]
+		var disc := {
+			"c_local": only.get("c_local", Vector2.ZERO),
+			"rx_local": float(only.get("r_local", only.get("r", 0.0))),
+			"ry_local": float(only.get("r_local", only.get("r", 0.0))),
+			"rot_local": 0.0,
+		}
+		if _fill_radial_ellipse_if_concentric(disc):
+			return
 	# Multi / single full ellipses (sleeves, shoes, iris, face) — solid or gradient
 	if _full_ellipses.size() >= 1 and _path_is_only_full_ellipses(total_pts):
 		if _fill_grad == null:
@@ -882,6 +899,8 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 	var rotf: float = float(info.get("rot_local", 0.0))
 	if rxf < 0.05 or ryf < 0.05:
 		return
+	if _fill_radial_ellipse_if_concentric(info):
+		return
 	var g: CanvasGradient = _fill_grad
 	var axis := Vector2(g.x1 - g.x0, g.y1 - g.y0)
 	var vertical := absf(axis.x) < absf(axis.y) * 0.5 or absf(axis.x) < 0.001
@@ -967,6 +986,61 @@ func _fill_ellipse_gradient(info: Dictionary) -> void:
 				_draw_tri(wpts[0], wpts[1], wpts[2], col)
 				if wpts.size() >= 4:
 					_draw_tri(wpts[0], wpts[2], wpts[3], col)
+
+func _fill_radial_ellipse_if_concentric(info: Dictionary) -> bool:
+	## Same-center Canvas radial. Vertical bands put every vertex on the rim, so
+	## the clear-gate void filled with the outer stop and the hole never went dark.
+	if _fill_grad == null or _fill_grad.kind != "radial":
+		return false
+	var g: CanvasGradient = _fill_grad
+	var axis := Vector2(g.x1 - g.x0, g.y1 - g.y0)
+	if axis.length_squared() >= 0.25:
+		return false
+	var c_local: Vector2 = info.get("c_local", Vector2.ZERO)
+	var rxf: float = float(info.get("rx_local", info.get("rx", 0.0)))
+	var ryf: float = float(info.get("ry_local", info.get("ry", 0.0)))
+	var rotf: float = float(info.get("rot_local", 0.0))
+	if rxf < 0.05 or ryf < 0.05:
+		return false
+	var saved_grad = _fill_grad
+	_fill_grad = null
+	var rings := 12
+	var segs := 20
+	var cs := cos(rotf)
+	var sn := sin(rotf)
+	var center_l := _ell_pt(c_local, rxf, ryf, cs, sn, 0.0, 0.0)
+	var center_c := _c(_sample_grad_at_local(center_l))
+	var center_w := _xform * center_l
+	for i in range(rings):
+		var u0 := float(i) / float(rings)
+		var u1 := float(i + 1) / float(rings)
+		for s in range(segs):
+			var a0 := TAU * float(s) / float(segs)
+			var a1 := TAU * float(s + 1) / float(segs)
+			var l01 := _ell_pt(c_local, rxf, ryf, cs, sn, u1, a0)
+			var l11 := _ell_pt(c_local, rxf, ryf, cs, sn, u1, a1)
+			var c01 := _c(_sample_grad_at_local(l01))
+			var c11 := _c(_sample_grad_at_local(l11))
+			var w01 := _xform * l01
+			var w11 := _xform * l11
+			if i == 0:
+				_ci_tri_cols(center_w, w11, w01, center_c, c11, c01)
+			else:
+				var l00 := _ell_pt(c_local, rxf, ryf, cs, sn, u0, a0)
+				var l10 := _ell_pt(c_local, rxf, ryf, cs, sn, u0, a1)
+				var c00 := _c(_sample_grad_at_local(l00))
+				var c10 := _c(_sample_grad_at_local(l10))
+				var w00 := _xform * l00
+				var w10 := _xform * l10
+				_ci_tri_cols(w00, w10, w11, c00, c10, c11)
+				_ci_tri_cols(w00, w11, w01, c00, c11, c01)
+	_fill_grad = saved_grad
+	return true
+
+func _ell_pt(c: Vector2, rx: float, ry: float, cs: float, sn: float, u: float, ang: float) -> Vector2:
+	var lx := cos(ang) * rx * u
+	var ly := sin(ang) * ry * u
+	return c + Vector2(lx * cs - ly * sn, lx * sn + ly * cs)
 
 func _fill_triangulated_gradient(poly: PackedVector2Array) -> void:
 	## Fan triangles with per-vertex gradient samples (HTML interpolates).
