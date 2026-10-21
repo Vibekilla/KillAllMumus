@@ -14,6 +14,9 @@ const VIEW_H := 540
 
 var _sv: SubViewport
 var _main: Node
+## Bytes of user://progress.json before any shot calls queue_save.
+var _progress_snapshot: String = ""
+var _progress_restored: bool = false
 ## Empty = no filter (respect fast/full defaults). Non-empty = only listed groups.
 var _shot_set: Dictionary = {}
 var _shot_filter: bool = false
@@ -92,6 +95,50 @@ func _need_play() -> bool:
 		or _want("faces") or _want("core") or _want("mechanics") or _want("mumus")
 		or _want("pickups")
 	)
+
+func _snapshot_user_progress() -> void:
+	var path := "user://progress.json"
+	if not FileAccess.file_exists(path):
+		_progress_snapshot = ""
+		return
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return
+	_progress_snapshot = f.get_as_text()
+	f.close()
+
+func _restore_user_progress() -> void:
+	## Stop a pending queue_save, put the loaded dict back, then rewrite the file.
+	if _progress_restored or _progress_snapshot == "":
+		return
+	var parsed = JSON.parse_string(_progress_snapshot)
+	var ps = _A("ProgressStore")
+	if ps and parsed is Dictionary:
+		var timer = ps.get("_save_timer")
+		if timer and timer.has_method("stop"):
+			timer.stop()
+		ps.progress = (parsed as Dictionary).duplicate(true)
+		if parsed.get("emblems") is Dictionary:
+			ps.emblems = (parsed["emblems"] as Dictionary).duplicate(true)
+		if parsed.get("estats") is Dictionary:
+			ps.estats = (parsed["estats"] as Dictionary).duplicate(true)
+		ps.ng_unlocked = int(parsed.get("ngUnlocked", 0))
+		ps.hell_cleared = bool(parsed.get("hellCleared", false))
+	var gs = _A("GameState")
+	if gs and parsed is Dictionary:
+		gs.difficulty = int(parsed.get("difficulty", 0))
+		gs.ng_plus = int(parsed.get("ngPlus", 0))
+		gs.selected_outfit = str(parsed.get("outfit", "og"))
+	var out := FileAccess.open("user://progress.json", FileAccess.WRITE)
+	if out:
+		out.store_string(_progress_snapshot)
+		out.close()
+		print("[SHOT] progress restored")
+	_progress_restored = true
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		_restore_user_progress()
 
 func _shot_dir() -> String:
 	var d := "user://" + OUT_SUB
@@ -482,6 +529,8 @@ func _run() -> void:
 		(bg as CanvasItem).z_index = -2
 	for _i in range(8):
 		await process_frame
+	# Shots call set_heads / queue_save. Put the player's progress.json back on the way out.
+	_snapshot_user_progress()
 
 	_fast = OS.get_environment("PLAYTEST_FAST") != "0"
 	if OS.get_environment("PLAYTEST_FULL") == "1":
@@ -1125,6 +1174,37 @@ func _run() -> void:
 		await _save("godot_flow_pause")
 		GameState.set_state(GameState.State.PLAY)
 
+		# HTML newRun() then spawnClearGate: guest bar, stageTime 0, heads 0 + the 15 bounty.
+		if ps and "progress" in ps:
+			ps.progress["heads"] = 0
+			ps.progress["arsenal"] = {
+				"w": ["laser"],
+				"s": ["mech", "bearzooka"],
+				"m": ["katana"],
+				"i": ["honeycomb", "bulltears", "bullsouls"],
+			}
+		GameState.weapons.clear()
+		GameState.weapons.append("laser")
+		GameState.specials.clear()
+		GameState.specials.append("mech")
+		GameState.specials.append("bearzooka")
+		GameState.current_weapon = "laser"
+		GameState.lives = 6
+		GameState.bombs = 3
+		GameState.power = 1.0
+		GameState.special_meter = 15.0
+		GameState.session_score = 0
+		GameState.total_kills = 0
+		GameState.graze = 0
+		GameState.stage_index = 0
+		if player:
+			if "armed_special" in player:
+				player.armed_special = 0
+			if "armed_melee" in player:
+				player.armed_melee = 0
+		for spn in root.get_tree().get_nodes_in_group("enemy_spawner"):
+			if is_instance_valid(spn) and "stage_time" in spn:
+				spn.stage_time = 0.0
 		if StageFlow and StageFlow.has_method("spawn_clear_gate"):
 			StageFlow.spawn_clear_gate()
 		GameState.set_state(GameState.State.PLAY)
@@ -1148,12 +1228,8 @@ func _run() -> void:
 				flow.queue_redraw()
 		await _save("godot_flow_cleargate")
 
-		# Shop dual: starter loadout + low heads (HTML guest parity — buy prices show)
+		# Shop dual: starter loadout. Heads stay at the clear-gate bounty (HTML does not zero them).
 		if ps:
-			if ps.has_method("set_heads"):
-				ps.set_heads(0)
-			elif "progress" in ps:
-				ps.progress["heads"] = 0
 			if "progress" in ps:
 				ps.progress["arsenal"] = {
 					"w": ["laser"],
@@ -2571,4 +2647,5 @@ func _run() -> void:
 
 	print("[SHOT] done dir=", ProjectSettings.globalize_path(_shot_dir()))
 	print("[SHOT] PASS")
+	_restore_user_progress()
 	quit(0)

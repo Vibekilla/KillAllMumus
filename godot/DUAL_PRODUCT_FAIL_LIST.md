@@ -52,7 +52,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | S11 | Title sign-in | Pink "Sign in with Bobina" pill sits on the hint, above the chips (2026-10-13 core dual). Residual: no CSS gradient, letter-spacing .3px |
 | S12 | ~~Melee slash~~ | **CLOSED 2026-10-13** — katana still shows the blade over the crescent. Extra inner stroke removed. CoverPass is above AddLayer |
 | S13 | Shop keys / Escape | Arrows route only in the shop, leaderboard, and emblems. M is menu. Escape is not a binding. Not yet played on a fresh export |
-| S14 | Clear gate | Leek is a border-box radius-10 tile. Banner clip is a rounded rect. Glow is the sampled shadow, not CSS box-shadow. Hut draws when the portal is null. Portal lighter stays omitted on purpose. Headless 2026-10-19: the void is a dark hole again (concentric rings; rim vertices were painting the outer stop) and the hut honey is a vector pot. Dual pair not re-shot. Not export-played |
+| S14 | Clear gate | Leek is a border-box radius-10 tile. Banner clip is a rounded rect. Glow is the sampled shadow, not CSS box-shadow. Hut draws when the portal is null. Portal lighter stays omitted on purpose. Same-run 2026-10-21: both cores are dark, both huts show SHOP, Godot honey is the vector pot, and the guest HUD matches (Red Death, SKOL Mech, Kuma Katana, Honeycomb, 15 heads). Emoji stay tofu. Not export-played |
 | S15 | Boss death ring | WorldDraw now passes deadT into drawBoss. Not on a boss-death still yet |
 | S16 | Shots and bullets | Laser bolts use roundRect capsules (rounded ends on the Godot still). HTML bolts had left the frame, so the pair is not same-position. Enemy outer disc replaced with shadowBlur 7; not on a bullet still |
 | S17 | Ends HUD | Game-over dim shows the side HUD on both (2026-10-13 right-edge crop). Win photo is a rounded cover crop. Full end screen not export-played. Color emoji still tofu |
@@ -98,6 +98,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-10-18 | S3 code | Pause fold ends on Resume at 540p; scrollbar hidden. Not export-played |
 | 2026-10-18 | S1 code | Settings footer pin budgets card chrome and the wrapped hint. Bear emoji stays tofu |
 | 2026-10-19 | S14 hole | Concentric radial rings. Headless core is a dark disc; honey is a vector pot. Not a dual close |
+| 2026-10-21 | S14 pair | Same-run clear-gate. Dark hole both sides. Guest HUD pinned. Local progress.json restored after the shot. Not a close |
 | 2026-10-18 | S14 harness | Core HTML shots now write `html_flow_cleargate`. Portal lighter stays off in Godot |
 | 2026-10-13 | spotlights | Wardrobe cone matches the outfits still. Maid dance was not in that dual |
 | 2026-08-12 | S1 scroll | SettingsMenu ScrollContainer + HTML .set-card element screenshot |
@@ -121,8 +122,8 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 Living queue is the Open SOFT table above. Do not treat a still as a close until a fresh `/godot/` export is played.
 
-1. **S14** Same-run clear-gate still. The hole and the hut pot are headless-green. Leek glow is sampled, not a CSS gaussian.  
-2. **S5 / S13 / S17** Play the fresh export. Glyph raster, shop keys, and the full end screens are still code-plus-still.  
+1. **S14** Same-run pair is in (2026-10-21). The hole and the hut match. Leek glow is sampled, not a CSS gaussian. Still needs a fresh `/godot/` export play.  
+2. **S5 / S13 / S17** Play that same export. Glyph raster, shop keys, and the full end screens are still code-plus-still.  
 3. **S1** 540p settings footer pin. Bear emoji stays tofu on this Godot.  
 4. **S3** Pause scrollbar.  
 5. **S6** Stage background seed. **S7** outfit lids. **S8** special density.  
