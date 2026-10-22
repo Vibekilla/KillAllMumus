@@ -39,9 +39,9 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 
 | ID | Area | Notes |
 |----|------|-------|
-| S1 | Settings | Expanded dual shows Reset, the HTML hint, Done, and the version line. 540p still pins that footer. Headless check: Done ends at y=417 and the version line at y=445 inside the 540 view (2026-10-18). Bear emoji stays tofu. Not export-played |
+| S1 | Settings | Expanded dual shows Reset, the HTML hint, Done, and the version line. 540p still pins that footer. Headless check: Done ends at y=417 and the version line at y=445 inside the 540 view (2026-10-18). 2026-10-22 export play: DATA, Reset, the hint, Done, and the version line stay on the card while the list is scrolled. Bear emoji stays tofu |
 | S2 | Shop | Hint reads "LEAVE → stage clear" and leave returns to PLAY. Card strokes follow each item color. Descriptions wrap (8.5px was parsing as 5). 2026-10-13 shop still. Left/right browse is S13. Not export-played |
-| S3 | Pause | Headless 540p: the card ends on Resume (bottom y=484) and Display starts below the clip. Scroll bar hidden; wheel still scrolls. Blur is sampled, not backdrop-filter. Not export-played |
+| S3 | Pause | Headless 540p: the card ends on Resume (bottom y=484) and Display starts below the clip. Scroll bar hidden; wheel still scrolls. Blur is sampled, not backdrop-filter. 2026-10-22 export: P opens that card and the next P resumes. Main was toggling the same key, so pause had been a no-op |
 | S4 | ~~Aura bomb scribble~~ | **CLOSED 2026-10-13** — soap bubble is on AddBack, BobinaPass covers it. Eye: bomb + power 3 show a readable Bobina inside the rings |
 | S5 | Item glyphs | Pickups are bold-monospace P ★ ♥ ✸ ◈ » with textBaseline middle (2026-10-13 items still, aligned for fall). DejaVu raster differs from Chromium. Not export-played |
 | S6 | Stage bg intensity | One shared loadStage roll (hue ±30, petals 3/5/7/9), including a new run that stays on stage 0. Headless test passes. Not export-played |
@@ -124,8 +124,8 @@ Living queue is the Open SOFT table above. Do not treat a still as a close until
 
 1. **S14** Same-run pair is in (2026-10-21). The hole and the hut match. Leek glow is sampled, not a CSS gaussian. Still needs a fresh `/godot/` export play.  
 2. **S5 / S13 / S17** Play that same export. Glyph raster, shop keys, and the full end screens are still code-plus-still.  
-3. **S1** 540p settings footer pin. Bear emoji stays tofu on this Godot.  
-4. **S3** Pause scrollbar.  
+3. **S1** 540p settings footer stayed pinned on the 2026-10-22 export. Bear emoji stays tofu on this Godot.  
+4. **S3** Pause card played on that export (Resume at the bottom). Scrollbar stays hidden; blur is still sampled.  
 5. **S6** Stage background seed. **S7** outfit lids. **S8** special density.  
 6. **S10** Music cold-load. **S15** boss-death still.  
 7. GPU FPS on this host is llvmpipe. Phase 7 stays **CUTOVER HOLD**. Do not set live `USE_GODOT`.

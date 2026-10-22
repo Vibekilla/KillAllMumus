@@ -176,15 +176,6 @@ func _process(_delta: float) -> void:
 	else:
 		debug_label.visible = false
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause"):
-		if GameState.state == GameState.State.PLAY:
-			GameState.set_state(GameState.State.PAUSED)
-			get_tree().paused = true
-		elif GameState.state == GameState.State.PAUSED:
-			GameState.set_state(GameState.State.PLAY)
-			get_tree().paused = false
-
 func _on_state(s: StringName) -> void:
 	intro_label.visible = false  # canvas FlowUI draws intro 1:1
 	if s == &"INTRO":
