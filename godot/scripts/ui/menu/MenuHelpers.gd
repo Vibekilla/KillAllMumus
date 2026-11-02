@@ -161,6 +161,70 @@ static func wrap_text(ctx, text: String, x: float, y: float, max_w: float, line_
 	if line != "" and lines < max_lines:
 		ctx.fill_text(line, x, ly)
 
+static func draw_galaxy_jar(ctx, s: float) -> void:
+	## HTML CONSUMABLES galaxygas.draw — glass jar, not the emoji.
+	## Caller translates to the icon anchor. s is the HTML draw() size (24 = 1:1).
+	if ctx == null:
+		return
+	var u := float(s) / 24.0
+	ctx.save()
+	ctx.scale(u, u)
+	ctx.save()
+	ctx.begin_path()
+	ctx.round_rect(-7, -6, 14, 15, 4)
+	ctx.clip()
+	var g = ctx.create_radial_gradient(-1, 3, 0.4, -1, 3, 10)
+	g.add_color_stop(0, "#efe4ff")
+	g.add_color_stop(0.32, "#9d6bff")
+	g.add_color_stop(0.7, "#3a1a6a")
+	g.add_color_stop(1, "#0a0618")
+	ctx.fill_style(g)
+	ctx.fill_rect(-8, -7, 16, 17)
+	ctx.stroke_style("rgba(222,205,255,0.75)")
+	ctx.line_width(0.7)
+	for arm in range(2):
+		ctx.begin_path()
+		var first := true
+		var t := 0.2
+		while t < 3.2:
+			var rr := t * 2.1
+			var an := t * 1.5 + float(arm) * PI
+			var x := -1.0 + cos(an) * rr
+			var y := 3.0 + sin(an) * rr * 0.85
+			if first:
+				ctx.move_to(x, y)
+				first = false
+			else:
+				ctx.line_to(x, y)
+			t += 0.25
+		ctx.stroke()
+	ctx.fill_style("#fff")
+	for st in [[-4.0, -2.0, 0.7], [3.0, 5.0, 0.6], [-3.0, 6.0, 0.5], [5.0, 1.0, 0.5], [1.0, -3.0, 0.6], [-5.0, 2.0, 0.5], [2.0, 2.0, 0.4]]:
+		ctx.begin_path()
+		ctx.arc(st[0], st[1], st[2], 0, TAU)
+		ctx.fill()
+	ctx.restore()
+	ctx.stroke_style("rgba(200,225,255,0.6)")
+	ctx.line_width(1)
+	ctx.begin_path()
+	ctx.round_rect(-7, -6, 14, 15, 4)
+	ctx.stroke()
+	ctx.stroke_style("rgba(255,255,255,0.55)")
+	ctx.line_width(0.9)
+	ctx.begin_path()
+	ctx.move_to(-4.5, -3)
+	ctx.line_to(-4.5, 5)
+	ctx.stroke()
+	ctx.fill_style("#cdb083")
+	ctx.begin_path()
+	ctx.round_rect(-8, -9.5, 16, 4, 1.6)
+	ctx.fill()
+	ctx.fill_style("#e6cfa2")
+	ctx.begin_path()
+	ctx.round_rect(-5, -11, 10, 2.4, 1)
+	ctx.fill()
+	ctx.restore()
+
 static func h_esc(s: String) -> String:
 	## HTML _hEsc — escape for HTML help builders (HelpCanvas is canvas-only; keep for parity)
 	return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")

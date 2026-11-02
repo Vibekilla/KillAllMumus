@@ -4,76 +4,98 @@
     "name": "Honeycomb",
     "icon": "\ud83c\udf6f",
     "color": "#ffcf5a",
-    "cost": 16
+    "col": "#ffcf5a",
+    "cost": 16,
+    "desc": "Restore 1 heart."
   },
   {
     "key": "bulltears",
     "name": "Bull Tears",
     "icon": "\ud83d\udca7",
     "color": "#8fd0ff",
-    "cost": 12
+    "col": "#8fd0ff",
+    "cost": 12,
+    "desc": "Fill 10% power."
   },
   {
     "key": "bullsouls",
     "name": "Bull Souls",
     "icon": "\ud83d\udd2e",
     "color": "#b98cff",
-    "cost": 28
+    "col": "#b98cff",
+    "cost": 28,
+    "desc": "Fill 30% power."
   },
   {
     "key": "galaxygas",
     "name": "Galaxy Gas",
     "icon": "\ud83c\udf0c",
     "color": "#9d6bff",
-    "cost": 56
+    "col": "#9d6bff",
+    "cost": 56,
+    "desc": "Fill 75% power."
   },
   {
     "key": "clover",
     "name": "Clover",
     "icon": "\ud83c\udf40",
     "color": "#7ed957",
-    "cost": 25
+    "col": "#7ed957",
+    "cost": 25,
+    "desc": "Charge 25% special."
   },
   {
     "key": "bubbles",
     "name": "Bubbles",
     "icon": "\ud83e\udee7",
     "color": "#8fd0ff",
-    "cost": 30
+    "col": "#8fd0ff",
+    "cost": 30,
+    "desc": "I blow bubbles that trap Mumus, then pop them for AoE."
   },
   {
     "key": "wagyu",
     "name": "Wagyu",
     "icon": "\ud83e\udd69",
     "color": "#ff8aa0",
-    "cost": 38
+    "col": "#ff8aa0",
+    "cost": 38,
+    "desc": "Restore 3 hearts."
   },
   {
     "key": "stardust",
     "name": "Stardust",
     "icon": "\u2728",
     "color": "#ffe08a",
-    "cost": 35
+    "col": "#ffe08a",
+    "cost": 35,
+    "desc": "Questionable dust — stars spawn around me and sap power from nearby Mumus."
   },
   {
     "key": "vial",
     "name": "Unholy Vial",
     "icon": "\ud83e\uddea",
     "color": "#9d6bff",
-    "cost": 32
+    "col": "#9d6bff",
+    "cost": 32,
+    "desc": "Void energy shields me from the next 3 bullets for 5s."
   },
   {
     "key": "banana",
     "name": "Banana",
     "icon": "\ud83c\udf4c",
     "color": "#ffd23a",
-    "cost": 22
+    "col": "#ffd23a",
+    "cost": 22,
+    "desc": "A quick snack — induces Monke’s Frenzy rapid fire."
   },
   {
     "key": "wormhole",
     "name": "Wormhole",
     "icon": "\ud83c\udf00",
     "color": "#7fdfff",
-    "cost": 46
+    "col": "#7fdfff",
+    "cost": 46,
+    "desc": "Phase into an alt reality for 3s — untouchable & no collision, but I still hurt Mumus."
   }
 ]

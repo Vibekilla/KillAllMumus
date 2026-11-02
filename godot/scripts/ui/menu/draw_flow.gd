@@ -538,10 +538,17 @@ func drawShop(tab: String, sel: int, msg: String, msg_t: float) -> void:
 		ctx.stroke_style("#ffd27a" if is_sel else (_hex_a(item_col, 0.4) if item_col != "" else "rgba(255,255,255,0.14)"))
 		ctx.line_width(2.2 if is_sel else 1.1)
 		ctx.stroke()
-		ctx.fill_style("#fff")
-		ctx.font("20px serif")
+		# HTML shop: consumables with a draw() (Galaxy Gas jar) replace the emoji.
 		ctx.text_align("left")
-		ctx.fill_text(str(it.get("icon", "•")), cx + 9, cy + 24)
+		if str(it.get("key")) == "galaxygas":
+			ctx.save()
+			ctx.translate(cx + 18.0, cy + 15.0)
+			MenuHelpers.draw_galaxy_jar(ctx, 19.0)
+			ctx.restore()
+		else:
+			ctx.fill_style("#fff")
+			ctx.font("20px serif")
+			ctx.fill_text(str(it.get("icon", "•")), cx + 9, cy + 24)
 		ctx.fill_style("#ffe08a" if is_sel else "#e6d8f0")
 		ctx.font("bold 11.5px Trebuchet MS")
 		ctx.fill_text(str(it.get("name", "")).substr(0, 18), cx + 36, cy + 17)
