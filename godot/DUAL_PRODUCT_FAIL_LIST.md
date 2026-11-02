@@ -100,7 +100,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-10-19 | S14 hole | Concentric radial rings. Headless core is a dark disc; honey is a vector pot. Not a dual close |
 | 2026-10-21 | S14 pair | Same-run clear-gate. Dark hole both sides. Guest HUD pinned. Local progress.json restored after the shot. Not a close |
 | 2026-11-02 | arsenal copy | Loadout sentence, tab hints, and name shrink match HTML. Key labels use HTML keyName (SPACE). Export play on :3001: all four tabs show that sentence. S1/S2/S3/S6/S14 stay open |
-| 2026-11-02 | help copy | How to Play subtitle, one row per bind, and the long item/mechanic blurbs. Consumable use stays a tap (the live key edge, not the stale HOLD sentence). Desktop leaderboard header is PLAYER (tap profile). Headless still |
+| 2026-11-02 | help copy | How to Play subtitle, one row per bind, and the long item/mechanic blurbs. Consumable use stays a tap (the live key edge, not the stale HOLD sentence). Desktop leaderboard header is PLAYER (tap profile). Export play on :3001: Settings → How to Play shows that subtitle and the bind rows |
 | 2026-10-18 | S14 harness | Core HTML shots now write `html_flow_cleargate`. Portal lighter stays off in Godot |
 | 2026-10-13 | spotlights | Wardrobe cone matches the outfits still. Maid dance was not in that dual |
 | 2026-08-12 | S1 scroll | SettingsMenu ScrollContainer + HTML .set-card element screenshot |
