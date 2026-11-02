@@ -13,6 +13,7 @@ var tab_btns: Array = []  # {id,x,y,w,h}
 var close_btn: Dictionary = {}
 var body_top: float = 0.0
 var body_h: float = 0.0
+var _content_h: float = 0.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -73,12 +74,15 @@ func _draw() -> void:
 	ctx.text_align("center")
 	ctx.fill_style("#ffe08a")
 	ctx.font("900 20px Trebuchet MS")
-	ctx.fill_text("📖 HOW TO PLAY", W / 2.0, cy + 28)
+	ctx.fill_text("📖 HOW TO PLAY", W / 2.0, cy + 26)
+	ctx.fill_style("#c8bce0")
+	ctx.font("12px Trebuchet MS")
+	ctx.fill_text("Everything Bobina can do — auto-updates as new gear is added", W / 2.0, cy + 44)
 	# tabs
 	tab_btns.clear()
 	var tabs: Array = HelpData.tabs()
 	var tx = cx + 16.0
-	var ty = cy + 44.0
+	var ty = cy + 56.0
 	var th = 26.0
 	for t in tabs:
 		var id = str(t.get("id", ""))
@@ -118,25 +122,32 @@ func _draw() -> void:
 			body = t2.get("body", [])
 			break
 	var iy = body_top + 14 - scroll
+	var text_w = cw - 56.0
+	var content_h = 14.0
+	var y0 = body_top
+	var y1 = body_top + body_h
 	ctx.text_align("left")
 	for it in body:
 		if typeof(it) != TYPE_DICTIONARY:
 			continue
-		var icon = str(it.get("icon", "•"))
+		var icon = str(it.get("icon", ""))
 		var name = str(it.get("name", ""))
 		var desc = str(it.get("desc", ""))
-		# cull outside
-		if iy > body_top + body_h + 20:
-			break
-		if iy + 40 > body_top:
-			ctx.fill_style("#ffd27a")
-			ctx.font("bold 13px monospace")
-			ctx.fill_text("%s  %s" % [icon, name], cx + 28, iy + 12)
-			# wrap desc
+		ctx.font("11px monospace")
+		var lines = _count_lines(desc, text_w)
+		var row = 18.0 + float(lines) * 14.0 + 8.0
+		if iy + row >= y0 and iy <= y1:
+			var head = name if icon == "" else "%s  %s" % [icon, name]
+			if iy + 12 >= y0 and iy + 12 <= y1:
+				ctx.fill_style("#ffd27a")
+				ctx.font("bold 13px monospace")
+				ctx.fill_text(head, cx + 28, iy + 12)
 			ctx.fill_style("#d8c8e0")
 			ctx.font("11px monospace")
-			_wrap(desc, cx + 28, iy + 28, cw - 56, 14, 4)
-		iy += 52
+			_wrap(desc, cx + 28, iy + 28, text_w, 14.0, y0, y1)
+		iy += row
+		content_h += row
+	_content_h = content_h
 	# close button
 	var bx = W / 2.0 - 70
 	var by = cy + ch - 42
@@ -151,24 +162,36 @@ func _draw() -> void:
 	ctx.fill_text("Close", W / 2.0, by + 20)
 	ctx.text_align("left")
 
-func _wrap(text: String, x: float, y: float, max_w: float, line_h: float, max_lines: int) -> void:
+func _count_lines(text: String, max_w: float) -> int:
+	if text == "":
+		return 0
+	var words = text.split(" ")
+	var line = ""
+	var n = 1
+	for w in words:
+		var trial = (line + " " + w).strip_edges()
+		if float(ctx.measure_text(trial).get("width", 0)) > max_w and line != "":
+			n += 1
+			line = str(w)
+		else:
+			line = trial
+	return n
+
+func _wrap(text: String, x: float, y: float, max_w: float, line_h: float, y0: float, y1: float) -> void:
 	var words = text.split(" ")
 	var line = ""
 	var ly = y
-	var lines = 0
 	for w in words:
 		var trial = (line + " " + w).strip_edges()
 		var tw = float(ctx.measure_text(trial).get("width", 0))
 		if tw > max_w and line != "":
-			ctx.fill_text(line, x, ly)
+			if ly >= y0 and ly <= y1:
+				ctx.fill_text(line, x, ly)
 			ly += line_h
-			lines += 1
-			line = w
-			if lines >= max_lines:
-				return
+			line = str(w)
 		else:
 			line = trial
-	if line != "" and lines < max_lines:
+	if line != "" and ly >= y0 and ly <= y1:
 		ctx.fill_text(line, x, ly)
 
 func _gui_input(event: InputEvent) -> void:
@@ -182,7 +205,7 @@ func _gui_input(event: InputEvent) -> void:
 			accept_event()
 			return
 		if mb.button_index == MOUSE_BUTTON_WHEEL_DOWN and mb.pressed:
-			scroll += 28.0
+			scroll = minf(scroll + 28.0, maxf(0.0, _content_h - body_h))
 			queue_redraw()
 			accept_event()
 			return

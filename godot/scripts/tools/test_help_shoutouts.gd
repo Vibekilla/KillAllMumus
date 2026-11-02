@@ -13,11 +13,15 @@ func _run() -> void:
 		ok = false
 	else:
 		print("[HELP] tap consumables copy ok")
-	if "Controller" not in help:
-		print("[FAIL] missing controller help row")
+	for frag in ["Use Item (tap)", "Switch Melee", "Cycle Special", "Rebind anything", "hefty POWER boost", "Skulls & the Shop"]:
+		if frag not in help:
+			print("[FAIL] help missing ", frag)
+			ok = false
+	if "Xbox-style" in help:
+		print("[FAIL] help still has the non-HTML controller row")
 		ok = false
 	else:
-		print("[HELP] controller row ok")
+		print("[HELP] bind rows ok")
 	var title := FileAccess.get_file_as_string("res://scripts/ui/TitleScreen.gd")
 	for url in [
 		"bobina.moe", "itsvibekilla", "bobina_council", "picklecharts.com", "krakenfx",

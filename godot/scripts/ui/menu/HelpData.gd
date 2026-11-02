@@ -17,17 +17,30 @@ static func _item(icon: String, name: String, desc: String) -> Dictionary:
 	return {"icon": icon, "name": name, "desc": desc}
 
 static func _controls() -> Array:
-	return [
-		_item("🎮", "Move", "Mouse — she follows the cursor · Arrow keys nudge"),
-		_item("🔥", "Shoot", "Hold %s to fire" % MenuHelpers.kb("shoot")),
-		_item("💣", "Bomb", MenuHelpers.kb("bomb")),
-		_item("⚡", "Special", "%s use · %s cycle" % [MenuHelpers.kb("special"), MenuHelpers.kb("cycle")]),
-		_item("🗡", "Melee", "Hold %s to charge · release to slash" % MenuHelpers.kb("melee")),
-		_item("🎁", "Items", "%s switch · tap %s to use" % [MenuHelpers.kb("item_switch"), MenuHelpers.kb("item_use")]),
-		_item("🎯", "Focus / Dash", "Hold Focus to slow · double-tap to dash"),
-		_item("🕹", "Controller", "Xbox-style: stick move · A/RT fire · LB focus · B bomb · X special · Y melee · D-pad items"),
-		_item("⚙", "Rebind", "Settings → Controls (keyboard or pad; also Pause)"),
+	## HTML buildHelp: Move, then one row per BIND_LIST entry (label + that key only).
+	var rows := [
+		["", "Move", "Mouse — she follows the cursor · Arrow keys nudge"],
+		["shoot", "Fire", ""],
+		["focus", "Focus / Dash", ""],
+		["melee", "Melee (hold=charge)", ""],
+		["meleeswap", "Switch Melee", ""],
+		["bomb", "Bomb", ""],
+		["swap", "Swap Weapon", ""],
+		["special", "Use Special", ""],
+		["cycle", "Cycle Special", ""],
+		["item_switch", "Switch Item", ""],
+		["item_use", "Use Item (tap)", ""],
+		["interact", "Interact / Shop", ""],
+		["pause", "Pause", ""],
 	]
+	var out: Array = []
+	for r in rows:
+		var desc := str(r[2])
+		if desc == "":
+			desc = MenuHelpers.kb(str(r[0]))
+		out.append(_item("", str(r[1]), desc))
+	out.append(_item("🎮", "Rebind anything", "Tune the mouse feel & change any key in Settings → Controls (also on the Pause screen)."))
+	return out
 
 static func _weapons() -> Array:
 	var out: Array = []
@@ -52,31 +65,33 @@ static func _melee() -> Array:
 	return out
 
 static func _items() -> Array:
+	## HTML buildHelp items. Use is a tap: update() consumes on the key edge, and BIND_LIST says "Use Item (tap)".
+	## The help paragraph still says HOLD ~0.8s; that sentence is stale against the live code.
 	return [
-		_item("🅿️", "Power (P)", "Raises shot level. Power bleeds slowly (holds after a boss)."),
-		_item("🅿️", "Full Power", "Rare drop that maxes shot level. Bosses leave one."),
-		_item("💎", "Point", "Score bonus. Auto-collected near the top (or Focus vacuum)."),
-		_item("❤️", "Life Fragment", "5 fragments = 1UP. Every 50 kills also grants a life."),
-		_item("💣", "Bomb Fragment", "3 fragments refill a bomb."),
-		_item("◈", "Bobo Guard", "Temporary shield that soaks your next hit."),
-		_item("★", "Elite Mumus", "Big themed elites — kill for POWER. Banana Frenzy is a shop consumable."),
-		_item("💀", "Mumu Skulls", "≈1/16 Mumus drop skulls for Honey Badger’s shop."),
-		_item("🍯", "Consumables", "Honeycomb/Wagyu heal · Tears/Souls/Galaxy power · Clover special · Bubbles · Stardust · Vial · Banana · Wormhole. Equip ≤3 in Arsenal. Switch + tap Use, 3s CD."),
-		_item("🎒", "Arsenal Loadout", "Drag gear into slots (≤5 weapons/specials, 2 melee, 3 items). Locked gear shows 🔒 until bought."),
+		_item("🅿️", "Power (P)", "Raises your shot level — grab them to power up. Power bleeds off slowly (but holds steady after a boss), so keep collecting."),
+		_item("🅿️", "Full Power", "A rare drop that instantly maxes your shot level. Bosses always leave one behind."),
+		_item("💎", "Point", "Score bonus. Auto-collected when you fly near the top of the field (or Focus to vacuum them)."),
+		_item("❤️", "Life Fragment", "Collect 5 for a 1UP. Every 50 Mumu kills also grants an extra life."),
+		_item("💣", "Bomb Fragment", "Collect 3 to refill a bomb."),
+		_item("◈", "Bobo Guard", "A temporary shield that soaks your next hit for free. Occasionally dropped by tougher foes."),
+		_item("★", "Elite Mumus", "Each stage has a big themed elite — a tank. Take it down for a hefty POWER boost (a few elites will max you out). Monke’s Frenzy is now the Banana consumable at the shop, not a field drop."),
+		_item("💀", "Mumu Skulls", "About 1 in 16 Mumus drops a skull — grab them and spend at Honey Badger’s shop after each boss on gear unlocks + consumables. Skulls are scarcer now and gear costs more, so choose your buys."),
+		_item("🍯", "Consumables", "Buy items at the shop — Honeycomb/Wagyu (heal), Bull Tears/Bull Souls/Galaxy Gas (power), Clover (special charge), Bubbles (trap Mumus then pop for AoE), Stardust (stars that sap nearby Mumus), Unholy Vial (soaks 3 bullets / 5s), Banana (Monke’s Frenzy rapid fire) & Wormhole (phase 3s — untouchable but you still hurt Mumus) — then equip up to 3 in your Item slots (Arsenal). In a run: tap Switch Item to pick one, tap Use Item to consume — then a 3s cooldown before the next one."),
+		_item("🎒", "Arsenal Loadout", "Drag weapons, specials, melee & items into your loadout slots (main menu or between stages) — up to 5 weapons/specials, 2 melee, 3 items. You begin with a starter kit; locked gear shows a 🔒 and a price until you buy it at the shop."),
 	]
 
 static func _mechanics() -> Array:
 	return [
-		_item("💥", "Bomb", "Wipes bullets, damages all foes, brief i-frames."),
-		_item("💨", "Dash", "Double-tap Focus toward cursor: i-framed, kills Mumus, rainbow comet."),
-		_item("✦", "Slash Dash", "Full-charge melee then dash — slashing super dash."),
-		_item("🎯", "Focus", "Slow move + hitbox + vacuum items."),
-		_item("⚡", "Special Meter", "Graze & kills charge to 100% · Use / Cycle specials."),
-		_item("✨", "Graze", "Skim bullets for score + special charge."),
-		_item("💀", "Skulls & Shop", "Spend skulls at Honey Badger after bosses."),
-		_item("🌀", "Boss Clear & Portal", "Power drain stops · shop · Interact at portal."),
-		_item("🎭", "Bogdanoff Twins", "Only active twin takes damage — wear both down."),
-		_item("🏅", "Emblems & Outfits", "Achievements unlock skins · Outfits menu + victory pose."),
-		_item("🗑", "Reset Inventory", "Settings → Reset Inventory (keeps Emblems/Outfits/NG+)."),
-		_item("🏆", "Rank & Score", "Kills → Rank → mult. HARD ×1.5 · HELL ×2.2 · NG+ stacks."),
+		_item("💥", "Bomb", "Wipes every bullet on screen, damages all enemies and the boss, and makes you briefly invincible. Limited charges — grab bomb fragments."),
+		_item("💨", "Dash", "Double-tap your Focus key to blink toward your cursor: i-framed, kills any Mumu you pass through, and leaves a psychedelic comet."),
+		_item("✦", "Slash Dash", "FULLY charge your melee, then double-tap Focus: a supercharged slashing dash that cuts a swath through enemies + bullets."),
+		_item("🎯", "Focus", "Hold Focus to slow down for tight dodging and reveal your tiny hitbox; it also vacuums nearby items."),
+		_item("⚡", "Special Meter", "Grazing bullets and killing Mumus charges your Special meter. At 100% press Use Special to unleash it, or Cycle Special to switch which one is armed."),
+		_item("✨", "Graze", "Skim enemy bullets without getting hit to earn score and charge your Special meter faster."),
+		_item("💀", "Skulls & the Shop", "About 1 in 16 Mumus drops a 💀 skull. After each boss, enter Honey Badger’s shop (press Interact) to spend them: unlock weapons, specials & melee — then equip them in the Arsenal — or stock consumables."),
+		_item("🌀", "Boss Clear & Portal", "Beat a boss and the arena clears — your power stops draining so you can regroup. Use consumables, visit the shop, then press Interact at the portal to advance to the next stage."),
+		_item("🎭", "The Bogdanoff Twins", "Stage 6’s twin boss shares one fight: only the active twin can be damaged, and they trade places whenever they please. Wear BOTH down to clear."),
+		_item("🏅", "Emblems & Outfits", "Emblems are achievements — each one unlocks a cosmetic Outfit. Browse skins in the Outfits menu, where you can also choose the victory pose she strikes on a stage clear."),
+		_item("🗑", "Reset Inventory", "Settings → Reset Inventory wipes your bought gear, items and skulls back to the starter kit. Your Emblems, Outfits and New Game+ progress are always kept."),
+		_item("🏆", "Rank & Score", "More kills → higher Rank → bigger score multiplier. HARD ×1.5, HELL ×2.2, and New Game+ stacks on top."),
 	]

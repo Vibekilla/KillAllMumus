@@ -759,7 +759,7 @@ func drawLeaderboard() -> void:
 	ctx.font("bold %dpx monospace" % (10 if P else 12))
 	ctx.fill_text("#", x0, y)
 	ctx.fill_text("FIT", x0 + oFit, y)
-	ctx.fill_text("PLAYER", x0 + oHandle, y)
+	ctx.fill_text("PLAYER" if P else "PLAYER (tap profile)", x0 + oHandle, y)
 	ctx.text_align("right")
 	ctx.fill_text("SCORE", x0 + oScore, y)
 	ctx.fill_text("MUMUS", x0 + oMumus, y)
