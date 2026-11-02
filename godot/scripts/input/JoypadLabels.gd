@@ -41,10 +41,33 @@ static func event_label(e: InputEvent) -> String:
 	if e is InputEventKey:
 		var k := e as InputEventKey
 		var code := k.physical_keycode if k.physical_keycode != 0 else k.keycode
-		return OS.get_keycode_string(code)
+		return html_key_name(code)
 	if e is InputEventJoypadButton:
 		return button_name(int((e as InputEventJoypadButton).button_index))
 	if e is InputEventJoypadMotion:
 		var m := e as InputEventJoypadMotion
 		return axis_name(int(m.axis), m.axis_value)
 	return "?"
+
+static func html_key_name(code: int) -> String:
+	## HTML keyName(): Space/Shift/Enter/Escape and the arrows are special-cased.
+	## Letter and digit keys stay the one-character Godot string ("Z", "1").
+	match code:
+		KEY_SPACE:
+			return "SPACE"
+		KEY_SHIFT:
+			return "SHIFT"
+		KEY_ENTER:
+			return "ENTER"
+		KEY_ESCAPE:
+			return "ESC"
+		KEY_LEFT:
+			return "←"
+		KEY_RIGHT:
+			return "→"
+		KEY_UP:
+			return "↑"
+		KEY_DOWN:
+			return "↓"
+		_:
+			return OS.get_keycode_string(code)

@@ -29,6 +29,20 @@ func set_tick(t: int) -> void:
 	if combat_fx and combat_fx.has_method("set_tick"):
 		combat_fx.set_tick(t)
 
+func _fit_trebuchet(text: String, start: float, floor_size: float, max_w: float) -> void:
+	## HTML arsenal names: start at `start` px and step down by 0.5 while wider than max_w.
+	## font() rounds 8.5 to 9, so a 0.5 step still changes size on the even values.
+	var nfs := start
+	ctx.font("bold %spx Trebuchet MS" % _css_px(nfs))
+	while float(ctx.measure_text(text).get("width", 0)) > max_w and nfs > floor_size:
+		nfs -= 0.5
+		ctx.font("bold %spx Trebuchet MS" % _css_px(nfs))
+
+func _css_px(n: float) -> String:
+	if is_equal_approx(n, roundf(n)):
+		return str(int(roundf(n)))
+	return "%0.1f" % n
+
 func _bg(c0: String, c1: String) -> void:
 	MenuHelpers.fill_bg(ctx, c0, c1, W, H)
 
@@ -488,9 +502,9 @@ func drawArsenal() -> void:
 	ctx.restore()
 	var tabs = [
 		["w", "WEAPONS", "#ff8ac0", "[" + MenuHelpers.kb("swap") + "] cycles these in a run"],
-		["s", "SPECIALS", "#b98cff", "[" + MenuHelpers.kb("special") + "] use · cycle swaps"],
-		["m", "MELEE", "#ff8a6a", "[" + MenuHelpers.kb("melee") + "] swipe"],
-		["i", "ITEMS", "#ffd27a", "switch / tap to use consumables"],
+		["s", "SPECIALS", "#b98cff", "[" + MenuHelpers.kb("special") + "] use · [" + MenuHelpers.kb("cycle") + "] cycles these"],
+		["m", "MELEE", "#ff8a6a", "[" + MenuHelpers.kb("melee") + "] swipe · [" + MenuHelpers.kb("meleeswap") + "] cycles these"],
+		["i", "ITEMS", "#ffd27a", "[" + MenuHelpers.kb("item_switch") + "] switch · tap [" + MenuHelpers.kb("item_use") + "] to use"],
 	]
 	var tabW = 142.0
 	var tabGap = 10.0
@@ -536,7 +550,7 @@ func drawArsenal() -> void:
 	ctx.text_align("center")
 	ctx.fill_style(accent)
 	ctx.font("bold 12px monospace")
-	ctx.fill_text("YOUR LOADOUT  ·  drag/tap to equip & order  ·  " + hint, W / 2.0, 92)
+	ctx.fill_text("YOUR LOADOUT  ·  drag items into the slots to equip & order  ·  tap a slot to remove  ·  " + hint, W / 2.0, 92)
 	var slotW = minf(130.0, (W - 100.0 - float(cap2 - 1) * 14.0) / float(cap2))
 	var slotH = 66.0
 	var sTotW = float(cap2) * slotW + float(cap2 - 1) * 14.0
@@ -586,8 +600,9 @@ func drawArsenal() -> void:
 					ctx.fill_text(str(it.get("icon", "?")), sx + slotW / 2.0, sY + 34)
 				ctx.text_align("center")
 				ctx.fill_style("#ffe6b0")
-				ctx.font("bold 10px Trebuchet MS")
-				ctx.fill_text(str(it.get("name", key)).substr(0, 12), sx + slotW / 2.0, sY + 52)
+				var hot_name := str(it.get("name", key))
+				_fit_trebuchet(hot_name, 10.0, 6.5, slotW - 10.0)
+				ctx.fill_text(hot_name, sx + slotW / 2.0, sY + 52)
 				if type == "i":
 					ctx.fill_style("#9fe0a4")
 					ctx.font("900 9px monospace")
@@ -642,8 +657,9 @@ func drawArsenal() -> void:
 			ctx.font("20px serif")
 			ctx.fill_text(str(it.get("icon", "?")), px + 9, py + 24)
 		ctx.fill_style("#ffe08a" if sel else "#e6d8f0")
-		ctx.font("bold 11px Trebuchet MS")
-		ctx.fill_text(str(it.get("name", "")).substr(0, 14), px + 37, py + 18)
+		var pool_name := str(it.get("name", ""))
+		_fit_trebuchet(pool_name, 11.5, 7.0, pTW - 52.0)
+		ctx.fill_text(pool_name, px + 37, py + 18)
 		ctx.fill_style("#b8a8c8")
 		ctx.font("8.5px monospace")
 		MenuHelpers.wrap_text(ctx, str(it.get("desc", "")), px + 10, py + 34, pTW - 18, 9, 3)
