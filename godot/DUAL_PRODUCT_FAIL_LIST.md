@@ -103,6 +103,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-11-02 | help copy | How to Play subtitle, one row per bind, and the long item/mechanic blurbs. Consumable use stays a tap (the live key edge, not the stale HOLD sentence). Desktop leaderboard header is PLAYER (tap profile). Export play on :3001: Settings → How to Play shows that subtitle and the bind rows |
 | 2026-11-05 | controls copy | Controls subtitle, follow and speed sliders, BIND_LIST order, and keyboard-only names (SPACE, no joy suffix). Waiting text is press…. Reset and Done stay outside the scroll. Joy rebind still applies. Export play on :3001: Settings → Controls shows that card. S1/S2/S3/S6/S14 stay open |
 | 2026-11-05 | name prompt | Submit card uses the HTML title, the score line plus "to sync forever", placeholder "@ your X handle (for credit)", maxlength 15, Save to Leaderboard, and Skip. Skip stays on the result. GL still on a forced game over. Not a played death. S17 stays open |
+| 2026-11-05 | touch title | Portrait hint is the HTML line: joystick moves, tap FIRE toggles auto-fire (off by default). Source match. Not a portrait export play |
 | 2026-10-18 | S14 harness | Core HTML shots now write `html_flow_cleargate`. Portal lighter stays off in Godot |
 | 2026-10-13 | spotlights | Wardrobe cone matches the outfits still. Maid dance was not in that dual |
 | 2026-08-12 | S1 scroll | SettingsMenu ScrollContainer + HTML .set-card element screenshot |

@@ -300,7 +300,7 @@ func drawTitleChrome() -> void:
 	else:
 		ctx.fill_style("#a894b2")
 		ctx.font("bold 11px monospace")
-		ctx.fill_text("◀ JOYSTICK (bottom-left) moves — she auto-fires", W / 2.0, ny)
+		ctx.fill_text("◀ JOYSTICK moves · tap FIRE to toggle auto-fire (off by default)", W / 2.0, ny)
 		ny += info_gap
 		ctx.fill_style("#9a8aa2")
 		ctx.font("11px monospace")
