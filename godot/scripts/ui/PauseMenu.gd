@@ -3,6 +3,7 @@ extends Control
 ## Must sit above HudCanvas (z) and center like HTML flex #pausescreen.
 
 const OverlayTheme = preload("res://scripts/ui/menu/OverlayTheme.gd")
+const MenuHelpers = preload("res://scripts/ui/menu/MenuHelpers.gd")
 
 @onready var music_slider: HSlider = %MusicSlider
 @onready var sfx_slider: HSlider = %SfxSlider
@@ -317,6 +318,9 @@ func _on_speed(v: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if GameState.state != GameState.State.PAUSED:
 		return
+	# HTML anyModalOpen swallows pause keys and the outside-card click while Controls is up.
+	if MenuHelpers and MenuHelpers.any_modal_open():
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_M:
 			_on_menu()
@@ -349,7 +353,9 @@ func _on_display() -> void:
 
 func _on_keybinds() -> void:
 	var kb = get_parent().get_node_or_null("KeybindsMenu") if get_parent() else null
-	if kb:
+	if kb and kb.has_method("open_menu"):
+		kb.open_menu()
+	elif kb:
 		kb.visible = true
 
 func _on_menu() -> void:

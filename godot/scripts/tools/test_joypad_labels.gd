@@ -1,5 +1,5 @@
 extends SceneTree
-## JoypadLabels + keybinds dual-label format.
+## JoypadLabels stay. The Controls buttons show HTML keyName only (no joy suffix).
 ## Run: godot --path godot --headless --script res://scripts/tools/test_joypad_labels.gd
 
 func _init() -> void:
@@ -33,10 +33,19 @@ func _run() -> void:
 		ok = false
 	else:
 		print("[PAD] keybinds joy rebind ok")
-	if "·" not in kb:
-		print("[FAIL] dual label separator missing")
+	if "%s · %s" in kb or "press key/pad" in kb:
+		print("[FAIL] keybind button still appends a joy glyph or the old waiting text")
+		ok = false
+	elif "press…" not in kb:
+		print("[FAIL] waiting text should be press…")
 		ok = false
 	else:
-		print("[PAD] dual label format ok")
+		print("[PAD] keyboard-only label ok")
+	for frag in ["Melee (hold=charge)", "Interact / Shop", "Use Item (tap)", "Focus / Dash"]:
+		if frag not in kb:
+			print("[FAIL] BIND_LIST label missing: ", frag)
+			ok = false
+	if ok:
+		print("[PAD] bind labels ok")
 	print("[PASS]" if ok else "[FAIL]")
 	quit(0 if ok else 1)
