@@ -10,6 +10,8 @@ var share_btn: Dictionary = {}
 var menu_btn: Dictionary = {}
 var retry_btn: Dictionary = {}
 var save_btn_rect: Dictionary = {}
+var skip_btn_rect: Dictionary = {}
+var signin_rect: Dictionary = {}
 var handle_edit: LineEdit
 var _won: bool = false
 
@@ -19,11 +21,14 @@ func _ready() -> void:
 		if c is not LineEdit:
 			c.visible = false
 	handle_edit = LineEdit.new()
-	handle_edit.placeholder_text = "@ X handle"
-	handle_edit.position = Vector2(Config.W * 0.5 - 140, Config.H * 0.5 + 40)
-	handle_edit.size = Vector2(280, 28)
+	handle_edit.placeholder_text = "@ your X handle (for credit)"
+	handle_edit.max_length = 15
+	handle_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	handle_edit.position = Vector2(Config.W * 0.5 - 156, Config.H * 0.5 + 20)
+	handle_edit.size = Vector2(312, 36)
 	handle_edit.visible = false
 	handle_edit.text_submitted.connect(func(t): _do_save(t))
+	_style_handle_edit()
 	add_child(handle_edit)
 
 	ctx = load("res://scripts/render/CanvasCompat.gd").new()
@@ -75,6 +80,8 @@ func _draw() -> void:
 	menu_btn = {}
 	retry_btn = {}
 	save_btn_rect = {}
+	skip_btn_rect = {}
+	signin_rect = {}
 	if _won:
 		_draw_win()
 	else:
@@ -266,39 +273,109 @@ func _draw_win() -> void:
 	retry_btn = {"x": W / 2.0 - 180, "y": H - 40, "w": 360, "h": 36}
 	ctx.text_align("left")
 
+func _style_handle_edit() -> void:
+	## HTML #ne-input
+	if handle_edit == null:
+		return
+	handle_edit.add_theme_font_size_override("font_size", 16)
+	handle_edit.add_theme_color_override("font_color", Color.WHITE)
+	handle_edit.add_theme_color_override("font_placeholder_color", Color(1, 1, 1, 0.55))
+	if FontBank and FontBank.ui:
+		handle_edit.add_theme_font_override("font", FontBank.ui)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("160c1a")
+	sb.border_color = Color("ff8ac0")
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(8)
+	sb.content_margin_left = 12
+	sb.content_margin_right = 12
+	sb.content_margin_top = 6
+	sb.content_margin_bottom = 6
+	handle_edit.add_theme_stylebox_override("normal", sb)
+	handle_edit.add_theme_stylebox_override("focus", sb)
+	handle_edit.add_theme_stylebox_override("read_only", sb)
+
 func _draw_name_entry_chrome() -> void:
+	## HTML #nameEntry — full dim, title, score line, credit line, input, Save + Skip.
 	var W = Config.W
 	var H = Config.H
-	ctx.fill_style("rgba(8,4,14,0.72)")
-	ctx.fill_rect(W * 0.5 - 220, H * 0.5 - 30, 440, 110)
-	ctx.stroke_style("#ff9ecb")
+	ctx.fill_style("rgba(6,4,10,0.6)")
+	ctx.fill_rect(0, 0, W, H)
+	var card_w := 360.0
+	var card_h := 214.0
+	var card_x: float = float(W) * 0.5 - card_w * 0.5
+	var card_y: float = float(H) * 0.5 - card_h * 0.5
+	ctx.save()
+	ctx.shadow_color("rgba(255,60,120,0.45)")
+	ctx.shadow_blur(22)
+	ctx.fill_style("#2a1830")
+	ctx.begin_path()
+	ctx.round_rect(card_x, card_y, card_w, card_h, 14)
+	ctx.fill()
+	ctx.restore()
+	ctx.stroke_style("#ff5b8d")
 	ctx.line_width(2)
 	ctx.begin_path()
-	ctx.round_rect(W * 0.5 - 220, H * 0.5 - 30, 440, 110, 10)
+	ctx.round_rect(card_x, card_y, card_w, card_h, 14)
 	ctx.stroke()
 	ctx.text_align("center")
-	ctx.fill_style("#ffe08a")
-	ctx.font("bold 14px Trebuchet MS")
-	var prefix = "BOBO SAVED! " if _won else ""
-	ctx.fill_text("%sScore %s · %d Mumus · Rank %s" % [
-		prefix, MenuHelpers.fmt_score(GameState.session_score), GameState.total_kills, GameState.rank_letter()
-	], W / 2.0, H * 0.5 - 8)
+	ctx.fill_style("#ffd27a")
+	ctx.font("900 15px Trebuchet MS")
+	ctx.fill_text("SUBMIT TO GLOBAL LEADERBOARD", W * 0.5, card_y + 34)
+	var mode := ""
+	if GameState and (int(GameState.difficulty) > 0 or int(GameState.ng_plus) > 0):
+		mode = " · " + GameState.mode_tag()
+	var prefix := "BOBO SAVED! " if _won else ""
+	ctx.fill_style("#ff9ecb")
+	ctx.font("13px monospace")
+	ctx.fill_text("%sScore %s · %d Mumus · Rank %s%s" % [
+		prefix,
+		MenuHelpers.fmt_score(GameState.session_score),
+		GameState.total_kills,
+		GameState.rank_letter(),
+		mode,
+	], W * 0.5, card_y + 56)
 	ctx.fill_style("#c8b0d0")
-	ctx.font("11px monospace")
-	ctx.fill_text("Save your X handle for credit — or Sign in with Bobina", W / 2.0, H * 0.5 + 12)
-	# SAVE button under input
-	var bx = W * 0.5 - 80
-	var by = H * 0.5 + 72
-	save_btn_rect = {"x": bx, "y": by, "w": 160, "h": 28}
-	ctx.fill_style("rgba(255,90,140,0.35)")
-	ctx.begin_path()
-	ctx.round_rect(bx, by, 160, 28, 8)
-	ctx.fill()
-	ctx.fill_style("#fff")
-	ctx.font("bold 13px Trebuchet MS")
-	ctx.fill_text("SAVE SCORE", W / 2.0, by + 19)
-	handle_edit.position = Vector2(W * 0.5 - 140, H * 0.5 + 28)
+	ctx.font("12px monospace")
+	ctx.fill_text("Save your X handle for credit — or", W * 0.5, card_y + 76)
+	var link := "Sign in with Bobina"
+	var tail := " to sync forever"
+	var lw := float(ctx.measure_text(link).get("width", 0.0))
+	var tw := float(ctx.measure_text(tail).get("width", 0.0))
+	var x0: float = float(W) * 0.5 - (lw + tw) * 0.5
+	var ly := card_y + 94
+	ctx.text_align("left")
+	ctx.fill_style("#ff9ecb")
+	ctx.fill_text(link, x0, ly)
+	ctx.fill_style("#c8b0d0")
+	ctx.fill_text(tail, x0 + lw, ly)
+	signin_rect = {"x": x0, "y": ly - 14.0, "w": lw, "h": 18.0}
+	ctx.text_align("center")
+	var input_w := card_w - 48.0
+	var input_y := card_y + 108.0
+	handle_edit.position = Vector2(card_x + 24.0, input_y)
+	handle_edit.size = Vector2(input_w, 36)
 	handle_edit.visible = true
+	var btn_y := card_y + 158.0
+	var btn_h := 36.0
+	var btn_w := (input_w - 10.0) * 0.5
+	var save_x := card_x + 24.0
+	var skip_x := save_x + btn_w + 10.0
+	save_btn_rect = {"x": save_x, "y": btn_y, "w": btn_w, "h": btn_h}
+	skip_btn_rect = {"x": skip_x, "y": btn_y, "w": btn_w, "h": btn_h}
+	ctx.fill_style("#ff4d8d")
+	ctx.begin_path()
+	ctx.round_rect(save_x, btn_y, btn_w, btn_h, 8)
+	ctx.fill()
+	ctx.fill_style("#332440")
+	ctx.begin_path()
+	ctx.round_rect(skip_x, btn_y, btn_w, btn_h, 8)
+	ctx.fill()
+	ctx.font("bold 14px Trebuchet MS")
+	ctx.fill_style("#ffffff")
+	ctx.fill_text("Save to Leaderboard", save_x + btn_w * 0.5, btn_y + 23)
+	ctx.fill_style("#c8b0c4")
+	ctx.fill_text("Skip", skip_x + btn_w * 0.5, btn_y + 23)
 	ctx.text_align("left")
 
 func _draw_share_btn(cx: float, y: float, won: bool) -> void:
@@ -391,6 +468,15 @@ func _gui_input(event: InputEvent) -> void:
 			_do_save(handle_edit.text)
 			accept_event()
 			return
+		if P2Meta.name_entry_open and MenuHelpers.in_btn(p, skip_btn_rect):
+			_skip_name()
+			accept_event()
+			return
+		if P2Meta.name_entry_open and MenuHelpers.in_btn(p, signin_rect):
+			if ApiClient:
+				ApiClient.open_login()
+			accept_event()
+			return
 		if MenuHelpers.in_btn(p, retry_btn) or true:
 			# empty tap retries like HTML advanceScreen for end states
 			if not P2Meta.name_entry_open:
@@ -399,6 +485,12 @@ func _gui_input(event: InputEvent) -> void:
 
 func _do_save(handle: String) -> void:
 	P2Meta.do_save_score(handle)
+	handle_edit.visible = false
+	P2Meta.name_entry_open = false
+	queue_redraw()
+
+func _skip_name() -> void:
+	## HTML #ne-skip — hide the prompt and stay on the result.
 	handle_edit.visible = false
 	P2Meta.name_entry_open = false
 	queue_redraw()
