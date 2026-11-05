@@ -101,7 +101,7 @@ Source dual: `tools/port/playtest_out/index.html` (regenerate with `npm run port
 | 2026-10-21 | S14 pair | Same-run clear-gate. Dark hole both sides. Guest HUD pinned. Local progress.json restored after the shot. Not a close |
 | 2026-11-02 | arsenal copy | Loadout sentence, tab hints, and name shrink match HTML. Key labels use HTML keyName (SPACE). Export play on :3001: all four tabs show that sentence. S1/S2/S3/S6/S14 stay open |
 | 2026-11-02 | help copy | How to Play subtitle, one row per bind, and the long item/mechanic blurbs. Consumable use stays a tap (the live key edge, not the stale HOLD sentence). Desktop leaderboard header is PLAYER (tap profile). Export play on :3001: Settings → How to Play shows that subtitle and the bind rows |
-| 2026-11-05 | controls copy | Controls subtitle, follow and speed sliders, BIND_LIST order, and keyboard-only names (SPACE, no joy suffix). Waiting text is press…. Reset and Done stay outside the scroll. Joy rebind still applies. GL still of the card. Not export-played |
+| 2026-11-05 | controls copy | Controls subtitle, follow and speed sliders, BIND_LIST order, and keyboard-only names (SPACE, no joy suffix). Waiting text is press…. Reset and Done stay outside the scroll. Joy rebind still applies. Export play on :3001: Settings → Controls shows that card. S1/S2/S3/S6/S14 stay open |
 | 2026-10-18 | S14 harness | Core HTML shots now write `html_flow_cleargate`. Portal lighter stays off in Godot |
 | 2026-10-13 | spotlights | Wardrobe cone matches the outfits still. Maid dance was not in that dual |
 | 2026-08-12 | S1 scroll | SettingsMenu ScrollContainer + HTML .set-card element screenshot |
